@@ -1613,8 +1613,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (mask) { sh.uniforms.uMask = mask.tex; sh.uniforms.uSize = mask.size; }
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWp; varying vec3 vNo;')
         .replace('#include <project_vertex>', '#include <project_vertex>\n{ vec4 wp4 = vec4(transformed, 1.0);\n#ifdef USE_INSTANCING\n wp4 = instanceMatrix * wp4;\n#endif\n vWp = (modelMatrix * wp4).xyz; vNo = normal; }');
-      sh.uniforms.uCausticT = MAT.causticT; sh.uniforms.uSandTex = { value: sprTex('sand') };
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uCausticT; uniform sampler2D uSandTex; varying vec3 vWp; varying vec3 vNo; float vEdge = 0.0; float vLine = 0.0; float vWet = 0.0; float vTopOpen = 0.0; vec2 vLc = vec2(0.5); vec3 vGlint = vec3(0.0);' + (mask ? '\nuniform sampler2D uMask; uniform vec2 uSize;' : ''))
+      sh.uniforms.uCausticT = MAT.causticT; sh.uniforms.uSandTex = { value: sprTex('sand') }; sh.uniforms.uNew = MAT.sandNew;
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uCausticT, uNew; uniform sampler2D uSandTex; varying vec3 vWp; varying vec3 vNo; float vEdge = 0.0; float vLine = 0.0; float vWet = 0.0; float vTopOpen = 0.0; vec2 vLc = vec2(0.5); vec3 vGlint = vec3(0.0);' + (mask ? '\nuniform sampler2D uMask; uniform vec2 uSize;' : ''))
         .replace('#include <clipping_planes_fragment>', mask ? `#include <clipping_planes_fragment>
         { vec2 cell = vec2(floor(vWp.x + 0.5), floor(-vWp.y + 0.5)); vec2 lc = vec2(vWp.x + 0.5, -vWp.y + 0.5) - cell;
           if (cell.x < 0.0 || cell.y < 0.0 || cell.x >= uSize.x || cell.y >= uSize.y) discard;
@@ -1644,7 +1644,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             if (oD && oL && lc.x < r && lc.y > 1.0 - r && length(lc - vec2(r, 1.0 - r)) > r) discard;
             if (oD && oR && lc.x > 1.0 - r && lc.y > 1.0 - r && length(lc - vec2(1.0 - r)) > r) discard; }
           // shade: 0..1 darkening near exposed sides/bottom, scaled into the dug cell when it shrinks
-          float e = 0.1;
+          float e = uNew > 0.5 ? 0.17 : 0.1;
           float sh = 0.0;
           sh = max(sh, (1.0 - step(0.99, nL)) * smoothstep(e, 0.0, lc.x));
           sh = max(sh, (1.0 - step(0.99, nR)) * smoothstep(e, 0.0, 1.0 - lc.x));
@@ -1662,18 +1662,20 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           float drift = sin(p.x * 0.35 + p.y * 0.5) * 0.5 + 0.5;
           vec3 hi = vec3(1.0, 0.78, 0.33), mid = vec3(0.97, 0.63, 0.2), dark = vec3(0.7, 0.36, 0.06), lip = vec3(1.0, 0.88, 0.48);
           vec3 c = mix(mid, hi, drift * 0.6);
-          { vec3 tl = pow(texture2D(uSandTex, p * 0.3).rgb, vec3(2.2)); float det = dot(tl, vec3(0.2126, 0.7152, 0.0722)) / 0.464; c = vec3(1.16, 0.84, 0.2) * mix(1.0, det, 0.42); }
+          { vec3 tl = pow(texture2D(uSandTex, p * 0.3).rgb, vec3(2.2)); float det = dot(tl, vec3(0.2126, 0.7152, 0.0722)) / 0.464; vec3 base = vec3(1.16, 0.84, 0.2);
+            if (uNew > 0.5) { float dd = clamp(-p.y / 12.0, 0.0, 1.0); base = mix(vec3(1.16, 0.8, 0.26), vec3(1.06, 0.6, 0.17), smoothstep(0.0, 0.5, dd)); base = mix(base, vec3(0.84, 0.4, 0.16), smoothstep(0.5, 1.0, dd)); }
+            c = base * mix(1.0, det, 0.42); }
           // sediment strata: soft wavy layers of slightly different sand, like a cut through the seabed
           float st = -p.y * 1.15 + sin(p.x * 0.45) * 0.28 + sin(p.x * 1.3 + 2.0) * 0.08;
           float band = floor(st), fb = fract(st), bh = fract(sin(band * 91.7) * 43758.5);
-          c *= 0.95 + bh * 0.08;
+          c *= uNew > 0.5 ? mix(vec3(0.9, 0.86, 0.84), vec3(1.06, 1.02, 0.96), bh) : vec3(0.95 + bh * 0.08);
           c = mix(c, c * 0.8, smoothstep(0.1, 0.0, fb) * 0.8);          // thin darker seam at the top of each layer
           c = mix(c, c * 1.08, smoothstep(0.12, 0.3, fb) * smoothstep(0.5, 0.3, fb) * 0.6); // light catch just under it
           // depth: deeper sand is a touch darker and cooler
-          float deep = clamp(-p.y / 11.0, 0.0, 1.0); c *= 1.0 - deep * 0.24; c = mix(c, c * vec3(0.92, 0.95, 1.05), deep * 0.5);
+          float deep = clamp(-p.y / 11.0, 0.0, 1.0); c *= 1.0 - deep * (uNew > 0.5 ? 0.1 : 0.24); c = mix(c, c * vec3(0.92, 0.95, 1.05), deep * 0.5);
           // the odd smooth pebble
           vec2 pc = floor(p * 1.6); float ph = fract(sin(dot(pc, vec2(41.3, 289.1))) * 43758.5);
-          if (ph < 0.09) { vec2 q = fract(p * 1.6) - vec2(0.3 + ph * 4.0, 0.5); float d = length(q * vec2(1.0, 1.4));
+          if (ph < 0.09 && uNew < 0.5) { vec2 q = fract(p * 1.6) - vec2(0.3 + ph * 4.0, 0.5); float d = length(q * vec2(1.0, 1.4));
             c = mix(c, vec3(0.62, 0.5, 0.42), smoothstep(0.075, 0.06, d)); c = mix(c, vec3(0.86, 0.78, 0.68), smoothstep(0.035, 0.0, length(q - vec2(-0.02, 0.025)))); }
           // very soft dune waves
           c = mix(c, hi, smoothstep(-0.6, 0.6, sin(p.x * 0.21 - p.y * 0.17)) * 0.25);
@@ -1689,12 +1691,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           vGlint = vec3(1.0, 0.96, 0.82) * step(0.985, gs) * tw * gd * 0.8 * (1.0 - vEdge);
           float speck = fract(sin(dot(floor(p * 48.0), vec2(12.9898, 78.233))) * 43758.5453);
           
-          c = mix(c, dark * 0.75, vEdge * 0.75);
+          c = mix(c, uNew > 0.5 ? vec3(0.42, 0.22, 0.09) : dark * 0.75, vEdge * 0.75);
           c = mix(c, lip, vTopOpen * smoothstep(0.15, 0.06, vLc.y));
           c = mix(c, vec3(0.008, 0.016, 0.066) * 1.9, vLine);
           // shells, starfish and pebbles pressed into the sand face (they go away with the sand when dug)
           { vec2 dp = p * 0.5; vec2 dc = floor(dp); float hd = fract(sin(dot(dc, vec2(17.31, 91.73))) * 43758.5453);
-            if (hd < 0.24) { float ang = hd * 61.0; mat2 R = mat2(cos(ang), -sin(ang), sin(ang), cos(ang));
+            if (hd < 0.24 && uNew < 0.5) { float ang = hd * 61.0; mat2 R = mat2(cos(ang), -sin(ang), sin(ang), cos(ang));
               vec2 q = R * ((fract(dp) - vec2(0.28 + hd * 1.8, 0.5)) / 0.5) * 0.78; vec2 qs = R * ((fract(dp) - vec2(0.28 + hd * 1.8 + 0.025, 0.5 + 0.035)) / 0.5) * 0.78;
               float a = atan(q.y, q.x), r = length(q), as = atan(qs.y, qs.x), rs = length(qs);
               if (false) {}
@@ -1742,7 +1744,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     MAT.caveWall = causticify(new THREE.MeshStandardMaterial({ color: 0x2a62c8, roughness: 0.85, envMapIntensity: 0.3 }), 0.1);
     MAT.causticT = { value: 0 };
     MAT.sand = sandify(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7, metalness: 0, envMapIntensity: 0.4 }));
-    MAT.sandMask = { tex: { value: null }, size: { value: new THREE.Vector2(1, 1) } };
+    MAT.sandMask = { tex: { value: null }, size: { value: new THREE.Vector2(1, 1) } }; MAT.sandNew = { value: 0 };
     MAT.sandFront = sandify(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.72, metalness: 0, envMapIntensity: 0.2, toneMapped: false }), MAT.sandMask);
     MAT.stone = phys({ color: 0x0f52d8, roughness: 0.12, metalness: 0.05, clearcoat: 1, clearcoatRoughness: 0.02, envMapIntensity: 1.4 });
     MAT.ball = phys({ color: 0xff2200, roughness: 0.14, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.02, emissive: 0xc81800, emissiveIntensity: 0.45, envMapIntensity: 1.1, sheen: 0.6, sheenColor: 0xff9a60, sheenRoughness: 0.35 });
@@ -1898,15 +1900,28 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const h = new THREE.InstancedMesh(hullGeo(im.geometry), hullMat, im.count || 1); h.castShadow = false; h.count = im.count; h.instanceMatrix.copy(im.instanceMatrix); h.instanceMatrix.needsUpdate = true; h.userData.isHull = true; h.renderOrder = -1; parent.add(h); return h;
   }
 
-  function makeStone() {
+  // new look: a chunky blue reef boulder like the sheet's rocks (lumpy, faceted, cyan glints) instead of the lavender block
+  function makeBoulder() {
+    if (!GEO.rockN) { const g = new THREE.IcosahedronGeometry(0.43, 2), P = g.attributes.position, v = new THREE.Vector3();
+      for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); const n = Math.sin(v.x * 9.1 + v.y * 4.3) * 0.5 + Math.sin(v.y * 7.7 - v.z * 5.9) * 0.35 + Math.sin(v.z * 8.3 + v.x * 6.1) * 0.3;
+        v.multiplyScalar(1 + n * 0.07); v.y *= 0.92; v.x *= 1.04; P.setXYZ(i, v.x, v.y, v.z); }
+      g.computeVertexNormals(); GEO.rockN = g;
+      MAT.rockN = causticify(new THREE.MeshPhysicalMaterial({ color: 0x2a4f8e, roughness: 0.62, clearcoat: 0.3, clearcoatRoughness: 0.4, sheen: 0.35, sheenColor: 0x6fd8ff, sheenRoughness: 0.5, envMapIntensity: 0.6, flatShading: true }), 0.14); }
+    const g = new THREE.Group(); const spin = new THREE.Group(); g.add(spin); const m = new THREE.Mesh(GEO.rockN, MAT.rockN); m.castShadow = true; spin.add(m);
+    g.userData.spin = spin; return withShadow(g);
+  }
+  function makeStone(newArt) {
+    if (newArt) return makeBoulder();
     const g = new THREE.Group(); const spin = new THREE.Group(); g.add(spin);
     const m = new THREE.Mesh(GEO.boulder, [MAT.boulder, MAT.boulderSide]); spin.add(m);
     const boss = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.045, 12, 32), MAT.boulderSide); boss.position.z = 0.4; boss.userData.noOutline = true; spin.add(boss);
     const cap = new THREE.Mesh(new THREE.SphereGeometry(0.15, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), MAT.boulder); cap.rotation.x = Math.PI / 2; cap.scale.y = 0.35; cap.position.z = 0.4; cap.userData.noOutline = true; spin.add(cap);
     g.userData.spin = spin; return withShadow(g);
   }
-  function makeBall() {
-    const g = new THREE.Group(); const m = new THREE.Mesh(GEO.ball, MAT.ball); g.add(m);
+  function makeBall(newArt) {
+    // new look: a deep ruby glass pearl (the sheet's energy pearl) rather than an orange plastic ball
+    if (newArt && !MAT.pearl) MAT.pearl = new THREE.MeshPhysicalMaterial({ color: 0xb00410, roughness: 0.1, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.03, emissive: 0x9a0010, emissiveIntensity: 0.7, envMapIntensity: 1.2 });
+    const g = new THREE.Group(); const m = new THREE.Mesh(GEO.ball, newArt ? MAT.pearl : MAT.ball); g.add(m);
     const glow = new THREE.Sprite(MAT.ballGlow); glow.scale.set(1.75, 1.75, 1); glow.position.z = -0.1; g.add(glow);
     const core = new THREE.Sprite(MAT.ballCore); core.scale.set(0.55, 0.55, 1); core.position.set(-0.04, 0.02, 0.3); g.add(core); g.userData = { core };
     Object.assign(g.userData, { spin: m, glow }); return withShadow(g);
@@ -2351,7 +2366,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   }
 
   const PHOTO_BG_URI = window.AQ_DATA.PHOTO_BG_URI;
-  const PHOTO_LEVELS = new Set(['First Light']); // background-image test: just the first level for now
+  const PHOTO_LEVELS = new Set(LEVELS.slice(0, 4).map(l => l.name)); // painted background: the new-look trial levels (1-4)
   // which asset sheet dresses a level: 'new' (images/sheet2, the owner's new sheet) is on trial on the first 4 levels
   const NEW_ART_LEVELS = new Set(LEVELS.slice(0, 4).map(l => l.name));
   const ART_SETS = {
@@ -2508,7 +2523,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.gateObj = null; this.sandInst = null; this.treasures = []; this.digChunks = []; if (this.warn) this.warn.visible = false; this.ghosts = []; this.absorbing = []; this.deathTint = 0; this.setFx('');
     }
     loadLevel(e) {
-      this.clearLevel(); this.e = e; const ART = ART_SETS[NEW_ART_LEVELS.has(e.name) && !e.menu ? 'new' : 'old']; this.newArt = ART === ART_SETS.new; this.tickMs = e.tickMs; this.menuMode = !!e.menu; this.playing = false; this.lead.set(0, 0); this.lastMove = -99; this.zoomK = 1.12; this.playerPos = null;
+      this.clearLevel(); this.e = e; const ART = ART_SETS[NEW_ART_LEVELS.has(e.name) && !e.menu ? 'new' : 'old']; this.newArt = ART === ART_SETS.new; MAT.sandNew.value = this.newArt ? 1 : 0; this.tickMs = e.tickMs; this.menuMode = !!e.menu; this.playing = false; this.lead.set(0, 0); this.lastMove = -99; this.zoomK = 1.12; this.playerPos = null;
       const W = e.w, H = e.h; this.particles.top = 1;
       const sand = [], blocks = [], cobbles = [], solid = [];
       for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const t = e.get(x, y); if (t === T.SAND) sand.push([x, y]); else if (t === T.STEEL) { if (x === 0 || y === 0 || x === W - 1 || y === H - 1) continue; blocks.push([x, y]); solid.push([x, y]); } else if (t === T.WALL) { cobbles.push([x, y]); } }
@@ -2530,21 +2545,26 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           MAT.trimCap = new THREE.MeshPhysicalMaterial({ color: 0xe0b85a, metalness: 0.8, roughness: 0.25, clearcoat: 1, envMapIntensity: 1.5 });
           MAT.plinth = causticify(new THREE.MeshPhysicalMaterial({ color: 0xcdb78f, roughness: 0.75, clearcoat: 0.2, envMapIntensity: 0.4 }), 0.15);
           MAT.plinthSide = new THREE.MeshPhysicalMaterial({ color: 0xa48e66, roughness: 0.8, envMapIntensity: 0.3 });
+          // new look: deep navy lacquered frame + warm teak stand
+          MAT.trimN = new THREE.MeshPhysicalMaterial({ color: 0x18284f, metalness: 0.5, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.5 });
+          MAT.plinthN = causticify(new THREE.MeshPhysicalMaterial({ color: 0x8a5a36, roughness: 0.55, clearcoat: 0.6, clearcoatRoughness: 0.25, envMapIntensity: 0.6, sheen: 0.3, sheenColor: 0xffd29a }), 0.12);
+          MAT.plinthSideN = new THREE.MeshPhysicalMaterial({ color: 0x5e3b22, roughness: 0.6, clearcoat: 0.4, envMapIntensity: 0.4 });
         }
         // back glass (tinted, you see the reef through it), side panes, faint front reflections
         const back = new THREE.Mesh(new THREE.PlaneGeometry(w, h), MAT.glassBack); back.position.set(cx, cy, zB); back.renderOrder = 1; tank.add(back);
         for (const sx of [x0, x1]) { const p = new THREE.Mesh(new THREE.PlaneGeometry(zF - zB, h), MAT.glassSide); p.rotation.y = Math.PI / 2; p.position.set(sx, cy, (zF + zB) / 2); p.renderOrder = 2; tank.add(p); }
         const front = new THREE.Mesh(new THREE.PlaneGeometry(w, h), MAT.glassFront); front.position.set(cx, cy, zF); front.renderOrder = 5; tank.add(front);
         // slim teal frame with little brass corner caps
-        const bar = (lx, ly, lz, px, py, pz) => { const m = new THREE.Mesh(new THREE.BoxGeometry(lx, ly, lz), MAT.trim); m.position.set(px, py, pz); m.castShadow = true; tank.add(m); return m; };
-        const T2 = 0.12;
+        const trimM = this.newArt ? MAT.trimN : MAT.trim, bar = (lx, ly, lz, px, py, pz) => { const m = new THREE.Mesh(new THREE.BoxGeometry(lx, ly, lz), trimM); m.position.set(px, py, pz); m.castShadow = true; tank.add(m); return m; };
+        const T2 = this.newArt ? 0.15 : 0.12;
         for (const sx of [x0, x1]) for (const sz of [zF, zB]) bar(T2, h + T2, T2, sx, cy, sz);           // four upright edges
         for (const sz of [zF, zB]) bar(w + T2, T2, T2, cx, yT, sz);                                       // top rims
         for (const sx of [x0, x1]) bar(T2, T2, zF - zB + T2, sx, yT, (zF + zB) / 2);                      // top side rims
-        for (const sx of [x0, x1]) for (const sz of [zF, zB]) { const cap = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 10), MAT.trimCap); cap.position.set(sx, yT, sz); tank.add(cap); }
+        for (const sx of [x0, x1]) for (const sz of [zF, zB]) { const cap = new THREE.Mesh(new THREE.SphereGeometry(this.newArt ? 0.14 : 0.11, 16, 10), MAT.trimCap); cap.position.set(sx, yT, sz); tank.add(cap); }
         // stone plinth the tank stands on, resting on the seabed
-        const pl = new THREE.Mesh(roundedBox(w + 0.7, 0.85, 1.3, 0.12), [MAT.plinth, MAT.plinthSide]); pl.position.set(cx, yB - 0.42, 0); pl.castShadow = pl.receiveShadow = true; tank.add(pl);
+        const pl = new THREE.Mesh(roundedBox(w + 0.7, 0.85, 1.3, 0.12), this.newArt ? [MAT.plinthN, MAT.plinthSideN] : [MAT.plinth, MAT.plinthSide]); pl.position.set(cx, yB - 0.42, 0); pl.castShadow = pl.receiveShadow = true; tank.add(pl);
         bar(w + 0.3, 0.1, zF - zB + 0.25, cx, yB - 0.02, 0).material = MAT.trim;
+        this.pump = null; if (this.newArt) this.buildPremiumTank(tank, { x0, x1, yT, yB, cx, cy, w, h, zF, zB });
         // ---- life around the base: rocks along the plinth, coral clumps, swaying seaweed at the tank corners
         { const rnd = (() => { let sd = 4242 + W * 7 + H; return () => (sd = (sd * 16807) % 2147483647) / 2147483647; })();
           const rockM = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7, envMapIntensity: 0.5 });
@@ -2561,8 +2581,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             for (let j = 0; j < 12; j++) { const a = rnd() * 6.28, r = rnd() * 0.22, hgt = rnd() * 0.4; d0.position.set(cx0 + Math.cos(a) * r, yB - 0.6 + hgt, 0.98 + Math.sin(a) * r * 0.6); d0.scale.setScalar(0.7 + rnd() * 0.8 - hgt); d0.rotation.set(0, 0, 0); d0.updateMatrix(); balls.setMatrixAt(bi, d0.matrix); balls.setColorAt(bi++, col.clone().offsetHSL(0, 0, (rnd() - 0.5) * 0.12)); } }
           balls.count = bi; balls.visible = false; tank.add(balls);
           { const row = ART.plinth;
-            const n = Math.max(5, Math.round((w + 1.6) / 1.05)); for (let k = 0; k < n; k++) { const nm = row[(k + W) % row.length], hgt = isRockSpr(nm) ? 0.62 + rnd() * 0.2 : isPlantSpr(nm) ? (this.newArt ? 0.6 + rnd() * 0.25 : 0.8 + rnd() * 0.45) : 0.55 + rnd() * 0.25;
-              const sp = sprPlane(nm, hgt, true, { dz: 0.16, op: 0.6, lean: 0.38 }); sp.position.set(x0 - 0.6 + (k + 0.5) * (w + 1.2) / n + (rnd() - 0.5) * 0.3, yB - 0.9, 0.92 + rnd() * 0.25); if (rnd() < 0.5) sp.scale.x = -1;
+            const NA = this.newArt, n = Math.max(5, Math.round((w + 1.6) / (NA ? 0.78 : 1.05))); for (let k = 0; k < n; k++) { const nm = row[(k + W) % row.length], hgt = (isRockSpr(nm) ? 0.62 + rnd() * 0.2 : isPlantSpr(nm) ? (NA ? 0.6 + rnd() * 0.25 : 0.8 + rnd() * 0.45) : 0.55 + rnd() * 0.25) * (NA ? 0.7 + rnd() * 0.65 : 1);
+              const sp = sprPlane(nm, hgt, true, { dz: 0.16, op: 0.6, lean: 0.38 }); sp.position.set(x0 - 0.6 + (k + 0.5) * (w + 1.2) / n + (rnd() - 0.5) * (NA ? 0.7 : 0.3), yB - 0.9, (NA ? 0.86 + rnd() * 0.42 : 0.92 + rnd() * 0.25)); if (rnd() < 0.5) sp.scale.x = -1;
               if (isPlantSpr(nm)) { const ph = rnd() * 6; sp.onBeforeRender = () => { sp.rotation.z = Math.sin(performance.now() / 1000 * 1.2 + ph) * 0.06; }; } tank.add(sp); } }
           // seaweed fronds hugging the tank's sides, gently swaying
           const blade = new THREE.PlaneGeometry(0.16, 1, 1, 8); blade.translate(0, 0.5, 0); { const P = blade.attributes.position; for (let i = 0; i < P.count; i++) { const yy = P.getY(i); P.setX(i, P.getX(i) * (1 - yy * 0.7) + Math.sin(yy * 4) * 0.05); } blade.computeVertexNormals(); }
@@ -2599,6 +2619,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         runs.forEach(([x0r, x1r, y], ri) => { const len = x1r - x0r + 1, cx = (x0r + x1r) / 2, kind = (variant(x0r, y) >> 2) % 3, mats = MAT.coralFaces[kind];
           const geo = roundedBox(len - 0.04, 0.64, 0.98, 0.2, 3); const face = shelfFace(len, ART.platform); const m = new THREE.Mesh(geo, face ? [new THREE.MeshStandardMaterial({ map: face, roughness: 0.75, emissive: 0xffffff, emissiveMap: face, emissiveIntensity: 0.25 }), new THREE.MeshStandardMaterial({ color: 0xd9913f, roughness: 0.8 })] : [mats[0], mats[1]]); mats[0].map.repeat.set(len * 0.6, 1);
           m.position.set(cx, -y - 0.02, -0.02); m.castShadow = m.receiveShadow = true; this.levelGroup.add(m);
+          if (this.newArt) for (let i = 0; i < len; i++) { const hh = variant(x0r + i, y + 5); if (hh % 3 === 0) continue; // sea-plant tufts growing on the shelf top
+            const nm = ART.ledge[hh % 9], sp = sprPlane(nm, 0.3 + (hh % 4) * 0.05, true, { dz: 0.25, op: 0.5 }); sp.position.set(x0r + i + ((hh >> 4) % 5 - 2) * 0.08, -y + 0.3, -0.2); if (hh & 1) sp.scale.x = -1; this.levelGroup.add(sp); }
           const hi = new THREE.Color(['#ff9d82', '#c8a8f2', '#ffbe7a'][kind]), deep = new THREE.Color(['#b8402e', '#6b44a8', '#c4621c'][kind]);
           // bumpy polyps along the top and a few on the front lip
           for (let i = 0; i < len * 8; i++) { const h = variant(x0r + i, y + 31 * i), u = (i + 0.5) / (len * 8); const onTop = i % 4 !== 0;
@@ -2607,7 +2629,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           // little branching tips on top
           for (let i = 0; i < len * 3; i++) { const h = variant(x0r + i * 3, y + 7); dummy.position.set(x0r - 0.4 + (i + 0.5) / (len * 3) * (len - 0.2), -y + 0.38, 0.1 - (h % 5) * 0.08); dummy.rotation.set(0, 0, ((h % 9) - 4) * 0.12); dummy.scale.setScalar(0.9 + (h % 3) * 0.2); dummy.updateMatrix();
             br.setMatrixAt(bi, dummy.matrix); br.setColorAt(bi++, hi.clone()); } });
-        pol.count = pi; br.count = bi; for (const im of [pol, br]) { im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; im.castShadow = true; this.levelGroup.add(im); }
+        pol.count = pi; br.count = bi; pol.visible = br.visible = !this.newArt; for (const im of [pol, br]) { im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; im.castShadow = true; this.levelGroup.add(im); }
         dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1); }
 
       // ---- treasures embedded in the sand: starfish, shells and tiny jellyfish. They fall when their sand is dug.
@@ -2629,13 +2651,13 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           else if (true) m = sprPlane(ART.jelly, 0.4, false, tsh);
           else { m = new THREE.Group(); const d = new THREE.Mesh(GEO.jellyDome, MAT.jellyT); m.add(d); for (let k = 0; k < 4; k++) { const l = new THREE.Mesh(GEO.jellyLeg, MAT.jellyT); l.position.set(-0.07 + k * 0.047, -0.07, 0); m.add(l); } }
           const ox = (((h >> 3) % 9) - 4) * 0.05, oy = (((h >> 6) % 9) - 4) * 0.05, rot = ((h >> 9) % 13) * 0.48;
-          m.position.set(x + ox, -y + oy, 0.41); m.rotation.z = rot; m.scale.setScalar(0.9 + ((h >> 2) % 4) * 0.08); m.traverse(o => { if (!o.userData.fakeShadow) o.castShadow = true; });
+          m.position.set(x + ox, -y + oy, 0.41); m.rotation.z = rot; m.scale.setScalar((0.9 + ((h >> 2) % 4) * 0.08) * (this.newArt ? 1.3 : 1)); m.traverse(o => { if (!o.userData.fakeShadow) o.castShadow = true; });
           this.levelGroup.add(m); this.treasures.push({ m, cx: x, cy: y, state: 'buried', vy: 0, spin: (r - 0.065) * 20 }); } }
       // ---- sea plants on the sand ledges inside the tank (from your sheet); removed with their sand
       this.edgePlants = [];
       { const names = ART.ledge;
         for (const [x, y] of sand) { if (y < 1) continue; const above = e.get(x, y - 1); if (above === T.SAND || above === T.WALL || above === T.STEEL) continue;
-          const h = variant(x, y + 77); if (h % 100 > 34) continue; const nm = names[h % names.length], hgt = isPlantSpr(nm) ? 0.55 + (h % 5) * 0.06 : 0.38 + (h % 3) * 0.05;
+          const h = variant(x, y + 77); if (h % 100 > (this.newArt ? 72 : 34)) continue; const nm = names[h % names.length], hgt = isPlantSpr(nm) ? 0.55 + (h % 5) * 0.06 : 0.38 + (h % 3) * 0.05;
           const sp = sprPlane(nm, hgt, true, { dz: 0.3, op: 0.55, lean: 0.45 }); sp.position.set(x + (((h >> 3) % 7) - 3) * 0.08, -y + 0.47, -0.12); const ph = (h % 17) * 0.4; sp.onBeforeRender = () => { sp.rotation.z = Math.sin(performance.now() / 1000 * 1.1 + ph) * 0.05; };
           this.levelGroup.add(sp); this.edgePlants.push({ m: sp, x, y }); } }
       // ---- foreground seabed in front of the tank: a soft sand shelf with shells, stones, starfish and sea grass
@@ -2741,7 +2763,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     }
     spawn(o) {
       let m;
-      if (o.t === T.ROCK) m = makeStone(); else if (o.t === T.BALL) m = makeBall(); else if (o.t === T.PLAYER) m = makeDiver();
+      if (o.t === T.ROCK) m = makeStone(this.newArt); else if (o.t === T.BALL) m = makeBall(this.newArt); else if (o.t === T.PLAYER) m = makeDiver();
       else if (o.t === T.FISH) m = makeFish(); else if (o.t === T.JELLY) m = makeJelly(); else if (o.t === T.CRAB) m = makeCrab();
       if (!m) return;
       m.traverse(c => { if (c.isMesh) c.castShadow = true; });
@@ -2780,6 +2802,34 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     }
     syncOcclusion() { if (!this.occTex || this.occVer === this.maskTex.version) return; this.occVer = this.maskTex.version;
       const D = this.occData, Mk = this.maskData, St = this.occStatic; for (let i = 0; i < St.length; i++) D[i * 4] = Math.max(St[i], Mk[i * 4]); this.occTex.needsUpdate = true; }
+    // new-look aquarium extras: a live water surface + waterline, sun shafts slanting in from the key light's side, an air-stone bubble column
+    buildPremiumTank(tank, b) {
+      const { x0, x1, yT, yB, cx, cy, w, h, zF, zB } = b, add = { transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false };
+      const vs = 'varying vec2 vUv; varying vec3 vW; void main(){ vUv = uv; vec4 wp = modelMatrix * vec4(position, 1.0); vW = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; }';
+      const ys = yT - 0.14; // water surface, just under the top rim
+      { // the waterline seen through the front glass: a bright wavering edge with a soft glow below it
+        const m = new THREE.Mesh(new THREE.PlaneGeometry(w, 0.5), new THREE.ShaderMaterial({ ...add, uniforms: { uT: MAT.causticT }, vertexShader: vs,
+          fragmentShader: `uniform float uT; varying vec2 vUv; varying vec3 vW; void main(){ float wave = 0.72 + sin(vW.x * 2.3 + uT * 1.6) * 0.035 + sin(vW.x * 5.1 - uT * 2.2) * 0.02;
+            float d = vUv.y - wave; float line = smoothstep(0.045, 0.0, abs(d)); float glow = smoothstep(-0.7, 0.0, d) * step(d, 0.0) * 0.22;
+            float a = line * 0.75 + glow; gl_FragColor = vec4(vec3(0.75, 0.97, 1.0) * a, a); }` }));
+        m.position.set(cx, ys - 0.12, zF + 0.004); m.renderOrder = 6; tank.add(m); }
+      { // the surface itself, rippling (seen at a grazing angle)
+        const m = new THREE.Mesh(new THREE.PlaneGeometry(w, zF - zB), new THREE.ShaderMaterial({ ...add, side: THREE.DoubleSide, uniforms: { uT: MAT.causticT }, vertexShader: vs,
+          fragmentShader: `uniform float uT; varying vec2 vUv; varying vec3 vW; void main(){ vec2 p = vW.xz * vec2(2.2, 5.0);
+            float a = sin(p.x + uT * 0.9 + sin(p.y * 1.3 + uT) * 1.4), c = sin(p.y * 1.7 - uT * 0.8 + sin(p.x * 0.9 - uT * 0.6) * 1.3);
+            float k = pow(max(0.0, 1.0 - abs(a + c) * 0.5), 4.0) * 0.55 + 0.12; gl_FragColor = vec4(vec3(0.6, 0.92, 1.0) * k, k); }` }));
+        m.rotation.x = -Math.PI / 2; m.position.set(cx, ys, (zF + zB) / 2); m.renderOrder = 6; tank.add(m); }
+      { // sun shafts: slanted, soft-edged, slowly breathing, clipped to the tank
+        const n = Math.max(3, Math.round(w / 2.6));
+        for (let i = 0; i < n; i++) { const bw = 0.8 + ((i * 37) % 7) * 0.13, ph = i * 1.7;
+          const m = new THREE.Mesh(new THREE.PlaneGeometry(bw, h * 1.5), new THREE.ShaderMaterial({ ...add, uniforms: { uT: MAT.causticT, uB: { value: new THREE.Vector4(x0, x1, yB, ys) }, uPh: { value: ph } }, vertexShader: vs,
+            fragmentShader: `uniform float uT, uPh; uniform vec4 uB; varying vec2 vUv; varying vec3 vW; void main(){
+              float inside = step(uB.x, vW.x) * step(vW.x, uB.y) * step(uB.z, vW.y) * step(vW.y, uB.w);
+              float across = pow(sin(vUv.x * 3.14159), 2.0), down = pow(clamp((vW.y - uB.z) / (uB.w - uB.z), 0.0, 1.0), 1.4);
+              float a = 0.17 * across * down * (0.65 + 0.35 * sin(uT * 0.5 + uPh)) * inside; gl_FragColor = vec4(vec3(1.0, 0.96, 0.82) * a, a); }` }));
+          m.position.set(x0 + (i + 0.5) * w / n + 0.6, cy + 0.2, 0.47); m.rotation.z = 0.36; m.renderOrder = 4; tank.add(m); } }
+      this.pump = { x: x0 + 0.28, y: yB + 0.15, z: -0.42, t: 0, top: ys };
+    }
     syncEntityShadows() {
       this.entShadows = this.entShadows.filter(ent => { const { drop, contact } = ent.sh;
         if (!this.entities.has(ent.o.id)) { this.levelGroup.remove(drop, contact); return false; }
@@ -2861,7 +2911,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const dFull = Math.max(dH, dW); this.dFull = dFull;
       // show the whole board unless that makes cells smaller than ~34px; then follow the diver at ~46px cells
       const pxPerCell = d => innerHeight / (2 * Math.tan(fov / 2) * d);
-      const dFollow = innerHeight / (2 * Math.tan(fov / 2) * 46);
+      const cellPx = aspect < 0.75 ? Math.max(46, Math.min(64, innerWidth / 7.2)) : 46, dFollow = innerHeight / (2 * Math.tan(fov / 2) * cellPx);
       this.camDist = wholeLevel || pxPerCell(dFull) >= 34 ? dFull : Math.min(dFull, dFollow);
       this.follow = this.camDist < dFull - 0.01;
       if (!isMobile) { this.camDist = dFull; this.follow = false; } // computers: always the whole level, no follow/zoom
@@ -2924,6 +2974,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         for (const [i, s] of this.sandAnim) if (s === 99) this.sandAnim.delete(i);
         this.syncSandBlocks();
       }
+      if (this.pump) { this.pump.t -= dt; if (this.pump.t <= 0) { this.pump.t = 0.09 + Math.random() * 0.08; this.particles.bubbles(this.pump.x + (Math.random() - 0.5) * 0.08, this.pump.y, this.pump.z, 1, 0.03 + Math.random() * 0.03, 0.05); } }
       this.syncOcclusion();
       for (const ent of this.entities.values()) {
         const o = ent.o, m = ent.m, moving = o.px !== o.x || o.py !== o.y;
