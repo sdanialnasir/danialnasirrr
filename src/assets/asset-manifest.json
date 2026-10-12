@@ -1,0 +1,145 @@
+{
+ "SHEET_SPR": {
+  "rocks": {
+   "file": "assets/images/sheet/rocks.png",
+   "w": 302,
+   "h": 132
+  },
+  "coralA": {
+   "file": "assets/images/sheet/coralA.png",
+   "w": 106,
+   "h": 112
+  },
+  "coralB": {
+   "file": "assets/images/sheet/coralB.png",
+   "w": 78,
+   "h": 134
+  },
+  "coralC": {
+   "file": "assets/images/sheet/coralC.png",
+   "w": 76,
+   "h": 78
+  },
+  "plantS": {
+   "file": "assets/images/sheet/plantS.png",
+   "w": 98,
+   "h": 110
+  },
+  "plant1": {
+   "file": "assets/images/sheet/plant1.png",
+   "w": 44,
+   "h": 140
+  },
+  "plant2": {
+   "file": "assets/images/sheet/plant2.png",
+   "w": 46,
+   "h": 148
+  },
+  "plant3": {
+   "file": "assets/images/sheet/plant3.png",
+   "w": 58,
+   "h": 158
+  },
+  "plant4": {
+   "file": "assets/images/sheet/plant4.png",
+   "w": 50,
+   "h": 142
+  },
+  "shell1": {
+   "file": "assets/images/sheet/shell1.png",
+   "w": 88,
+   "h": 80
+  },
+  "shell2": {
+   "file": "assets/images/sheet/shell2.png",
+   "w": 62,
+   "h": 50
+  },
+  "shell3": {
+   "file": "assets/images/sheet/shell3.png",
+   "w": 80,
+   "h": 62
+  },
+  "star1": {
+   "file": "assets/images/sheet/star1.png",
+   "w": 104,
+   "h": 102
+  },
+  "star2": {
+   "file": "assets/images/sheet/star2.png",
+   "w": 54,
+   "h": 54
+  },
+  "fish1": {
+   "file": "assets/images/sheet/fish1.png",
+   "w": 92,
+   "h": 52
+  },
+  "fish2": {
+   "file": "assets/images/sheet/fish2.png",
+   "w": 106,
+   "h": 60
+  },
+  "fish3": {
+   "file": "assets/images/sheet/fish3.png",
+   "w": 98,
+   "h": 54
+  },
+  "fish4": {
+   "file": "assets/images/sheet/fish4.png",
+   "w": 102,
+   "h": 50
+  },
+  "fish5": {
+   "file": "assets/images/sheet/fish5.png",
+   "w": 100,
+   "h": 52
+  },
+  "goal": {
+   "file": "assets/images/sheet/goal.png",
+   "w": 146,
+   "h": 144
+  },
+  "platform": {
+   "file": "assets/images/sheet/platform.png",
+   "w": 270,
+   "h": 102
+  },
+  "jelly": {
+   "file": "assets/images/sheet/jelly.png",
+   "w": 120,
+   "h": 166
+  },
+  "sand": {
+   "file": "assets/images/sheet/sand.jpg",
+   "w": 320,
+   "h": 320
+  }
+ },
+ "ART_SRC": {
+  "bg": "assets/images/art/bg.jpg",
+  "man": [
+   "assets/images/art/man0.png",
+   "assets/images/art/man1.png",
+   "assets/images/art/man2.png",
+   "assets/images/art/man3.png",
+   "assets/images/art/man4.png",
+   "assets/images/art/man5.png",
+   "assets/images/art/man6.png"
+  ],
+  "metal": "assets/images/art/metal.png",
+  "orb": "assets/images/art/orb.png",
+  "gate": "assets/images/art/gate.png",
+  "plank": "assets/images/art/plank.png",
+  "plant": "assets/images/art/plant.png",
+  "grass": "assets/images/art/grass.png",
+  "crate": "assets/images/art/crate.png",
+  "lever": "assets/images/art/lever.png",
+  "post": "assets/images/art/post.png",
+  "spikes": "assets/images/art/spikes.png",
+  "sand": "assets/images/art/sand.jpg",
+  "beige": "assets/images/art/beige.jpg",
+  "dirt": "assets/images/art/dirt.jpg"
+ },
+ "PHOTO_BG_URI": "assets/images/background/bg_photo.jpg"
+}
