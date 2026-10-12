@@ -902,7 +902,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const m = new THREE.MeshStandardMaterial({ map: sprTex(n), transparent: true, alphaTest: 0.25, roughness: 0.85, metalness: 0, emissive: 0xffffff, emissiveMap: sprTex(n), emissiveIntensity: 0.35, side: THREE.DoubleSide, depthWrite: true });
     const mesh = new THREE.Mesh(g, m); mesh.castShadow = false; return mesh; }
   // the movable-platform sprite as a 3-slice face for one coral shelf of `len` cells
-  function shelfFace(len) { const im = SPR.img.platform; if (!im || !im.complete || !im.naturalWidth) return null; const W = Math.round(len * 128), H = 64, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+  function shelfFace(len, nm = 'platform') { const im = SPR.img[nm]; if (!im || !im.complete || !im.naturalWidth) return null; const W = Math.round(len * 128), H = 64, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
     const iw = im.naturalWidth, ih = im.naturalHeight, cap = Math.round(iw * 0.18), capW = Math.round(cap * H / ih), mid = iw - 2 * cap, midW = Math.round(mid * H / ih);
     g.drawImage(im, 0, 0, cap, ih, 0, 0, capW, H); g.drawImage(im, iw - cap, 0, cap, ih, W - capW, 0, capW, H);
     for (let x = capW; x < W - capW; x += midW) { const ww = Math.min(midW, W - capW - x); g.drawImage(im, cap, 0, mid * ww / midW, ih, x, 0, ww, H); }
@@ -1642,6 +1642,14 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
 
   const PHOTO_BG_URI = window.AQ_DATA.PHOTO_BG_URI;
   const PHOTO_LEVELS = new Set(['First Light']); // background-image test: just the first level for now
+  // which asset sheet dresses a level: 'new' (images/sheet2, the owner's new sheet) is on trial on the first 4 levels
+  const NEW_ART_LEVELS = new Set(LEVELS.slice(0, 4).map(l => l.name));
+  const ART_SETS = {
+    old: { plinth: ['rocks', 'coralA', 'plant2', 'coralB', 'plant4', 'rocks', 'coralC', 'plantS', 'plant1', 'coralA', 'rocks', 'plant3', 'coralB'],
+      ledge: ['plant1', 'plant2', 'plant3', 'plant4', 'plantS', 'coralA', 'coralC'], stars: ['star1', 'star2'], shells: ['shell1', 'shell2', 'shell3'], jelly: 'jelly', goal: 'goal', platform: 'platform' },
+    new: { plinth: ['rockA', 'coral1', 'weed2', 'coral2', 'weed5', 'rockB', 'coral3', 'weed9', 'weed1', 'coral4', 'rockC', 'weed3', 'coral5', 'weed8'],
+      ledge: ['weed1', 'weed2', 'weed3', 'weed4', 'weed5', 'weed6', 'weed7', 'weed8', 'weed9', 'coral1', 'coral3', 'coral5'], stars: ['starA', 'starB', 'starC', 'starD'], shells: ['shellA', 'shellB', 'shellC', 'shellD'], jelly: 'jellyN', goal: 'gateA', platform: 'platformN' } };
+  const isRockSpr = (n) => n.startsWith('rock'), isPlantSpr = (n) => n.startsWith('plant') || n.startsWith('weed');
   // ---------------------------------------------------------------- the world
   class WorldImpl {
     constructor(cv) {
@@ -1747,7 +1755,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         fragmentShader: 'uniform sampler2D tex; varying float vA; void main(){ vec4 t = texture2D(tex, gl_PointCoord); gl_FragColor = vec4(vec3(0.85, 0.96, 1.0), t.a * vA); }' });
       const bubbles = new THREE.Points(bgG, bubM); bubbles.frustumCulled = false; bubbles.renderOrder = -8; g.add(bubbles);
       const fishG = new THREE.SphereGeometry(0.16, 10, 6); fishG.scale(1, 0.45, 0.3); const fishM = new THREE.MeshBasicMaterial({ color: 0x1d4f9a, transparent: true, opacity: 0.55, fog: false });
-      const fishSpr = ['fish1', 'fish2', 'fish3', 'fish4', 'fish5', 'fish1', 'fish3'].map(n => { const f = sprPlane(n, 0.5); f.material.depthWrite = false; f.renderOrder = -7; g.add(f); return f; });
+      const fishSpr = ['fishA', 'fishC', 'fishD', 'fishE', 'fishF', 'fishG', 'fishH', 'fishI', 'school'].map(n => { const f = sprPlane(n, n === 'school' ? 0.6 : 0.5); f.material.depthWrite = false; f.renderOrder = -7; g.add(f); return f; });
       const school = new THREE.InstancedMesh(fishG, fishM, 9); school.visible = false; school.frustumCulled = false; g.add(school);
       this.photo = { group: g, bg, shimmer, bubbles, bubM, school, fishSpr, off: [...Array(9)].map(() => [Math.random() * 1.6, Math.random() * 0.8, Math.random() * 6]) };
     }
@@ -1763,7 +1771,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       P.off.forEach(([ox, oy, ph], i) => { d0.position.set(cx + sx + ox * 1.4, this.camera.position.y * 0.9 + hView * 0.12 + oy * 1.1 + Math.sin(t * 1.3 + ph) * 0.1, -14); d0.rotation.set(0, 0, Math.sin(t * 2 + ph) * 0.08); d0.updateMatrix(); P.school.setMatrixAt(i, d0.matrix); });
       P.school.instanceMatrix.needsUpdate = true;
       P.fishSpr.forEach((f, i) => { const dir = i % 2 ? -1 : 1, sp2 = 0.6 + (i % 3) * 0.25, W2 = wView * 0.9, x = ((t * sp2 + i * 7.3) % (W2 * 2.2)) - W2 * 1.1;
-        f.position.set(cx + dir * x, this.camera.position.y * 0.9 + hView * (0.05 + (i % 4) * 0.07) + Math.sin(t * 1.4 + i) * 0.12, -10 - (i % 3) * 3); f.scale.set(dir, 1, 1); });
+        f.position.set(cx + dir * x, this.camera.position.y * 0.9 + hView * (0.05 + (i % 4) * 0.07) + Math.sin(t * 1.4 + i) * 0.12, -10 - (i % 3) * 3); f.scale.set(-dir, 1, 1); });
     }
     placeBackdrop() {
       // keep the painting filling the view, a little behind the board, with gentle parallax
@@ -1787,7 +1795,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.gateObj = null; this.sandInst = null; this.treasures = []; this.digChunks = []; if (this.warn) this.warn.visible = false; this.ghosts = []; this.absorbing = []; this.deathTint = 0; this.setFx('');
     }
     loadLevel(e) {
-      this.clearLevel(); this.e = e; this.tickMs = e.tickMs; this.menuMode = !!e.menu; this.playing = false; this.lead.set(0, 0); this.lastMove = -99; this.zoomK = 1.12; this.playerPos = null;
+      this.clearLevel(); this.e = e; const ART = ART_SETS[NEW_ART_LEVELS.has(e.name) && !e.menu ? 'new' : 'old']; this.newArt = ART === ART_SETS.new; this.tickMs = e.tickMs; this.menuMode = !!e.menu; this.playing = false; this.lead.set(0, 0); this.lastMove = -99; this.zoomK = 1.12; this.playerPos = null;
       const W = e.w, H = e.h; this.particles.top = 1;
       const sand = [], blocks = [], cobbles = [], solid = [];
       for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const t = e.get(x, y); if (t === T.SAND) sand.push([x, y]); else if (t === T.STEEL) { if (x === 0 || y === 0 || x === W - 1 || y === H - 1) continue; blocks.push([x, y]); solid.push([x, y]); } else if (t === T.WALL) { cobbles.push([x, y]); } }
@@ -1839,10 +1847,10 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           let bi = 0; for (let k = 0; k < nC; k++) { const cx0 = x0 - 0.4 + (k + 0.5) * (w + 0.8) / nC + (rnd() - 0.5) * 0.5, col = new THREE.Color(coralCols[(rnd() * 4) | 0]);
             for (let j = 0; j < 12; j++) { const a = rnd() * 6.28, r = rnd() * 0.22, hgt = rnd() * 0.4; d0.position.set(cx0 + Math.cos(a) * r, yB - 0.6 + hgt, 0.98 + Math.sin(a) * r * 0.6); d0.scale.setScalar(0.7 + rnd() * 0.8 - hgt); d0.rotation.set(0, 0, 0); d0.updateMatrix(); balls.setMatrixAt(bi, d0.matrix); balls.setColorAt(bi++, col.clone().offsetHSL(0, 0, (rnd() - 0.5) * 0.12)); } }
           balls.count = bi; balls.visible = false; tank.add(balls);
-          { const row = ['rocks', 'coralA', 'plant2', 'coralB', 'plant4', 'rocks', 'coralC', 'plantS', 'plant1', 'coralA', 'rocks', 'plant3', 'coralB'];
-            const n = Math.max(5, Math.round((w + 1.6) / 1.05)); for (let k = 0; k < n; k++) { const nm = row[(k + W) % row.length], hgt = nm === 'rocks' ? 0.62 + rnd() * 0.2 : nm.startsWith('plant') ? 0.8 + rnd() * 0.45 : 0.55 + rnd() * 0.25;
+          { const row = ART.plinth;
+            const n = Math.max(5, Math.round((w + 1.6) / 1.05)); for (let k = 0; k < n; k++) { const nm = row[(k + W) % row.length], hgt = isRockSpr(nm) ? 0.62 + rnd() * 0.2 : isPlantSpr(nm) ? (this.newArt ? 0.6 + rnd() * 0.25 : 0.8 + rnd() * 0.45) : 0.55 + rnd() * 0.25;
               const sp = sprPlane(nm, hgt, true); sp.position.set(x0 - 0.6 + (k + 0.5) * (w + 1.2) / n + (rnd() - 0.5) * 0.3, yB - 0.9, 0.92 + rnd() * 0.25); if (rnd() < 0.5) sp.scale.x = -1;
-              if (nm.startsWith('plant')) { const ph = rnd() * 6; sp.onBeforeRender = () => { sp.rotation.z = Math.sin(performance.now() / 1000 * 1.2 + ph) * 0.06; }; } tank.add(sp); } }
+              if (isPlantSpr(nm)) { const ph = rnd() * 6; sp.onBeforeRender = () => { sp.rotation.z = Math.sin(performance.now() / 1000 * 1.2 + ph) * 0.06; }; } tank.add(sp); } }
           // seaweed fronds hugging the tank's sides, gently swaying
           const blade = new THREE.PlaneGeometry(0.16, 1, 1, 8); blade.translate(0, 0.5, 0); { const P = blade.attributes.position; for (let i = 0; i < P.count; i++) { const yy = P.getY(i); P.setX(i, P.getX(i) * (1 - yy * 0.7) + Math.sin(yy * 4) * 0.05); } blade.computeVertexNormals(); }
           const weedM = new THREE.MeshPhysicalMaterial({ color: 0x3fae58, roughness: 0.45, clearcoat: 0.4, side: THREE.DoubleSide, emissive: 0x0b3018, emissiveIntensity: 1, sheen: 0.6, sheenColor: 0xbaffc8 });
@@ -1876,7 +1884,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         const br = new THREE.InstancedMesh(GEO.branch, new THREE.MeshPhysicalMaterial({ roughness: 0.4, clearcoat: 0.6, emissive: 0x220a10, emissiveIntensity: 1 }), runs.reduce((a, r) => a + (r[1] - r[0] + 1) * 3, 0));
         let pi = 0, bi = 0;
         runs.forEach(([x0r, x1r, y], ri) => { const len = x1r - x0r + 1, cx = (x0r + x1r) / 2, kind = (variant(x0r, y) >> 2) % 3, mats = MAT.coralFaces[kind];
-          const geo = roundedBox(len - 0.04, 0.64, 0.98, 0.2, 3); const face = shelfFace(len); const m = new THREE.Mesh(geo, face ? [new THREE.MeshStandardMaterial({ map: face, roughness: 0.75, emissive: 0xffffff, emissiveMap: face, emissiveIntensity: 0.25 }), new THREE.MeshStandardMaterial({ color: 0xd9913f, roughness: 0.8 })] : [mats[0], mats[1]]); mats[0].map.repeat.set(len * 0.6, 1);
+          const geo = roundedBox(len - 0.04, 0.64, 0.98, 0.2, 3); const face = shelfFace(len, ART.platform); const m = new THREE.Mesh(geo, face ? [new THREE.MeshStandardMaterial({ map: face, roughness: 0.75, emissive: 0xffffff, emissiveMap: face, emissiveIntensity: 0.25 }), new THREE.MeshStandardMaterial({ color: 0xd9913f, roughness: 0.8 })] : [mats[0], mats[1]]); mats[0].map.repeat.set(len * 0.6, 1);
           m.position.set(cx, -y - 0.02, -0.02); m.castShadow = m.receiveShadow = true; this.levelGroup.add(m);
           const hi = new THREE.Color(['#ff9d82', '#c8a8f2', '#ffbe7a'][kind]), deep = new THREE.Color(['#b8402e', '#6b44a8', '#c4621c'][kind]);
           // bumpy polyps along the top and a few on the front lip
@@ -1902,18 +1910,18 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         this.treasures = [];
         for (const [x, y] of sand) { const h = variant(x, y), r = ((h * 2654435761) >>> 0) % 1000 / 1000; if (r > 0.13) continue;
           const kind = r < 0.06 ? 'star' : r < 0.1 ? 'shell' : 'jelly'; let m;
-          if (kind === 'star') m = sprPlane(['star1', 'star2'][h % 2], 0.38);
-          else if (kind === 'shell') m = sprPlane(['shell1', 'shell2', 'shell3'][h % 3], 0.32);
-          else if (true) m = sprPlane('jelly', 0.4);
+          if (kind === 'star') m = sprPlane(ART.stars[h % ART.stars.length], 0.38);
+          else if (kind === 'shell') m = sprPlane(ART.shells[h % ART.shells.length], 0.32);
+          else if (true) m = sprPlane(ART.jelly, 0.4);
           else { m = new THREE.Group(); const d = new THREE.Mesh(GEO.jellyDome, MAT.jellyT); m.add(d); for (let k = 0; k < 4; k++) { const l = new THREE.Mesh(GEO.jellyLeg, MAT.jellyT); l.position.set(-0.07 + k * 0.047, -0.07, 0); m.add(l); } }
           const ox = (((h >> 3) % 9) - 4) * 0.05, oy = (((h >> 6) % 9) - 4) * 0.05, rot = ((h >> 9) % 13) * 0.48;
           m.position.set(x + ox, -y + oy, 0.41); m.rotation.z = rot; m.scale.setScalar(0.9 + ((h >> 2) % 4) * 0.08); m.traverse(o => { o.castShadow = true; });
           this.levelGroup.add(m); this.treasures.push({ m, cx: x, cy: y, state: 'buried', vy: 0, spin: (r - 0.065) * 20 }); } }
       // ---- sea plants on the sand ledges inside the tank (from your sheet); removed with their sand
       this.edgePlants = [];
-      { const names = ['plant1', 'plant2', 'plant3', 'plant4', 'plantS', 'coralA', 'coralC'];
+      { const names = ART.ledge;
         for (const [x, y] of sand) { if (y < 1) continue; const above = e.get(x, y - 1); if (above === T.SAND || above === T.WALL || above === T.STEEL) continue;
-          const h = variant(x, y + 77); if (h % 100 > 34) continue; const nm = names[h % names.length], hgt = nm.startsWith('plant') ? 0.55 + (h % 5) * 0.06 : 0.38 + (h % 3) * 0.05;
+          const h = variant(x, y + 77); if (h % 100 > 34) continue; const nm = names[h % names.length], hgt = isPlantSpr(nm) ? 0.55 + (h % 5) * 0.06 : 0.38 + (h % 3) * 0.05;
           const sp = sprPlane(nm, hgt, true); sp.position.set(x + (((h >> 3) % 7) - 3) * 0.08, -y + 0.47, -0.12); const ph = (h % 17) * 0.4; sp.onBeforeRender = () => { sp.rotation.z = Math.sin(performance.now() / 1000 * 1.1 + ph) * 0.05; };
           this.levelGroup.add(sp); this.edgePlants.push({ m: sp, x, y }); } }
       // ---- foreground seabed in front of the tank: a soft sand shelf with shells, stones, starfish and sea grass
@@ -1958,11 +1966,15 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         // two foreground fish that sometimes cruise past above or below the tank
         const fishG = new THREE.SphereGeometry(0.22, 16, 10); fishG.scale(1, 0.55, 0.32); const tailG = new THREE.ConeGeometry(0.13, 0.22, 4); tailG.rotateZ(Math.PI / 2);
         const fishes = [0xffc93a, 0x5fb8ff].map(col => { const f = new THREE.Group(); const mm = new THREE.MeshPhysicalMaterial({ color: col, roughness: 0.3, clearcoat: 1, envMapIntensity: 1 }); const b = new THREE.Mesh(fishG, mm); f.add(b); const tl = new THREE.Mesh(tailG, mm); tl.position.x = -0.28; f.add(tl);
-          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 6), new THREE.MeshBasicMaterial({ color: 0x111111 })); eye.position.set(0.13, 0.04, 0.07); f.add(eye); f.visible = false; fg.add(f); return { f, tl, t: 3 + Math.random() * 6, on: false }; });
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 6), new THREE.MeshBasicMaterial({ color: 0x111111 })); eye.position.set(0.13, 0.04, 0.07); f.add(eye);
+          // new-sheet look: a fish sprite (drawn facing left, so mirrored to face +x like the model)
+          const sp = sprPlane(col === 0xffc93a ? 'fishC' : 'fishE', 0.42); sp.scale.x = -1; sp.visible = false; f.add(sp);
+          f.visible = false; fg.add(f); return { f, tl, sp, parts: [b, tl, eye], t: 3 + Math.random() * 6, on: false }; });
         this.fg = { group: fg, mat, fishes, update: (t, dt, cx, top, bot, span) => {
           for (const F of this.fg.fishes) { if (!F.on) { F.t -= dt; if (F.t <= 0) { F.on = true; F.dir = Math.random() < 0.5 ? 1 : -1; F.x = cx - F.dir * (span / 2 + 3); F.y = Math.random() < 0.5 ? top + 0.9 + Math.random() * 0.6 : bot - 0.6 - Math.random() * 0.4; F.z = 2.2 + Math.random() * 1.2; F.f.visible = true; } continue; }
             F.x += F.dir * dt * 1.6; F.f.position.set(F.x, F.y + Math.sin(t * 2 + F.z) * 0.08, F.z); F.f.rotation.y = F.dir > 0 ? 0 : Math.PI; F.tl.rotation.y = Math.sin(t * 12) * 0.4; F.f.scale.setScalar(1.2);
             if (Math.abs(F.x - cx) > span / 2 + 3.5) { F.on = false; F.f.visible = false; F.t = 6 + Math.random() * 10; } } } }; }
+      for (const F of this.fg.fishes) { F.sp.visible = this.newArt; F.parts.forEach(o => { o.visible = !this.newArt; }); }
       this.fg.group.position.set((W - 1) / 2, -(H - 1), 0); this.fg.box = { top: 0.5 + (H - 1), bot: -0.4, span: W }; // group-local: origin sits at the bottom row centre
 
 
@@ -1989,7 +2001,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         else { const c = makeCoral(); c.position.set(x + ox, -y + 0.48, -0.42); c.scale.setScalar(1.2); this.levelGroup.add(c); }
       }
       for (const o of e.objects.values()) this.spawn(o);
-      this.gateSprite = sprPlane('goal', 0.98); this.gateSprite.position.set(e.gate.x, -e.gate.y, 0.47); this.levelGroup.add(this.gateSprite);
+      this.gateSprite = sprPlane(ART.goal, 0.98); this.gateSprite.position.set(e.gate.x, -e.gate.y, 0.47); this.levelGroup.add(this.gateSprite);
       this.gateObj = outline(makeGate(), 0.055, hullMat); this.gateObj.position.set(e.gate.x, -e.gate.y, 0); this.levelGroup.add(this.gateObj);
       this.airObjs = new Map();
       for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (e.get(x, y) === T.AIR) { const a = makeAir(); a.position.set(x, -y, 0.1); this.levelGroup.add(a); this.airObjs.set(y * W + x, a); }

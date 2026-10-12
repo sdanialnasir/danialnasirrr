@@ -114,6 +114,246 @@
    "file": "assets/images/sheet/sand.jpg",
    "w": 320,
    "h": 320
+  },
+  "rockA": {
+   "file": "assets/images/sheet2/rockA.png",
+   "w": 314,
+   "h": 174
+  },
+  "rockB": {
+   "file": "assets/images/sheet2/rockB.png",
+   "w": 240,
+   "h": 171
+  },
+  "rockC": {
+   "file": "assets/images/sheet2/rockC.png",
+   "w": 205,
+   "h": 158
+  },
+  "coral1": {
+   "file": "assets/images/sheet2/coral1.png",
+   "w": 159,
+   "h": 167
+  },
+  "coral2": {
+   "file": "assets/images/sheet2/coral2.png",
+   "w": 130,
+   "h": 153
+  },
+  "coral3": {
+   "file": "assets/images/sheet2/coral3.png",
+   "w": 129,
+   "h": 151
+  },
+  "coral4": {
+   "file": "assets/images/sheet2/coral4.png",
+   "w": 116,
+   "h": 143
+  },
+  "coral5": {
+   "file": "assets/images/sheet2/coral5.png",
+   "w": 118,
+   "h": 148
+  },
+  "weed1": {
+   "file": "assets/images/sheet2/weed1.png",
+   "w": 80,
+   "h": 141
+  },
+  "weed2": {
+   "file": "assets/images/sheet2/weed2.png",
+   "w": 98,
+   "h": 140
+  },
+  "weed3": {
+   "file": "assets/images/sheet2/weed3.png",
+   "w": 74,
+   "h": 142
+  },
+  "weed4": {
+   "file": "assets/images/sheet2/weed4.png",
+   "w": 70,
+   "h": 139
+  },
+  "weed5": {
+   "file": "assets/images/sheet2/weed5.png",
+   "w": 81,
+   "h": 129
+  },
+  "weed6": {
+   "file": "assets/images/sheet2/weed6.png",
+   "w": 81,
+   "h": 126
+  },
+  "weed7": {
+   "file": "assets/images/sheet2/weed7.png",
+   "w": 62,
+   "h": 133
+  },
+  "weed8": {
+   "file": "assets/images/sheet2/weed8.png",
+   "w": 71,
+   "h": 115
+  },
+  "weed9": {
+   "file": "assets/images/sheet2/weed9.png",
+   "w": 96,
+   "h": 114
+  },
+  "shellA": {
+   "file": "assets/images/sheet2/shellA.png",
+   "w": 84,
+   "h": 77
+  },
+  "shellB": {
+   "file": "assets/images/sheet2/shellB.png",
+   "w": 70,
+   "h": 66
+  },
+  "shellC": {
+   "file": "assets/images/sheet2/shellC.png",
+   "w": 71,
+   "h": 84
+  },
+  "shellD": {
+   "file": "assets/images/sheet2/shellD.png",
+   "w": 65,
+   "h": 83
+  },
+  "starA": {
+   "file": "assets/images/sheet2/starA.png",
+   "w": 143,
+   "h": 123
+  },
+  "starB": {
+   "file": "assets/images/sheet2/starB.png",
+   "w": 83,
+   "h": 82
+  },
+  "starC": {
+   "file": "assets/images/sheet2/starC.png",
+   "w": 82,
+   "h": 76
+  },
+  "starD": {
+   "file": "assets/images/sheet2/starD.png",
+   "w": 70,
+   "h": 71
+  },
+  "fishA": {
+   "file": "assets/images/sheet2/fishA.png",
+   "w": 94,
+   "h": 60
+  },
+  "fishB": {
+   "file": "assets/images/sheet2/fishB.png",
+   "w": 77,
+   "h": 62
+  },
+  "fishC": {
+   "file": "assets/images/sheet2/fishC.png",
+   "w": 97,
+   "h": 65
+  },
+  "fishD": {
+   "file": "assets/images/sheet2/fishD.png",
+   "w": 102,
+   "h": 66
+  },
+  "fishE": {
+   "file": "assets/images/sheet2/fishE.png",
+   "w": 104,
+   "h": 67
+  },
+  "fishF": {
+   "file": "assets/images/sheet2/fishF.png",
+   "w": 101,
+   "h": 74
+  },
+  "fishG": {
+   "file": "assets/images/sheet2/fishG.png",
+   "w": 103,
+   "h": 72
+  },
+  "fishH": {
+   "file": "assets/images/sheet2/fishH.png",
+   "w": 104,
+   "h": 68
+  },
+  "fishI": {
+   "file": "assets/images/sheet2/fishI.png",
+   "w": 116,
+   "h": 76
+  },
+  "school": {
+   "file": "assets/images/sheet2/school.png",
+   "w": 183,
+   "h": 70
+  },
+  "jellyN": {
+   "file": "assets/images/sheet2/jellyN.png",
+   "w": 103,
+   "h": 172
+  },
+  "bubbles": {
+   "file": "assets/images/sheet2/bubbles.png",
+   "w": 75,
+   "h": 167
+  },
+  "blockA": {
+   "file": "assets/images/sheet2/blockA.png",
+   "w": 134,
+   "h": 98
+  },
+  "blockB": {
+   "file": "assets/images/sheet2/blockB.png",
+   "w": 81,
+   "h": 100
+  },
+  "blockC": {
+   "file": "assets/images/sheet2/blockC.png",
+   "w": 117,
+   "h": 100
+  },
+  "blockD": {
+   "file": "assets/images/sheet2/blockD.png",
+   "w": 121,
+   "h": 88
+  },
+  "blockE": {
+   "file": "assets/images/sheet2/blockE.png",
+   "w": 55,
+   "h": 94
+  },
+  "blockF": {
+   "file": "assets/images/sheet2/blockF.png",
+   "w": 117,
+   "h": 101
+  },
+  "blockG": {
+   "file": "assets/images/sheet2/blockG.png",
+   "w": 55,
+   "h": 81
+  },
+  "platformN": {
+   "file": "assets/images/sheet2/platformN.png",
+   "w": 188,
+   "h": 70
+  },
+  "pearlBox": {
+   "file": "assets/images/sheet2/pearlBox.png",
+   "w": 109,
+   "h": 100
+  },
+  "gateA": {
+   "file": "assets/images/sheet2/gateA.png",
+   "w": 87,
+   "h": 97
+  },
+  "gateB": {
+   "file": "assets/images/sheet2/gateB.png",
+   "w": 87,
+   "h": 95
   }
  },
  "ART_SRC": {
