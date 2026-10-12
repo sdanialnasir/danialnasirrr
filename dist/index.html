@@ -1430,7 +1430,29 @@ const Audio = (() => {
     const g = ctx.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
     o.connect(g); g.connect(sfxBus); o.start(t); o.stop(t + dur + 0.02);
   }
+  // a tiny cartoon 'voice': a soft triangle tone with a pitch contour, gentle vibrato and two vowel formants
+  // pts = [[time, Hz], ...]; vowel formants: a ~ [850,1250], i ~ [320,2300], u/o ~ [420,850]
+  function voice(t, pts, dur, vol, formants = [[850, 5], [1250, 7]]) {
+    const o = ctx.createOscillator(); o.type = 'triangle'; o.frequency.setValueAtTime(pts[0][1], t); for (let i = 1; i < pts.length; i++) o.frequency.exponentialRampToValueAtTime(pts[i][1], t + pts[i][0]);
+    const vib = ctx.createOscillator(); vib.frequency.value = 8.5; const vg = ctx.createGain(); vg.gain.value = pts[0][1] * 0.018; vib.connect(vg); vg.connect(o.frequency);
+    const mix = ctx.createGain(), dry = ctx.createGain(); dry.gain.value = 0.35; o.connect(dry); dry.connect(mix);
+    formants.forEach(([f, q]) => { const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f; bp.Q.value = q; o.connect(bp); bp.connect(mix); });
+    const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.018); g.gain.setValueAtTime(vol, t + dur * 0.55); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    mix.connect(g); g.connect(sfxBus); o.start(t); vib.start(t); o.stop(t + dur + 0.05); vib.stop(t + dur + 0.05);
+  }
   const SFX = {
+    // ---- the diver's cute sounds
+    swim() { const t = ctx.currentTime, f = 230 + Math.random() * 70; // a soft double 'blub' of fin bubbles
+      for (const [d, k] of [[0, 1], [0.045, 1.35]]) { const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(f * k, t + d); o.frequency.exponentialRampToValueAtTime(f * k * 2.1, t + d + 0.07);
+        const g = ctx.createGain(); g.gain.setValueAtTime(0, t + d); g.gain.linearRampToValueAtTime(0.045, t + d + 0.01); g.gain.exponentialRampToValueAtTime(0.0008, t + d + 0.1); o.connect(g); g.connect(sfxBus); o.start(t + d); o.stop(t + d + 0.12); } },
+    hup() { voice(ctx.currentTime, [[0, 520], [0.1, 690]], 0.14, 0.32, [[720, 5], [1150, 7]]); },                       // 'hup!' while shoving
+    yay() { const t = ctx.currentTime; voice(t, [[0, 640], [0.12, 900]], 0.17, 0.3); voice(t + 0.16, [[0, 900], [0.16, 1280]], 0.26, 0.3); },
+    eep() { voice(ctx.currentTime, [[0, 950], [0.07, 1550]], 0.13, 0.22, [[330, 4], [2300, 7]]); },                      // a stone/pearl right overhead
+    oof() { voice(ctx.currentTime, [[0, 430], [0.13, 260]], 0.17, 0.3, [[440, 5], [860, 6]]); },                        // something heavy lands right next to him
+    hi() { voice(ctx.currentTime, [[0, 720], [0.09, 980], [0.2, 840]], 0.27, 0.2, [[340, 5], [2250, 7]]); },              // idle wave
+    hmm() { voice(ctx.currentTime + 0.05, [[0, 400], [0.2, 330]], 0.25, 0.18, [[320, 4], [880, 5]]); },                  // walked into a locked gate
+    woohoo() { const t = ctx.currentTime + 0.12; voice(t, [[0, 520], [0.18, 1050]], 0.24, 0.3, [[420, 5], [850, 6]]); voice(t + 0.26, [[0, 760], [0.12, 1180], [0.3, 1000]], 0.36, 0.3, [[420, 5], [850, 6]]); },
+    aww() { voice(ctx.currentTime + 0.1, [[0, 620], [0.45, 300]], 0.55, 0.26, [[800, 5], [1150, 6]]); },
     dig() { // soothing: a soft, low underwater 'whff' and a warm muted thump
       const t = ctx.currentTime;
       const src = ctx.createBufferSource(); src.buffer = sandBuf || (sandBuf = brownBuffer(1));
@@ -1967,19 +1989,37 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const face = new THREE.Group(); face.rotation.y = 1.05; head.add(face);
     const port = new THREE.Mesh(new THREE.TorusGeometry(0.175, 0.045, 18, 48), MAT.brass); port.position.z = 0.215; face.add(port);
     const skin = new THREE.Mesh(new THREE.SphereGeometry(0.17, 32, 24), MAT.skin); skin.scale.set(1, 0.96, 0.52); skin.position.z = 0.19; face.add(skin);
+    // ---- expressive face: eyes in their own groups (blink / squint / widen / glance), happy ^^ eyes, brows, three mouths, cheeks
+    if (!MAT.eyeDeep) { MAT.eyeDeep = new THREE.MeshStandardMaterial({ color: 0x1b1036, roughness: 0.25 }); MAT.eyeGlint = new THREE.MeshBasicMaterial({ color: 0x7ff3ff });
+      MAT.brow = new THREE.MeshStandardMaterial({ color: 0x5a3220, roughness: 0.6 }); MAT.tongue = new THREE.MeshStandardMaterial({ color: 0xff7a8e, roughness: 0.5 });
+      MAT.visorShine = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, depthWrite: false }); }
+    const eyes = [], happy = [], brows = [], cheeks = [];
     for (const sx of [-0.065, 0.065]) {
-      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.048, 24, 16), MAT.black); eye.scale.set(0.9, 1.15, 0.5); eye.position.set(sx, 0.02, 0.268); face.add(eye);
-      const h1 = new THREE.Mesh(new THREE.SphereGeometry(0.016, 10, 8), MAT.white); h1.position.set(sx + 0.016, 0.045, 0.29); face.add(h1);
-      const h2 = new THREE.Mesh(new THREE.SphereGeometry(0.008, 8, 6), MAT.white); h2.position.set(sx - 0.014, 0.0, 0.29); face.add(h2);
-      const ck = new THREE.Mesh(new THREE.SphereGeometry(0.03, 12, 8), MAT.cheek); ck.scale.set(1.2, 0.7, 0.3); ck.position.set(sx * 1.6, -0.055, 0.262); face.add(ck);
+      const eg = new THREE.Group(); eg.position.set(sx, 0.02, 0.268); face.add(eg); eg.userData.base = eg.position.clone();
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.048, 24, 16), MAT.eyeDeep); eye.scale.set(0.9, 1.15, 0.5); eg.add(eye);
+      const h1 = new THREE.Mesh(new THREE.SphereGeometry(0.017, 10, 8), MAT.white); h1.position.set(0.016, 0.026, 0.022); eg.add(h1);
+      const h2 = new THREE.Mesh(new THREE.SphereGeometry(0.008, 8, 6), MAT.white); h2.position.set(-0.014, -0.018, 0.022); eg.add(h2);
+      const h3 = new THREE.Mesh(new THREE.SphereGeometry(0.012, 10, 6), MAT.eyeGlint); h3.scale.set(1.6, 0.6, 0.4); h3.position.set(0.0, -0.034, 0.018); eg.add(h3); // the lower cyan glint
+      eyes.push(eg);
+      const hp = new THREE.Mesh(new THREE.TorusGeometry(0.032, 0.009, 8, 18, Math.PI), MAT.eyeDeep); hp.position.set(sx, 0.005, 0.272); hp.visible = false; face.add(hp); happy.push(hp);
+      const br = new THREE.Mesh(new THREE.CapsuleGeometry(0.008, 0.034, 4, 8), MAT.brow); br.rotation.z = Math.PI / 2; br.position.set(sx, 0.088, 0.268); br.userData.base = br.position.clone(); face.add(br); brows.push(br);
+      const ck = new THREE.Mesh(new THREE.SphereGeometry(0.03, 12, 8), MAT.cheek); ck.scale.set(1.2, 0.7, 0.3); ck.position.set(sx * 1.6, -0.055, 0.262); face.add(ck); cheeks.push(ck);
     }
     const smile = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.009, 8, 16, Math.PI), MAT.mouth); smile.rotation.z = Math.PI; smile.position.set(0, -0.045, 0.275); face.add(smile);
+    const mouthO = new THREE.Mesh(new THREE.SphereGeometry(0.02, 14, 10), MAT.mouth); mouthO.scale.set(1, 1.25, 0.4); mouthO.position.set(0, -0.055, 0.272); mouthO.visible = false; face.add(mouthO);
+    const mouthJoy = new THREE.Group(); mouthJoy.position.set(0, -0.04, 0.274); mouthJoy.visible = false; face.add(mouthJoy);
+    { const d = new THREE.Mesh(new THREE.CircleGeometry(0.042, 20, Math.PI, Math.PI), MAT.mouth); mouthJoy.add(d); const tg = new THREE.Mesh(new THREE.CircleGeometry(0.02, 14, Math.PI, Math.PI), MAT.tongue); tg.position.set(0.006, -0.02, 0.002); mouthJoy.add(tg); }
     const glass = new THREE.Mesh(new THREE.SphereGeometry(0.175, 32, 20), MAT.glass); glass.scale.set(1, 1, 0.6); glass.position.z = 0.22; face.add(glass);
+    { const sh1 = new THREE.Mesh(new THREE.TorusGeometry(0.135, 0.01, 6, 24, 1.0), MAT.visorShine); sh1.rotation.z = 1.75; sh1.position.z = 0.3; face.add(sh1);
+      const sh2 = new THREE.Mesh(new THREE.SphereGeometry(0.014, 8, 6), MAT.visorShine); sh2.position.set(-0.1, 0.1, 0.3); face.add(sh2); }
+    for (let i = 0; i < 3; i++) { const v = new THREE.Mesh(new THREE.SphereGeometry(0.018, 10, 8), MAT.brass); v.position.set(-0.24, 0.07 - i * 0.06, 0.0); head.add(v); } // side vent rivets
+    { const crest = new THREE.Mesh(new THREE.TorusGeometry(0.27, 0.014, 8, 40, Math.PI * 0.9), MAT.brass); crest.rotation.set(Math.PI / 2, 0, 0.1); crest.position.y = 0.0; head.add(crest); } // brass band round the helmet
     const collar = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.04, 14, 36), MAT.brass); collar.rotation.x = Math.PI / 2; collar.position.set(0.0, -0.11, 0); head.add(collar);
     // ---- torso
     const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.135, 0.1, 10, 20), MAT.dSuit); torso.position.set(-0.01, -0.17, 0); body.add(torso);
     const belt = new THREE.Mesh(new THREE.TorusGeometry(0.135, 0.028, 10, 28), MAT.navy); belt.rotation.x = Math.PI / 2; belt.position.set(-0.01, -0.23, 0); body.add(belt);
     const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.05, 0.06), MAT.brass); buckle.position.set(0.13, -0.23, 0.03); body.add(buckle);
+    { const badge = new THREE.Mesh(new THREE.CircleGeometry(0.035, 5), MAT.dFin); badge.position.set(0.1, -0.15, 0.1); badge.rotation.y = 0.9; body.add(badge); } // little star badge on the chest
     // ---- twin tanks + hose
     for (const sz of [-0.055, 0.055]) { const tk = new THREE.Mesh(new THREE.CapsuleGeometry(0.055, 0.17, 8, 16), MAT.chrome); tk.position.set(-0.18, -0.13, sz); body.add(tk);
       const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.04, 12), MAT.dFin); cap.position.set(-0.18, 0.0, sz); body.add(cap); }
@@ -1989,6 +2029,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const arm = (z, back) => { const sh = new THREE.Group(); sh.position.set(0.0, -0.1, z); body.add(sh);
       const up = new THREE.Mesh(new THREE.CapsuleGeometry(0.045, 0.1, 6, 12), MAT.dSuit); up.position.y = -0.08; sh.add(up);
       const glove = new THREE.Mesh(new THREE.SphereGeometry(0.058, 16, 12), MAT.dHelm); glove.scale.set(1, 0.9, 0.9); glove.position.y = -0.17; sh.add(glove);
+      const cuff = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.012, 8, 18), MAT.brass); cuff.rotation.x = Math.PI / 2; cuff.position.y = -0.128; sh.add(cuff);
       return sh; };
     const armF = arm(0.14), armB = arm(-0.14);
     // ---- legs with fins (hip pivots)
@@ -1997,6 +2038,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const leg = (z) => { const hip = new THREE.Group(); hip.position.set(-0.01, -0.29, z); body.add(hip);
       const th = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.1, 6, 12), MAT.dSuit); th.position.y = -0.07; hip.add(th);
       const boot = new THREE.Mesh(new THREE.SphereGeometry(0.055, 14, 10), MAT.navy); boot.scale.set(1.2, 0.8, 1); boot.position.set(0.01, -0.16, 0); hip.add(boot);
+      const knee = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8), MAT.navy); knee.scale.set(1, 1, 0.7); knee.position.set(0.04, -0.08, 0); hip.add(knee);
       const finPivot = new THREE.Group(); finPivot.position.set(0.03, -0.175, 0); hip.add(finPivot);
       const fin = new THREE.Mesh(finGeo, MAT.dFin); finPivot.add(fin); finPivot.rotation.z = -0.25;
       return { hip, finPivot }; };
@@ -2005,7 +2047,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const scarf = []; { const knot = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.03, 10, 28), MAT.dScarf); knot.rotation.x = Math.PI / 2; knot.position.set(0.0, 0.03, 0); body.add(knot);
       for (const [z, len] of [[0.07, 0.42], [-0.04, 0.34]]) { const gg = new THREE.PlaneGeometry(len, 0.1, 8, 1); gg.translate(-len / 2, 0, 0); const P = gg.attributes.position; for (let i = 0; i < P.count; i++) { const x = -P.getX(i) / len; P.setY(i, P.getY(i) * (1 - x * 0.45)); }
         const piv = new THREE.Group(); piv.position.set(-0.12, 0.03, z); body.add(piv); const rib = new THREE.Mesh(gg, MAT.dScarf); piv.add(rib); scarf.push({ piv, geo: gg, base: Float32Array.from(P.array), len }); } }
-    g.userData = { body, head, face, armF, armB, legF: LF.hip, legB: LB.hip, finF: LF.finPivot, finB: LB.finPivot, lampGlow, scarf };
+    g.userData = { body, head, face, armF, armB, legF: LF.hip, legB: LB.hip, finF: LF.finPivot, finB: LB.finPivot, lampGlow, scarf, eyes, happy, brows, cheeks, smile, mouthO, mouthJoy };
     g.traverse(o => { if (o.isMesh) o.castShadow = true; });
     return withShadow(g);
   }
@@ -2556,7 +2598,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.gateObj = null; this.sandInst = null; this.treasures = []; this.digChunks = []; if (this.warn) this.warn.visible = false; this.ghosts = []; this.absorbing = []; this.deathTint = 0; this.setFx('');
     }
     loadLevel(e) {
-      this.clearLevel(); this.e = e; const ART = ART_SETS[NEW_ART_LEVELS.has(e.name) && !e.menu ? 'new' : 'old']; this.newArt = ART === ART_SETS.new; MAT.sandNew.value = this.newArt ? 1 : 0; this.tickMs = e.tickMs; this.menuMode = !!e.menu; this.playing = false; this.lead.set(0, 0); this.lastMove = -99; this.zoomK = 1.12; this.playerPos = null;
+      this.clearLevel(); this.e = e; this.mood = null; this.playerAct = null; this.lastHup = -9; const ART = ART_SETS[NEW_ART_LEVELS.has(e.name) && !e.menu ? 'new' : 'old']; this.newArt = ART === ART_SETS.new; MAT.sandNew.value = this.newArt ? 1 : 0; this.tickMs = e.tickMs; this.menuMode = !!e.menu; this.playing = false; this.lead.set(0, 0); this.lastMove = -99; this.zoomK = 1.12; this.playerPos = null;
       const W = e.w, H = e.h; this.particles.top = 1;
       const sand = [], blocks = [], cobbles = [], solid = [];
       for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const t = e.get(x, y); if (t === T.SAND) sand.push([x, y]); else if (t === T.STEEL) { if (x === 0 || y === 0 || x === W - 1 || y === H - 1) continue; blocks.push([x, y]); solid.push([x, y]); } else if (t === T.WALL) { cobbles.push([x, y]); } }
@@ -2919,6 +2961,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       for (const [id, ent] of this.entities) if (!e.objects.has(id) && !ent.ghost) { this.levelGroup.remove(ent.m); this.entities.delete(id); }
     }
     sfx(n) { if (this.onSfx) this.onSfx(n); }
+    // the diver's facial/body reaction of the moment (effort, surprise, joy, flinch, bonk); a stronger mood replaces a weaker one
+    playerMood(k, dur) { const rank = { flinch: 1, bonk: 1, surprise: 2, joy: 3 }; if (this.mood && rank[this.mood.k] > rank[k] && this.mood.t < this.mood.dur * 0.7) return; this.mood = { k, t: 0, dur }; }
     setFx(cls) { if (this.fx) this.fx.className = cls; }
     flashFx(cls) { if (!this.fx) return; this.fx.classList.remove(cls); void this.fx.offsetWidth; this.fx.classList.add(cls); }
     handleEvent(ev, e) {
@@ -2933,18 +2977,19 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             P.emit(x + vx * 0.25, y, 0.42, 18, { color: SAND, speed: 0.45, life: 1.1, size: 0.075, kind: 1, spread: 0.35, vx, vy: vy + 0.5 });
             P.emit(x, y, 0.44, 8, { color: new THREE.Color(0xc99a4a), speed: 0.3, life: 0.9, size: 0.11, kind: 1, spread: 0.3, vx: vx * 0.6, vy: 0.4 }); } this.refreshLips(); P.emit(x, y + 0.2, 0.42, 22, { color: SAND, speed: 0.55, life: 1.3, size: 0.08, kind: 1, spread: 0.45 }); P.emit(x, y, 0.42, 5, { color: new THREE.Color(0xf7e2b0), speed: 0.25, life: 0.7, size: 0.32, kind: 0, spread: 0.3 }); this.sfx('dig'); break; }
         case 'air': { const a = this.airObjs.get(ev.y * e.w + ev.x); if (a) { this.levelGroup.remove(a); this.airObjs.delete(ev.y * e.w + ev.x); } P.bubbles(x, y, 0.2, 16, 0.12, 0.6); this.sfx('air'); break; }
-        case 'push': this.playerAct = { k: 'push', t: 0 }; this.sfx('push'); break;
-        case 'land': { this.shake = Math.max(this.shake, ev.t === T.ROCK ? 0.12 : 0.07); P.emit(x, y - 0.42, 0.4, 10, { color: SAND, speed: 1.2, life: 0.5, size: 0.1, kind: 1, spread: 0.7 }); this.sfx('land'); break; }
+        case 'push': this.playerAct = { k: 'push', t: 0 }; this.sfx('push'); if (this.time - (this.lastHup ?? -9) > 0.8) { this.lastHup = this.time; this.sfx('hup'); } break;
+        case 'land': { { const pl = e.player; if (pl && Math.abs(pl.x - ev.x) <= 1 && Math.abs(pl.y - ev.y) <= 1) { this.playerMood('flinch', 0.45); this.sfx('oof'); } } // a heavy thing lands right next to him
+          this.shake = Math.max(this.shake, ev.t === T.ROCK ? 0.12 : 0.07); P.emit(x, y - 0.42, 0.4, 10, { color: SAND, speed: 1.2, life: 0.5, size: 0.1, kind: 1, spread: 0.7 }); this.sfx('land'); break; }
         case 'roll': this.sfx('roll'); break;
-        case 'absorb': { P.emit(x, y, 0.5, 40, { color: new THREE.Color(1, 0.55, 0.25), speed: 2.6, life: 0.8, size: 0.14 }); P.emit(x, y, 0.5, 30, { color: new THREE.Color(0.5, 0.9, 1), speed: 2, life: 1, size: 0.12 }); this.sfx('absorb');
+        case 'absorb': { P.emit(x, y, 0.5, 40, { color: new THREE.Color(1, 0.55, 0.25), speed: 2.6, life: 0.8, size: 0.14 }); P.emit(x, y, 0.5, 30, { color: new THREE.Color(0.5, 0.9, 1), speed: 2, life: 1, size: 0.12 }); this.sfx('absorb'); this.playerMood('joy', 1.25); setTimeout(() => this.sfx('yay'), 260);
           const ent = this.entities.get(ev.id); if (ent) { ent.absorbing = { t: 0, from: new V3(ev.fromX, -ev.fromY, 0.05), to: new V3(x, y, 0.3) }; this.entities.delete(ev.id); this.absorbing.push(ent); } break; }
-        case 'gateOpen': { this.flashFx('flash'); P.emit(x, y, 0.5, 70, { color: new THREE.Color(0.55, 0.95, 1), speed: 3.5, life: 1.3, size: 0.16 }); P.bubbles(x, y, 0.2, 18, 0.12, 0.8); this.sfx('gateOpen'); this.shake = 0.18; break; }
-        case 'gateLocked': this.sfx('gateLocked'); break;
+        case 'gateOpen': { this.playerMood('joy', 1.25); this.flashFx('flash'); P.emit(x, y, 0.5, 70, { color: new THREE.Color(0.55, 0.95, 1), speed: 3.5, life: 1.3, size: 0.16 }); P.bubbles(x, y, 0.2, 18, 0.12, 0.8); this.sfx('gateOpen'); this.shake = 0.18; break; }
+        case 'gateLocked': this.sfx('gateLocked'); this.playerMood('bonk', 0.55); this.sfx('hmm'); break;
         case 'monsterDeath': { P.bubbles(x, y, 0.2, 14, 0.1, 0.6); P.emit(x, y, 0.4, 20, { color: new THREE.Color(1, 0.7, 0.4), speed: 2, life: 0.7, size: 0.12 }); this.sfx('monsterDeath'); this.shake = Math.max(this.shake, 0.12);
           for (const ent of this.entities.values()) if (ent.o.x === ev.x && ent.o.y === ev.y && ent.o.t === ev.t) { ent.ghost = { t: 0, kind: 'monster' }; this.ghosts.push(ent); this.entities.delete(ent.o.id); } break; }
-        case 'playerDeath': { P.bubbles(x, y, 0.2, 36, 0.13, 0.8); this.shake = 0.4; this.sfx('death'); this.setFx('dead');
+        case 'playerDeath': { P.bubbles(x, y, 0.2, 36, 0.13, 0.8); this.shake = 0.4; this.sfx('death'); this.sfx('aww'); this.setFx('dead');
           for (const ent of this.entities.values()) if (ent.o.t === T.PLAYER) { ent.ghost = { t: 0, kind: 'player' }; ent.m.userData.baseScale = ent.m.scale.x; this.ghosts.push(ent); this.entities.delete(ent.o.id); } break; }
-        case 'win': { this.flashFx('flash'); for (let i = 0; i < 4; i++) P.emit(x, y, 0.5, 30, { color: new THREE.Color().setHSL(Math.random(), 0.85, 0.65), speed: 3.5, life: 1.6, size: 0.15 }); this.sfx('win');
+        case 'win': { this.flashFx('flash'); for (let i = 0; i < 4; i++) P.emit(x, y, 0.5, 30, { color: new THREE.Color().setHSL(Math.random(), 0.85, 0.65), speed: 3.5, life: 1.6, size: 0.15 }); this.sfx('win'); this.sfx('woohoo');
           for (const ent of this.entities.values()) if (ent.o.t === T.PLAYER) { ent.ghost = { t: 0, kind: 'win', to: new V3(x, y, 0.3) }; this.ghosts.push(ent); this.entities.delete(ent.o.id); } break; }
       }
     }
@@ -3040,53 +3085,90 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           if (o.t === T.BALL) { const pulse = Math.sin(t * 4 + ent.phase); m.userData.glow.scale.setScalar(1.7 + pulse * 0.12); m.userData.core.material.opacity = 0.45 + pulse * 0.15;
             ent.spark = (ent.spark || 0) - dt; if (ent.spark <= 0) { ent.spark = 0.25 + Math.random() * 0.45; const an = Math.random() * 6.28; this.particles.emit(ix + Math.cos(an) * 0.38, iy + Math.sin(an) * 0.38, 0.45, 1, { color: new THREE.Color(1, 0.6 + Math.random() * 0.3, 0.2), speed: 0.35, life: 0.7, size: 0.07, kind: 2, spread: 0.02 }); } }
         } else if (o.t === T.PLAYER) {
-          // floaty glide between cells: quick start, long soft settle (water drag)
-          const tgx = o.px + (o.x - o.px) * a, tgy = -(o.py + (o.y - o.py) * a); if (!ent.disp || Math.hypot(ent.disp.x - tgx, ent.disp.y - tgy) > 2) ent.disp = { x: tgx, y: tgy };
-          { const kk = 1 - Math.exp(-dt * 16); ent.disp.x += (tgx - ent.disp.x) * kk; ent.disp.y += (tgy - ent.disp.y) * kk; } const gx = ent.disp.x, gy = ent.disp.y;
+          const u = m.userData, fit = u.fit || { s: 1.3, yOff: 0.04 }, dir = e.playerDir >= 0 ? 1 : -1, ph = ent.phase;
+          // ---- locomotion: a damped spring chases the diver's cell, so every move eases out, overshoots a hair and settles like a body in water
+          if (!ent.sp || Math.hypot(ent.sp.x - o.x, ent.sp.y + o.y) > 2.5) ent.sp = { x: o.x, y: -o.y, vx: 0, vy: 0 };
+          { const S = ent.sp, k = 115, c = 2 * Math.sqrt(k) * 0.74, n = Math.max(1, Math.ceil(dt / 0.008)), h = dt / n;
+            for (let i = 0; i < n; i++) { S.vx += (k * (o.x - S.x) - c * S.vx) * h; S.vy += (k * (-o.y - S.y) - c * S.vy) * h; S.x += S.vx * h; S.y += S.vy * h; } }
+          const gx0 = ent.sp.x, gy0 = ent.sp.y, vxW = ent.sp.vx, vyW = ent.sp.vy, speed = Math.hypot(vxW, vyW);
           if (moving) { this.lastMove = t; this.moveDir.set(o.x - o.px, -(o.y - o.py)); }
-          const swimK = (ent.swim = (ent.swim || 0) + ((moving ? 1 : 0) - (ent.swim || 0)) * Math.min(1, dt * (moving ? 8 : 2.5)));
-          // gentle buoyant bob + drift that calms while swimming
-          const bob = (Math.sin(t * 2.4 + ent.phase) * 0.045 + Math.sin(t * 4.8 + ent.phase) * 0.008) * (1 - swimK * 0.85), drift = 0 * Math.sin(t * 0.9 + ent.phase) * 0.018;
-          const fit = m.userData.fit || { s: 1.3, yOff: 0.04 }, below = e.get(o.x, o.y + 1), grounded = !moving && below !== T.EMPTY && below !== T.GATE;
-          ent.lift = (ent.lift === undefined ? 0 : ent.lift) + ((grounded ? 0 : 0.035 + Math.sin(t * 1.7 + ent.phase) * 0.025) - (ent.lift || 0)) * Math.min(1, dt * 6); // stand when on the floor, float gently in open water
-          m.position.set(gx, gy + fit.yOff + ent.lift, 0.14); this.playerPos = m.position;
+          if (ent.cell !== o.y * e.w + o.x) { if (ent.cell !== undefined && !(this.playerAct && this.playerAct.t < 0.06)) this.sfx('swim'); ent.cell = o.y * e.w + o.x; }
+          const swimK = (ent.swim = (ent.swim || 0) + (Math.min(1, speed / 2.6) - (ent.swim || 0)) * Math.min(1, dt * 7));
+          const idleFor = t - (this.lastMove ?? -99), below = e.get(o.x, o.y + 1), grounded = speed < 0.35 && below !== T.EMPTY && below !== T.GATE;
+          // ---- floating: very slow, layered sines so the hover never looks mechanical; fades out while swimming / standing
+          const floatK = (ent.floatK = (ent.floatK ?? 1) + ((grounded ? 0 : 1) * (1 - swimK) - (ent.floatK ?? 1)) * Math.min(1, dt * 2.2));
+          const bob = (Math.sin(t * 0.95 + ph) * 0.034 + Math.sin(t * 0.57 + ph * 1.7) * 0.016) * floatK;
+          ent.lift = (ent.lift ?? 0) + ((grounded ? 0 : 0.05) - (ent.lift ?? 0)) * Math.min(1, dt * 3.5);
+          // ---- what the diver is doing: reaching for a pearl/stone in front, pushing, digging, mood reactions
+          const ahead = e.obj[o.y * e.w + o.x + dir], canPush = ahead && (ahead.t === T.BALL || ahead.t === T.ROCK) && speed < 1.2;
+          ent.reach = (ent.reach || 0) + ((canPush ? 1 : 0) - (ent.reach || 0)) * Math.min(1, dt * (canPush ? 7 : 4));
+          const act = this.playerAct; let pushE = 0, digE = 0;
+          if (act) { act.t += dt; const dur = act.k === 'dig' ? 0.36 : 0.42, p = Math.min(1, act.t / dur), env = Math.sin(p * Math.PI);
+            if (act.k === 'dig') digE = env; else pushE = Math.sin(Math.min(1, p * 1.6) * Math.PI * 0.5) * (1 - Math.max(0, p - 0.7) / 0.3); if (p >= 1) this.playerAct = null; }
+          const mood = this.mood; if (mood) { mood.t += dt; if (mood.t > mood.dur) this.mood = null; }
+          const mk = this.mood ? this.mood.k : null, mt = this.mood ? this.mood.t : 0, joy = mk === 'joy' ? Math.sin(Math.min(1, mt / 1.1) * Math.PI) : 0;
+          // ---- lean: a springy pitch into the swim direction; stops rock back past upright and settle (water drag)
+          const fwdV = vxW * dir, leanGoal = Math.max(-0.42, Math.min(0.42, -fwdV * 0.1)) - ent.reach * 0.12 - pushE * 0.32 + (vyW > 0.4 ? 0.08 : vyW < -0.4 ? -0.16 : 0);
+          { ent.lean = ent.lean || 0; ent.leanV = ent.leanV || 0; const k = 70, c = 2 * Math.sqrt(k) * 0.42; ent.leanV += (k * (leanGoal - ent.lean) - c * ent.leanV) * dt; ent.lean += ent.leanV * dt; }
+          const sway = Math.sin(t * 0.7 + ph) * 0.05 * floatK;
+          u.body.rotation.z = ent.lean + sway + digE * (act && act.dir === 'down' ? 0.42 : act && act.dir === 'up' ? -0.32 : -0.2);
+          u.head.rotation.z = -ent.lean * 0.35 + Math.sin(t * 0.8 + ph + 1) * 0.04 * floatK + (mk === 'bonk' ? Math.sin(mt * 30) * 0.18 * Math.max(0, 1 - mt / 0.5) : 0) + (vyW > 0.4 ? 0.12 : vyW < -0.4 ? -0.18 : 0) * swimK;
+          // body slides toward what it pushes so the gloves actually touch it
+          const lean2 = dir * (0.31 * Math.max(ent.reach, pushE) + 0.03 * pushE), hop = joy * 0.16 * Math.abs(Math.sin(mt * 6.5)) ;
+          m.position.set(gx0 + lean2, gy0 + fit.yOff + ent.lift + bob + hop, 0.14); this.playerPos = m.position;
+          const gx = gx0, gy = gy0;
           // danger cue: a heavy stone/pearl in the column right above the diver (it falls if he moves the wrong way)
           { if (!this.warn) { const c = document.createElement('canvas'); c.width = c.height = 128; const g2 = c.getContext('2d');
               g2.fillStyle = '#ff3b30'; g2.beginPath(); g2.arc(64, 64, 52, 0, 7); g2.fill(); g2.lineWidth = 8; g2.strokeStyle = '#ffffff'; g2.stroke();
               g2.fillStyle = '#ffffff'; g2.font = '900 84px Arial, sans-serif'; g2.textAlign = 'center'; g2.textBaseline = 'middle'; g2.fillText('!', 64, 70);
               this.warn = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthTest: false, toneMapped: false })); this.warn.renderOrder = 20; this.scene.add(this.warn); }
             let danger = false; for (let k = 1; k <= 2; k++) { const yy = o.y - k; if (yy < 0) break; const q = e.obj[yy * e.w + o.x]; if (q && (q.t === T.ROCK || q.t === T.BALL)) { danger = true; break; } if (e.get(o.x, yy) !== T.EMPTY) break; }
-            this.warn.visible = danger && e.state === 'playing'; if (danger) { const pz = 1 + Math.sin(t * 9) * 0.12; this.warn.scale.setScalar(0.42 * pz); this.warn.position.set(gx + 0.38, gy + 0.62, 0.9); } }
-          ent.facing += (e.playerDir - ent.facing) * Math.min(1, dt * 9);
-          { const yt = e.playerDir > 0 ? -0.35 : -Math.PI + 0.35; if (ent.yaw === undefined) ent.yaw = yt; ent.yaw += (yt - ent.yaw) * (1 - Math.exp(-dt * 11)); m.rotation.y = ent.yaw; const fs = (m.userData.fit || { s: 1.3 }).s, br = Math.sin(t * 2.4 + ent.phase) * 0.025 * (1 - swimK); m.scale.set(fs * (1 - br * 0.6 - swimK * 0.04), fs * (1 + br + swimK * 0.07), fs * (1 - br * 0.6)); } // breathing squash + stretch while swimming
-          const u = m.userData;
-          // body tilt: lean into horizontal swims, point head-first up/down for vertical ones
-          const vx = moving ? Math.abs(o.x - o.px) : 0, vy = moving ? -(o.y - o.py) : 0;
-          const tiltGoal = -0.1 * vx + vy * 0.16; // gentle, so the helmet never pokes into the sand
-          ent.tilt = (ent.tilt || 0) + (tiltGoal - (ent.tilt || 0)) * Math.min(1, dt * 6);
-          u.body.rotation.z = ent.tilt + Math.sin(t * 1.3 + ent.phase) * 0.06;
-          u.head.rotation.z = Math.sin(t * 1.1 + ent.phase) * 0.05 - ent.tilt * 0.25;
-          // flutter kick: slow lazy paddles when idle, strong kicks while swimming
-          const kick = Math.sin(t * (2.2 + swimK * 9)) * (0.18 + swimK * 0.35);
-          u.legF.rotation.z = kick; u.legB.rotation.z = -kick;
-          u.finF.rotation.z = -0.25 - Math.sin(t * (2.2 + swimK * 9) - 0.8) * (0.25 + swimK * 0.35); u.finB.rotation.z = -0.25 + Math.sin(t * (2.2 + swimK * 9) - 0.8) * (0.25 + swimK * 0.35);
-          // arms: idle treading water, breaststroke while swimming, plus dig / push actions
-          const act = this.playerAct; let aF = 0.5 + Math.sin(t * 1.8 + ent.phase) * 0.25, aB = 0.4 + Math.sin(t * 1.8 + ent.phase + 1.2) * 0.25;
-          if (swimK > 0.01) { const st = Math.sin(t * 7); aF = aF * (1 - swimK) + (1.2 + st * 0.9) * swimK; aB = aB * (1 - swimK) + (1.1 - st * 0.9) * swimK; }
-          if (act) { act.t += dt; const p = Math.min(1, act.t / (act.k === 'dig' ? 0.32 : 0.4)), env = Math.sin(p * Math.PI);
-            if (act.k === 'dig') { aF += env * 1.6 * (act.dir === 'down' ? -0.4 : 1); aB += env * 1.1; u.body.rotation.z += env * (act.dir === 'down' ? 0.35 : act.dir === 'up' ? -0.3 : -0.18); }
-            else { aF = aF * (1 - env) + 1.55 * env; aB = aB * (1 - env) + 1.45 * env; u.body.rotation.z -= env * 0.25; }
-            if (p >= 1) this.playerAct = null; }
-          // an occasional cheerful wave when left idle
-          if (!act && swimK < 0.05 && t - (this.lastMove ?? -99) > 2.2) { ent.waveT = (ent.waveT ?? 1.5) - dt; if (ent.waveT < 0) { const w = Math.min(1, -ent.waveT / 1.1); aF = 2.7 + Math.sin(t * 14) * 0.35 * Math.sin(w * Math.PI); if (ent.waveT < -1.1) ent.waveT = 4 + Math.random() * 3; } } else ent.waveT = 1.5;
-          u.armF.rotation.z = aF; u.armB.rotation.z = aB;
-          if (u.scarf) u.scarf.forEach((sc, j) => { const P = sc.geo.attributes.position, b = sc.base, sp = 5 + swimK * 7, amp = 0.025 + swimK * 0.03;
+            const show = danger && e.state === 'playing'; if (show && !this.warn.visible) { this.playerMood('surprise', 0.9); this.sfx('eep'); } this.warn.visible = show; if (danger) { const pz = 1 + Math.sin(t * 9) * 0.12; this.warn.scale.setScalar(0.42 * pz); this.warn.position.set(gx + 0.38, gy + 0.62, 0.9); } }
+          // ---- turning (yaw spring) + a full happy spin on joy
+          { const yt = dir > 0 ? -0.35 : -Math.PI + 0.35; if (ent.yaw === undefined) ent.yaw = yt; ent.yaw += (yt - ent.yaw) * (1 - Math.exp(-dt * 9));
+            m.rotation.y = ent.yaw + (mk === 'joy' ? Math.PI * 2 * Math.min(1, Math.max(0, (mt - 0.15) / 0.75)) ** 0.8 * (1 - 0) : 0);
+            // squash & stretch: slow breath when idle, stretch along fast moves, a quick squash on a flinch
+            const fs = fit.s, br = Math.sin(t * 1.25 + ph) * 0.018 * (1 - swimK), st = swimK * 0.07, fl = mk === 'flinch' ? Math.sin(Math.min(1, mt / 0.35) * Math.PI) * 0.12 : 0;
+            m.scale.set(fs * (1 - br * 0.6 - st * 0.5 + fl * 0.6), fs * (1 + br + st - fl), fs * (1 - br * 0.6 + fl * 0.4)); }
+          // ---- legs: lazy flutter when floating, strong kicks when swimming or pushing, still when standing
+          const kf = 1.4 + swimK * 9.5 + pushE * 12, ka = (grounded ? 0.03 : 0.12) * (1 - swimK) + swimK * 0.42 + pushE * 0.45, kick = Math.sin(t * kf) * ka;
+          u.legF.rotation.z = kick + (grounded ? 0 : 0.08); u.legB.rotation.z = -kick + (grounded ? 0 : 0.08);
+          u.finF.rotation.z = -0.25 - Math.sin(t * kf - 0.9) * ka * 1.1; u.finB.rotation.z = -0.25 + Math.sin(t * kf - 0.9) * ka * 1.1;
+          // ---- arms: slow treading when floating, relaxed when standing, breaststroke when swimming, hands up & forward to reach, shove when pushing
+          let aF = (grounded ? 0.18 : 0.45) + Math.sin(t * 1.1 + ph) * (grounded ? 0.05 : 0.18), aB = (grounded ? 0.14 : 0.38) + Math.sin(t * 1.1 + ph + 1.4) * (grounded ? 0.05 : 0.18);
+          if (swimK > 0.01) { const sw = Math.sin(t * 8.5); aF += ((1.25 + sw * 0.85) - aF) * swimK; aB += ((1.15 - sw * 0.85) - aB) * swimK; }
+          const lc = -u.body.rotation.z; // arms aim in world space, so leaning in doesn't tip the hands down
+          if (ent.reach > 0.01) { aF += (1.5 + lc + Math.sin(t * 3) * 0.04 - aF) * ent.reach; aB += (1.42 + lc + Math.sin(t * 3 + 1) * 0.04 - aB) * ent.reach; }
+          if (pushE > 0) { const sh = Math.sin(t * 22) * 0.05; aF += (1.58 + lc + sh - aF) * pushE; aB += (1.5 + lc - sh - aB) * pushE; }
+          if (digE > 0) { const dn = act.dir === 'down', up = act.dir === 'up'; aF += (dn ? -0.5 : up ? 2.6 : 1.9) * digE * 0.8; aB += (dn ? 0.9 : up ? 2.3 : 1.2) * digE * 0.7; }
+          if (joy > 0) { aF += (2.85 + Math.sin(t * 16) * 0.2 - aF) * joy; aB += (2.75 - Math.sin(t * 16) * 0.2 - aB) * joy; }
+          // an occasional cheerful wave (with a little 'hi') after standing still for a while
+          if (!act && !mk && swimK < 0.05 && idleFor > 2.6) { ent.waveT = (ent.waveT ?? 1.2) - dt; if (ent.waveT < 0) { if (!ent.waved) { ent.waved = true; this.sfx('hi'); } const w = Math.min(1, -ent.waveT / 1.2); aF = 2.75 + Math.sin(t * 13) * 0.35 * Math.sin(w * Math.PI); if (ent.waveT < -1.2) { ent.waveT = 5 + Math.random() * 4; ent.waved = false; } } } else { ent.waveT = 1.2; ent.waved = false; }
+          ent.aF = (ent.aF ?? aF) + (aF - (ent.aF ?? aF)) * Math.min(1, dt * 14); ent.aB = (ent.aB ?? aB) + (aB - (ent.aB ?? aB)) * Math.min(1, dt * 14);
+          u.armF.rotation.z = ent.aF; u.armB.rotation.z = ent.aB;
+          { const ext = 1 + 0.8 * Math.max(ent.reach, pushE); u.armF.scale.y = ext; u.armB.scale.y = ext; } // cartoon reach: the arms stretch so the gloves press on the pearl
+          // ---- face: blinks, glances, and expressions (effort / surprise / joy / flinch / bonk)
+          if (u.eyes) {
+            ent.blinkT = (ent.blinkT ?? 2) - dt; if (ent.blinkT < -0.13) ent.blinkT = 1.8 + Math.random() * 3.2 - (Math.random() < 0.2 ? 1.7 : 0); // sometimes a quick double blink
+            const blink = ent.blinkT < 0 ? Math.sin(-ent.blinkT / 0.13 * Math.PI) : 0;
+            const effort = Math.max(pushE, digE * 0.7, ent.reach * 0.25), surprise = mk === 'surprise' || mk === 'flinch' ? Math.sin(Math.min(1, mt / Math.max(0.2, this.mood.dur)) * Math.PI) : 0;
+            const eyeY = Math.max(0.06, (1 - blink * 0.95) * (1 - effort * 0.42) * (1 + surprise * 0.28)) * (mk === 'bonk' ? 0.45 : 1), eyeX = 1 + surprise * 0.18;
+            const look = new THREE.Vector2(Math.sin(t * 0.37 + ph) * 0.006 * floatK, (vyW > 0.3 ? 0.012 : vyW < -0.3 ? -0.014 : 0) + (pushE + ent.reach) * -0.004);
+            u.eyes.forEach((eg, i) => { eg.visible = joy < 0.25; eg.scale.set(eyeX, eyeY, 1); eg.position.set(eg.userData.base.x + look.x, eg.userData.base.y + look.y, eg.userData.base.z); });
+            u.happy.forEach(hp => { hp.visible = joy >= 0.25; });
+            u.brows.forEach((bw, i) => { const sgn = i ? 1 : -1; bw.rotation.z = Math.PI / 2 + sgn * (effort * 0.38 - surprise * 0.1) + (mk === 'bonk' ? sgn * 0.3 : 0);
+              bw.position.y = bw.userData.base.y + surprise * 0.018 + joy * 0.012 - effort * 0.008; });
+            u.smile.visible = joy < 0.25 && effort < 0.45 && surprise < 0.3; u.mouthO.visible = !u.smile.visible && joy < 0.25; u.mouthO.scale.set(1 - effort * 0.35, 1.25 * (0.6 + surprise * 0.8 + effort * 0.2), 0.4); u.mouthJoy.visible = joy >= 0.25;
+            u.cheeks.forEach(ck => { const s2 = 1 + joy * 0.35 + effort * 0.2; ck.scale.set(1.2 * s2, 0.7 * s2, 0.3); });
+          }
+          // ---- scarf: slow flutter while floating, streaming while swimming
+          if (u.scarf) u.scarf.forEach((sc, j) => { const P = sc.geo.attributes.position, b = sc.base, sp = 2.6 + swimK * 9, amp = 0.022 + swimK * 0.035;
             for (let i = 0; i < P.count; i++) { const x = -b[i * 3] / sc.len; P.setY(i, b[i * 3 + 1] + Math.sin(t * sp - x * 5 + j) * amp * x); P.setZ(i, Math.cos(t * sp * 0.8 - x * 4 + j) * amp * 0.6 * x); }
-            P.needsUpdate = true; sc.piv.rotation.z = -0.35 + Math.sin(t * 2 + j) * 0.12 + swimK * 0.25; });
-          u.lampGlow.material.opacity = 0.55 + Math.sin(t * 3.1) * 0.1;
+            P.needsUpdate = true; sc.piv.rotation.z = -0.5 + Math.sin(t * 0.9 + j) * 0.1 + swimK * 0.4 - ent.lean * 0.6; });
+          u.lampGlow.material.opacity = 0.55 + Math.sin(t * 1.6) * 0.08;
           m.userData.shadow.visible = e.get(o.x, o.y + 1) !== T.EMPTY;
-          ent.bub = (ent.bub || 0) - dt; if (ent.bub <= 0) { ent.bub = 0.7 + Math.random() * 1.1; this.particles.bubbles(gx + 0.15 * e.playerDir, gy + 0.45, 0.25, 2 + (Math.random() * 3 | 0), 0.05, 0.12); }
-          if (moving && Math.random() < dt * 10) this.particles.bubbles(gx - 0.3 * e.playerDir, gy - 0.3, 0.2, 1, 0.04, 0.2);
+          ent.bub = (ent.bub || 0) - dt; if (ent.bub <= 0) { ent.bub = (pushE > 0 ? 0.25 : 1.1) + Math.random() * 1.4; this.particles.bubbles(gx + 0.15 * dir, gy + 0.45, 0.25, 1 + (Math.random() * 3 | 0), 0.05, 0.1); }
+          if (swimK > 0.3 && Math.random() < dt * 14) this.particles.bubbles(gx - 0.32 * dir, gy - 0.28, 0.2, 1, 0.035, 0.15); // a trail from the fins
         } else if (o.t === T.FISH) {
           m.position.set(ix, iy + Math.sin(t * 3 + ent.phase) * 0.04, 0.15);
           const D = [[1, 0], [0, 1], [-1, 0], [0, -1]]; const d = D[o.dir]; if (d[0]) ent.facing = d[0];
