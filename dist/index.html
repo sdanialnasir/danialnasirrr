@@ -1652,22 +1652,22 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             float r = 0.2; bool fill = false; float fd = 1.0;
             #define SM(o) texture2D(uMask, (cell + o + 0.5) / uSize).r
             float mU = SM(vec2(0.0, -1.0)), mD = SM(vec2(0.0, 1.0)), mL = SM(vec2(-1.0, 0.0)), mR = SM(vec2(1.0, 0.0));
-            if (mU > 0.99 && mL > 0.99 && SM(vec2(-1.0, -1.0)) > 0.99 && lc.x < r && lc.y < r) { float d = length(lc - vec2(r)) - r; if (d > 0.0) { fill = true; fd = d; } }
-            if (mU > 0.99 && mR > 0.99 && SM(vec2(1.0, -1.0)) > 0.99 && lc.x > 1.0 - r && lc.y < r) { float d = length(lc - vec2(1.0 - r, r)) - r; if (d > 0.0) { fill = true; fd = d; } }
-            if (mD > 0.99 && mL > 0.99 && SM(vec2(-1.0, 1.0)) > 0.99 && lc.x < r && lc.y > 1.0 - r) { float d = length(lc - vec2(r, 1.0 - r)) - r; if (d > 0.0) { fill = true; fd = d; } }
-            if (mD > 0.99 && mR > 0.99 && SM(vec2(1.0, 1.0)) > 0.99 && lc.x > 1.0 - r && lc.y > 1.0 - r) { float d = length(lc - vec2(1.0 - r)) - r; if (d > 0.0) { fill = true; fd = d; } }
+            if (mU > 0.5 && mL > 0.5 && SM(vec2(-1.0, -1.0)) > 0.5 && lc.x < r && lc.y < r) { float d = length(lc - vec2(r)) - r; if (d > 0.0) { fill = true; fd = d; } }
+            if (mU > 0.5 && mR > 0.5 && SM(vec2(1.0, -1.0)) > 0.5 && lc.x > 1.0 - r && lc.y < r) { float d = length(lc - vec2(1.0 - r, r)) - r; if (d > 0.0) { fill = true; fd = d; } }
+            if (mD > 0.5 && mL > 0.5 && SM(vec2(-1.0, 1.0)) > 0.5 && lc.x < r && lc.y > 1.0 - r) { float d = length(lc - vec2(r, 1.0 - r)) - r; if (d > 0.0) { fill = true; fd = d; } }
+            if (mD > 0.5 && mR > 0.5 && SM(vec2(1.0, 1.0)) > 0.5 && lc.x > 1.0 - r && lc.y > 1.0 - r) { float d = length(lc - vec2(1.0 - r)) - r; if (d > 0.0) { fill = true; fd = d; } }
             if (!fill) discard;
             vEdge = smoothstep(0.1, 0.0, fd) * 0.8; vLc = vec2(0.5); }
           else {
-          if (k < 0.996) { float code = floor(texture2D(uMask, (cell + 0.5) / uSize).g * 255.0 / 50.0 + 0.5);
+          if (k < 0.56) { float code = floor(texture2D(uMask, (cell + 0.5) / uSize).g * 255.0 / 50.0 + 0.5);
             if (code < 0.5) { vec2 d = abs(lc - 0.5) * 2.0; if (max(d.x, d.y) > k) discard; }
             else { float a = code < 1.5 ? lc.x : code < 2.5 ? 1.0 - lc.x : code < 3.5 ? lc.y : 1.0 - lc.y; float pp = code < 2.5 ? lc.y : lc.x;
-              float eaten = 1.0 - k; float edge = eaten * 1.35 - 0.2 - pow(abs(pp - 0.5) * 2.0, 2.0) * 0.22 + sin(pp * 19.0 + cell.x * 3.1) * 0.025;
+              float eaten = 1.0 - k; float edge = eaten * 1.3 - 0.18 - pow(abs(pp - 0.5) * 2.0, 2.0) * 0.2;
               if (a < edge) discard; vWet = smoothstep(0.09, 0.0, a - edge); } }
           float nU = texture2D(uMask, (cell + vec2(0.0, -1.0) + 0.5) / uSize).r, nD = texture2D(uMask, (cell + vec2(0.0, 1.0) + 0.5) / uSize).r;
           float nL = texture2D(uMask, (cell + vec2(-1.0, 0.0) + 0.5) / uSize).r, nR = texture2D(uMask, (cell + vec2(1.0, 0.0) + 0.5) / uSize).r;
           if (cell.y < 0.5) nU = 0.0;
-          { float r = 0.2; bool oU = nU < 0.99, oD = nD < 0.99, oL = nL < 0.99, oR = nR < 0.99;
+          { float r = 0.2; bool oU = nU < 0.5, oD = nD < 0.5, oL = nL < 0.5, oR = nR < 0.5;
             if (oU && oL && lc.x < r && lc.y < r && length(lc - vec2(r)) > r) discard;
             if (oU && oR && lc.x > 1.0 - r && lc.y < r && length(lc - vec2(1.0 - r, r)) > r) discard;
             if (oD && oL && lc.x < r && lc.y > 1.0 - r && length(lc - vec2(r, 1.0 - r)) > r) discard;
@@ -1675,16 +1675,16 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           // shade: 0..1 darkening near exposed sides/bottom, scaled into the dug cell when it shrinks
           float e = uNew > 0.5 ? 0.17 : 0.1;
           float sh = 0.0;
-          sh = max(sh, (1.0 - step(0.99, nL)) * smoothstep(e, 0.0, lc.x));
-          sh = max(sh, (1.0 - step(0.99, nR)) * smoothstep(e, 0.0, 1.0 - lc.x));
-          sh = max(sh, (1.0 - step(0.99, nD)) * smoothstep(e * 1.6, 0.0, 1.0 - lc.y));
+          sh = max(sh, (1.0 - step(0.5, nL)) * smoothstep(e, 0.0, lc.x));
+          sh = max(sh, (1.0 - step(0.5, nR)) * smoothstep(e, 0.0, 1.0 - lc.x));
+          sh = max(sh, (1.0 - step(0.5, nD)) * smoothstep(e * 1.6, 0.0, 1.0 - lc.y));
           { float aa = fwidth(vWp.x) * 0.75, w = 0.042, ln = 0.0;
-            ln = max(ln, (1.0 - step(0.99, nL)) * (1.0 - smoothstep(w - aa, w + aa, lc.x)));
-            ln = max(ln, (1.0 - step(0.99, nR)) * (1.0 - smoothstep(w - aa, w + aa, 1.0 - lc.x)));
-            ln = max(ln, (1.0 - step(0.99, nD)) * (1.0 - smoothstep(w - aa, w + aa, 1.0 - lc.y)));
-            ln = max(ln, (1.0 - step(0.99, nU)) * (1.0 - smoothstep(w - aa, w + aa, lc.y)));
+            ln = max(ln, (1.0 - step(0.5, nL)) * (1.0 - smoothstep(w - aa, w + aa, lc.x)));
+            ln = max(ln, (1.0 - step(0.5, nR)) * (1.0 - smoothstep(w - aa, w + aa, 1.0 - lc.x)));
+            ln = max(ln, (1.0 - step(0.5, nD)) * (1.0 - smoothstep(w - aa, w + aa, 1.0 - lc.y)));
+            ln = max(ln, (1.0 - step(0.5, nU)) * (1.0 - smoothstep(w - aa, w + aa, lc.y)));
             vLine = 0.0; }
-          vEdge = sh; vTopOpen = 1.0 - step(0.99, nU); vBotOpen = (1.0 - step(0.99, nD)) * (1.0 - step(0.5, texture2D(uMask, (cell + vec2(0.0, 1.0) + 0.5) / uSize).b)); vLc = lc; } }` : '#include <clipping_planes_fragment>')
+          vEdge = sh; vTopOpen = 1.0 - step(0.5, nU); vBotOpen = (1.0 - step(0.5, nD)) * (1.0 - step(0.5, texture2D(uMask, (cell + vec2(0.0, 1.0) + 0.5) / uSize).b)); vLc = lc; } }` : '#include <clipping_planes_fragment>')
         .replace('#include <color_fragment>', `#include <color_fragment>
         { vec2 p = vWp.xy;
           // warm golden base with a gentle large-scale light/dark drift
@@ -3034,15 +3034,16 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     // lay out the sand blocks from the engine grid: corners round where both neighbouring sides are open,
     // and inner corners (three sand cells around an open one) get a fillet, matching the sand-front shader
     syncSandBlocks() {
-      const e = this.e, M = this.sandMeshes; if (!M) return; const isS = (x, y) => e.get(x, y) === T.SAND, d0 = new THREE.Object3D();
+      const e = this.e, M = this.sandMeshes; if (!M) return; const d0 = new THREE.Object3D();
+      const isS = (x, y) => { if (e.get(x, y) === T.SAND) return true; const i = this.sandIndex.get(y * e.w + x); return i !== undefined && this.sandScale[i] > 0.5; }; // a cell being dug counts as sand until halfway
       for (const k in M) M[k].count = 0;
-      this.sandCells.forEach(([x, y], i) => { const k = this.sandScale[i]; if (k < 0.002) return;
+      this.sandCells.forEach(([x, y], i) => { const k = this.sandScale[i]; if (k <= 0.5) return;
         const oU = y < 1 || !isS(x, y - 1), oD = !isS(x, y + 1), oL = !isS(x - 1, y), oR = !isS(x + 1, y);
         const fl = (oU && oL ? 1 : 0) | (oU && oR ? 2 : 0) | (oD && oR ? 4 : 0) | (oD && oL ? 8 : 0), im = M[fl];
-        d0.position.set(x, -y, 0); d0.rotation.set(0, 0, 0); d0.scale.setScalar(k); d0.updateMatrix(); im.setMatrixAt(im.count++, d0.matrix); });
+        d0.position.set(x, -y, 0); d0.rotation.set(0, 0, 0); d0.scale.setScalar(1); d0.updateMatrix(); im.setMatrixAt(im.count++, d0.matrix); });
       const F = M.fillet, seen = new Set();
       this.sandCells.forEach(([sx, sy]) => { for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; const x = sx + dx, y = sy + dy, id = y * e.w + x;
-        if (seen.has(id) || x < 0 || y < 0 || x >= e.w || y >= e.h) continue; seen.add(id); const t = e.get(x, y); if (t === T.SAND || t === T.WALL || t === T.STEEL) continue;
+        if (seen.has(id) || x < 0 || y < 0 || x >= e.w || y >= e.h) continue; seen.add(id); const t = e.get(x, y); if (isS(x, y) || t === T.WALL || t === T.STEEL) continue;
         // corner -> [neighbour x, neighbour y, rotation]; the fillet geometry is the top-left one
         for (const [ax, ay, rot] of [[-1, -1, 0], [1, -1, -Math.PI / 2], [1, 1, Math.PI], [-1, 1, Math.PI / 2]]) {
           if (y + ay < 0) continue;
