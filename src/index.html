@@ -225,7 +225,9 @@ body[data-state="playing"] #hud, body[data-state="over"] #hud, body[data-state="
 .track i::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: repeating-linear-gradient(-45deg, rgba(255,255,255,0.3) 0 9px, rgba(255,255,255,0) 9px 18px); background-size: 26px 26px; animation: stripes .7s linear infinite; }
 .track span { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 800; font-size: 0.8rem; text-shadow: 0 1px 3px rgba(0,0,0,0.75); }
 @keyframes stripes { to { background-position: 26px 0; } }
-.score { font-family: var(--display); font-size: 2.7rem; line-height: 1; margin-top: 6px; -webkit-text-stroke: 6px var(--navy); paint-order: stroke fill; text-shadow: 0 5px 0 #073c8c, 0 8px 16px rgba(0, 20, 70, 0.45); }
+.score { display: inline-flex; align-items: center; gap: 7px; margin-top: 7px; padding: 3px 13px 4px 11px; border-radius: 999px; font-family: var(--display); font-size: 1.3rem; line-height: 1; color: #ffd75e;
+  background: rgba(5, 36, 96, 0.65); border: 2.5px solid #fff; box-shadow: 0 3px 0 rgba(0, 20, 70, 0.35); text-shadow: 0 2px 0 rgba(0, 20, 70, 0.6); font-variant-numeric: tabular-nums; }
+.score::before { content: "SCORE"; font-family: inherit; font-size: 0.62rem; letter-spacing: 0.08em; color: #cfe6ff; text-shadow: none; }
 .score.bump { animation: bump .25s ease-out; }
 @keyframes bump { 40% { transform: scale(1.18); } }
 .air { pointer-events: none; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 5px 12px 7px 6px; border-radius: 20px; min-width: 104px;
@@ -390,7 +392,7 @@ body[data-state="playing"] #btnMap, body[data-state="intro"] #btnMap { display: 
   .node { width: 34px; height: 34px; font-size: 1.05rem; }
   .track { height: 21px; }
   .track span { font-size: 0.72rem; }
-  .score { font-size: 2.2rem; }
+  .score { font-size: 1.1rem; padding: 2px 11px 3px 9px; }
   .air { min-width: 84px; padding: 4px 9px 6px 4px; }
   .air .top { font-size: 1.15rem; } .air .top small { display: none; }
   .bub { width: 24px; height: 24px; }

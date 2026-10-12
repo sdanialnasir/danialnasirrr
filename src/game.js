@@ -878,6 +878,20 @@ const World = (() => {
   }
 
   // ---------------------------------------------------------------- geometry
+  // sand cell blocks: a 1x1 prism whose corners (bit 1 TL, 2 TR, 4 BR, 8 BL) are rounded with the same radius the
+  // sand-front shader uses, plus the matching concave fillet that fills an inner corner of a dug hole
+  const SAND_R = 0.2, SAND_Z0 = -0.39, SAND_D = 0.74, sandGeoCache = {};
+  function sandBlockGeo(fl) { if (sandGeoCache[fl]) return sandGeoCache[fl];
+    const s = new THREE.Shape(), a = 0.5, r = SAND_R, P = Math.PI;
+    s.moveTo(-a, -a + (fl & 8 ? r : 0));
+    if (fl & 1) { s.lineTo(-a, a - r); s.absarc(-a + r, a - r, r, P, P / 2, true); } else s.lineTo(-a, a);
+    if (fl & 2) { s.lineTo(a - r, a); s.absarc(a - r, a - r, r, P / 2, 0, true); } else s.lineTo(a, a);
+    if (fl & 4) { s.lineTo(a, -a + r); s.absarc(a - r, -a + r, r, 0, -P / 2, true); } else s.lineTo(a, -a);
+    if (fl & 8) { s.lineTo(-a + r, -a); s.absarc(-a + r, -a + r, r, -P / 2, -P, true); } else s.lineTo(-a, -a);
+    const g = new THREE.ExtrudeGeometry(s, { depth: SAND_D, bevelEnabled: false, curveSegments: 6 }); g.translate(0, 0, SAND_Z0); return (sandGeoCache[fl] = g); }
+  function sandFilletGeo() { if (sandGeoCache.fillet) return sandGeoCache.fillet; // top-left inner corner; rotated for the others
+    const s = new THREE.Shape(), a = 0.5, r = SAND_R; s.moveTo(-a, a); s.lineTo(-a + r, a); s.absarc(-a + r, a - r, r, Math.PI / 2, Math.PI, false); s.lineTo(-a, a);
+    const g = new THREE.ExtrudeGeometry(s, { depth: SAND_D, bevelEnabled: false, curveSegments: 6 }); g.translate(0, 0, SAND_Z0); return (sandGeoCache.fillet = g); }
   function roundedBox(w, h, d, r, seg = 3) {
     const sh = new THREE.Shape(); const x = -w / 2 + r, y = -h / 2 + r, iw = w - 2 * r, ih = h - 2 * r;
     sh.moveTo(x, y - r * 0); sh.lineTo(x + iw, y); sh.lineTo(x + iw, y + ih); sh.lineTo(x, y + ih); sh.closePath();
@@ -922,6 +936,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   const _shM = new THREE.Matrix3(), _shV = new THREE.Vector3();
   function addSprShadow(sp, n, wd, height, anchorBottom, o) {
     const k = o.k ?? 0.12, dz = o.dz ?? 0.06, op = o.op ?? 0.5, ground = o.ground ?? anchorBottom, off = height * k, wx = SHADOW_DIR.x * off, wy = SHADOW_DIR.y * off;
+    if (o.drop === false) { addContact(sp, wd, op, true); return; }
     const t = sprShadowTex(n), [px, py] = t.userData.pad, g = new THREE.PlaneGeometry(wd * px, height * py); if (anchorBottom) g.translate(0, height / 2, 0);
     // standing sprites: the shadow starts at the base and leans away from the light (sheared + slightly squashed), so it never slips below the feet
     const lean = anchorBottom ? (o.lean ?? 0.4) : 0; if (lean) { const P = g.attributes.position; for (let i = 0; i < P.count; i++) { const y = Math.max(0, P.getY(i)); P.setX(i, P.getX(i) + y * lean); P.setY(i, P.getY(i) * 0.86); } }
@@ -930,9 +945,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     sh.onBeforeRender = () => { _shM.setFromMatrix4(sp.matrixWorld).invert(); if (lean) _shV.set(0.02, 0, -dz); else _shV.set(wx, wy, -dz); _shV.applyMatrix3(_shM); sh.position.copy(_shV);
       if (lean) sh.scale.x = sp.matrixWorld.elements[0] < 0 ? -1 : 1; // un-mirror so a flipped sprite still leans away from the light
       sh.updateMatrixWorld(); };
-    if (ground) { const cp = new THREE.Mesh(new THREE.PlaneGeometry(wd * 1.05, Math.min(0.4, wd * 0.4)), new THREE.MeshBasicMaterial({ map: getContactTex(), transparent: true, opacity: op * 1.1, depthWrite: false }));
-      cp.rotation.x = -Math.PI / 2; cp.position.set(wd * 0.06, 0.012, -0.04); cp.renderOrder = sp.renderOrder; cp.userData.fakeShadow = true; sp.add(cp); sp.userData.contact = cp; }
+    if (ground) addContact(sp, wd, op, false);
   }
+  // soft patch on the ground under a standing sprite; `cast` stretches it back-right along the light like a low-sun shadow
+  function addContact(sp, wd, op, cast) { const cp = new THREE.Mesh(new THREE.PlaneGeometry(wd * (cast ? 1.25 : 1.05), Math.min(cast ? 0.55 : 0.4, wd * (cast ? 0.6 : 0.4))), new THREE.MeshBasicMaterial({ map: getContactTex(), transparent: true, opacity: op * 1.1, depthWrite: false }));
+    cp.rotation.x = -Math.PI / 2; if (cast) cp.rotation.z = -0.5; cp.position.set(wd * (cast ? 0.22 : 0.06), 0.012, cast ? -0.12 : -0.04); cp.renderOrder = sp.renderOrder; cp.userData.fakeShadow = true; sp.add(cp); sp.userData.contact = cp; }
   // the movable-platform sprite as a 3-slice face for one coral shelf of `len` cells
   function shelfFace(len, nm = 'platform') { const im = SPR.img[nm]; if (!im || !im.complete || !im.naturalWidth) return null; const W = Math.round(len * 128), H = 64, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
     const iw = im.naturalWidth, ih = im.naturalHeight, cap = Math.round(iw * 0.18), capW = Math.round(cap * H / ih), mid = iw - 2 * cap, midW = Math.round(mid * H / ih);
@@ -951,7 +968,17 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         { vec2 cell = vec2(floor(vWp.x + 0.5), floor(-vWp.y + 0.5)); vec2 lc = vec2(vWp.x + 0.5, -vWp.y + 0.5) - cell;
           if (cell.x < 0.0 || cell.y < 0.0 || cell.x >= uSize.x || cell.y >= uSize.y) discard;
           float k = texture2D(uMask, (cell + 0.5) / uSize).r;
-          if (k < 0.004) discard;
+          if (k < 0.004) { // empty cell: keep only the concave fillets where three sand cells meet, so inner corners round like outer ones
+            float r = 0.2; bool fill = false; float fd = 1.0;
+            #define SM(o) texture2D(uMask, (cell + o + 0.5) / uSize).r
+            float mU = SM(vec2(0.0, -1.0)), mD = SM(vec2(0.0, 1.0)), mL = SM(vec2(-1.0, 0.0)), mR = SM(vec2(1.0, 0.0));
+            if (mU > 0.99 && mL > 0.99 && SM(vec2(-1.0, -1.0)) > 0.99 && lc.x < r && lc.y < r) { float d = length(lc - vec2(r)) - r; if (d > 0.0) { fill = true; fd = d; } }
+            if (mU > 0.99 && mR > 0.99 && SM(vec2(1.0, -1.0)) > 0.99 && lc.x > 1.0 - r && lc.y < r) { float d = length(lc - vec2(1.0 - r, r)) - r; if (d > 0.0) { fill = true; fd = d; } }
+            if (mD > 0.99 && mL > 0.99 && SM(vec2(-1.0, 1.0)) > 0.99 && lc.x < r && lc.y > 1.0 - r) { float d = length(lc - vec2(r, 1.0 - r)) - r; if (d > 0.0) { fill = true; fd = d; } }
+            if (mD > 0.99 && mR > 0.99 && SM(vec2(1.0, 1.0)) > 0.99 && lc.x > 1.0 - r && lc.y > 1.0 - r) { float d = length(lc - vec2(1.0 - r)) - r; if (d > 0.0) { fill = true; fd = d; } }
+            if (!fill) discard;
+            vEdge = smoothstep(0.1, 0.0, fd) * 0.8; vLc = vec2(0.5); }
+          else {
           if (k < 0.996) { float code = floor(texture2D(uMask, (cell + 0.5) / uSize).g * 255.0 / 50.0 + 0.5);
             if (code < 0.5) { vec2 d = abs(lc - 0.5) * 2.0; if (max(d.x, d.y) > k) discard; }
             else { float a = code < 1.5 ? lc.x : code < 2.5 ? 1.0 - lc.x : code < 3.5 ? lc.y : 1.0 - lc.y; float pp = code < 2.5 ? lc.y : lc.x;
@@ -977,14 +1004,14 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             ln = max(ln, (1.0 - step(0.99, nD)) * (1.0 - smoothstep(w - aa, w + aa, 1.0 - lc.y)));
             ln = max(ln, (1.0 - step(0.99, nU)) * (1.0 - smoothstep(w - aa, w + aa, lc.y)));
             vLine = 0.0; }
-          vEdge = sh; vTopOpen = 1.0 - step(0.99, nU); vLc = lc; }` : '#include <clipping_planes_fragment>')
+          vEdge = sh; vTopOpen = 1.0 - step(0.99, nU); vLc = lc; } }` : '#include <clipping_planes_fragment>')
         .replace('#include <color_fragment>', `#include <color_fragment>
         { vec2 p = vWp.xy;
           // warm golden base with a gentle large-scale light/dark drift
           float drift = sin(p.x * 0.35 + p.y * 0.5) * 0.5 + 0.5;
           vec3 hi = vec3(1.0, 0.78, 0.33), mid = vec3(0.97, 0.63, 0.2), dark = vec3(0.7, 0.36, 0.06), lip = vec3(1.0, 0.88, 0.48);
           vec3 c = mix(mid, hi, drift * 0.6);
-          { vec3 tl = pow(texture2D(uSandTex, p * 0.3).rgb, vec3(2.2)); float det = dot(tl, vec3(0.2126, 0.7152, 0.0722)) / 0.464; c = vec3(1.2, 0.86, 0.1) * mix(1.0, det, 0.42); }
+          { vec3 tl = pow(texture2D(uSandTex, p * 0.3).rgb, vec3(2.2)); float det = dot(tl, vec3(0.2126, 0.7152, 0.0722)) / 0.464; c = vec3(1.16, 0.84, 0.2) * mix(1.0, det, 0.42); }
           // sediment strata: soft wavy layers of slightly different sand, like a cut through the seabed
           float st = -p.y * 1.15 + sin(p.x * 0.45) * 0.28 + sin(p.x * 1.3 + 2.0) * 0.08;
           float band = floor(st), fb = fract(st), bh = fract(sin(band * 91.7) * 43758.5);
@@ -992,7 +1019,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           c = mix(c, c * 0.8, smoothstep(0.1, 0.0, fb) * 0.8);          // thin darker seam at the top of each layer
           c = mix(c, c * 1.08, smoothstep(0.12, 0.3, fb) * smoothstep(0.5, 0.3, fb) * 0.6); // light catch just under it
           // depth: deeper sand is a touch darker and cooler
-          float deep = clamp(-p.y / 11.0, 0.0, 1.0); c *= 1.0 - deep * 0.16; c = mix(c, c * vec3(0.92, 0.95, 1.05), deep * 0.5);
+          float deep = clamp(-p.y / 11.0, 0.0, 1.0); c *= 1.0 - deep * 0.24; c = mix(c, c * vec3(0.92, 0.95, 1.05), deep * 0.5);
           // the odd smooth pebble
           vec2 pc = floor(p * 1.6); float ph = fract(sin(dot(pc, vec2(41.3, 289.1))) * 43758.5);
           if (ph < 0.09) { vec2 q = fract(p * 1.6) - vec2(0.3 + ph * 4.0, 0.5); float d = length(q * vec2(1.0, 1.4));
@@ -1030,7 +1057,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         if (vNo.z > 0.5) { vec2 p = vWp.xy; float w = p.y * 7.0 + sin(p.x * 1.7) * 1.4; float cw = cos(w);
           vec3 pert = vec3(0.0);
           normal = normalize(normal + (viewMatrix * vec4(pert, 0.0)).xyz); }`)
-        .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += diffuseColor.rgb * 0.42 + vGlint; diffuseColor.rgb *= 0.4;');
+        .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += diffuseColor.rgb * 0.36 + vGlint; diffuseColor.rgb *= 0.5;');
     };
     return m;
   }
@@ -1699,7 +1726,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.moveDir = new THREE.Vector2(); this.lead = new THREE.Vector2(); this.zoomK = 1.12; this.lastMove = -99;
       this.particles = new Particles(this.scene);
       this.time = 0; this.tickMs = 150; this.lastTick = 0;
-      this.entities = new Map(); this.e = null; this.ghosts = []; this.absorbing = [];
+      this.entities = new Map(); this.e = null; this.entShadows = []; this.ghosts = []; this.absorbing = [];
       this.buildEnvironment(); this.setupLights(); this.setupBackdrop();
       this.quality = 'high'; this.buildReef();
       this.levelGroup = new THREE.Group(); this.scene.add(this.levelGroup);
@@ -1795,8 +1822,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const P = this.photo; if (!P || !P.group.visible) return; const z = -34, fov = this.camera.fov * Math.PI / 180;
       const hView = 2 * Math.tan(fov / 2) * (this.camera.position.z - z), wView = hView * this.camera.aspect, AR = 1435 / 2560;
       const cx = this.camera.position.x * 0.9;
-      { const dist = 42, hv = 2 * Math.tan(fov / 2) * dist, wv = hv * this.camera.aspect, sc = Math.max(wv, hv / AR) * 1.03; // fill the view exactly, facing the camera
-        const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion), at = this.camera.position.clone().addScaledVector(fwd, dist);
+      { const dist = 42, hv = 2 * Math.tan(fov / 2) * dist, wv = hv * this.camera.aspect; let sc = Math.max(wv, hv / AR) * 1.03, off = 0; // fill the view exactly, facing the camera
+        if (this.camera.aspect < 1 && this.e) { // portrait: scale/shift the painting so its sand line (~20% up from its bottom) sits under the tank's plinth, still covering the screen
+          const nb = new THREE.Vector3((this.e.w - 1) / 2, -(this.e.h - 1.5) - 0.85, 0.6).project(this.camera).y, v0 = 0.2;
+          const Hp = Math.max(sc * AR, (hv / 2) * (1 - nb) / (1 - v0) * 1.02, (hv / 2) * (1 + nb) / v0 * 1.02); sc = Hp / AR; off = nb * hv / 2 - (v0 - 0.5) * Hp; }
+        const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion), at = this.camera.position.clone().addScaledVector(fwd, dist).addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(this.camera.quaternion), off);
         for (const m of [P.bg, P.shimmer]) { m.scale.set(sc, sc, 1); m.position.copy(at); m.quaternion.copy(this.camera.quaternion); } }
       P.bubbles.position.set(cx, this.camera.position.y * 0.9, 0); P.bubM.uniforms.uW.value = wView * 0.75; P.bubM.uniforms.uH.value = hView * 0.9; P.bubM.uniforms.scale.value = innerHeight * this.pixelRatio * 0.9;
       const d0 = new THREE.Object3D(), span = wView * 0.7, sx = ((t * 0.9) % (span * 2.4)) - span * 1.2;
@@ -1823,7 +1853,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
 
     // ---- level construction ----
     clearLevel() {
-      this.levelGroup.clear(); this.entities.clear(); this.particles.n = 0; this.particles.bub.n = 0;
+      this.levelGroup.clear(); this.entShadows = []; this.entities.clear(); this.particles.n = 0; this.particles.bub.n = 0;
       this.gateObj = null; this.sandInst = null; this.treasures = []; this.digChunks = []; if (this.warn) this.warn.visible = false; this.ghosts = []; this.absorbing = []; this.deathTint = 0; this.setFx('');
     }
     loadLevel(e) {
@@ -1970,9 +2000,16 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; im.castShadow = true; im.receiveShadow = true; this.levelGroup.add(im); return im; };
         const span = x1f - x0f, nS = Math.round(span * (photoMode ? 0.55 : 1.1)), zMin = photoMode ? 1.55 : 1.0;
         place(new THREE.IcosahedronGeometry(0.12, 1), MAT.fgStone, nS, (d, i) => { const x = x0f + rnd() * span, z = zMin + rnd() * 1.4, sc = 0.6 + rnd() * 1.4; d.position.set(x, groundY(x, z) + sc * 0.05, z); d.scale.set(sc * 1.3, sc * 0.7, sc); d.rotation.set(rnd(), rnd() * 6, rnd()); return new THREE.Color().setHSL(0.6 + rnd() * 0.04, 0.35, 0.3 + rnd() * 0.18); }, 0.17);
-        if (GEO.shell) place(GEO.shell, MAT.shellM, Math.round(span * 0.45), (d) => { const x = x0f + rnd() * span, z = 1.0 + rnd() * 1.5; d.position.set(x, groundY(x, z) + 0.03, z); d.rotation.set(-Math.PI / 2 + 0.5, 0, rnd() * 6); d.scale.setScalar(1.1 + rnd() * 0.8); return null; }, 0.15);
+        const sway = (sp, amt) => { const ph = rnd() * 6; sp.onBeforeRender = () => { sp.rotation.z = Math.sin(performance.now() / 1000 * 1.2 + ph) * amt; }; };
+        if (this.newArt) { // the sheet's shells and sea plants on the seabed, each with a light-facing ground shadow
+          const nSh = Math.round(span * 0.32); for (let i = 0; i < nSh; i++) { const x = x0f + rnd() * span, z = 1.05 + rnd() * 1.4, sp = sprPlane(ART.shells[i % ART.shells.length], 0.2 + rnd() * 0.1, true, { drop: false, op: 0.6 });
+            sp.position.set(x, groundY(x, z) - 0.01, z); sp.rotation.z = (rnd() - 0.5) * 0.4; if (rnd() < 0.5) sp.scale.x = -1; this.levelGroup.add(sp); }
+          const weeds = ART.ledge.filter(n => n.startsWith('weed')), nW = Math.round(span * 0.3);
+          for (let i = 0; i < nW; i++) { const x = x0f + rnd() * span, z = 1.0 + rnd() * 1.4, sp = sprPlane(weeds[(rnd() * weeds.length) | 0], 0.34 + rnd() * 0.22, true, { drop: false, op: 0.55 });
+            sp.position.set(x, groundY(x, z) - 0.02, z); if (rnd() < 0.5) sp.scale.x = -1; sway(sp, 0.05); this.levelGroup.add(sp); } }
+        if (GEO.shell && !this.newArt) place(GEO.shell, MAT.shellM, Math.round(span * 0.45), (d) => { const x = x0f + rnd() * span, z = 1.0 + rnd() * 1.5; d.position.set(x, groundY(x, z) + 0.03, z); d.rotation.set(-Math.PI / 2 + 0.5, 0, rnd() * 6); d.scale.setScalar(1.1 + rnd() * 0.8); return null; }, 0.15);
         if (GEO.star) place(GEO.star, MAT.starfish, Math.max(2, Math.round(span * 0.15)), (d) => { const x = x0f + rnd() * span, z = 1.1 + rnd() * 1.3; d.position.set(x, groundY(x, z) + 0.03, z); d.rotation.set(-Math.PI / 2, 0, rnd() * 6); d.scale.setScalar(1.3 + rnd() * 0.7); return new THREE.Color().setHSL(0.03 + rnd() * 0.06, 0.8, 0.55 + rnd() * 0.1); }, 0.18);
-        { const blade = new THREE.PlaneGeometry(0.06, 0.5, 1, 4); blade.translate(0, 0.25, 0); const gm = new THREE.MeshStandardMaterial({ color: 0x4fae5c, roughness: 0.6, side: THREE.DoubleSide, emissive: 0x0b2e14, emissiveIntensity: 1 });
+        if (!this.newArt) { const blade = new THREE.PlaneGeometry(0.06, 0.5, 1, 4); blade.translate(0, 0.25, 0); const gm = new THREE.MeshStandardMaterial({ color: 0x4fae5c, roughness: 0.6, side: THREE.DoubleSide, emissive: 0x0b2e14, emissiveIntensity: 1 });
           const nT = Math.round(span * 0.35); let k = 0; place(blade, gm, nT * 7, (d, i) => { if (i % 7 === 0) k = [x0f + rnd() * span, 1.0 + rnd() * 1.4]; const x = k[0] + (rnd() - 0.5) * 0.25, z = k[1] + (rnd() - 0.5) * 0.2; d.position.set(x, groundY(x, z) - 0.02, z); d.rotation.set((rnd() - 0.5) * 0.4, rnd() * 3, (rnd() - 0.5) * 0.5); d.scale.set(1, 0.6 + rnd() * 0.9, 1); return new THREE.Color().setHSL(0.3 + rnd() * 0.06, 0.5, 0.35 + rnd() * 0.15); }); }
         if (photoMode) {
           const mk = (draw) => { const c = document.createElement('canvas'); c.width = c.height = 256; draw(c.getContext('2d')); const t = new THREE.CanvasTexture(c); return t; };
@@ -1981,10 +2018,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           const tankTex = mk(g => { for (let y = 0; y < 256; y++) { const v = y / 255, a = v < 0.42 ? 0.78 : 0.78 * Math.pow(1 - (v - 0.42) / 0.58, 1.5); for (let x = 0; x < 256; x++) { const u = Math.abs(x / 255 - 0.5) * 2, edge = Math.min(1, (1 - u) / 0.12); g.fillStyle = `rgba(16,24,46,${(a * edge).toFixed(3)})`; g.fillRect(x, y, 1, 1); } } });
           const sm = new THREE.MeshBasicMaterial({ map: tankTex, transparent: true, depthWrite: false, toneMapped: false, fog: false });
           const ts = new THREE.Mesh(new THREE.PlaneGeometry((W - 2) + 2.6, 3.4), sm); ts.rotation.x = -Math.PI / 2; ts.position.set((W - 1) / 2, yF + 0.025, 0.95); ts.renderOrder = -5; this.levelGroup.add(ts);
-          // a small soft shadow under every stone, shell and starfish
-          const bm = new THREE.MeshBasicMaterial({ map: blob, transparent: true, depthWrite: false, toneMapped: false, fog: false, opacity: 0.8 });
+        }
+        { // a soft shadow under every stone and starfish, stretched back-right away from the key light (all levels)
+          const bm = new THREE.MeshBasicMaterial({ map: getContactTex(), transparent: true, depthWrite: false, toneMapped: false, fog: false, opacity: photoMode ? 0.85 : 0.6 });
           const sh = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), bm, Math.max(1, spots.length)); const d1 = new THREE.Object3D();
-          spots.forEach(([sx, sz, r], i) => { d1.position.set(sx + 0.05, groundY(sx, sz) + 0.01, sz + 0.04); d1.rotation.set(-Math.PI / 2, 0, 0); d1.scale.set(r * 2.6, r * 1.9, 1); d1.updateMatrix(); sh.setMatrixAt(i, d1.matrix); });
+          spots.forEach(([sx, sz, r], i) => { d1.position.set(sx + r * 0.55, groundY(sx, sz) + 0.01, sz - r * 0.45); d1.rotation.set(-Math.PI / 2, 0, -0.5); d1.scale.set(r * 3.2, r * 1.9, 1); d1.updateMatrix(); sh.setMatrixAt(i, d1.matrix); });
           sh.count = spots.length; sh.instanceMatrix.needsUpdate = true; sh.renderOrder = -4; this.levelGroup.add(sh); }
         dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1); }
       // ---- foreground life layer (drifting specks, rising bubbles, an occasional fish) – kept off the playfield centre
@@ -2018,8 +2056,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       MAT.sandMask.tex.value = this.maskTex; MAT.sandMask.size.value.set(W, H);
       this.sandFront = new THREE.Mesh(new THREE.PlaneGeometry(W, H), MAT.sandFront); this.sandFront.receiveShadow = true; this.sandFront.position.set((W - 1) / 2, -(H - 1) / 2, 0.4); this.levelGroup.add(this.sandFront);
       this.sandIndex = new Map(); this.sandAnim = new Map(); sand.forEach(([x, y], i) => this.sandIndex.set(y * W + x, i));
-      this.sandBox = new THREE.InstancedMesh(GEO.sand, MAT.sand, Math.max(1, sand.length)); this.sandBox.count = sand.length; this.sandBox.receiveShadow = true;
-      sand.forEach(([x, y], i) => { dummy.position.set(x, -y, 0.0); dummy.scale.set(1, 1, 1); dummy.updateMatrix(); this.sandBox.setMatrixAt(i, dummy.matrix); }); this.sandBox.instanceMatrix.needsUpdate = true; this.levelGroup.add(this.sandBox);
+      // the sand blocks: one instanced mesh per corner-rounding variant (16) + one for inner-corner fillets; rebuilt whenever sand changes
+      this.sandScale = new Float32Array(sand.length).fill(1); this.sandMeshes = {};
+      const cap = Math.max(1, sand.length);
+      for (let fl = 0; fl < 16; fl++) { const im = new THREE.InstancedMesh(sandBlockGeo(fl), MAT.sand, cap); im.receiveShadow = true; im.count = 0; this.levelGroup.add(im); this.sandMeshes[fl] = im; }
+      { const im = new THREE.InstancedMesh(sandFilletGeo(), MAT.sand, cap * 4); im.receiveShadow = true; im.count = 0; this.levelGroup.add(im); this.sandMeshes.fillet = im; }
+      this.sandCells = sand; this.syncSandBlocks(); this.buildOcclusion();
       this.lipInst = new THREE.InstancedMesh(GEO.lip, MAT.lip, Math.max(1, sand.length)); this.lipInst.count = sand.length; this.levelGroup.add(this.lipInst); this.lipInst.visible = false;
       this.sandCells = sand; this.refreshLips();
       // a few kelp / coral pieces standing on surfaces, behind the play plane
@@ -2058,8 +2100,59 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         const bb = new THREE.Box3(); m.traverse(c => { if (c.isMesh && c.geometry && !c.userData.isHull && c.material && !c.material.transparent) { c.geometry.computeBoundingBox(); bb.union(c.geometry.boundingBox.clone().applyMatrix4(c.matrixWorld)); } });
         const sz = new THREE.Vector3(); bb.getSize(sz); const sc = Math.min(0.88 / sz.y, 0.86 / Math.max(sz.x, sz.z)); const feet = bb.min.y - m.position.y;
         m.userData.fit = { s: sc, yOff: -0.5 + 0.03 - feet * sc }; m.scale.setScalar(sc); }
-      this.entities.set(o.id, { o, m, facing: 1, squash: 0, phase: Math.random() * 10, wasFalling: false });
+      const ent = { o, m, facing: 1, squash: 0, phase: Math.random() * 10, wasFalling: false };
+      { // fake shadows for the 3D pieces: a soft drop shadow on the back wall (down-right, like every other shadow) + a contact patch on the floor
+        const [dw, dh, cw] = o.t === T.BALL ? [0.86, 0.86, 0.8] : o.t === T.ROCK ? [1.0, 1.0, 0.95] : o.t === T.PLAYER ? [0.6, 0.9, 0.6] : [0.75, 0.55, 0.65];
+        const mk = (op) => new THREE.MeshBasicMaterial({ map: getContactTex(), transparent: true, opacity: op, depthWrite: false });
+        const drop = new THREE.Mesh(new THREE.PlaneGeometry(dw * 1.1, dh * 1.1), mk(0.7)); drop.renderOrder = 3;
+        const contact = new THREE.Mesh(new THREE.PlaneGeometry(cw * 1.15, 0.6), mk(0.85)); contact.rotation.x = -Math.PI / 2; contact.renderOrder = 3;
+        this.levelGroup.add(drop, contact); ent.sh = { drop, contact }; m.userData.shadow = contact; this.entShadows.push(ent); }
+      this.entities.set(o.id, ent);
       this.levelGroup.add(m);
+    }
+    // ---- baked contact shadows + ambient occlusion on the tank's back wall: every solid cell (sand, shelves, frame)
+    // darkens the water behind its edges and casts a soft shadow down-right, the same way as the key light
+    buildOcclusion() {
+      const e = this.e, W = e.w, H = e.h; this.occData = new Uint8Array(W * H * 4); this.occStatic = new Uint8Array(W * H);
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const t = e.get(x, y); if (t === T.WALL || t === T.STEEL) this.occStatic[y * W + x] = 255; }
+      this.occTex = new THREE.DataTexture(this.occData, W, H, THREE.RGBAFormat); this.occTex.magFilter = this.occTex.minFilter = THREE.LinearFilter; this.occVer = -1; this.syncOcclusion();
+      const mat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uOcc: { value: this.occTex }, uSize: { value: new THREE.Vector2(W, H) }, uL: { value: new THREE.Vector2(-SHADOW_DIR.x, SHADOW_DIR.y) } },
+        vertexShader: 'varying vec2 vC; void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); vC = vec2(wp.x, -wp.y); gl_Position = projectionMatrix * viewMatrix * wp; }',
+        fragmentShader: `uniform sampler2D uOcc; uniform vec2 uSize, uL; varying vec2 vC;
+          float S(vec2 c) { return texture2D(uOcc, (c + 0.5) / uSize).r; }
+          void main() { float ao = 0.0;
+            for (int i = 0; i < 8; i++) { float a = float(i) * 0.785398; vec2 d = vec2(cos(a), sin(a)); ao += S(vC + d * 0.3) + S(vC + d * 0.62) * 0.6; }
+            ao = clamp(ao / 12.8 - 0.06, 0.0, 1.0);
+            float sh = 0.0; for (int i = 1; i <= 7; i++) { float t = float(i) * 0.1; sh = max(sh, S(vC + uL * t) * (1.0 - t * 0.85)); }
+            float a = clamp(ao * 1.05 + sh * 0.75, 0.0, 0.82); gl_FragColor = vec4(0.015, 0.04, 0.11, a); }` });
+      const w = W - 2, h = H - 2, m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat); m.position.set((W - 1) / 2, -(H - 1) / 2, -0.47); m.renderOrder = 2; /* after the tinted back glass (renderOrder 1), which it sits in front of */ this.levelGroup.add(m); this.occMesh = m;
+    }
+    syncOcclusion() { if (!this.occTex || this.occVer === this.maskTex.version) return; this.occVer = this.maskTex.version;
+      const D = this.occData, Mk = this.maskData, St = this.occStatic; for (let i = 0; i < St.length; i++) D[i * 4] = Math.max(St[i], Mk[i * 4]); this.occTex.needsUpdate = true; }
+    syncEntityShadows() {
+      this.entShadows = this.entShadows.filter(ent => { const { drop, contact } = ent.sh;
+        if (!this.entities.has(ent.o.id)) { this.levelGroup.remove(drop, contact); return false; }
+        const m = ent.m, fit = ent.o.t === T.PLAYER ? (m.userData.fit || { yOff: 0 }) : null, cx = m.position.x, cy = fit ? m.position.y - fit.yOff - (ent.lift || 0) : m.position.y;
+        drop.visible = m.visible; drop.position.set(cx + SHADOW_DIR.x * 0.42, (fit ? m.position.y - fit.yOff : cy) + SHADOW_DIR.y * 0.42, -0.465);
+        contact.position.set(cx + 0.1, cy - 0.455, 0.0); /* floor trim top sits at cell bottom + 0.03 */ if (!m.visible) contact.visible = false; return true; });
+    }
+    // lay out the sand blocks from the engine grid: corners round where both neighbouring sides are open,
+    // and inner corners (three sand cells around an open one) get a fillet, matching the sand-front shader
+    syncSandBlocks() {
+      const e = this.e, M = this.sandMeshes; if (!M) return; const isS = (x, y) => e.get(x, y) === T.SAND, d0 = new THREE.Object3D();
+      for (const k in M) M[k].count = 0;
+      this.sandCells.forEach(([x, y], i) => { const k = this.sandScale[i]; if (k < 0.002) return;
+        const oU = y < 1 || !isS(x, y - 1), oD = !isS(x, y + 1), oL = !isS(x - 1, y), oR = !isS(x + 1, y);
+        const fl = (oU && oL ? 1 : 0) | (oU && oR ? 2 : 0) | (oD && oR ? 4 : 0) | (oD && oL ? 8 : 0), im = M[fl];
+        d0.position.set(x, -y, 0); d0.rotation.set(0, 0, 0); d0.scale.setScalar(k); d0.updateMatrix(); im.setMatrixAt(im.count++, d0.matrix); });
+      const F = M.fillet, seen = new Set();
+      this.sandCells.forEach(([sx, sy]) => { for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; const x = sx + dx, y = sy + dy, id = y * e.w + x;
+        if (seen.has(id) || x < 0 || y < 0 || x >= e.w || y >= e.h) continue; seen.add(id); const t = e.get(x, y); if (t === T.SAND || t === T.WALL || t === T.STEEL) continue;
+        // corner -> [neighbour x, neighbour y, rotation]; the fillet geometry is the top-left one
+        for (const [ax, ay, rot] of [[-1, -1, 0], [1, -1, -Math.PI / 2], [1, 1, Math.PI], [-1, 1, Math.PI / 2]]) {
+          if (y + ay < 0) continue;
+          if (isS(x + ax, y) && isS(x, y + ay) && isS(x + ax, y + ay)) { d0.position.set(x, -y, 0); d0.rotation.set(0, 0, rot); d0.scale.setScalar(1); d0.updateMatrix(); F.setMatrixAt(F.count++, d0.matrix); } } } });
+      for (const k in M) { M[k].visible = M[k].count > 0; M[k].instanceMatrix.needsUpdate = true; }
     }
     // a sand cell gets a bright top lip when the cell above it is not sand (and it hasn't been dug itself)
     refreshLips() {
@@ -2175,10 +2268,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         const mtx = new THREE.Matrix4(), pos = new V3(), q = new THREE.Quaternion(), sc = new V3();
         for (const [i, s] of this.sandAnim) { const ns = s + dt * 3.6; const k = Math.max(0, Math.pow(1 - Math.min(1, ns), 2.2));
           const [cx, cy] = this.sandCells[i]; this.maskData[(cy * e.w + cx) * 4] = Math.round(255 * k); this.maskTex.needsUpdate = true;
-          { const d0 = new THREE.Object3D(); d0.position.set(cx, -cy, 0); d0.scale.set(k, k, k); d0.updateMatrix(); this.sandBox.setMatrixAt(i, d0.matrix); this.sandBox.instanceMatrix.needsUpdate = true; }
+          this.sandScale[i] = k;
           if (ns >= 1) this.sandAnim.set(i, 99); else this.sandAnim.set(i, ns); }
         for (const [i, s] of this.sandAnim) if (s === 99) this.sandAnim.delete(i);
+        this.syncSandBlocks();
       }
+      this.syncOcclusion();
       for (const ent of this.entities.values()) {
         const o = ent.o, m = ent.m, moving = o.px !== o.x || o.py !== o.y;
         const k = (o.t === T.ROCK || o.t === T.BALL) && (o.falling || o.py !== o.y) ? a * a : ease;
@@ -2253,6 +2348,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           m.userData.legs.forEach((l, i) => { l.rotation.z = moving ? Math.sin(t * 22 + i) * 0.4 : 0; });
         }
       }
+      this.syncEntityShadows();
       // ghosts
       this.ghosts = this.ghosts.filter(ent => { const g = ent.ghost, m = ent.m; g.t += dt;
         if (g.kind === 'win') { const k = Math.min(1, g.t / 1); m.position.lerp(g.to, Math.min(1, dt * 5)); m.rotation.y += dt * 12; m.scale.setScalar(1.45 * (1 - k * k)); if (k >= 1) { this.levelGroup.remove(m); return false; } return true; }
