@@ -1946,10 +1946,20 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       MAT.lampOn = new THREE.MeshStandardMaterial({ color: 0xfff6c8, emissive: 0xfff0b0, emissiveIntensity: 3 });
       MAT.mouth = new THREE.MeshStandardMaterial({ color: 0x7a2030, roughness: 0.5 });
     }
+    if (!MAT.dHelm) { // signature look: glossy violet helmet + gloves, sunny suit, electric-cyan fins, all with a soft cyan rim glow so the diver pops off any background
+      const rimify = (m, col, k) => { m.onBeforeCompile = (sh) => { sh.uniforms.uRim = { value: new THREE.Color(col).multiplyScalar(k) };
+          sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec3 uRim;').replace('#include <emissivemap_fragment>',
+            '#include <emissivemap_fragment>\n{ float rim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 2.6); totalEmissiveRadiance += uRim * rim; }'); };
+        m.customProgramCacheKey = () => 'rim' + col + k; return m; };
+      MAT.dHelm = rimify(new THREE.MeshPhysicalMaterial({ color: 0x5a12f0, roughness: 0.14, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 0.9, emissive: 0x1c0060, emissiveIntensity: 1 }), 0x3fe8ff, 0.45);
+      MAT.dSuit = rimify(new THREE.MeshPhysicalMaterial({ color: 0xffb800, roughness: 0.24, clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 0.9, emissive: 0x4a2a00, emissiveIntensity: 1 }), 0x3fe8ff, 0.3);
+      MAT.dFin = rimify(new THREE.MeshPhysicalMaterial({ color: 0x00a8ff, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 0.8, side: THREE.DoubleSide, emissive: 0x003a66, emissiveIntensity: 1 }), 0x9ff6ff, 0.3);
+      MAT.dScarf = new THREE.MeshPhysicalMaterial({ color: 0xff1f6e, roughness: 0.4, side: THREE.DoubleSide, emissive: 0x6a0828, emissiveIntensity: 1, envMapIntensity: 0.6 });
+    }
     const g = new THREE.Group(); const body = new THREE.Group(); g.add(body);
     // ---- helmet + head
     const head = new THREE.Group(); head.position.set(0.02, 0.14, 0); body.add(head);
-    const shell = new THREE.Mesh(new THREE.SphereGeometry(0.27, 40, 28), MAT.helmet); head.add(shell);
+    const shell = new THREE.Mesh(new THREE.SphereGeometry(0.27, 40, 28), MAT.dHelm); head.add(shell);
     for (const sz of [-1, 1]) { const bolt = new THREE.Mesh(new THREE.SphereGeometry(0.035, 12, 8), MAT.brass); bolt.position.set(-0.05, 0.02, sz * 0.265); head.add(bolt); }
     const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.06, 16), MAT.brass); lampBase.position.set(0.05, 0.27, 0.02); lampBase.rotation.z = -0.3; head.add(lampBase);
     const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.042, 16, 10), MAT.lampOn); lamp.position.set(0.075, 0.3, 0.02); head.add(lamp);
@@ -1967,31 +1977,35 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const glass = new THREE.Mesh(new THREE.SphereGeometry(0.175, 32, 20), MAT.glass); glass.scale.set(1, 1, 0.6); glass.position.z = 0.22; face.add(glass);
     const collar = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.04, 14, 36), MAT.brass); collar.rotation.x = Math.PI / 2; collar.position.set(0.0, -0.11, 0); head.add(collar);
     // ---- torso
-    const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.135, 0.1, 10, 20), MAT.yellow); torso.position.set(-0.01, -0.17, 0); body.add(torso);
+    const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.135, 0.1, 10, 20), MAT.dSuit); torso.position.set(-0.01, -0.17, 0); body.add(torso);
     const belt = new THREE.Mesh(new THREE.TorusGeometry(0.135, 0.028, 10, 28), MAT.navy); belt.rotation.x = Math.PI / 2; belt.position.set(-0.01, -0.23, 0); body.add(belt);
     const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.05, 0.06), MAT.brass); buckle.position.set(0.13, -0.23, 0.03); body.add(buckle);
     // ---- twin tanks + hose
     for (const sz of [-0.055, 0.055]) { const tk = new THREE.Mesh(new THREE.CapsuleGeometry(0.055, 0.17, 8, 16), MAT.chrome); tk.position.set(-0.18, -0.13, sz); body.add(tk);
-      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.04, 12), MAT.finMat); cap.position.set(-0.18, 0.0, sz); body.add(cap); }
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.04, 12), MAT.dFin); cap.position.set(-0.18, 0.0, sz); body.add(cap); }
     { const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(-0.18, 0.02, 0), new THREE.Vector3(-0.25, 0.12, 0), new THREE.Vector3(-0.2, 0.25, 0.05), new THREE.Vector3(-0.08, 0.3, 0.1)]);
       const hose = new THREE.Mesh(new THREE.TubeGeometry(curve, 20, 0.018, 8), MAT.navy); body.add(hose); }
     // ---- arms (shoulder pivots)
     const arm = (z, back) => { const sh = new THREE.Group(); sh.position.set(0.0, -0.1, z); body.add(sh);
-      const up = new THREE.Mesh(new THREE.CapsuleGeometry(0.045, 0.1, 6, 12), MAT.yellow); up.position.y = -0.08; sh.add(up);
-      const glove = new THREE.Mesh(new THREE.SphereGeometry(0.058, 16, 12), MAT.helmet); glove.scale.set(1, 0.9, 0.9); glove.position.y = -0.17; sh.add(glove);
+      const up = new THREE.Mesh(new THREE.CapsuleGeometry(0.045, 0.1, 6, 12), MAT.dSuit); up.position.y = -0.08; sh.add(up);
+      const glove = new THREE.Mesh(new THREE.SphereGeometry(0.058, 16, 12), MAT.dHelm); glove.scale.set(1, 0.9, 0.9); glove.position.y = -0.17; sh.add(glove);
       return sh; };
     const armF = arm(0.14), armB = arm(-0.14);
     // ---- legs with fins (hip pivots)
     const finGeo = (() => { const sh = new THREE.Shape(); sh.moveTo(0, -0.035); sh.lineTo(0.2, -0.07); sh.quadraticCurveTo(0.26, 0, 0.2, 0.07); sh.lineTo(0, 0.035); sh.closePath();
       const gg = new THREE.ExtrudeGeometry(sh, { depth: 0.012, bevelEnabled: true, bevelThickness: 0.008, bevelSize: 0.008, bevelSegments: 2, curveSegments: 8 }); gg.rotateX(Math.PI / 2); gg.translate(0, 0, 0); return gg; })();
     const leg = (z) => { const hip = new THREE.Group(); hip.position.set(-0.01, -0.29, z); body.add(hip);
-      const th = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.1, 6, 12), MAT.yellow); th.position.y = -0.07; hip.add(th);
+      const th = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.1, 6, 12), MAT.dSuit); th.position.y = -0.07; hip.add(th);
       const boot = new THREE.Mesh(new THREE.SphereGeometry(0.055, 14, 10), MAT.navy); boot.scale.set(1.2, 0.8, 1); boot.position.set(0.01, -0.16, 0); hip.add(boot);
       const finPivot = new THREE.Group(); finPivot.position.set(0.03, -0.175, 0); hip.add(finPivot);
-      const fin = new THREE.Mesh(finGeo, MAT.finMat); finPivot.add(fin); finPivot.rotation.z = -0.25;
+      const fin = new THREE.Mesh(finGeo, MAT.dFin); finPivot.add(fin); finPivot.rotation.z = -0.25;
       return { hip, finPivot }; };
     const LF = leg(0.065), LB = leg(-0.065);
-    g.userData = { body, head, face, armF, armB, legF: LF.hip, legB: LB.hip, finF: LF.finPivot, finB: LB.finPivot, lampGlow };
+    // signature scarf: two pink tails streaming from the collar (animated in update)
+    const scarf = []; { const knot = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.03, 10, 28), MAT.dScarf); knot.rotation.x = Math.PI / 2; knot.position.set(0.0, 0.03, 0); body.add(knot);
+      for (const [z, len] of [[0.07, 0.42], [-0.04, 0.34]]) { const gg = new THREE.PlaneGeometry(len, 0.1, 8, 1); gg.translate(-len / 2, 0, 0); const P = gg.attributes.position; for (let i = 0; i < P.count; i++) { const x = -P.getX(i) / len; P.setY(i, P.getY(i) * (1 - x * 0.45)); }
+        const piv = new THREE.Group(); piv.position.set(-0.12, 0.03, z); body.add(piv); const rib = new THREE.Mesh(gg, MAT.dScarf); piv.add(rib); scarf.push({ piv, geo: gg, base: Float32Array.from(P.array), len }); } }
+    g.userData = { body, head, face, armF, armB, legF: LF.hip, legB: LB.hip, finF: LF.finPivot, finB: LB.finPivot, lampGlow, scarf };
     g.traverse(o => { if (o.isMesh) o.castShadow = true; });
     return withShadow(g);
   }
@@ -2489,11 +2503,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       // the painting always sits at the same depth in the world (z = -30), so it gets the right amount of parallax however far back the camera is
       const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion), dist = (-30 - cam.position.z) / fwd.z;
       const fov = cam.fov * Math.PI / 180, hv = 2 * Math.tan(fov / 2) * dist, wv = hv * cam.aspect; let sc = Math.max(wv, hv / AR) * 1.15, off = 0;
-      if (cam.aspect < 1 && this.e) { const nb = new THREE.Vector3((this.e.w - 1) / 2, -(this.e.h - 1.5) - 0.85, 0.6).project(cam).y, v0 = 0.2;
+      if (this.e) { const nb = new THREE.Vector3((this.e.w - 1) / 2, -(this.e.h - 1.5) - 0.86, -19).project(cam).y, v0 = 0.36;
         // grow the painting (at most 1.7x the view, so it stays sharp) and slide it so its sand line lands as close to the plinth as covering the screen allows;
         // on tall phones the 3D seabed in front of the tank fills the rest
-        const Hp = Math.min(hv * 1.7, Math.max(sc * AR, (hv / 2) * (1 - nb) / (1 - v0) * 1.1, (hv / 2) * (1 + nb) / v0 * 1.1)); sc = Hp / AR;
-        const want = nb * hv / 2 - (v0 - 0.5) * Hp, lim = Math.max(0, (Hp - hv * 1.02) / 2); off = Math.max(-lim, Math.min(lim, want)); }
+        const Hp = Math.min(hv * 1.8, Math.max(sc * AR, (hv / 2) * (1 - nb) / (1 - v0) * 1.06)); sc = Hp / AR;
+        off = Math.max(nb * hv / 2 - (v0 - 0.5) * Hp, hv / 2 * 1.03 - Hp / 2); } // never uncover the top; the seabed covers the bottom
       const q = cam.quaternion.clone(), pos = cam.position.clone().addScaledVector(fwd, dist).addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(q), off);
       return { pos, q, sc };
     }
@@ -2686,7 +2700,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         const sg = new THREE.PlaneGeometry(x1f - x0f, 4.2, 60, 16); sg.rotateX(-Math.PI / 2); const P = sg.attributes.position;
         for (let i = 0; i < P.count; i++) { const x = P.getX(i), z = P.getZ(i), front = Math.max(0, z + 0.6); P.setY(i, Math.sin(x * 0.9) * 0.05 + Math.sin(x * 2.3 + z * 1.7) * 0.03 - front * front * 0.12); } sg.computeVertexNormals();
         const photoMode = PHOTO_LEVELS.has(e.name) && !e.menu, spots = [];
-        const portrait = innerHeight > innerWidth, shelf = new THREE.Mesh(sg, photoMode && portrait ? (MAT.fgSandP || (MAT.fgSandP = causticify(new THREE.MeshStandardMaterial({ color: 0xffb21f, roughness: 0.95, envMapIntensity: 0.15 }), 0.35))) : MAT.fgSand); shelf.visible = !photoMode || portrait; shelf.position.set((x0f + x1f) / 2, yF + 0.02, 2.45); shelf.receiveShadow = true; this.levelGroup.add(shelf);
+        const shelf = new THREE.Mesh(sg, MAT.fgSand); shelf.visible = !photoMode; shelf.position.set((x0f + x1f) / 2, yF + 0.02, 2.45); shelf.receiveShadow = true; this.levelGroup.add(shelf);
         const groundY = (x, z) => yF + 0.02 + Math.sin(x * 0.9) * 0.05 - Math.pow(Math.max(0, z - 2.45 + 0.6), 2) * 0.12;
         const place = (geo, mat, n, fn, shadowR = 0) => { const im = new THREE.InstancedMesh(geo, mat, n); for (let i = 0; i < n; i++) { dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1); const col = fn(dummy, i); if (shadowR) spots.push([dummy.position.x, dummy.position.z, shadowR * Math.max(dummy.scale.x, dummy.scale.z)]); dummy.updateMatrix(); im.setMatrixAt(i, dummy.matrix); if (col) im.setColorAt(i, col); }
           im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; im.castShadow = true; im.receiveShadow = true; this.levelGroup.add(im); return im; };
@@ -2703,7 +2717,22 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         if (GEO.star) place(GEO.star, MAT.starfish, Math.max(2, Math.round(span * 0.15)), (d) => { const x = x0f + rnd() * span, z = 1.1 + rnd() * 1.3; d.position.set(x, groundY(x, z) + 0.03, z); d.rotation.set(-Math.PI / 2, 0, rnd() * 6); d.scale.setScalar(1.3 + rnd() * 0.7); return new THREE.Color().setHSL(0.03 + rnd() * 0.06, 0.8, 0.55 + rnd() * 0.1); }, 0.18);
         if (!this.newArt) { const blade = new THREE.PlaneGeometry(0.06, 0.5, 1, 4); blade.translate(0, 0.25, 0); const gm = new THREE.MeshStandardMaterial({ color: 0x4fae5c, roughness: 0.6, side: THREE.DoubleSide, emissive: 0x0b2e14, emissiveIntensity: 1 });
           const nT = Math.round(span * 0.35); let k = 0; place(blade, gm, nT * 7, (d, i) => { if (i % 7 === 0) k = [x0f + rnd() * span, 1.0 + rnd() * 1.4]; const x = k[0] + (rnd() - 0.5) * 0.25, z = k[1] + (rnd() - 0.5) * 0.2; d.position.set(x, groundY(x, z) - 0.02, z); d.rotation.set((rnd() - 0.5) * 0.4, rnd() * 3, (rnd() - 0.5) * 0.5); d.scale.set(1, 0.6 + rnd() * 0.9, 1); return new THREE.Color().setHSL(0.3 + rnd() * 0.06, 0.5, 0.35 + rnd() * 0.15); }); }
-        if (photoMode) {
+        if (photoMode) { // ONE seabed: an unlit sand floor in the painting's own sand colours and light-net style, from the screen's bottom edge
+          // back to where the painted sand meets the rocks, fading into the painting there (so the 3D props and the painting share one ground)
+          const gm = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uT: MAT.causticT },
+            vertexShader: 'varying vec3 vW; void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); vW = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; }',
+            fragmentShader: `uniform float uT; varying vec3 vW;
+              float hs(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+              float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hs(i), hs(i + vec2(1.0, 0.0)), f.x), mix(hs(i + vec2(0.0, 1.0)), hs(i + vec2(1.0, 1.0)), f.x), f.y); }
+              void main() { vec2 p = vW.xz; float far = smoothstep(2.0, -20.0, vW.z);
+                vec3 c = mix(vec3(0.957, 0.765, 0.365), vec3(0.973, 0.82, 0.435), far);                 // sampled from the painting: near / mid sand
+                c *= 0.93 + vn(p * vec2(0.9, 1.6)) * 0.1 + (hs(floor(p * 36.0)) - 0.5) * 0.03;        // soft dune shading + fine grain
+                vec2 q = p * vec2(0.6, 1.0); float a = sin(q.x * 3.1 + uT * 0.5 + sin(q.y * 2.3 + uT * 0.4) * 1.5), b = sin(q.y * 2.7 - uT * 0.45 + sin(q.x * 2.9 - uT * 0.5) * 1.5);
+                float net = pow(max(0.0, 1.0 - abs(a + b) * 0.5), 5.0);                                  // the painting's bright light net, moving
+                c = mix(c, vec3(1.0, 0.965, 0.553), net * 0.7 * (1.0 - far * 0.5));
+                c = mix(c, vec3(0.588, 0.733, 0.749), smoothstep(-13.0, -23.0, vW.z) * 0.6);                 // the painting's far, hazy sea floor
+                gl_FragColor = vec4(pow(c, vec3(2.2)), 1.0 - smoothstep(-14.0, -24.0, vW.z)); }` });
+          const gp = new THREE.PlaneGeometry(span + 90, 72); gp.rotateX(-Math.PI / 2); const ground = new THREE.Mesh(gp, gm); ground.position.set((W - 1) / 2, yF + 0.005, 6); ground.renderOrder = -6; ground.frustumCulled = false; this.levelGroup.add(ground);
           const mk = (draw) => { const c = document.createElement('canvas'); c.width = c.height = 256; draw(c.getContext('2d')); const t = new THREE.CanvasTexture(c); return t; };
           const blob = mk(g => { const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128); gr.addColorStop(0, 'rgba(18,26,48,0.85)'); gr.addColorStop(0.55, 'rgba(18,26,48,0.35)'); gr.addColorStop(1, 'rgba(18,26,48,0)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256); });
           // tank shadow: darkest right under the base and along its front edge, fading toward the viewer
@@ -2924,9 +2953,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     fitCamera(snap, wholeLevel = false) {
       if (!this.e) return;
       const W = this.e.w, H = this.e.h, aspect = this.camera.aspect, fov = this.camera.fov * Math.PI / 180;
-      const padTop = innerWidth < 560 ? 104 : 118, padBottom = (document.body.classList.contains('touch') ? 84 : 12) + (this.photoMode ? Math.round(innerHeight * 0.13) : 0);
+      const padTop = innerWidth < 560 ? 104 : isMobile ? 118 : 104, padBottom = (document.body.classList.contains('touch') ? 84 : 12) + (this.photoMode ? Math.round(innerHeight * (isMobile ? 0.13 : 0.08)) : 0);
       const freeFrac = Math.max(0.3, 1 - (padTop + padBottom) / innerHeight);
-      const dH = (H / 2 + 0.3) / Math.tan(fov / 2) / freeFrac, dW = (W / 2 + 0.4) / Math.tan(fov / 2) / aspect;
+      const dH = (H / 2 + (isMobile ? 0.3 : 0.15)) / Math.tan(fov / 2) / freeFrac, dW = (W / 2 + (isMobile ? 0.4 : 0.1)) / Math.tan(fov / 2) / aspect; // computers: frame the playfield tighter
       const dFull = Math.max(dH, dW); this.dFull = dFull;
       // show the whole board unless that makes cells smaller than ~34px; then follow the diver at ~46px cells
       const pxPerCell = d => innerHeight / (2 * Math.tan(fov / 2) * d);
@@ -2944,7 +2973,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const fov = this.camera.fov * Math.PI / 180, halfH = Math.tan(fov / 2) * dist, halfW = halfH * this.camera.aspect;
       // centre the board in the free area between the HUD (top) and the D-pad (bottom, phones)
       const ppc = innerHeight / (2 * halfH);
-      const padTop = innerWidth < 560 ? 104 : 118, padBottom = (document.body.classList.contains('touch') ? 84 : 12) + (this.photoMode ? Math.round(innerHeight * 0.13) : 0);
+      const padTop = innerWidth < 560 ? 104 : isMobile ? 118 : 104, padBottom = (document.body.classList.contains('touch') ? 84 : 12) + (this.photoMode ? Math.round(innerHeight * (isMobile ? 0.13 : 0.08)) : 0);
       const shift = (padTop - padBottom) / 2 / ppc;
       const visH = halfH - (padTop + padBottom) / 2 / ppc; // half-height of the free area in world units
       if (!overview && (this.follow || (this.playing && isMobile)) && this.playerPos && !this.menuMode) {
@@ -3017,7 +3046,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           if (moving) { this.lastMove = t; this.moveDir.set(o.x - o.px, -(o.y - o.py)); }
           const swimK = (ent.swim = (ent.swim || 0) + ((moving ? 1 : 0) - (ent.swim || 0)) * Math.min(1, dt * (moving ? 8 : 2.5)));
           // gentle buoyant bob + drift that calms while swimming
-          const bob = Math.sin(t * 1.7 + ent.phase) * 0.03 * (1 - swimK * 0.85), drift = 0 * Math.sin(t * 0.9 + ent.phase) * 0.018;
+          const bob = (Math.sin(t * 2.4 + ent.phase) * 0.045 + Math.sin(t * 4.8 + ent.phase) * 0.008) * (1 - swimK * 0.85), drift = 0 * Math.sin(t * 0.9 + ent.phase) * 0.018;
           const fit = m.userData.fit || { s: 1.3, yOff: 0.04 }, below = e.get(o.x, o.y + 1), grounded = !moving && below !== T.EMPTY && below !== T.GATE;
           ent.lift = (ent.lift === undefined ? 0 : ent.lift) + ((grounded ? 0 : 0.035 + Math.sin(t * 1.7 + ent.phase) * 0.025) - (ent.lift || 0)) * Math.min(1, dt * 6); // stand when on the floor, float gently in open water
           m.position.set(gx, gy + fit.yOff + ent.lift, 0.14); this.playerPos = m.position;
@@ -3029,7 +3058,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             let danger = false; for (let k = 1; k <= 2; k++) { const yy = o.y - k; if (yy < 0) break; const q = e.obj[yy * e.w + o.x]; if (q && (q.t === T.ROCK || q.t === T.BALL)) { danger = true; break; } if (e.get(o.x, yy) !== T.EMPTY) break; }
             this.warn.visible = danger && e.state === 'playing'; if (danger) { const pz = 1 + Math.sin(t * 9) * 0.12; this.warn.scale.setScalar(0.42 * pz); this.warn.position.set(gx + 0.38, gy + 0.62, 0.9); } }
           ent.facing += (e.playerDir - ent.facing) * Math.min(1, dt * 9);
-          { const yt = e.playerDir > 0 ? -0.35 : -Math.PI + 0.35; if (ent.yaw === undefined) ent.yaw = yt; ent.yaw += (yt - ent.yaw) * (1 - Math.exp(-dt * 11)); m.rotation.y = ent.yaw; const fs = (m.userData.fit || { s: 1.3 }).s; m.scale.set(fs, fs, fs); }
+          { const yt = e.playerDir > 0 ? -0.35 : -Math.PI + 0.35; if (ent.yaw === undefined) ent.yaw = yt; ent.yaw += (yt - ent.yaw) * (1 - Math.exp(-dt * 11)); m.rotation.y = ent.yaw; const fs = (m.userData.fit || { s: 1.3 }).s, br = Math.sin(t * 2.4 + ent.phase) * 0.025 * (1 - swimK); m.scale.set(fs * (1 - br * 0.6 - swimK * 0.04), fs * (1 + br + swimK * 0.07), fs * (1 - br * 0.6)); } // breathing squash + stretch while swimming
           const u = m.userData;
           // body tilt: lean into horizontal swims, point head-first up/down for vertical ones
           const vx = moving ? Math.abs(o.x - o.px) : 0, vy = moving ? -(o.y - o.py) : 0;
@@ -3048,7 +3077,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             if (act.k === 'dig') { aF += env * 1.6 * (act.dir === 'down' ? -0.4 : 1); aB += env * 1.1; u.body.rotation.z += env * (act.dir === 'down' ? 0.35 : act.dir === 'up' ? -0.3 : -0.18); }
             else { aF = aF * (1 - env) + 1.55 * env; aB = aB * (1 - env) + 1.45 * env; u.body.rotation.z -= env * 0.25; }
             if (p >= 1) this.playerAct = null; }
+          // an occasional cheerful wave when left idle
+          if (!act && swimK < 0.05 && t - (this.lastMove ?? -99) > 2.2) { ent.waveT = (ent.waveT ?? 1.5) - dt; if (ent.waveT < 0) { const w = Math.min(1, -ent.waveT / 1.1); aF = 2.7 + Math.sin(t * 14) * 0.35 * Math.sin(w * Math.PI); if (ent.waveT < -1.1) ent.waveT = 4 + Math.random() * 3; } } else ent.waveT = 1.5;
           u.armF.rotation.z = aF; u.armB.rotation.z = aB;
+          if (u.scarf) u.scarf.forEach((sc, j) => { const P = sc.geo.attributes.position, b = sc.base, sp = 5 + swimK * 7, amp = 0.025 + swimK * 0.03;
+            for (let i = 0; i < P.count; i++) { const x = -b[i * 3] / sc.len; P.setY(i, b[i * 3 + 1] + Math.sin(t * sp - x * 5 + j) * amp * x); P.setZ(i, Math.cos(t * sp * 0.8 - x * 4 + j) * amp * 0.6 * x); }
+            P.needsUpdate = true; sc.piv.rotation.z = -0.35 + Math.sin(t * 2 + j) * 0.12 + swimK * 0.25; });
           u.lampGlow.material.opacity = 0.55 + Math.sin(t * 3.1) * 0.1;
           m.userData.shadow.visible = e.get(o.x, o.y + 1) !== T.EMPTY;
           ent.bub = (ent.bub || 0) - dt; if (ent.bub <= 0) { ent.bub = 0.7 + Math.random() * 1.1; this.particles.bubbles(gx + 0.15 * e.playerDir, gy + 0.45, 0.25, 2 + (Math.random() * 3 | 0), 0.05, 0.12); }
