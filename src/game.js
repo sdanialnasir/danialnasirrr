@@ -774,6 +774,11 @@ const Audio = (() => {
     const g = ctx.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
     src.connect(f); f.connect(g); g.connect(sfxBus); src.start(t); src.stop(t + dur + 0.02);
   }
+  function note(freq, t, dur, type, vol, dest) { // a single soft tone with a quick attack and gentle decay
+    const o = ctx.createOscillator(); o.type = type; o.frequency.setValueAtTime(freq, t);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.012); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g); g.connect(dest || sfxBus); o.start(t); o.stop(t + dur + 0.05);
+  }
   function thump(freq, dur, vol, t = ctx.currentTime) {
     const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(freq, t); o.frequency.exponentialRampToValueAtTime(freq * 0.4, t + dur);
     const g = ctx.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
@@ -815,6 +820,7 @@ const Audio = (() => {
     land() { thump(70, 0.35, 0.8); burst(0.2, 250, 0.7, 0.25, ctx.currentTime, 'lowpass'); },
     roll() { burst(0.2, 320, 0.7, 0.08, ctx.currentTime, 'lowpass'); },
     bump() { thump(220, 0.08, 0.15); },
+    treasure() { const t = ctx.currentTime, r = 880 * Math.pow(2, ((Math.random() * 3) | 0) * 2 / 12); [0, 7, 12].forEach((d, i) => note(r * Math.pow(2, d / 12), t + i * 0.055, 0.35, 'sine', 0.06, sfxBus)); },
     bubble() { const t = ctx.currentTime; const f = 600 + Math.random() * 900; note(f, t, 0.12, 'sine', 0.05, sfxBus); note(f * 1.5, t + 0.03, 0.08, 'sine', 0.03, sfxBus); },
     air() { const t = ctx.currentTime; [0, 4, 7, 12].forEach((d, i) => note(523 * Math.pow(2, d / 12), t + i * 0.06, 0.5, 'sine', 0.12, sfxBus)); burst(0.5, 2000, 0.5, 0.15); },
     absorb() { const t = ctx.currentTime; for (let i = 0; i < 10; i++) note(300 * Math.pow(2, i / 6), t + i * 0.04, 0.3, 'sine', 0.1, sfxBus); note(880, t + 0.4, 1.2, 'triangle', 0.12, sfxBus); },
@@ -985,7 +991,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWp; varying vec3 vNo;')
         .replace('#include <project_vertex>', '#include <project_vertex>\n{ vec4 wp4 = vec4(transformed, 1.0);\n#ifdef USE_INSTANCING\n wp4 = instanceMatrix * wp4;\n#endif\n vWp = (modelMatrix * wp4).xyz; vNo = normal; }');
       sh.uniforms.uCausticT = MAT.causticT; sh.uniforms.uSandTex = { value: sprTex('sand') }; sh.uniforms.uNew = MAT.sandNew;
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uCausticT, uNew; uniform sampler2D uSandTex; varying vec3 vWp; varying vec3 vNo; float vEdge = 0.0; float vLine = 0.0; float vWet = 0.0; float vTopOpen = 0.0; vec2 vLc = vec2(0.5); vec3 vGlint = vec3(0.0);' + (mask ? '\nuniform sampler2D uMask; uniform vec2 uSize;' : ''))
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uCausticT, uNew; uniform sampler2D uSandTex; varying vec3 vWp; varying vec3 vNo; float vEdge = 0.0; float vBotOpen = 0.0; float vLine = 0.0; float vWet = 0.0; float vTopOpen = 0.0; vec2 vLc = vec2(0.5); vec3 vGlint = vec3(0.0);' + (mask ? '\nuniform sampler2D uMask; uniform vec2 uSize;' : ''))
         .replace('#include <clipping_planes_fragment>', mask ? `#include <clipping_planes_fragment>
         { vec2 cell = vec2(floor(vWp.x + 0.5), floor(-vWp.y + 0.5)); vec2 lc = vec2(vWp.x + 0.5, -vWp.y + 0.5) - cell;
           if (cell.x < 0.0 || cell.y < 0.0 || cell.x >= uSize.x || cell.y >= uSize.y) discard;
@@ -1026,7 +1032,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             ln = max(ln, (1.0 - step(0.99, nD)) * (1.0 - smoothstep(w - aa, w + aa, 1.0 - lc.y)));
             ln = max(ln, (1.0 - step(0.99, nU)) * (1.0 - smoothstep(w - aa, w + aa, lc.y)));
             vLine = 0.0; }
-          vEdge = sh; vTopOpen = 1.0 - step(0.99, nU); vLc = lc; } }` : '#include <clipping_planes_fragment>')
+          vEdge = sh; vTopOpen = 1.0 - step(0.99, nU); vBotOpen = (1.0 - step(0.99, nD)) * (1.0 - step(0.5, texture2D(uMask, (cell + vec2(0.0, 1.0) + 0.5) / uSize).b)); vLc = lc; } }` : '#include <clipping_planes_fragment>')
         .replace('#include <color_fragment>', `#include <color_fragment>
         { vec2 p = vWp.xy;
           // warm golden base with a gentle large-scale light/dark drift
@@ -1063,6 +1069,10 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           float speck = fract(sin(dot(floor(p * 48.0), vec2(12.9898, 78.233))) * 43758.5453);
           
           c = mix(c, uNew > 0.5 ? vec3(0.42, 0.22, 0.09) : dark * 0.75, vEdge * 0.75);
+          if (uNew > 0.5 && vBotOpen > 0.5) { float band = smoothstep(0.62, 0.8, vLc.y); // underside of a sand ledge: packed pebbles and grit
+            vec2 q = p * vec2(4.6, 5.4) + vec2(floor(p.y * 5.4) * 0.5, 0.0); vec2 ci = floor(q), cf = fract(q) - 0.5; float h1 = fract(sin(dot(ci, vec2(41.7, 289.3))) * 43758.5); vec2 o = vec2(h1, fract(h1 * 13.7)) - 0.5;
+            vec2 pq = (cf - o * 0.3) * vec2(1.0, 1.25 + h1 * 0.5); float peb = step(0.25, fract(h1 * 3.3)) * smoothstep(0.36 - h1 * 0.1, 0.28 - h1 * 0.1, length(pq)); vec3 pc = mix(vec3(0.36, 0.33, 0.4), vec3(0.55, 0.42, 0.3), fract(h1 * 7.1)) * (0.7 + 0.45 * smoothstep(-0.25, 0.2, pq.y));
+            vec3 grit = mix(c * vec3(0.72, 0.62, 0.55), vec3(0.4, 0.33, 0.3), 0.35); c = mix(c, mix(grit, pc, peb), band); }
           c = mix(c, lip, vTopOpen * smoothstep(0.15, 0.06, vLc.y));
           c = mix(c, vec3(0.008, 0.016, 0.066) * 1.9, vLine);
           // shells, starfish and pebbles pressed into the sand face (they go away with the sand when dug)
@@ -1924,7 +1934,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const fishG = new THREE.SphereGeometry(0.16, 10, 6); fishG.scale(1, 0.45, 0.3); const fishM = new THREE.MeshBasicMaterial({ color: 0x1d4f9a, transparent: true, opacity: 0.55, fog: false });
       const fishSpr = ['fishA', 'fishC', 'fishD', 'fishE', 'fishF', 'fishG', 'fishH', 'fishI', 'school'].map(n => { const f = sprPlane(n, n === 'school' ? 0.6 : 0.5, false, { k: 0.45, dz: 0.6, op: 0.22 }); f.material.depthWrite = false; f.renderOrder = -7; f.userData.shadow.renderOrder = -7.5; g.add(f); return f; });
       const school = new THREE.InstancedMesh(fishG, fishM, 9); school.visible = false; school.frustumCulled = false; g.add(school);
-      this.photo = { group: g, bg, shimmer, bubbles, bubM, school, fishSpr, off: [...Array(9)].map(() => [Math.random() * 1.6, Math.random() * 0.8, Math.random() * 6]) };
+      const jellies = [0, 1, 2, 3].map(i => { const j = sprPlane('jellyN', 0.9 + (i % 2) * 0.4, false, false); j.material.depthWrite = false; j.material.transparent = true; j.material.opacity = 0.75; j.renderOrder = -7; g.add(j); return j; });
+      this.photo = { group: g, bg, shimmer, bubbles, bubM, school, fishSpr, jellies, off: [...Array(9)].map(() => [Math.random() * 1.6, Math.random() * 0.8, Math.random() * 6]) };
     }
     // screen-filling placement of the painting for a given camera (its sand line, ~20% up from the bottom, under the tank's plinth on portrait)
     photoFit(cam, AR) {
@@ -1959,6 +1970,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const d0 = new THREE.Object3D(), span = wView * 0.7, sx = ((t * 0.9) % (span * 2.4)) - span * 1.2;
       P.off.forEach(([ox, oy, ph], i) => { d0.position.set(cx + sx + ox * 1.4, cy + hView * 0.12 + oy * 1.1 + Math.sin(t * 1.3 + ph) * 0.1, -14); d0.rotation.set(0, 0, Math.sin(t * 2 + ph) * 0.08); d0.updateMatrix(); P.school.setMatrixAt(i, d0.matrix); });
       P.school.instanceMatrix.needsUpdate = true;
+      // jellyfish drifting up through the distant water on both sides of the tank, pulsing as they swim
+      if (P.jellies && this.e) P.jellies.forEach((j, i) => { const side = i % 2 ? 1 : -1, H2 = hView * 0.8, y = ((t * (0.18 + i * 0.03) + i * 3.1) % H2) - H2 * 0.35;
+        const pulse = 1 + Math.sin(t * 2.2 + i * 1.7) * 0.08; j.position.set(cx + side * (this.e.w / 2 + 2.5 + (i >> 1) * 2.2), cy + y, -9 - i * 1.5); j.scale.set(pulse, 2 - pulse, 1); j.rotation.z = Math.sin(t * 0.6 + i) * 0.12; });
       P.fishSpr.forEach((f, i) => { const dir = i % 2 ? -1 : 1, sp2 = 0.6 + (i % 3) * 0.25, W2 = wView * 0.9, x = ((t * sp2 + i * 7.3) % (W2 * 2.2)) - W2 * 1.1;
         f.position.set(cx + dir * x, cy + hView * (0.05 + (i % 4) * 0.07) + Math.sin(t * 1.4 + i) * 0.12, -10 - (i % 3) * 3); f.scale.set(-dir, 1, 1); });
     }
@@ -2012,7 +2026,15 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           MAT.plinthSideN = new THREE.MeshPhysicalMaterial({ color: 0x5e3b22, roughness: 0.6, clearcoat: 0.4, envMapIntensity: 0.4 });
         }
         // back glass (tinted, you see the reef through it), side panes, faint front reflections
-        const back = new THREE.Mesh(new THREE.PlaneGeometry(w, h), MAT.glassBack); back.position.set(cx, cy, zB); back.renderOrder = 1; tank.add(back);
+        const back = new THREE.Mesh(new THREE.PlaneGeometry(w, h), this.newArt ? (MAT.waterBack || (MAT.waterBack = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uT: MAT.causticT, uH: { value: new THREE.Vector2() } },
+          vertexShader: 'varying vec3 vW; void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); vW = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; }',
+          fragmentShader: `uniform float uT; uniform vec2 uH; varying vec3 vW; void main(){ float k = clamp((vW.y - uH.x) / (uH.y - uH.x), 0.0, 1.0);
+            vec3 c = mix(vec3(0.02, 0.17, 0.42), vec3(0.1, 0.6, 0.9), pow(k, 1.3));                                     // deep blue at the floor -> bright cyan under the surface
+            vec2 p = vW.xy * 0.9; float a = sin(p.x * 3.1 + uT * 0.8 + sin(p.y * 2.3 + uT * 0.55) * 1.5), b = sin(p.y * 2.7 - uT * 0.65 + sin(p.x * 2.9 - uT * 0.7) * 1.5);
+            float cau = pow(max(0.0, 1.0 - abs(a + b) * 0.5), 6.0); c += vec3(0.55, 0.95, 1.0) * cau * (0.1 + 0.18 * k);            // moving caustic net on the back glass
+            gl_FragColor = vec4(pow(c, vec3(2.2)), 0.72); }` }))) : MAT.glassBack);
+        if (this.newArt) back.material.uniforms.uH.value.set(yB, yT);
+        back.position.set(cx, cy, zB); back.renderOrder = 1; tank.add(back);
         for (const sx of [x0, x1]) { const p = new THREE.Mesh(new THREE.PlaneGeometry(zF - zB, h), MAT.glassSide); p.rotation.y = Math.PI / 2; p.position.set(sx, cy, (zF + zB) / 2); p.renderOrder = 2; tank.add(p); }
         const front = new THREE.Mesh(new THREE.PlaneGeometry(w, h), MAT.glassFront); front.position.set(cx, cy, zF); front.renderOrder = 5; tank.add(front);
         // slim teal frame with little brass corner caps
@@ -2026,12 +2048,25 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         const pl = new THREE.Mesh(roundedBox(w + 0.7, 0.85, 1.3, 0.12), this.newArt ? [MAT.plinthN, MAT.plinthSideN] : [MAT.plinth, MAT.plinthSide]); pl.position.set(cx, yB - 0.42, 0); pl.castShadow = pl.receiveShadow = true; tank.add(pl);
         bar(w + 0.3, 0.1, zF - zB + 0.25, cx, yB - 0.02, 0).material = MAT.trim;
         this.pump = null; if (this.newArt) this.buildPremiumTank(tank, { x0, x1, yT, yB, cx, cy, w, h, zF, zB });
+        if (this.newArt) { const c = document.createElement('canvas'); c.width = 1024; c.height = 160; const g = c.getContext('2d'), idx = LEVELS.findIndex(l => l.name === e.name) + 1;
+          const gr = g.createLinearGradient(0, 0, 0, 160); gr.addColorStop(0, '#ffe7a3'); gr.addColorStop(0.45, '#d9a63c'); gr.addColorStop(1, '#8a5a17');
+          g.fillStyle = gr; g.beginPath(); g.roundRect(8, 8, 1008, 144, 36); g.fill(); g.lineWidth = 6; g.strokeStyle = '#5a3a0c'; g.stroke();
+          g.strokeStyle = 'rgba(255,255,255,0.55)'; g.lineWidth = 3; g.beginPath(); g.roundRect(22, 22, 980, 116, 26); g.stroke();
+          for (const sx of [56, 968]) { g.fillStyle = '#7a4f12'; g.beginPath(); g.arc(sx, 80, 13, 0, 7); g.fill(); g.fillStyle = '#ffe9b0'; g.beginPath(); g.arc(sx - 3, 77, 5, 0, 7); g.fill(); }
+          g.font = '700 74px "Lilita One", "Baloo 2", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; const txt = `LEVEL ${idx}  ·  ${e.name.toUpperCase()}`;
+          g.fillStyle = 'rgba(255,240,200,0.8)'; g.fillText(txt, 512, 86); g.fillStyle = '#4a2c06'; g.fillText(txt, 512, 82); // engraved
+          const t2 = new THREE.CanvasTexture(c); t2.colorSpace = THREE.SRGBColorSpace; t2.anisotropy = 8;
+          const pw = Math.min(w * 0.55, 4.2), plq = new THREE.Mesh(new THREE.PlaneGeometry(pw, pw * 160 / 1024), new THREE.MeshPhysicalMaterial({ map: t2, metalness: 0.6, roughness: 0.32, clearcoat: 1, envMapIntensity: 1.2 }));
+          plq.position.set(cx, yB - 0.4, 0.656); tank.add(plq);
+          if (document.fonts && document.fonts.load) document.fonts.load('700 74px "Lilita One"').then(() => { g.clearRect(0, 0, 1024, 160); g.fillStyle = gr; g.beginPath(); g.roundRect(8, 8, 1008, 144, 36); g.fill(); g.lineWidth = 6; g.strokeStyle = '#5a3a0c'; g.stroke();
+            g.strokeStyle = 'rgba(255,255,255,0.55)'; g.lineWidth = 3; g.beginPath(); g.roundRect(22, 22, 980, 116, 26); g.stroke(); for (const sx of [56, 968]) { g.fillStyle = '#7a4f12'; g.beginPath(); g.arc(sx, 80, 13, 0, 7); g.fill(); g.fillStyle = '#ffe9b0'; g.beginPath(); g.arc(sx - 3, 77, 5, 0, 7); g.fill(); }
+            g.font = '700 74px "Lilita One", "Baloo 2", sans-serif'; g.fillStyle = 'rgba(255,240,200,0.8)'; g.fillText(txt, 512, 86); g.fillStyle = '#4a2c06'; g.fillText(txt, 512, 82); t2.needsUpdate = true; }).catch(() => {}); }
         // ---- life around the base: rocks along the plinth, coral clumps, swaying seaweed at the tank corners
         { const rnd = (() => { let sd = 4242 + W * 7 + H; return () => (sd = (sd * 16807) % 2147483647) / 2147483647; })();
           const rockM = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7, envMapIntensity: 0.5 });
           const rockG = new THREE.IcosahedronGeometry(0.24, 1); const nR = Math.round((w + 1.6) / 0.62);
           const rocks = new THREE.InstancedMesh(rockG, rockM, nR + 6); const d0 = new THREE.Object3D(); let ri = 0;
-          for (let i = 0; i < nR; i++) { const sc = 0.7 + rnd() * 0.7; d0.position.set(x0 - 0.8 + i * 0.62 + (rnd() - 0.5) * 0.25, yB - 0.9 + sc * 0.1, 0.6 + rnd() * 0.3); d0.scale.set(sc * 1.25, sc * 0.7, sc); d0.rotation.set(rnd(), rnd() * 6, rnd()); d0.updateMatrix(); rocks.setMatrixAt(ri, d0.matrix); rocks.setColorAt(ri++, new THREE.Color().setHSL(0.6 + rnd() * 0.04, 0.45, 0.26 + rnd() * 0.12)); }
+          for (let i = 0; i < nR; i++) { const sc = 0.7 + rnd() * 0.7, rx = x0 - 0.8 + i * 0.62; if (this.newArt && Math.abs(rx - cx) < Math.min(w * 0.55, 4.2) / 2 + 0.2) continue; d0.position.set(rx + (rnd() - 0.5) * 0.25, yB - 0.9 + sc * 0.1, 0.6 + rnd() * 0.3); d0.scale.set(sc * 1.25, sc * 0.7, sc); d0.rotation.set(rnd(), rnd() * 6, rnd()); d0.updateMatrix(); rocks.setMatrixAt(ri, d0.matrix); rocks.setColorAt(ri++, new THREE.Color().setHSL(0.6 + rnd() * 0.04, 0.45, 0.26 + rnd() * 0.12)); }
           for (const sx of [x0 - 0.75, x1 + 0.75]) for (let k = 0; k < 3; k++) { const sc = 1 + rnd() * 0.8; d0.position.set(sx + (rnd() - 0.5) * 0.6, yB - 0.75 + sc * 0.15, 0.3 + rnd() * 0.5); d0.scale.set(sc * 1.3, sc, sc); d0.rotation.set(rnd(), rnd() * 6, rnd()); d0.updateMatrix(); rocks.setMatrixAt(ri, d0.matrix); rocks.setColorAt(ri++, new THREE.Color().setHSL(0.6, 0.22, 0.42 + rnd() * 0.1)); }
           rocks.count = ri; rocks.castShadow = rocks.receiveShadow = true; tank.add(rocks);
           // bubble-coral clumps (pink / purple / orange) sitting on the rocks in front of the plinth
@@ -2043,6 +2078,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           balls.count = bi; balls.visible = false; tank.add(balls);
           { const row = ART.plinth;
             const NA = this.newArt, n = Math.max(5, Math.round((w + 1.6) / (NA ? 0.78 : 1.05))); for (let k = 0; k < n; k++) { const nm = row[(k + W) % row.length], hgt = (isRockSpr(nm) ? 0.62 + rnd() * 0.2 : isPlantSpr(nm) ? (NA ? 0.6 + rnd() * 0.25 : 0.8 + rnd() * 0.45) : 0.55 + rnd() * 0.25) * (NA ? 0.7 + rnd() * 0.65 : 1);
+              const px0 = x0 - 0.6 + (k + 0.5) * (w + 1.2) / n; if (NA && Math.abs(px0 - cx) < Math.min(w * 0.55, 4.2) / 2 + 0.25) continue;
               const sp = sprPlane(nm, hgt, true, { dz: 0.16, op: 0.6, lean: 0.38 }); sp.position.set(x0 - 0.6 + (k + 0.5) * (w + 1.2) / n + (rnd() - 0.5) * (NA ? 0.7 : 0.3), yB - 0.9, (NA ? 0.86 + rnd() * 0.42 : 0.92 + rnd() * 0.25)); if (rnd() < 0.5) sp.scale.x = -1;
               if (isPlantSpr(nm)) { const ph = rnd() * 6; sp.onBeforeRender = () => { sp.rotation.z = Math.sin(performance.now() / 1000 * 1.2 + ph) * 0.06; }; } tank.add(sp); } }
           // seaweed fronds hugging the tank's sides, gently swaying
@@ -2078,7 +2114,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         const br = new THREE.InstancedMesh(GEO.branch, new THREE.MeshPhysicalMaterial({ roughness: 0.4, clearcoat: 0.6, emissive: 0x220a10, emissiveIntensity: 1 }), runs.reduce((a, r) => a + (r[1] - r[0] + 1) * 3, 0));
         let pi = 0, bi = 0;
         runs.forEach(([x0r, x1r, y], ri) => { const len = x1r - x0r + 1, cx = (x0r + x1r) / 2, kind = (variant(x0r, y) >> 2) % 3, mats = MAT.coralFaces[kind];
-          const geo = roundedBox(len - 0.04, 0.64, 0.98, 0.2, 3); const face = shelfFace(len, ART.platform); const m = new THREE.Mesh(geo, face ? [new THREE.MeshStandardMaterial({ map: face, roughness: 0.75, emissive: 0xffffff, emissiveMap: face, emissiveIntensity: 0.25 }), new THREE.MeshStandardMaterial({ color: 0xd9913f, roughness: 0.8 })] : [mats[0], mats[1]]); mats[0].map.repeat.set(len * 0.6, 1);
+          const geo = roundedBox(len - 0.04, 0.64, 0.98, 0.2, 3); const face = shelfFace(len, ART.platform); const m = new THREE.Mesh(geo, face ? [new THREE.MeshStandardMaterial({ map: face, roughness: 0.75, emissive: 0xffffff, emissiveMap: face, emissiveIntensity: 0.25 }), (this.newArt ? (MAT.shelfSideN || (MAT.shelfSideN = new THREE.MeshPhysicalMaterial({ color: 0x8a5a2b, metalness: 0.45, roughness: 0.35, clearcoat: 0.6, envMapIntensity: 0.9 }))) : new THREE.MeshStandardMaterial({ color: 0xd9913f, roughness: 0.8 }))] : [mats[0], mats[1]]); mats[0].map.repeat.set(len * 0.6, 1);
           m.position.set(cx, -y - 0.02, -0.02); m.castShadow = m.receiveShadow = true; this.levelGroup.add(m);
           if (this.newArt) for (let i = 0; i < len; i++) { const hh = variant(x0r + i, y + 5); if (hh % 3 === 0) continue; // sea-plant tufts growing on the shelf top
             const nm = ART.ledge[hh % 9], sp = sprPlane(nm, 0.3 + (hh % 4) * 0.05, true, { dz: 0.25, op: 0.5 }); sp.position.set(x0r + i + ((hh >> 4) % 5 - 2) * 0.08, -y + 0.3, -0.2); if (hh & 1) sp.scale.x = -1; this.levelGroup.add(sp); }
@@ -2132,8 +2168,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         const groundY = (x, z) => yF + 0.02 + Math.sin(x * 0.9) * 0.05 - Math.pow(Math.max(0, z - 2.45 + 0.6), 2) * 0.12;
         const place = (geo, mat, n, fn, shadowR = 0) => { const im = new THREE.InstancedMesh(geo, mat, n); for (let i = 0; i < n; i++) { dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1); const col = fn(dummy, i); if (shadowR) spots.push([dummy.position.x, dummy.position.z, shadowR * Math.max(dummy.scale.x, dummy.scale.z)]); dummy.updateMatrix(); im.setMatrixAt(i, dummy.matrix); if (col) im.setColorAt(i, col); }
           im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; im.castShadow = true; im.receiveShadow = true; this.levelGroup.add(im); return im; };
-        const span = x1f - x0f, nS = Math.round(span * (photoMode ? 0.55 : 1.1)), zMin = photoMode ? 1.55 : 1.0;
-        place(new THREE.IcosahedronGeometry(0.12, 1), MAT.fgStone, nS, (d, i) => { const x = x0f + rnd() * span, z = zMin + rnd() * 1.4, sc = 0.6 + rnd() * 1.4; d.position.set(x, groundY(x, z) + sc * 0.05, z); d.scale.set(sc * 1.3, sc * 0.7, sc); d.rotation.set(rnd(), rnd() * 6, rnd()); return new THREE.Color().setHSL(0.6 + rnd() * 0.04, 0.35, 0.3 + rnd() * 0.18); }, 0.17);
+        const span = x1f - x0f, nS = Math.round(span * (this.newArt ? 0.32 : photoMode ? 0.55 : 1.1)), zMin = photoMode ? 1.55 : 1.0, NA = this.newArt;
+        place(new THREE.IcosahedronGeometry(0.12, 1), MAT.fgStone, nS, (d, i) => { const x = x0f + rnd() * span, z = zMin + rnd() * 1.4, sc = NA ? 0.45 + rnd() * 0.75 : 0.6 + rnd() * 1.4; d.position.set(x, groundY(x, z) + sc * (NA ? 0.0 : 0.05), z); d.scale.set(sc * 1.3, sc * (NA ? 0.55 : 0.7), sc); d.rotation.set(rnd(), rnd() * 6, rnd()); return NA ? new THREE.Color().setHSL([0.62, 0.7, 0.5][(rnd() * 3) | 0] + rnd() * 0.03, 0.45, 0.32 + rnd() * 0.14) : new THREE.Color().setHSL(0.6 + rnd() * 0.04, 0.35, 0.3 + rnd() * 0.18); }, 0.17);
         const sway = (sp, amt) => { const ph = rnd() * 6; sp.onBeforeRender = () => { sp.rotation.z = Math.sin(performance.now() / 1000 * 1.2 + ph) * amt; }; };
         if (this.newArt) { // the sheet's shells and sea plants on the seabed, each with a light-facing ground shadow
           const nSh = Math.round(span * 0.32); for (let i = 0; i < nSh; i++) { const x = x0f + rnd() * span, z = 1.05 + rnd() * 1.4, sp = sprPlane(ART.shells[i % ART.shells.length], 0.2 + rnd() * 0.1, true, { drop: false, op: 0.6 });
@@ -2201,6 +2237,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.sandInst = null;
       // one seamless front surface for all sand, masked per cell (r = 255 * visible size)
       this.maskData = new Uint8Array(W * H * 4); sand.forEach(([x, y]) => { this.maskData[(y * W + x) * 4] = 255; });
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const tt = e.get(x, y); if (tt === T.WALL || tt === T.STEEL || tt === T.GATE) this.maskData[(y * W + x) * 4 + 2] = 255; }
       this.maskTex = new THREE.DataTexture(this.maskData, W, H, THREE.RGBAFormat); this.maskTex.magFilter = this.maskTex.minFilter = THREE.NearestFilter; this.maskTex.needsUpdate = true;
       MAT.sandMask.tex.value = this.maskTex; MAT.sandMask.size.value.set(W, H);
       this.sandFront = new THREE.Mesh(new THREE.PlaneGeometry(W, H), MAT.sandFront); this.sandFront.receiveShadow = true; this.sandFront.position.set((W - 1) / 2, -(H - 1) / 2, 0.4); this.levelGroup.add(this.sandFront);
@@ -2430,7 +2467,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (this.edgePlants) for (const ep of this.edgePlants) if (ep.m.visible && e.get(ep.x, ep.y) !== T.SAND) ep.m.visible = false;
       if (this.treasures) for (const tr of this.treasures) {
         const m = tr.m;
-        if (tr.state === 'buried') { if (e.get(tr.cx, tr.cy) !== T.SAND) { tr.state = 'falling'; tr.vy = 0.6; } else continue; }
+        if (tr.state === 'buried') { if (e.get(tr.cx, tr.cy) !== T.SAND) { tr.state = 'falling'; tr.vy = 0.6; this.particles.emit(m.position.x, m.position.y, 0.5, 10, { color: new THREE.Color(1, 0.95, 0.7), speed: 1.4, life: 0.6, size: 0.12, spread: 0.2 }); this.sfx('treasure'); }
+          else { if (this.newArt && Math.random() < dt * 0.09) this.particles.emit(m.position.x + 0.08, m.position.y + 0.06, 0.48, 1, { color: new THREE.Color(1, 1, 0.9), speed: 0.01, life: 0.45, size: 0.3, spread: 0.02 }); continue; } }
         const row = Math.round(-m.position.y), col = Math.round(m.position.x);
         const below = e.get(col, row + 1), floorY = -(row + 1) + 0.5 + 0.06;
         const blocked = below !== T.EMPTY && below !== T.PLAYER && !MONSTERS.has(below);
@@ -2587,7 +2625,13 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         this.ballLights.forEach((l, i) => { const ent = balls[i]; if (!ent) { l.intensity = 0; return; }
           const pulse = Math.sin(t * 4 + (ent.phase || 0)); l.position.set(ent.m.position.x, ent.m.position.y, 0.75); l.intensity = (2.6 + pulse * 0.5) * Math.min(1, ent.m.scale.x); }); }
       if (this.gateSprite) { const op = e.gate && e.gate.open; this.gateSprite.material.color.setRGB(op ? 0.75 : 1, op ? 1.15 + Math.sin(t * 4) * 0.1 : 1, op ? 0.8 : 1); }
-      if (this.gateObj) { const open = e.gate.open; this.gateLight.color.set(open ? 0x3aff7a : 0xff3a2a); this.gateLight.position.set(this.gateObj.position.x, this.gateObj.position.y + 0.33, 0.8); this.gateLight.intensity = open ? 2.6 + Math.sin(t * 4) * 0.4 : 1.2; } else this.gateLight.intensity = 0;
+      if (this.gateObj) { const open = e.gate.open; this.gateLight.color.set(open ? 0x3aff7a : 0xff3a2a); this.gateLight.position.set(this.gateObj.position.x, this.gateObj.position.y + 0.33, 0.8); this.gateLight.intensity = open ? 2.6 + Math.sin(t * 4) * 0.4 : 1.2;
+        if (!this.gateBeam) { this.gateBeam = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 3.2), new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, uniforms: { uT: MAT.causticT, uK: { value: 0 } },
+            vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+            fragmentShader: 'uniform float uT, uK; varying vec2 vUv; void main(){ float x = abs(vUv.x - 0.5) * 2.0; float a = pow(1.0 - x, 2.5) * pow(1.0 - vUv.y, 1.6) * (0.7 + 0.3 * sin(uT * 3.0 - vUv.y * 9.0)) * uK; gl_FragColor = vec4(vec3(0.55, 1.0, 0.8) * a, a); }' }));
+          this.gateBeam.renderOrder = 7; this.scene.add(this.gateBeam); }
+        this.gateBeam.position.set(this.gateObj.position.x, this.gateObj.position.y + 1.95, 0.5);
+        const bk = this.gateBeam.material.uniforms.uK; bk.value += ((open ? 0.55 : 0) - bk.value) * Math.min(1, dt * 3); this.gateBeam.visible = bk.value > 0.01; } else if (this.gateBeam) this.gateBeam.visible = false; if (!this.gateObj) this.gateLight.intensity = 0;
       // gate
       if (this.gateObj) {
         const g = this.gateObj, open = e.gate.open ? 1 : 0; g.userData.k = (g.userData.k || 0) + (open - (g.userData.k || 0)) * Math.min(1, dt * 3); const ok = g.userData.k;
