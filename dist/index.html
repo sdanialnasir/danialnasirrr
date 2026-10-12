@@ -2484,22 +2484,41 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const school = new THREE.InstancedMesh(fishG, fishM, 9); school.visible = false; school.frustumCulled = false; g.add(school);
       this.photo = { group: g, bg, shimmer, bubbles, bubM, school, fishSpr, off: [...Array(9)].map(() => [Math.random() * 1.6, Math.random() * 0.8, Math.random() * 6]) };
     }
+    // screen-filling placement of the painting for a given camera (its sand line, ~20% up from the bottom, under the tank's plinth on portrait)
+    photoFit(cam, AR) {
+      // the painting always sits at the same depth in the world (z = -30), so it gets the right amount of parallax however far back the camera is
+      const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion), dist = (-30 - cam.position.z) / fwd.z;
+      const fov = cam.fov * Math.PI / 180, hv = 2 * Math.tan(fov / 2) * dist, wv = hv * cam.aspect; let sc = Math.max(wv, hv / AR) * 1.15, off = 0;
+      if (cam.aspect < 1 && this.e) { const nb = new THREE.Vector3((this.e.w - 1) / 2, -(this.e.h - 1.5) - 0.85, 0.6).project(cam).y, v0 = 0.2;
+        // grow the painting (at most 1.7x the view, so it stays sharp) and slide it so its sand line lands as close to the plinth as covering the screen allows;
+        // on tall phones the 3D seabed in front of the tank fills the rest
+        const Hp = Math.min(hv * 1.7, Math.max(sc * AR, (hv / 2) * (1 - nb) / (1 - v0) * 1.1, (hv / 2) * (1 + nb) / v0 * 1.1)); sc = Hp / AR;
+        const want = nb * hv / 2 - (v0 - 0.5) * Hp, lim = Math.max(0, (Hp - hv * 1.02) / 2); off = Math.max(-lim, Math.min(lim, want)); }
+      const q = cam.quaternion.clone(), pos = cam.position.clone().addScaledVector(fwd, dist).addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(q), off);
+      return { pos, q, sc };
+    }
     placePhotoBg(t) {
-      const P = this.photo; if (!P || !P.group.visible) return; const z = -34, fov = this.camera.fov * Math.PI / 180;
-      const hView = 2 * Math.tan(fov / 2) * (this.camera.position.z - z), wView = hView * this.camera.aspect, AR = 1435 / 2560;
-      const cx = this.camera.position.x * 0.9;
-      { const dist = 42, hv = 2 * Math.tan(fov / 2) * dist, wv = hv * this.camera.aspect; let sc = Math.max(wv, hv / AR) * 1.03, off = 0; // fill the view exactly, facing the camera
-        if (this.camera.aspect < 1 && this.e) { // portrait: scale/shift the painting so its sand line (~20% up from its bottom) sits under the tank's plinth, still covering the screen
-          const nb = new THREE.Vector3((this.e.w - 1) / 2, -(this.e.h - 1.5) - 0.85, 0.6).project(this.camera).y, v0 = 0.2;
-          const Hp = Math.max(sc * AR, (hv / 2) * (1 - nb) / (1 - v0) * 1.02, (hv / 2) * (1 + nb) / v0 * 1.02); sc = Hp / AR; off = nb * hv / 2 - (v0 - 0.5) * Hp; }
-        const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion), at = this.camera.position.clone().addScaledVector(fwd, dist).addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(this.camera.quaternion), off);
-        for (const m of [P.bg, P.shimmer]) { m.scale.set(sc, sc, 1); m.position.copy(at); m.quaternion.copy(this.camera.quaternion); } }
-      P.bubbles.position.set(cx, this.camera.position.y * 0.9, 0); P.bubM.uniforms.uW.value = wView * 0.75; P.bubM.uniforms.uH.value = hView * 0.9; P.bubM.uniforms.scale.value = innerHeight * this.pixelRatio * 0.9;
+      // The painting is a fixed backdrop in the world (placed to fill the whole-level view), so zooming in or following the diver
+      // zooms/pans it too, with natural parallax, instead of it being glued to the screen.
+      const P = this.photo; if (!P || !P.group.visible || !this.e) return; const AR = 1435 / 2560, cam = this.camera;
+      const key = [this.e.w, this.e.h, cam.aspect.toFixed(3), (this.dFull || 0).toFixed(2)].join();
+      if (P.key !== key) { P.key = key;
+        const g0 = this.camGoal.clone(), l0 = this.lookGoal.clone(); this.updateCameraTarget(true); const cg = this.camGoal.clone(), lg = this.lookGoal.clone(); this.camGoal.copy(g0); this.lookGoal.copy(l0);
+        const rc = P.refCam || (P.refCam = new THREE.PerspectiveCamera()); rc.fov = cam.fov; rc.aspect = cam.aspect; rc.near = cam.near; rc.far = cam.far; rc.updateProjectionMatrix();
+        const d = cg.z; rc.position.set(cg.x, lg.y + d * Math.sin(this.tilt) - (lg.y - cg.y), d * Math.cos(this.tilt)); rc.lookAt(lg.x, lg.y, 0); rc.updateMatrixWorld(true);
+        P.fixed = this.photoFit(rc, AR); }
+      let { pos, q, sc } = P.fixed;
+      if (this.cineCam && this.cineT !== undefined && this.cineT < 4.2) { // intro fly-in: blend from screen-locked to the fixed placement
+        const k = Math.min(1, this.cineT / 4), ee = k * k * (3 - 2 * k), live = this.photoFit(cam, AR);
+        pos = live.pos.lerp(pos, ee); q = live.q.slerp(q, ee); sc = live.sc + (sc - live.sc) * ee; }
+      for (const m of [P.bg, P.shimmer]) { m.scale.set(sc, sc, 1); m.position.copy(pos); m.quaternion.copy(q); }
+      const fov = cam.fov * Math.PI / 180, hView = 2 * Math.tan(fov / 2) * (P.fixed.pos.distanceTo(P.refCam.position) - 8), wView = hView * cam.aspect, cx = P.refCam.position.x, cy = P.refCam.position.y;
+      P.bubbles.position.set(cx, cy, 0); P.bubM.uniforms.uW.value = wView * 0.75; P.bubM.uniforms.uH.value = hView * 0.9; P.bubM.uniforms.scale.value = innerHeight * this.pixelRatio * 0.9;
       const d0 = new THREE.Object3D(), span = wView * 0.7, sx = ((t * 0.9) % (span * 2.4)) - span * 1.2;
-      P.off.forEach(([ox, oy, ph], i) => { d0.position.set(cx + sx + ox * 1.4, this.camera.position.y * 0.9 + hView * 0.12 + oy * 1.1 + Math.sin(t * 1.3 + ph) * 0.1, -14); d0.rotation.set(0, 0, Math.sin(t * 2 + ph) * 0.08); d0.updateMatrix(); P.school.setMatrixAt(i, d0.matrix); });
+      P.off.forEach(([ox, oy, ph], i) => { d0.position.set(cx + sx + ox * 1.4, cy + hView * 0.12 + oy * 1.1 + Math.sin(t * 1.3 + ph) * 0.1, -14); d0.rotation.set(0, 0, Math.sin(t * 2 + ph) * 0.08); d0.updateMatrix(); P.school.setMatrixAt(i, d0.matrix); });
       P.school.instanceMatrix.needsUpdate = true;
       P.fishSpr.forEach((f, i) => { const dir = i % 2 ? -1 : 1, sp2 = 0.6 + (i % 3) * 0.25, W2 = wView * 0.9, x = ((t * sp2 + i * 7.3) % (W2 * 2.2)) - W2 * 1.1;
-        f.position.set(cx + dir * x, this.camera.position.y * 0.9 + hView * (0.05 + (i % 4) * 0.07) + Math.sin(t * 1.4 + i) * 0.12, -10 - (i % 3) * 3); f.scale.set(-dir, 1, 1); });
+        f.position.set(cx + dir * x, cy + hView * (0.05 + (i % 4) * 0.07) + Math.sin(t * 1.4 + i) * 0.12, -10 - (i % 3) * 3); f.scale.set(-dir, 1, 1); });
     }
     placeBackdrop() {
       // keep the painting filling the view, a little behind the board, with gentle parallax
@@ -2667,7 +2686,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         const sg = new THREE.PlaneGeometry(x1f - x0f, 4.2, 60, 16); sg.rotateX(-Math.PI / 2); const P = sg.attributes.position;
         for (let i = 0; i < P.count; i++) { const x = P.getX(i), z = P.getZ(i), front = Math.max(0, z + 0.6); P.setY(i, Math.sin(x * 0.9) * 0.05 + Math.sin(x * 2.3 + z * 1.7) * 0.03 - front * front * 0.12); } sg.computeVertexNormals();
         const photoMode = PHOTO_LEVELS.has(e.name) && !e.menu, spots = [];
-        const shelf = new THREE.Mesh(sg, MAT.fgSand); shelf.visible = !photoMode; shelf.position.set((x0f + x1f) / 2, yF + 0.02, 2.45); shelf.receiveShadow = true; this.levelGroup.add(shelf);
+        const portrait = innerHeight > innerWidth, shelf = new THREE.Mesh(sg, photoMode && portrait ? (MAT.fgSandP || (MAT.fgSandP = causticify(new THREE.MeshStandardMaterial({ color: 0xffb21f, roughness: 0.95, envMapIntensity: 0.15 }), 0.35))) : MAT.fgSand); shelf.visible = !photoMode || portrait; shelf.position.set((x0f + x1f) / 2, yF + 0.02, 2.45); shelf.receiveShadow = true; this.levelGroup.add(shelf);
         const groundY = (x, z) => yF + 0.02 + Math.sin(x * 0.9) * 0.05 - Math.pow(Math.max(0, z - 2.45 + 0.6), 2) * 0.12;
         const place = (geo, mat, n, fn, shadowR = 0) => { const im = new THREE.InstancedMesh(geo, mat, n); for (let i = 0; i < n; i++) { dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1); const col = fn(dummy, i); if (shadowR) spots.push([dummy.position.x, dummy.position.z, shadowR * Math.max(dummy.scale.x, dummy.scale.z)]); dummy.updateMatrix(); im.setMatrixAt(i, dummy.matrix); if (col) im.setColorAt(i, col); }
           im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; im.castShadow = true; im.receiveShadow = true; this.levelGroup.add(im); return im; };
