@@ -147,7 +147,8 @@ body:not(.touch) .touch-only, body.touch .desk-only { display: none; }
 .toggle:checked::after { transform: translateX(24px); }
 .toggle:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .seg { display: inline-flex; background: rgba(255,255,255,0.12); border-radius: 12px; padding: 3px; }
-.seg button { font-weight: 800; font-size: 0.9rem; color: var(--ink-soft); border-radius: 9px; padding: 6px 13px; }
+.seg button { font-weight: 800; font-size: 0.9rem; color: var(--ink-soft); border-radius: 9px; padding: 6px 13px; white-space: nowrap; }
+@media (max-width: 420px) { #setQuality button { padding: 6px 9px; font-size: 0.82rem; } }
 .seg button.on { background: var(--gold); color: var(--gold-ink); }
 .danger-link { margin-top: 14px; font-weight: 800; color: #ffb3bf; text-decoration: underline; text-underline-offset: 3px; }
 
@@ -568,7 +569,7 @@ body:not([data-state="cine"]) .cine-cap { opacity: 0 !important; }
       <label class="row"><span>Ambience</span><input type="checkbox" class="toggle" id="setMusic"></label>
       <label class="row"><span>Sound effects</span><input type="checkbox" class="toggle" id="setSfx"></label>
       <label class="row"><span>Vibration</span><input type="checkbox" class="toggle" id="setVibe"></label>
-      <div class="row"><span>Graphics</span><div class="seg" id="setQuality"><button data-q="high">High</button><button data-q="low">Battery saver</button></div></div>
+      <div class="row"><span>Graphics<small id="gfxNow" style="display:block;font-size:0.72rem;font-weight:700;opacity:0.65;margin-top:2px"></small></span><div class="seg" id="setQuality"><button data-q="auto">Auto</button><button data-q="ultra">Ultra</button><button data-q="high">High</button><button data-q="low">Low</button></div></div>
       <div class="row"><span>Your name</span><button class="tile" data-go="name" style="min-height:0;flex-direction:row;padding:6px 14px">Change</button></div>
     </div>
     <div style="text-align:center"><button class="danger-link" id="btnReset">Erase all progress</button></div>

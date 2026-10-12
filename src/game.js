@@ -1712,6 +1712,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.main.isXRRenderTarget = true;
       this.down = []; this.up = [];
       for (let i = 0; i < this.levels; i++) { this.down.push(new THREE.WebGLRenderTarget(1, 1, opt())); this.up.push(new THREE.WebGLRenderTarget(1, 1, opt())); }
+      this.raysRT = new THREE.WebGLRenderTarget(1, 1, opt()); this.rays = 0; this.raySamples = 32; this.lens = 0; // set per quality tier
       this.scene = new THREE.Scene(); this.cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
       this.quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2)); this.quad.frustumCulled = false; this.scene.add(this.quad);
       const vs = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }';
@@ -1734,10 +1735,21 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           c += texture2D(tDiffuse, vUv + vec2(-h.x * 2.0, 0.0)).rgb + texture2D(tDiffuse, vUv + vec2(h.x * 2.0, 0.0)).rgb + texture2D(tDiffuse, vUv + vec2(0.0, -h.y * 2.0)).rgb + texture2D(tDiffuse, vUv + vec2(0.0, h.y * 2.0)).rgb;
           c += (texture2D(tDiffuse, vUv + vec2(-h.x, -h.y)).rgb + texture2D(tDiffuse, vUv + vec2(h.x, -h.y)).rgb + texture2D(tDiffuse, vUv + vec2(-h.x, h.y)).rgb + texture2D(tDiffuse, vUv + vec2(h.x, h.y)).rgb) * 2.0;
           gl_FragColor = vec4(c / 12.0 + texture2D(tAdd, vUv).rgb, 1.0); }`);
-      this.compMat = M({ tScene: { value: this.main.texture }, tBloom: { value: null }, strength: { value: this.strength }, aspect: { value: 1 }, time: { value: 0 } },
-        `uniform sampler2D tScene, tBloom; uniform float strength, aspect, time; varying vec2 vUv;
+      // screen-space volumetric light ('god rays'): bright water-surface light near the top of the frame, smeared along rays from the sun
+      this.raysMat = M({ tScene: { value: null }, sun: { value: new THREE.Vector2(0.42, 1.12) }, n: { value: 32 }, time: { value: 0 } },
+        `uniform sampler2D tScene; uniform vec2 sun; uniform float n, time; varying vec2 vUv;
+        float src(vec2 uv) { vec3 c = texture2D(tScene, uv).rgb; float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); return smoothstep(0.3, 0.95, l) * smoothstep(0.45, 0.9, uv.y) * (0.55 + 0.45 * c.b / max(l, 0.05) * 0.6); }
+        void main(){ vec2 d = (vUv - sun) / n * 0.92; vec2 uv = vUv; float acc = 0.0, w = 1.0, tot = 0.0;
+          float j = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453); uv -= d * j; // dither the march
+          for (int i = 0; i < 64; i++) { if (float(i) >= n) break; uv -= d; acc += src(uv) * w; tot += w; w *= 0.965; }
+          float a = acc / tot; float flick = 0.85 + 0.15 * sin(time * 0.6 + vUv.x * 9.0);
+          gl_FragColor = vec4(vec3(0.85, 0.97, 1.0) * a * flick, 1.0); }`);
+      this.compMat = M({ tScene: { value: this.main.texture }, tBloom: { value: null }, tRays: { value: null }, strength: { value: this.strength }, rays: { value: 0 }, lens: { value: 0 }, aspect: { value: 1 }, time: { value: 0 } },
+        `uniform sampler2D tScene, tBloom, tRays; uniform float strength, rays, lens, aspect, time; varying vec2 vUv;
         void main(){ vec3 c = texture2D(tScene, vUv).rgb; vec3 b = texture2D(tBloom, vUv).rgb;
+          if (lens > 0.0) { vec2 dv = (vUv - 0.5) * lens * 0.0012 * dot(vUv - 0.5, vUv - 0.5) * 4.0; c.r = texture2D(tScene, vUv + dv).r; c.b = texture2D(tScene, vUv - dv).b; } // faint chromatic fringe at the edges
           c += b * strength;
+          if (rays > 0.0) c += texture2D(tRays, vUv).rgb * rays;
           // gentle grade: a touch more contrast and saturation, cool shadows, warm highlights
           float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
           c = mix(vec3(l), c, 1.24);
@@ -1754,6 +1766,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.main.setSize(w, h); this.compMat.uniforms.aspect.value = w / h;
       let bw = Math.max(1, w >> 1), bh = Math.max(1, h >> 1);
       for (let i = 0; i < this.levels; i++) { this.down[i].setSize(bw, bh); this.up[i].setSize(bw, bh); bw = Math.max(1, bw >> 1); bh = Math.max(1, bh >> 1); }
+      this.raysRT.setSize(Math.max(1, w >> 2), Math.max(1, h >> 2));
     }
     pass(mat, target) { this.quad.material = mat; this.r.setRenderTarget(target); this.r.render(this.scene, this.cam); }
     render(scene, camera, t) {
@@ -1765,6 +1778,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       for (let i = 1; i < this.levels; i++) { const src = this.down[i - 1]; this.downMat.uniforms.tDiffuse.value = src.texture; this.downMat.uniforms.texel.value.set(1 / src.width, 1 / src.height); this.pass(this.downMat, this.down[i]); }
       let prev = this.down[this.levels - 1];
       for (let i = this.levels - 2; i >= 0; i--) { this.upMat.uniforms.tDiffuse.value = prev.texture; this.upMat.uniforms.tAdd.value = this.down[i].texture; this.upMat.uniforms.texel.value.set(0.5 / prev.width, 0.5 / prev.height); this.pass(this.upMat, this.up[i]); prev = this.up[i]; }
+      if (this.rays > 0) { const R = this.raysMat.uniforms; R.tScene.value = this.main.texture; R.n.value = this.raySamples; R.time.value = t % 100; this.pass(this.raysMat, this.raysRT); }
+      const C = this.compMat.uniforms; C.tRays.value = this.raysRT.texture; C.rays.value = this.rays; C.lens.value = this.lens;
       this.compMat.uniforms.tBloom.value = prev.texture; this.compMat.uniforms.strength.value = this.strength / this.levels * 2.2; this.compMat.uniforms.time.value = t % 100;
       this.pass(this.compMat, null);
     }
@@ -1799,7 +1814,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.time = 0; this.tickMs = 150; this.lastTick = 0;
       this.entities = new Map(); this.e = null; this.entShadows = []; this.ghosts = []; this.absorbing = [];
       this.buildEnvironment(); this.setupLights(); this.setupBackdrop();
-      this.quality = 'high'; this.buildReef();
+      this.quality = undefined; this.setQuality(isMobile ? 'medium' : 'high');
       this.levelGroup = new THREE.Group(); this.scene.add(this.levelGroup);
       this.fx = document.getElementById('fx');
       this.resize();
@@ -1845,11 +1860,33 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.positionReef();
     }
     positionReef() { if (!this.reef || !this.e) return; const W = this.e.w, H = this.e.h; this.reef.group.position.set((W - 1) / 2, -(H - 1) - 1.3, 0); }
+    // graphics tiers. 'auto' (see autoQuality) moves between them from the measured frame rate.
+    //   low: 1x pixels, no post, no shadows | medium: post + 1K shadows | high: sharper pixels, 2K shadows, light shafts | ultra: full-res, 4K shadows, rich shafts, lens polish
     setQuality(q) {
-      this.quality = q; const low = q === 'low';
-      this.pixelRatio = Math.min(devicePixelRatio || 1, low ? 1 : 2); this.post.enabled = !low && this.post.supported;
-      this.renderer.shadowMap.enabled = !low; this.scene.traverse(o => { if (o.material) [].concat(o.material).forEach(m => m.needsUpdate = true); });
-      this.buildReef(); this.resize();
+      const T_ = { low: { pr: 1, post: false, sh: 0, msaa: 0, rays: 0, rs: 0, lens: 0, bloom: 0.75 }, medium: { pr: 1.25, post: true, sh: 1024, msaa: 2, rays: 0, rs: 0, lens: 0, bloom: 0.75 },
+        high: { pr: 1.75, post: true, sh: 2048, msaa: 4, rays: 1.0, rs: 28, lens: 0, bloom: 0.8 }, ultra: { pr: 2.5, post: true, sh: 4096, msaa: 4, rays: 1.35, rs: 48, lens: 1, bloom: 0.85 } };
+      if (q === 'auto' || !T_[q]) q = this.quality && T_[this.quality] ? this.quality : 'high'; const c = T_[q], prev = this.quality, wasLow = prev === 'low', isLow = q === 'low'; this.quality = q;
+      const ss = isMobile ? 1 : { low: 1, medium: 1, high: 1.25, ultra: 1.5 }[q]; // a touch of supersampling on desktop for crisper edges
+      this.pixelRatio = Math.min(c.pr, (devicePixelRatio || 1) * ss);
+      const P = this.post; P.enabled = c.post && P.supported;
+      if (P.supported && P.main) { P.rays = c.rays; P.raySamples = c.rs; P.lens = c.lens; P.strength = c.bloom; if (P.main.samples !== c.msaa) { P.main.samples = c.msaa; P.main.dispose(); } }
+      const shOn = c.sh > 0; if (this.renderer.shadowMap.enabled !== shOn) { this.renderer.shadowMap.enabled = shOn; this.scene.traverse(o => { if (o.material) [].concat(o.material).forEach(m => m.needsUpdate = true); }); }
+      if (shOn && this.key.shadow.mapSize.x !== c.sh) { this.key.shadow.mapSize.set(c.sh, c.sh); if (this.key.shadow.map) { this.key.shadow.map.dispose(); this.key.shadow.map = null; } }
+      if (prev === undefined || wasLow !== isLow) this.buildReef();
+      this.resize(); if (this.onQuality) this.onQuality(q);
+    }
+    // adaptive quality: watch the real frame rate; drop a tier quickly when it struggles, climb back slowly when there's headroom
+    autoQuality(realDt) {
+      const A = this.aq || (this.aq = { t: 0, n: 0, sum: 0, since: 0, banned: {} }), order = ['low', 'medium', 'high', 'ultra'];
+      if (document.hidden || realDt <= 0) { A.t = A.n = A.sum = A.slow = 0; return; }
+      if (realDt > 1) { A.t = A.n = A.sum = 0; A.slow = (A.slow || 0) + 1; if (A.slow >= 3 && this.quality !== 'low') { A.slow = 0; this.setQuality('low'); } return; } // one long gap = tab switch; several in a row = a very slow device
+      A.slow = 0;
+      A.t += realDt; A.n++; A.sum += realDt; A.since += realDt; const i = order.indexOf(this.quality);
+      if (A.t < 1.5) return; const fps = A.n / A.sum;
+      if (fps < 47 && i > 0) { A.banned[order[i]] = performance.now() + 45000; this.setQuality(order[Math.max(0, i - (fps < 25 ? 2 : 1))]); A.since = 0; }
+      else if (A.t >= 4 && fps >= 57 && i < 3 && A.since > 6 && !((A.banned[order[i + 1]] || 0) > performance.now())) { this.setQuality(order[i + 1]); A.since = 0; }
+      else if (A.t < 4) return;
+      A.t = A.n = A.sum = 0;
     }
     setupBackdrop() {
       this.backdrop = new THREE.Mesh(new THREE.PlaneGeometry(1, 0.5), new THREE.MeshBasicMaterial({ map: TEX.backdrop, toneMapped: false, depthWrite: false, fog: false }));
@@ -3724,15 +3761,19 @@ window.__doodle = Doodle; window.__T = T;
   function applyAudio() { Audio.setMusic(save.settings.music); Audio.setVolumes(Audio.settings.music, save.settings.sfx ? 0.9 : 0); }
   function syncSound() { const on = save.settings.music || save.settings.sfx; $('#sndLbl').textContent = on ? 'Sound on' : 'Muted'; $('#sndWave').style.display = on ? '' : 'none'; }
   function syncSettings() { $('#setMusic').checked = save.settings.music; $('#setSfx').checked = save.settings.sfx; $('#setVibe').checked = save.settings.vibe;
-    document.querySelectorAll('#setQuality button').forEach(b => b.classList.toggle('on', b.dataset.q === save.settings.quality)); }
+    document.querySelectorAll('#setQuality button').forEach(b => b.classList.toggle('on', b.dataset.q === gfxMode()));
+    const gn = $('#gfxNow'); if (gn) gn.textContent = gfxMode() === 'auto' ? `Now: ${world.quality[0].toUpperCase()}${world.quality.slice(1)}` : ''; }
   $('#setMusic').onchange = e => { save.settings.music = e.target.checked; applyAudio(); persist(); };
   $('#setSfx').onchange = e => { save.settings.sfx = e.target.checked; applyAudio(); persist(); };
   $('#setVibe').onchange = e => { save.settings.vibe = e.target.checked; persist(); buzz(15); };
-  document.querySelectorAll('#setQuality button').forEach(b => b.onclick = () => { click(); save.settings.quality = b.dataset.q; persist(); syncSettings(); world.setQuality(b.dataset.q); });
+  document.querySelectorAll('#setQuality button').forEach(b => b.onclick = () => { click(); save.settings.gfx = b.dataset.q; persist(); if (b.dataset.q !== 'auto') world.setQuality(b.dataset.q); syncSettings(); });
+  world.onQuality = () => syncSettings();
   $('#btnSound').onclick = () => { const on = !(save.settings.music || save.settings.sfx); save.settings.music = on; save.settings.sfx = on; applyAudio(); persist(); syncSound(); click(); };
   $('#btnReset').onclick = () => { if (confirm('Erase all progress? This can\'t be undone.')) { save.unlocked = 1; save.stars = {}; save.best = {}; persist(); refreshHome(); toast('Progress erased'); } };
   syncSettings();
-  if (save.settings.quality !== 'high') world.setQuality(save.settings.quality);
+  // graphics: 'auto' (default) adapts to the frame rate; an older 'Battery saver' choice carries over as low
+  function gfxMode() { if (!save.settings.gfx) save.settings.gfx = save.settings.quality === 'low' ? 'low' : 'auto'; return save.settings.gfx; }
+  if (gfxMode() !== 'auto') world.setQuality(gfxMode());
   if (!save.settings.sfx) Audio.setVolumes(Audio.settings.music, 0);
 
   // ---- loop ----
@@ -3767,7 +3808,7 @@ window.__doodle = Doodle; window.__T = T;
       else if (state === 'menu' && menuEngine) { acc += dt * 1000; while (acc >= menuEngine.tickMs) { acc -= menuEngine.tickMs; menuEngine.step(); world.onTick(menuEngine, now - acc); } }
     }
     // the 3D world sleeps while the paper menu / intro covers the screen
-    if (!doodleLevel) { world.update(dt, now); world.render(); }
+    if (!doodleLevel) { world.update(dt, now); world.render(); if (gfxMode() === 'auto' && (state === 'playing' || state === 'menu' || state === 'cine')) world.autoQuality(realDt); }
     else if (doodleLevel && engine) $('#fx').classList.toggle('lowair', state === 'playing' && engine.oxygen < 15);
   }
   addEventListener('resize', () => world.resize());
