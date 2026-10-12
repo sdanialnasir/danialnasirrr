@@ -898,9 +898,41 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     if (n === 'sand') { t.wrapS = t.wrapT = THREE.RepeatWrapping; } return (SPR.tex[n] = t); }
   for (const n in SHEET_SPR) { const im = new Image(); im.src = SHEET_SPR[n][0]; SPR.img[n] = im; }
   // a flat cut-out standing in the scene (bottom-anchored or centred), lit softly so it sits in the water light
-  function sprPlane(n, height, anchorBottom = false) { const [, w, h] = SHEET_SPR[n], wd = height * w / h; const g = new THREE.PlaneGeometry(wd, height); if (anchorBottom) g.translate(0, height / 2, 0);
+  // `shadow` = fake (baked) shadow options, or false for none: { k: offset as a fraction of height, dz: gap to the surface behind, op: opacity, ground: contact patch under the base }
+  function sprPlane(n, height, anchorBottom = false, shadow = {}) { const [, w, h] = SHEET_SPR[n], wd = height * w / h; const g = new THREE.PlaneGeometry(wd, height); if (anchorBottom) g.translate(0, height / 2, 0);
     const m = new THREE.MeshStandardMaterial({ map: sprTex(n), transparent: true, alphaTest: 0.25, roughness: 0.85, metalness: 0, emissive: 0xffffff, emissiveMap: sprTex(n), emissiveIntensity: 0.35, side: THREE.DoubleSide, depthWrite: true });
-    const mesh = new THREE.Mesh(g, m); mesh.castShadow = false; return mesh; }
+    const mesh = new THREE.Mesh(g, m); mesh.castShadow = false; if (shadow) addSprShadow(mesh, n, wd, height, anchorBottom, shadow); return mesh; }
+  // ---- fake sprite shadows: a blurred dark silhouette of the sprite, cast onto the surface behind it along the key light
+  // (the key light sits up-left-front of the tank, so shadows fall down-right), plus a soft contact patch under standing sprites.
+  const SHADOW_DIR = new THREE.Vector2(5, -9).normalize(), SHADOW_COL = '#06142b';
+  SPR.sh = {};
+  function sprShadowTex(n) { if (SPR.sh[n]) return SPR.sh[n];
+    const [, w, h] = SHEET_SPR[n], k = Math.max(2, Math.round(Math.max(w, h) / 34)), p = Math.ceil(k * 2), W = w + 2 * p, H = h + 2 * p;
+    const c = document.createElement('canvas'); c.width = W; c.height = H; const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.userData.pad = [W / w, H / h]; SPR.sh[n] = t;
+    const draw = () => { const im = SPR.img[n]; // shrink -> grow twice = a cheap, smooth blur that works on every browser
+      const s0 = document.createElement('canvas'); s0.width = Math.ceil(W / k); s0.height = Math.ceil(H / k); const g0 = s0.getContext('2d'); g0.drawImage(im, p / k, p / k, w / k, h / k);
+      g0.globalCompositeOperation = 'source-in'; g0.fillStyle = SHADOW_COL; g0.fillRect(0, 0, s0.width, s0.height);
+      const s1 = document.createElement('canvas'); s1.width = Math.ceil(W / 2); s1.height = Math.ceil(H / 2); const g1 = s1.getContext('2d'); g1.imageSmoothingQuality = 'high'; g1.drawImage(s0, 0, 0, s1.width, s1.height);
+      const gc = c.getContext('2d'); gc.imageSmoothingQuality = 'high'; gc.drawImage(s1, 0, 0, W, H); t.needsUpdate = true; };
+    const im = SPR.img[n]; if (im.complete && im.naturalWidth) draw(); else im.addEventListener('load', draw, { once: true }); return t; }
+  let contactTex = null;
+  function getContactTex() { if (contactTex) return contactTex; const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+    const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(6,20,43,0.9)'); gr.addColorStop(0.45, 'rgba(6,20,43,0.45)'); gr.addColorStop(1, 'rgba(6,20,43,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+    contactTex = new THREE.CanvasTexture(c); return contactTex; }
+  const _shM = new THREE.Matrix3(), _shV = new THREE.Vector3();
+  function addSprShadow(sp, n, wd, height, anchorBottom, o) {
+    const k = o.k ?? 0.12, dz = o.dz ?? 0.06, op = o.op ?? 0.5, ground = o.ground ?? anchorBottom, off = height * k, wx = SHADOW_DIR.x * off, wy = SHADOW_DIR.y * off;
+    const t = sprShadowTex(n), [px, py] = t.userData.pad, g = new THREE.PlaneGeometry(wd * px, height * py); if (anchorBottom) g.translate(0, height / 2, 0);
+    // standing sprites: the shadow starts at the base and leans away from the light (sheared + slightly squashed), so it never slips below the feet
+    const lean = anchorBottom ? (o.lean ?? 0.4) : 0; if (lean) { const P = g.attributes.position; for (let i = 0; i < P.count; i++) { const y = Math.max(0, P.getY(i)); P.setX(i, P.getX(i) + y * lean); P.setY(i, P.getY(i) * 0.86); } }
+    const sh = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide })); sh.renderOrder = sp.renderOrder; sh.userData.fakeShadow = true; sp.add(sh); sp.userData.shadow = sh;
+    // keep the shadow offset fixed in world space however the sprite is flipped, swayed, spun or carried by its parents
+    sh.onBeforeRender = () => { _shM.setFromMatrix4(sp.matrixWorld).invert(); if (lean) _shV.set(0.02, 0, -dz); else _shV.set(wx, wy, -dz); _shV.applyMatrix3(_shM); sh.position.copy(_shV);
+      if (lean) sh.scale.x = sp.matrixWorld.elements[0] < 0 ? -1 : 1; // un-mirror so a flipped sprite still leans away from the light
+      sh.updateMatrixWorld(); };
+    if (ground) { const cp = new THREE.Mesh(new THREE.PlaneGeometry(wd * 1.05, Math.min(0.4, wd * 0.4)), new THREE.MeshBasicMaterial({ map: getContactTex(), transparent: true, opacity: op * 1.1, depthWrite: false }));
+      cp.rotation.x = -Math.PI / 2; cp.position.set(wd * 0.06, 0.012, -0.04); cp.renderOrder = sp.renderOrder; cp.userData.fakeShadow = true; sp.add(cp); sp.userData.contact = cp; }
+  }
   // the movable-platform sprite as a 3-slice face for one coral shelf of `len` cells
   function shelfFace(len, nm = 'platform') { const im = SPR.img[nm]; if (!im || !im.complete || !im.naturalWidth) return null; const W = Math.round(len * 128), H = 64, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
     const iw = im.naturalWidth, ih = im.naturalHeight, cap = Math.round(iw * 0.18), capW = Math.round(cap * H / ih), mid = iw - 2 * cap, midW = Math.round(mid * H / ih);
@@ -1755,7 +1787,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         fragmentShader: 'uniform sampler2D tex; varying float vA; void main(){ vec4 t = texture2D(tex, gl_PointCoord); gl_FragColor = vec4(vec3(0.85, 0.96, 1.0), t.a * vA); }' });
       const bubbles = new THREE.Points(bgG, bubM); bubbles.frustumCulled = false; bubbles.renderOrder = -8; g.add(bubbles);
       const fishG = new THREE.SphereGeometry(0.16, 10, 6); fishG.scale(1, 0.45, 0.3); const fishM = new THREE.MeshBasicMaterial({ color: 0x1d4f9a, transparent: true, opacity: 0.55, fog: false });
-      const fishSpr = ['fishA', 'fishC', 'fishD', 'fishE', 'fishF', 'fishG', 'fishH', 'fishI', 'school'].map(n => { const f = sprPlane(n, n === 'school' ? 0.6 : 0.5); f.material.depthWrite = false; f.renderOrder = -7; g.add(f); return f; });
+      const fishSpr = ['fishA', 'fishC', 'fishD', 'fishE', 'fishF', 'fishG', 'fishH', 'fishI', 'school'].map(n => { const f = sprPlane(n, n === 'school' ? 0.6 : 0.5, false, { k: 0.45, dz: 0.6, op: 0.22 }); f.material.depthWrite = false; f.renderOrder = -7; f.userData.shadow.renderOrder = -7.5; g.add(f); return f; });
       const school = new THREE.InstancedMesh(fishG, fishM, 9); school.visible = false; school.frustumCulled = false; g.add(school);
       this.photo = { group: g, bg, shimmer, bubbles, bubM, school, fishSpr, off: [...Array(9)].map(() => [Math.random() * 1.6, Math.random() * 0.8, Math.random() * 6]) };
     }
@@ -1849,7 +1881,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           balls.count = bi; balls.visible = false; tank.add(balls);
           { const row = ART.plinth;
             const n = Math.max(5, Math.round((w + 1.6) / 1.05)); for (let k = 0; k < n; k++) { const nm = row[(k + W) % row.length], hgt = isRockSpr(nm) ? 0.62 + rnd() * 0.2 : isPlantSpr(nm) ? (this.newArt ? 0.6 + rnd() * 0.25 : 0.8 + rnd() * 0.45) : 0.55 + rnd() * 0.25;
-              const sp = sprPlane(nm, hgt, true); sp.position.set(x0 - 0.6 + (k + 0.5) * (w + 1.2) / n + (rnd() - 0.5) * 0.3, yB - 0.9, 0.92 + rnd() * 0.25); if (rnd() < 0.5) sp.scale.x = -1;
+              const sp = sprPlane(nm, hgt, true, { dz: 0.16, op: 0.6, lean: 0.38 }); sp.position.set(x0 - 0.6 + (k + 0.5) * (w + 1.2) / n + (rnd() - 0.5) * 0.3, yB - 0.9, 0.92 + rnd() * 0.25); if (rnd() < 0.5) sp.scale.x = -1;
               if (isPlantSpr(nm)) { const ph = rnd() * 6; sp.onBeforeRender = () => { sp.rotation.z = Math.sin(performance.now() / 1000 * 1.2 + ph) * 0.06; }; } tank.add(sp); } }
           // seaweed fronds hugging the tank's sides, gently swaying
           const blade = new THREE.PlaneGeometry(0.16, 1, 1, 8); blade.translate(0, 0.5, 0); { const P = blade.attributes.position; for (let i = 0; i < P.count; i++) { const yy = P.getY(i); P.setX(i, P.getX(i) * (1 - yy * 0.7) + Math.sin(yy * 4) * 0.05); } blade.computeVertexNormals(); }
@@ -1910,19 +1942,20 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         this.treasures = [];
         for (const [x, y] of sand) { const h = variant(x, y), r = ((h * 2654435761) >>> 0) % 1000 / 1000; if (r > 0.13) continue;
           const kind = r < 0.06 ? 'star' : r < 0.1 ? 'shell' : 'jelly'; let m;
-          if (kind === 'star') m = sprPlane(ART.stars[h % ART.stars.length], 0.38);
-          else if (kind === 'shell') m = sprPlane(ART.shells[h % ART.shells.length], 0.32);
-          else if (true) m = sprPlane(ART.jelly, 0.4);
+          const tsh = { k: 0.22, dz: 0.005, op: 0.6 }; // half-buried in sand: tight shadow right on the sand face
+          if (kind === 'star') m = sprPlane(ART.stars[h % ART.stars.length], 0.38, false, tsh);
+          else if (kind === 'shell') m = sprPlane(ART.shells[h % ART.shells.length], 0.32, false, tsh);
+          else if (true) m = sprPlane(ART.jelly, 0.4, false, tsh);
           else { m = new THREE.Group(); const d = new THREE.Mesh(GEO.jellyDome, MAT.jellyT); m.add(d); for (let k = 0; k < 4; k++) { const l = new THREE.Mesh(GEO.jellyLeg, MAT.jellyT); l.position.set(-0.07 + k * 0.047, -0.07, 0); m.add(l); } }
           const ox = (((h >> 3) % 9) - 4) * 0.05, oy = (((h >> 6) % 9) - 4) * 0.05, rot = ((h >> 9) % 13) * 0.48;
-          m.position.set(x + ox, -y + oy, 0.41); m.rotation.z = rot; m.scale.setScalar(0.9 + ((h >> 2) % 4) * 0.08); m.traverse(o => { o.castShadow = true; });
+          m.position.set(x + ox, -y + oy, 0.41); m.rotation.z = rot; m.scale.setScalar(0.9 + ((h >> 2) % 4) * 0.08); m.traverse(o => { if (!o.userData.fakeShadow) o.castShadow = true; });
           this.levelGroup.add(m); this.treasures.push({ m, cx: x, cy: y, state: 'buried', vy: 0, spin: (r - 0.065) * 20 }); } }
       // ---- sea plants on the sand ledges inside the tank (from your sheet); removed with their sand
       this.edgePlants = [];
       { const names = ART.ledge;
         for (const [x, y] of sand) { if (y < 1) continue; const above = e.get(x, y - 1); if (above === T.SAND || above === T.WALL || above === T.STEEL) continue;
           const h = variant(x, y + 77); if (h % 100 > 34) continue; const nm = names[h % names.length], hgt = isPlantSpr(nm) ? 0.55 + (h % 5) * 0.06 : 0.38 + (h % 3) * 0.05;
-          const sp = sprPlane(nm, hgt, true); sp.position.set(x + (((h >> 3) % 7) - 3) * 0.08, -y + 0.47, -0.12); const ph = (h % 17) * 0.4; sp.onBeforeRender = () => { sp.rotation.z = Math.sin(performance.now() / 1000 * 1.1 + ph) * 0.05; };
+          const sp = sprPlane(nm, hgt, true, { dz: 0.3, op: 0.55, lean: 0.45 }); sp.position.set(x + (((h >> 3) % 7) - 3) * 0.08, -y + 0.47, -0.12); const ph = (h % 17) * 0.4; sp.onBeforeRender = () => { sp.rotation.z = Math.sin(performance.now() / 1000 * 1.1 + ph) * 0.05; };
           this.levelGroup.add(sp); this.edgePlants.push({ m: sp, x, y }); } }
       // ---- foreground seabed in front of the tank: a soft sand shelf with shells, stones, starfish and sea grass
       { const x0f = -2.5, x1f = W + 1.5, yF = -(H - 1.5) - 0.86, rnd = (() => { let sd = 777 + W * 13 + H; return () => (sd = (sd * 16807) % 2147483647) / 2147483647; })();
@@ -1968,7 +2001,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         const fishes = [0xffc93a, 0x5fb8ff].map(col => { const f = new THREE.Group(); const mm = new THREE.MeshPhysicalMaterial({ color: col, roughness: 0.3, clearcoat: 1, envMapIntensity: 1 }); const b = new THREE.Mesh(fishG, mm); f.add(b); const tl = new THREE.Mesh(tailG, mm); tl.position.x = -0.28; f.add(tl);
           const eye = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 6), new THREE.MeshBasicMaterial({ color: 0x111111 })); eye.position.set(0.13, 0.04, 0.07); f.add(eye);
           // new-sheet look: a fish sprite (drawn facing left, so mirrored to face +x like the model)
-          const sp = sprPlane(col === 0xffc93a ? 'fishC' : 'fishE', 0.42); sp.scale.x = -1; sp.visible = false; f.add(sp);
+          const sp = sprPlane(col === 0xffc93a ? 'fishC' : 'fishE', 0.42, false, { k: 0.5, dz: 0.5, op: 0.25 }); sp.scale.x = -1; sp.visible = false; f.add(sp);
           f.visible = false; fg.add(f); return { f, tl, sp, parts: [b, tl, eye], t: 3 + Math.random() * 6, on: false }; });
         this.fg = { group: fg, mat, fishes, update: (t, dt, cx, top, bot, span) => {
           for (const F of this.fg.fishes) { if (!F.on) { F.t -= dt; if (F.t <= 0) { F.on = true; F.dir = Math.random() < 0.5 ? 1 : -1; F.x = cx - F.dir * (span / 2 + 3); F.y = Math.random() < 0.5 ? top + 0.9 + Math.random() * 0.6 : bot - 0.6 - Math.random() * 0.4; F.z = 2.2 + Math.random() * 1.2; F.f.visible = true; } continue; }
@@ -2001,7 +2034,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         else { const c = makeCoral(); c.position.set(x + ox, -y + 0.48, -0.42); c.scale.setScalar(1.2); this.levelGroup.add(c); }
       }
       for (const o of e.objects.values()) this.spawn(o);
-      this.gateSprite = sprPlane(ART.goal, 0.98); this.gateSprite.position.set(e.gate.x, -e.gate.y, 0.47); this.levelGroup.add(this.gateSprite);
+      this.gateSprite = sprPlane(ART.goal, 0.98, false, { k: 0.1, dz: 0.02, op: 0.55 }); this.gateSprite.position.set(e.gate.x, -e.gate.y, 0.47); this.levelGroup.add(this.gateSprite);
       this.gateObj = outline(makeGate(), 0.055, hullMat); this.gateObj.position.set(e.gate.x, -e.gate.y, 0); this.levelGroup.add(this.gateObj);
       this.airObjs = new Map();
       for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (e.get(x, y) === T.AIR) { const a = makeAir(); a.position.set(x, -y, 0.1); this.levelGroup.add(a); this.airObjs.set(y * W + x, a); }
