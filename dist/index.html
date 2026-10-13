@@ -1769,7 +1769,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   // a flat cut-out standing in the scene (bottom-anchored or centred), lit softly so it sits in the water light
   // `shadow` = fake (baked) shadow options, or false for none: { k: offset as a fraction of height, dz: gap to the surface behind, op: opacity, ground: contact patch under the base }
   function sprPlane(n, height, anchorBottom = false, shadow = {}) { const [, w, h] = SHEET_SPR[n], wd = height * w / h; const g = new THREE.PlaneGeometry(wd, height); if (anchorBottom) g.translate(0, height / 2, 0);
-    const m = new THREE.MeshStandardMaterial({ map: sprTex(n), transparent: true, alphaTest: 0.25, roughness: 0.85, metalness: 0, emissive: 0xffffff, emissiveMap: sprTex(n), emissiveIntensity: 0.35, side: THREE.DoubleSide, depthWrite: true });
+    const m = (SPR.mat || (SPR.mat = {}))[n] || (SPR.mat[n] = new THREE.MeshStandardMaterial({ map: sprTex(n), transparent: true, alphaTest: 0.25, roughness: 0.85, metalness: 0, emissive: 0xffffff, emissiveMap: sprTex(n), emissiveIntensity: 0.35, side: THREE.DoubleSide, depthWrite: true }));
     const mesh = new THREE.Mesh(g, m); mesh.castShadow = false; if (shadow) addSprShadow(mesh, n, wd, height, anchorBottom, shadow); return mesh; }
   // ---- fake sprite shadows: a blurred dark silhouette of the sprite, cast onto the surface behind it along the key light
   // (the key light sits up-left-front of the tank, so shadows fall down-right), plus a soft contact patch under standing sprites.
@@ -1795,7 +1795,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const t = sprShadowTex(n), [px, py] = t.userData.pad, g = new THREE.PlaneGeometry(wd * px, height * py); if (anchorBottom) g.translate(0, height / 2, 0);
     // standing sprites: the shadow starts at the base and leans away from the light (sheared + slightly squashed), so it never slips below the feet
     const lean = anchorBottom ? (o.lean ?? 0.4) : 0; if (lean) { const P = g.attributes.position; for (let i = 0; i < P.count; i++) { const y = Math.max(0, P.getY(i)); P.setX(i, P.getX(i) + y * lean); P.setY(i, P.getY(i) * 0.86); } }
-    const sh = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide })); sh.renderOrder = sp.renderOrder; sh.userData.fakeShadow = true; sp.add(sh); sp.userData.shadow = sh;
+    const smk = n + '|' + op; const sh = new THREE.Mesh(g, (SPR.shm || (SPR.shm = {}))[smk] || (SPR.shm[smk] = new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide }))); sh.renderOrder = sp.renderOrder; sh.userData.fakeShadow = true; sp.add(sh); sp.userData.shadow = sh;
     // keep the shadow offset fixed in world space however the sprite is flipped, swayed, spun or carried by its parents
     sh.onBeforeRender = () => { _shM.setFromMatrix4(sp.matrixWorld).invert(); if (lean) _shV.set(0.02, 0, -dz); else _shV.set(wx, wy, -dz); _shV.applyMatrix3(_shM); sh.position.copy(_shV);
       if (lean) sh.scale.x = sp.matrixWorld.elements[0] < 0 ? -1 : 1; // un-mirror so a flipped sprite still leans away from the light
@@ -2157,7 +2157,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     if (!MAT.dHelm) { // signature look: glossy violet helmet + gloves, sunny suit, electric-cyan fins, all with a soft cyan rim glow so the diver pops off any background
       const rimify = (m, col, k) => { m.onBeforeCompile = (sh) => { sh.uniforms.uRim = { value: new THREE.Color(col).multiplyScalar(k) };
           sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec3 uRim;').replace('#include <emissivemap_fragment>',
-            '#include <emissivemap_fragment>\n{ float rim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 2.6); totalEmissiveRadiance += uRim * rim; }'); };
+            '#include <emissivemap_fragment>\n{ float rim = pow(max(0.0, 1.0 - abs(dot(normalize(normal), normalize(vViewPosition)))), 2.6); totalEmissiveRadiance += uRim * rim; }'); };
         m.customProgramCacheKey = () => 'rim' + col + k; return m; };
       MAT.dHelm = rimify(new THREE.MeshPhysicalMaterial({ color: 0x5a12f0, roughness: 0.14, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 0.9, emissive: 0x1c0060, emissiveIntensity: 1 }), 0x3fe8ff, 0.45);
       MAT.dSuit = rimify(new THREE.MeshPhysicalMaterial({ color: 0xffb800, roughness: 0.24, clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 0.9, emissive: 0x4a2a00, emissiveIntensity: 1 }), 0x3fe8ff, 0.3);
@@ -2641,7 +2641,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         vertexShader: 'attribute float aPh; varying vec2 vUv; varying float vPh; void main(){ vUv = uv; vPh = aPh; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
         fragmentShader: `uniform float uT; varying vec2 vUv; varying float vPh; void main(){
           float edge = smoothstep(0.0, 0.35, vUv.x) * smoothstep(1.0, 0.65, vUv.x);
-          float fade = pow(vUv.y, 1.6) * smoothstep(0.0, 0.25, vUv.y);
+          float fade = pow(max(vUv.y, 0.0), 1.6) * smoothstep(0.0, 0.25, vUv.y);
           float flick = 0.55 + 0.45 * sin(uT * 0.6 + vPh) * sin(uT * 0.37 + vPh * 2.0);
           float a = edge * fade * flick * 0.42; gl_FragColor = vec4(vec3(0.75, 0.95, 1.0) * a, a); }` });
       const shafts = new THREE.Group();
@@ -2745,7 +2745,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const M = (u, fs) => new THREE.ShaderMaterial({ uniforms: u, vertexShader: vs, fragmentShader: fs, depthTest: false, depthWrite: false, toneMapped: false });
       this.brightMat = M({ tDiffuse: { value: null }, texel: { value: new THREE.Vector2() }, threshold: { value: 0.86 }, knee: { value: 0.2 } },
         `uniform sampler2D tDiffuse; uniform vec2 texel; uniform float threshold, knee; varying vec2 vUv;
-        vec3 pre(vec3 c){ float br = dot(c, vec3(0.2126, 0.7152, 0.0722)); float rq = clamp(br - threshold + knee, 0.0, 2.0 * knee); rq = rq * rq / (4.0 * knee + 1e-4);
+        vec3 safe(vec3 c){ return (any(isnan(c)) || any(isinf(c))) ? vec3(0.0) : clamp(c, 0.0, 32.0); }
+        vec3 pre(vec3 c){ c = safe(c); float br = dot(c, vec3(0.2126, 0.7152, 0.0722)); float rq = clamp(br - threshold + knee, 0.0, 2.0 * knee); rq = rq * rq / (4.0 * knee + 1e-4);
           return c * max(rq, br - threshold) / max(br, 1e-4); }
         void main(){ vec3 c = pre(texture2D(tDiffuse, vUv + texel * vec2(-1.0, -1.0)).rgb) + pre(texture2D(tDiffuse, vUv + texel * vec2(1.0, -1.0)).rgb)
           + pre(texture2D(tDiffuse, vUv + texel * vec2(-1.0, 1.0)).rgb) + pre(texture2D(tDiffuse, vUv + texel * vec2(1.0, 1.0)).rgb);
@@ -2764,7 +2765,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       // screen-space volumetric light ('god rays'): bright water-surface light near the top of the frame, smeared along rays from the sun
       this.raysMat = M({ tScene: { value: null }, sun: { value: new THREE.Vector2(0.42, 1.12) }, n: { value: 32 }, time: { value: 0 } },
         `uniform sampler2D tScene; uniform vec2 sun; uniform float n, time; varying vec2 vUv;
-        float src(vec2 uv) { vec3 c = texture2D(tScene, uv).rgb; float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); return smoothstep(0.3, 0.95, l) * smoothstep(0.45, 0.9, uv.y) * (0.55 + 0.45 * c.b / max(l, 0.05) * 0.6); }
+        float src(vec2 uv) { vec3 c = texture2D(tScene, uv).rgb; c = (any(isnan(c)) || any(isinf(c))) ? vec3(0.0) : min(c, vec3(32.0)); float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); return smoothstep(0.3, 0.95, l) * smoothstep(0.45, 0.9, uv.y) * (0.55 + 0.45 * c.b / max(l, 0.05) * 0.6); }
         void main(){ vec2 d = (vUv - sun) / n * 0.92; vec2 uv = vUv; float acc = 0.0, w = 1.0, tot = 0.0;
           float j = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453); uv -= d * j; // dither the march
           for (int i = 0; i < 64; i++) { if (float(i) >= n) break; uv -= d; acc += src(uv) * w; tot += w; w *= 0.965; }
@@ -2772,10 +2773,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           gl_FragColor = vec4(vec3(0.85, 0.97, 1.0) * a * flick, 1.0); }`);
       this.compMat = M({ tScene: { value: this.main.texture }, tBloom: { value: null }, tRays: { value: null }, strength: { value: this.strength }, rays: { value: 0 }, lens: { value: 0 }, aspect: { value: 1 }, time: { value: 0 } },
         `uniform sampler2D tScene, tBloom, tRays; uniform float strength, rays, lens, aspect, time; varying vec2 vUv;
-        void main(){ vec3 c = texture2D(tScene, vUv).rgb; vec3 b = texture2D(tBloom, vUv).rgb;
-          if (lens > 0.0) { vec2 dv = (vUv - 0.5) * lens * 0.0012 * dot(vUv - 0.5, vUv - 0.5) * 4.0; c.r = texture2D(tScene, vUv + dv).r; c.b = texture2D(tScene, vUv - dv).b; } // faint chromatic fringe at the edges
+        vec3 safe(vec3 c){ return (any(isnan(c)) || any(isinf(c))) ? vec3(0.0) : clamp(c, 0.0, 32.0); }
+        void main(){ vec3 c = safe(texture2D(tScene, vUv).rgb); vec3 b = safe(texture2D(tBloom, vUv).rgb);
+          if (lens > 0.0) { vec2 dv = (vUv - 0.5) * lens * 0.0012 * dot(vUv - 0.5, vUv - 0.5) * 4.0; c.r = safe(texture2D(tScene, vUv + dv).rgb).r; c.b = safe(texture2D(tScene, vUv - dv).rgb).b; } // faint chromatic fringe at the edges
           c += b * strength;
-          if (rays > 0.0) c += texture2D(tRays, vUv).rgb * rays;
+          if (rays > 0.0) c += safe(texture2D(tRays, vUv).rgb) * rays;
           // gentle grade: a touch more contrast and saturation, cool shadows, warm highlights
           float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
           c = mix(vec3(l), c, 1.24);
@@ -2893,7 +2895,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         high: { pr: 1.75, post: true, sh: 2048, msaa: 4, rays: 1.0, rs: 28, lens: 0, bloom: 0.8 }, ultra: { pr: 2.5, post: true, sh: 4096, msaa: 4, rays: 1.35, rs: 48, lens: 1, bloom: 0.85 } };
       if (q === 'auto' || !T_[q]) q = this.quality && T_[this.quality] ? this.quality : 'high'; const c = T_[q], prev = this.quality, wasLow = prev === 'low', isLow = q === 'low'; this.quality = q;
       const ss = isMobile ? 1 : { low: 1, medium: 1, high: 1.25, ultra: 1.5 }[q]; // a touch of supersampling on desktop for crisper edges
-      this.pixelRatio = Math.min(c.pr, (devicePixelRatio || 1) * ss);
+      this.pixelRatio = Math.min(c.pr, (devicePixelRatio || 1) * ss) * (this.resScale || 1);
       const P = this.post; P.enabled = c.post && P.supported;
       if (P.supported && P.main) { P.rays = c.rays; P.raySamples = c.rs; P.lens = c.lens; P.strength = c.bloom; if (P.main.samples !== c.msaa) { P.main.samples = c.msaa; P.main.dispose(); } }
       const shOn = c.sh > 0; if (this.renderer.shadowMap.enabled !== shOn) { this.renderer.shadowMap.enabled = shOn; this.scene.traverse(o => { if (o.material) [].concat(o.material).forEach(m => m.needsUpdate = true); }); }
@@ -2909,6 +2911,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       A.slow = 0;
       A.t += realDt; A.n++; A.sum += realDt; A.since += realDt; const i = order.indexOf(this.quality);
       if (A.t < 1.5) return; const fps = A.n / A.sum;
+      if (isMobile) { const rs = this.resScale || 1;
+        if (fps < 50 && rs > 0.72) { this.resScale = Math.max(0.7, rs - 0.1); this.setQuality(this.quality); A.t = A.n = A.sum = 0; A.since = 0; return; }
+        if (fps >= 58 && rs < 1 && A.since > 4) { this.resScale = Math.min(1, rs + 0.05); this.setQuality(this.quality); A.t = A.n = A.sum = 0; A.since = 0; return; } }
       if (fps < 47 && i > 0) { A.banned[order[i]] = performance.now() + 45000; this.setQuality(order[Math.max(0, i - (fps < 25 ? 2 : 1))]); A.since = 0; }
       else if (A.t >= 4 && fps >= 57 && i < 3 && A.since > 6 && !((A.banned[order[i + 1]] || 0) > performance.now())) { this.setQuality(order[i + 1]); A.since = 0; }
       else if (A.t < 4) return;
@@ -2921,7 +2926,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const rayMat = new THREE.ShaderMaterial({ uniforms: { time: { value: 0 } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
         vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
         fragmentShader: `varying vec2 vUv; uniform float time; void main(){ vec2 p = vUv - vec2(0.5, 1.05); float ang = atan(p.x, -p.y); float r = length(p);
-          float rays = 0.0; for (int i = 0; i < 3; i++) { float fi = float(i); rays += pow(0.5 + 0.5 * sin(ang * (9.0 + fi * 5.0) + time * (0.15 + fi * 0.07) + fi * 2.0), 6.0); }
+          float rays = 0.0; for (int i = 0; i < 3; i++) { float fi = float(i); rays += pow(max(0.0, 0.5 + 0.5 * sin(ang * (9.0 + fi * 5.0) + time * (0.15 + fi * 0.07) + fi * 2.0)), 6.0); }
           float a = rays * 0.09 * smoothstep(1.1, 0.1, r) * smoothstep(0.0, 0.15, r); gl_FragColor = vec4(vec3(0.85, 0.97, 1.0) * a, a); }` });
       this.rays = new THREE.Mesh(new THREE.PlaneGeometry(1, 0.5), rayMat); this.rays.renderOrder = -9; this.scene.add(this.rays); this.rayMat = rayMat;
     }
@@ -2948,9 +2953,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         fragmentShader: 'uniform sampler2D tex; varying float vA; void main(){ vec4 t = texture2D(tex, gl_PointCoord); gl_FragColor = vec4(vec3(0.85, 0.96, 1.0), t.a * vA); }' });
       const bubbles = new THREE.Points(bgG, bubM); bubbles.frustumCulled = false; bubbles.renderOrder = -8; g.add(bubbles);
       const fishG = new THREE.SphereGeometry(0.16, 10, 6); fishG.scale(1, 0.45, 0.3); const fishM = new THREE.MeshBasicMaterial({ color: 0x1d4f9a, transparent: true, opacity: 0.55, fog: false });
-      const fishSpr = ['fishA', 'fishC', 'fishD', 'fishE', 'fishF', 'fishG', 'fishH', 'fishI', 'school'].map(n => { const f = sprPlane(n, n === 'school' ? 0.6 : 0.5, false, { k: 0.45, dz: 0.6, op: 0.22 }); f.material.depthWrite = false; f.renderOrder = -7; f.userData.shadow.renderOrder = -7.5; g.add(f); return f; });
+      const fishSpr = ['fishA', 'fishC', 'fishD', 'fishE', 'fishF', 'fishG', 'fishH', 'fishI', 'school'].map(n => { const f = sprPlane(n, n === 'school' ? 0.6 : 0.5, false, { k: 0.45, dz: 0.6, op: 0.22 }); f.material = f.material.clone(); f.material.depthWrite = false; f.renderOrder = -7; f.userData.shadow.renderOrder = -7.5; g.add(f); return f; });
       const school = new THREE.InstancedMesh(fishG, fishM, 9); school.visible = false; school.frustumCulled = false; g.add(school);
-      const jellies = [0, 1, 2, 3].map(i => { const j = sprPlane('jellyN', 0.9 + (i % 2) * 0.4, false, false); j.material.depthWrite = false; j.material.transparent = true; j.material.opacity = 0.75; j.renderOrder = -7; g.add(j); return j; });
+      const jellies = [0, 1, 2, 3].map(i => { const j = sprPlane('jellyN', 0.9 + (i % 2) * 0.4, false, false); j.material = j.material.clone(); j.material.depthWrite = false; j.material.transparent = true; j.material.opacity = 0.75; j.renderOrder = -7; g.add(j); return j; });
       this.photo = { group: g, bg, shimmer, bubbles, bubM, school, fishSpr, jellies, off: [...Array(9)].map(() => [Math.random() * 1.6, Math.random() * 0.8, Math.random() * 6]) };
     }
     // screen-filling placement of the painting for a given camera (its sand line, ~20% up from the bottom, under the tank's plinth on portrait)
@@ -3014,7 +3019,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.gateObj = null; this.sandInst = null; this.treasures = []; this.digChunks = []; if (this.warn) this.warn.visible = false; this.ghosts = []; this.absorbing = []; this.deathTint = 0; this.setFx('');
     }
     loadLevel(e) {
-      this.clearLevel(); this.e = e; this.mood = null; this.playerAct = null; this.lastHup = -9; const ART = ART_SETS[NEW_ART_LEVELS.has(e.name) || e.menu ? 'new' : 'old']; this.newArt = ART === ART_SETS.new; MAT.sandNew.value = this.newArt ? 1 : 0; this.tickMs = e.tickMs; this.menuMode = !!e.menu; this.playing = false; this.lead.set(0, 0); this.lastMove = -99; this.zoomK = 1.12; this.playerPos = null;
+      this.clearLevel(); this.e = e; this.shadowDirty = true; this.mood = null; this.playerAct = null; this.lastHup = -9; const ART = ART_SETS[NEW_ART_LEVELS.has(e.name) || e.menu ? 'new' : 'old']; this.newArt = ART === ART_SETS.new; MAT.sandNew.value = this.newArt ? 1 : 0; this.tickMs = e.tickMs; this.menuMode = !!e.menu; this.playing = false; this.lead.set(0, 0); this.lastMove = -99; this.zoomK = 1.12; this.playerPos = null;
       const W = e.w, H = e.h; this.particles.top = 1;
       const sand = [], blocks = [], cobbles = [], solid = [];
       for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const t = e.get(x, y); if (t === T.SAND) sand.push([x, y]); else if (t === T.STEEL) { if (x === 0 || y === 0 || x === W - 1 || y === H - 1) continue; blocks.push([x, y]); solid.push([x, y]); } else if (t === T.WALL) { cobbles.push([x, y]); } }
@@ -3278,7 +3283,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         else { const c = makeCoral(); c.position.set(x + ox, -y + 0.48, -0.42); c.scale.setScalar(1.2); this.levelGroup.add(c); }
       }
       for (const o of e.objects.values()) this.spawn(o);
-      this.gateSprite = sprPlane(ART.goal, 0.98, false, { k: 0.1, dz: 0.02, op: 0.55 }); this.gateSprite.position.set(e.gate.x, -e.gate.y, 0.47); this.levelGroup.add(this.gateSprite);
+      this.gateSprite = sprPlane(ART.goal, 0.98, false, { k: 0.1, dz: 0.02, op: 0.55 }); this.gateSprite.material = this.gateSprite.material.clone(); this.gateSprite.position.set(e.gate.x, -e.gate.y, 0.47); this.levelGroup.add(this.gateSprite);
       this.gateObj = outline(makeGate(), 0.055, hullMat); this.gateObj.position.set(e.gate.x, -e.gate.y, 0); this.levelGroup.add(this.gateObj);
       this.airObjs = new Map();
       for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (e.get(x, y) === T.AIR) { const a = makeAir(); a.position.set(x, -y, 0.1); this.levelGroup.add(a); this.airObjs.set(y * W + x, a); }
@@ -3354,7 +3359,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           const m = new THREE.Mesh(new THREE.PlaneGeometry(bw, h * 1.5), new THREE.ShaderMaterial({ ...add, uniforms: { uT: MAT.causticT, uB: { value: new THREE.Vector4(x0, x1, yB, ys) }, uPh: { value: ph } }, vertexShader: vs,
             fragmentShader: `uniform float uT, uPh; uniform vec4 uB; varying vec2 vUv; varying vec3 vW; void main(){
               float inside = step(uB.x, vW.x) * step(vW.x, uB.y) * step(uB.z, vW.y) * step(vW.y, uB.w);
-              float across = pow(sin(vUv.x * 3.14159), 2.0), down = pow(clamp((vW.y - uB.z) / (uB.w - uB.z), 0.0, 1.0), 1.4);
+              float across = pow(max(0.0, sin(vUv.x * 3.14159)), 2.0), down = pow(clamp((vW.y - uB.z) / (uB.w - uB.z), 0.0, 1.0), 1.4);
               float a = 0.17 * across * down * (0.65 + 0.35 * sin(uT * 0.5 + uPh)) * inside; gl_FragColor = vec4(vec3(1.0, 0.96, 0.82) * a, a); }` }));
           m.position.set(x0 + (i + 0.5) * w / n + 0.6, cy + 0.2, 0.47); m.rotation.z = 0.36; m.renderOrder = 4; tank.add(m); } }
       this.pump = { x: x0 + 0.28, y: yB + 0.15, z: -0.42, t: 0, top: ys };
@@ -3688,7 +3693,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (this.gateObj) { const open = e.gate.open; this.gateLight.color.set(open ? 0x3aff7a : 0xff3a2a); this.gateLight.position.set(this.gateObj.position.x, this.gateObj.position.y + 0.33, 0.8); this.gateLight.intensity = open ? 2.6 + Math.sin(t * 4) * 0.4 : 1.2;
         if (!this.gateBeam) { this.gateBeam = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 3.2), new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, uniforms: { uT: MAT.causticT, uK: { value: 0 } },
             vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-            fragmentShader: 'uniform float uT, uK; varying vec2 vUv; void main(){ float x = abs(vUv.x - 0.5) * 2.0; float a = pow(1.0 - x, 2.5) * pow(1.0 - vUv.y, 1.6) * (0.7 + 0.3 * sin(uT * 3.0 - vUv.y * 9.0)) * uK; gl_FragColor = vec4(vec3(0.55, 1.0, 0.8) * a, a); }' }));
+            fragmentShader: 'uniform float uT, uK; varying vec2 vUv; void main(){ float x = abs(vUv.x - 0.5) * 2.0; float a = pow(max(0.0, 1.0 - x), 2.5) * pow(max(0.0, 1.0 - vUv.y), 1.6) * (0.7 + 0.3 * sin(uT * 3.0 - vUv.y * 9.0)) * uK; gl_FragColor = vec4(vec3(0.55, 1.0, 0.8) * a, a); }' }));
           this.gateBeam.renderOrder = 7; this.scene.add(this.gateBeam); }
         this.gateBeam.position.set(this.gateObj.position.x, this.gateObj.position.y + 1.95, 0.5);
         const bk = this.gateBeam.material.uniforms.uK; bk.value += ((open ? 0.55 : 0) - bk.value) * Math.min(1, dt * 3); this.gateBeam.visible = bk.value > 0.01; } else if (this.gateBeam) this.gateBeam.visible = false; if (!this.gateObj) this.gateLight.intensity = 0;
@@ -3733,7 +3738,10 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (this.reef) { this.reef.update(t); const cd = this.camera.position.z; this.scene.fog.near = cd - 2; this.scene.fog.far = cd + 40; this.reef.snowMat.uniforms.scale.value = innerHeight * this.pixelRatio * 0.9; }
       if (this.fx) this.fx.classList.toggle('lowair', e.state === 'playing' && e.oxygen < 15);
     }
-    render() { this.post.render(this.scene, this.camera, this.time); }
+    render() {
+      // phones: refresh the shadow map every other frame (the key light and tank never move; bobbing at 30 Hz is indistinguishable)
+      const sm = this.renderer.shadowMap; if (isMobile && sm.enabled) { sm.autoUpdate = false; this.frameN = (this.frameN || 0) + 1; if (this.frameN % 2 === 0 || this.shadowDirty) { sm.needsUpdate = true; this.shadowDirty = false; } }
+      this.post.render(this.scene, this.camera, this.time); }
   }
   return { create: c => new WorldImpl(c), isMobile, SKINS, SKIN, applySkin, preview: (cv, thumb) => new SkinPreview(cv, thumb), trailColor, rarityOf };
 })();
