@@ -583,6 +583,25 @@ body[data-state="over"] #result.on ~ * .score, body[data-state="over"] .hud-c .s
 .res-coins .coin { width: 30px; height: 30px; } .res-coins b { font-family: var(--display); font-weight: 400; font-size: 1.6rem; color: var(--gold); } .res-coins small { font-weight: 700; font-size: 0.78rem; color: var(--ink-soft); text-align: left; max-width: 170px; line-height: 1.15; }
 .toast-coin { position: fixed; left: 50%; top: 18%; transform: translateX(-50%); z-index: 60; display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px 10px 12px; border-radius: 999px; background: rgba(5, 30, 80, 0.85); border: 2px solid var(--gold); font-family: var(--display); font-size: 1.4rem; color: var(--gold); animation: coinpop 1.6s ease-out forwards; pointer-events: none; }
 @keyframes coinpop { 0% { opacity: 0; transform: translate(-50%, 20px) scale(0.7); } 15% { opacity: 1; transform: translate(-50%, 0) scale(1.08); } 25% { transform: translate(-50%, 0) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -30px); } }
+
+/* shop v2: rendered cards + rarity */
+.item { padding: 8px 6px 9px; overflow: hidden; border-width: 2px; --r1: #3c5f96; --r2: #223c6e; --rc: #9fc3ff; background: linear-gradient(180deg, var(--r1), var(--r2)); }
+.item.r-rare { --r1: #2f7fd8; --r2: #164a9a; --rc: #8fd8ff; } .item.r-epic { --r1: #9a4fe8; --r2: #4f1f9e; --rc: #e0b8ff; } .item.r-legendary { --r1: #f0a21a; --r2: #a8520a; --rc: #fff0a0; }
+.item { border-color: color-mix(in srgb, var(--rc) 55%, transparent); box-shadow: inset 0 2px 0 rgba(255,255,255,0.25), 0 4px 0 rgba(0,20,70,0.35); }
+.item.r-legendary::before { content: ""; position: absolute; top: 0; bottom: 0; width: 40%; left: -60%; background: linear-gradient(100deg, transparent, rgba(255,255,255,0.45), transparent); transform: skewX(-20deg); animation: shine 3s ease-in-out infinite; pointer-events: none; }
+.item .th { width: 100%; aspect-ratio: 1; height: auto; border-radius: 12px; object-fit: cover; display: block; background: radial-gradient(circle at 50% 40%, rgba(255,255,255,0.35), rgba(255,255,255,0) 70%); border: 0; box-shadow: none; font-size: 2.2rem; }
+.item span.th { display: grid; place-items: center; }
+.item .rib { position: absolute; top: 7px; left: -26px; transform: rotate(-38deg); width: 92px; padding: 1px 0; text-align: center; font-size: 0.56rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: #1a1030; background: var(--rc); z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.25); }
+.item.r-common .rib { display: none; }
+.item > span:not(.th):not(.rib):not(.pr):not(.tag) { line-height: 1.1; }
+.item.sel { border-color: #fff; background: linear-gradient(180deg, var(--r1), var(--r2)); box-shadow: 0 0 0 3px var(--gold), 0 0 18px rgba(255, 210, 63, 0.55); }
+.shop-grid { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); }
+.shop-stage[data-rar="rare"] { background: radial-gradient(ellipse at 50% 35%, rgba(90, 180, 255, 0.55), rgba(5, 36, 96, 0.75) 70%); }
+.shop-stage[data-rar="epic"] { background: radial-gradient(ellipse at 50% 35%, rgba(190, 110, 255, 0.55), rgba(30, 10, 80, 0.8) 70%); }
+.shop-stage[data-rar="legendary"] { background: radial-gradient(ellipse at 50% 35%, rgba(255, 200, 60, 0.6), rgba(80, 30, 5, 0.8) 72%); }
+.rar-pill { display: inline-block; margin-bottom: 4px; padding: 1px 10px; border-radius: 999px; font-size: 0.66rem; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.2); }
+.shop-stage[data-rar="rare"] .rar-pill { background: #8fd8ff; color: #0a2a5a; } .shop-stage[data-rar="epic"] .rar-pill { background: #e0b8ff; color: #2a0a5a; } .shop-stage[data-rar="legendary"] .rar-pill { background: #fff0a0; color: #5a3000; }
+@media (max-width: 760px) { .shop-grid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); } .shop-sel .rar-pill { margin-bottom: 2px; } }
 </style>
 </head>
 <body data-state="splash">
@@ -741,7 +760,7 @@ body[data-state="over"] #result.on ~ * .score, body[data-state="over"] .hud-c .s
     <div class="ph"><button class="back" data-go="back" aria-label="Back"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h2>Shop</h2><span class="pill coins-pill"><i class="coin" aria-hidden="true"></i><b class="coinCount">0</b></span></div>
     <div class="shop-body">
       <div class="shop-stage panel"><canvas id="shopPreview" width="400" height="460" aria-label="Skin preview"></canvas>
-        <div class="shop-sel"><b id="shopSelName">Violet Star</b><small id="shopSelSub">Equipped</small></div>
+        <div class="shop-sel"><span class="rar-pill" id="shopRar">common</span><b id="shopSelName">Violet Star</b><small id="shopSelSub">Equipped</small></div>
         <button class="cta shop-act" id="shopAct">Equipped</button></div>
       <div class="shop-side">
         <div class="tabs" id="shopTabs" role="tablist"></div>
