@@ -653,6 +653,7 @@ body[data-state="cine"]::before, body[data-state="cine"]::after { height: 9vh; }
 .cine-title p { margin: 0; padding: 5px 18px; border-radius: 999px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; font-size: 0.9rem; background: rgba(5, 30, 80, 0.55); border: 1px solid rgba(255,255,255,0.4); }
 body:not([data-state="cine"]) .cine-title { opacity: 0 !important; }
 #skipIntro { z-index: 26; }
+.duo:has(#btnResHome) { grid-template-columns: repeat(3, 1fr); }
 </style>
 </head>
 <body data-state="splash">
@@ -866,6 +867,7 @@ body:not([data-state="cine"]) .cine-title { opacity: 0 !important; }
       <div class="duo">
         <button class="tile" id="btnRetry"><svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
         <button class="tile" id="btnResLevels"><svg class="i" viewBox="0 0 24 24"><path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/></svg>Levels</button>
+        <button class="tile" id="btnResHome"><svg class="i" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>Home</button>
       </div>
     </div>
   </div>
