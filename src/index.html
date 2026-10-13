@@ -476,6 +476,113 @@ body:not([data-state="cine"]) .cine-cap { opacity: 0 !important; }
 .airstars i.off { color: rgba(255,255,255,0.3); text-shadow: none; }
 .pause-hint { max-width: 420px; margin: -6px auto 14px; padding: 10px 16px; border-radius: 16px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.3); font-weight: 700; line-height: 1.35; color: #fff; text-align: center; }
 .pause-hint::before { content: "💡 "; }
+
+/* ================= v2 menu, shop, leaderboard, rewards ================= */
+body[data-state="over"] #result.on ~ * .score, body[data-state="over"] .hud-c .score { visibility: hidden; }
+.coin { display: inline-block; width: 22px; height: 22px; border-radius: 50%; flex: none; vertical-align: middle;
+  background: radial-gradient(circle at 34% 30%, #fff7c4 0 12%, #ffd84a 30%, #f0a800 70%, #b86f00 100%); box-shadow: inset 0 -2px 0 rgba(120,60,0,0.45), 0 1px 2px rgba(0,0,0,0.3); position: relative; }
+.coin::after { content: ""; position: absolute; inset: 5px; border-radius: 50%; border: 2px solid rgba(150,85,0,0.55); }
+#home::before { background: linear-gradient(180deg, rgba(2, 18, 54, 0.45) 0%, rgba(2, 18, 54, 0) 26%, rgba(2, 18, 54, 0) 62%, rgba(2, 18, 54, 0.55) 100%); }
+.hm-top { position: absolute; left: 0; right: 0; top: calc(env(safe-area-inset-top, 0px) + 12px); display: flex; justify-content: space-between; align-items: center; padding: 0 max(14px, env(safe-area-inset-right, 0px)) 0 max(14px, env(safe-area-inset-left, 0px)); gap: 10px; }
+.hm-chip { display: flex; align-items: center; gap: 10px; padding: 5px 16px 5px 5px; border-radius: 999px; background: rgba(5, 30, 80, 0.55); border: 2px solid rgba(255,255,255,0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 0 rgba(0,20,70,0.35); text-align: left; min-width: 0; }
+.hm-ava { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-family: var(--display); font-size: 1.4rem; color: #fff; background: linear-gradient(160deg, #a46bff, #5a12f0); border: 3px solid #ffd23f; flex: none; }
+.hm-who { display: flex; flex-direction: column; line-height: 1.05; min-width: 0; }
+.hm-who b { font-family: var(--display); font-weight: 400; font-size: 1.15rem; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 30vw; }
+.hm-who small { font-weight: 800; font-size: 0.8rem; color: rgba(255,255,255,0.85); } .hm-who .st { color: var(--gold); font-style: normal; }
+.hm-right { display: flex; gap: 10px; align-items: center; }
+.hm-coins { display: flex; align-items: center; gap: 7px; height: 44px; padding: 0 6px 0 8px; border-radius: 999px; background: rgba(5, 30, 80, 0.6); border: 2px solid rgba(255,255,255,0.75); box-shadow: 0 4px 0 rgba(0,20,70,0.35); }
+.hm-coins .coin { width: 28px; height: 28px; } .hm-coins .coin::after { inset: 6px; }
+.hm-coins b { font-family: var(--display); font-weight: 400; font-size: 1.3rem; min-width: 2.2ch; text-align: right; font-variant-numeric: tabular-nums; }
+.hm-coins .plus { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; font-size: 1.3rem; line-height: 1; color: #fff; background: linear-gradient(180deg, #4fe39a, #17b26a); box-shadow: 0 2px 0 #0b7a46; }
+.hm-sq { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; color: #3a2a1a; background: linear-gradient(180deg, #fffaf0, #f3e3c3); box-shadow: 0 4px 0 #c9b28a, 0 8px 16px rgba(0, 20, 70, 0.35); }
+.hm-sq svg.i { width: 26px; height: 26px; }
+.hm-logo { position: absolute; left: 0; right: 0; top: calc(env(safe-area-inset-top, 0px) + 74px); display: flex; flex-direction: column; align-items: center; pointer-events: none !important; }
+.hm-title { display: flex; flex-direction: column; align-items: center; font-size: clamp(2.9rem, 8.5vw, 5.2rem); line-height: 0.86; color: #ffd23f;
+  -webkit-text-stroke: 2px #fff3b0; text-shadow: 0 3px 0 #ff9f1a, 0 6px 0 #c45a00, 0 10px 0 #0a3f8f, 0 18px 24px rgba(0, 20, 70, 0.55); animation: bob 3.6s ease-in-out infinite; position: relative; }
+.hm-title span:last-child { font-size: 0.82em; }
+.hm-kicker { margin: 10px 0 0; padding: 4px 14px; border-radius: 999px; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.12em; text-transform: uppercase; color: #eaf7ff; background: rgba(5, 30, 80, 0.45); border: 1px solid rgba(255,255,255,0.35); }
+.hm-side { position: absolute; top: 50%; transform: translateY(-38%); display: flex; flex-direction: column; gap: 14px; }
+.hm-l { left: max(16px, env(safe-area-inset-left, 0px)); } .hm-r { right: max(16px, env(safe-area-inset-right, 0px)); }
+.hm-big { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; font-weight: 800; font-size: 0.86rem; color: #fff; text-shadow: 0 2px 0 rgba(0,20,70,0.6); }
+.hm-big .ic { width: 66px; height: 66px; border-radius: 22px; display: grid; place-items: center; border: 3px solid #fff; background: linear-gradient(180deg, var(--a), var(--b)); box-shadow: 0 5px 0 var(--c), 0 12px 22px rgba(0, 20, 70, 0.4), inset 0 3px 0 rgba(255,255,255,0.45); transition: transform .1s; }
+.hm-big .ic svg.i { width: 34px; height: 34px; color: #fff; filter: drop-shadow(0 2px 0 rgba(0,0,0,0.25)); }
+.hm-big:active .ic { transform: translateY(4px); box-shadow: 0 1px 0 var(--c), 0 4px 10px rgba(0, 20, 70, 0.3); }
+.c-shop { --a: #ff8ac6; --b: #e8338c; --c: #a3155a; } .c-rank { --a: #ffe066; --b: #f2a900; --c: #a86a00; } .c-gift { --a: #7ff0b0; --b: #17b26a; --c: #0b7a46; }
+.c-lvl { --a: #79c6ff; --b: #1f78e8; --c: #0b4a9e; } .c-how { --a: #c3a2ff; --b: #7a45e8; --c: #4a1f9e; } .c-intro { --a: #ffb27a; --b: #ff6a2b; --c: #a8380b; }
+.hm-big .dot { position: absolute; top: -4px; right: -4px; width: 20px; height: 20px; border-radius: 50%; background: #ff3b4f; border: 3px solid #fff; animation: pulse 1.2s ease-in-out infinite; }
+.hm-bottom { position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 22px); display: flex; justify-content: center; padding: 0 14px; }
+.hm-play { animation: pulse 2.2s ease-in-out infinite; position: relative; overflow: hidden; }
+.hm-play::after { content: ""; position: absolute; top: 0; bottom: 0; width: 40%; left: -60%; background: linear-gradient(100deg, transparent, rgba(255,255,255,0.7), transparent); transform: skewX(-20deg); animation: shine 3.2s ease-in-out infinite; }
+@keyframes shine { 0%, 55% { left: -60%; } 85%, 100% { left: 130%; } }
+@media (max-width: 560px) {
+  .hm-logo { top: calc(env(safe-area-inset-top, 0px) + 78px); } .hm-title { font-size: clamp(2.8rem, 15vw, 4rem); }
+  .hm-side { top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); transform: none; gap: 12px; }
+  .hm-big .ic { width: 58px; height: 58px; border-radius: 19px; } .hm-big .ic svg.i { width: 30px; height: 30px; } .hm-big { font-size: 0.78rem; }
+  .hm-who b { max-width: 34vw; }
+}
+@media (max-height: 520px) and (orientation: landscape) { .hm-logo { top: 8px; } .hm-title { font-size: clamp(2.2rem, 12vh, 3.4rem); } .hm-kicker { display: none; } .hm-side { gap: 8px; } .hm-big .ic { width: 50px; height: 50px; } .hm-bottom { bottom: 10px; } }
+.coins-pill { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; }
+.coins-pill b { font-family: var(--display); font-weight: 400; font-size: 1.15rem; }
+.sec-h { margin: 0 0 12px; font-family: var(--display); font-weight: 400; font-size: 1.3rem; color: var(--gold); letter-spacing: 0.02em; }
+/* shop */
+#shop .wrap { max-width: 980px; }
+.shop-body { display: grid; grid-template-columns: minmax(240px, 340px) 1fr; gap: 14px; align-items: start; }
+.shop-stage { position: relative; display: flex; flex-direction: column; align-items: center; padding: 10px 14px 16px; background: radial-gradient(ellipse at 50% 35%, rgba(120, 200, 255, 0.35), rgba(5, 36, 96, 0.7) 70%); }
+.shop-stage canvas { width: 100%; max-width: 300px; aspect-ratio: 400 / 460; height: auto; display: block; }
+.shop-sel { text-align: center; margin: 2px 0 10px; } .shop-sel b { display: block; font-family: var(--display); font-weight: 400; font-size: 1.5rem; } .shop-sel small { font-weight: 800; color: var(--ink-soft); }
+.shop-act { font-size: 1.35rem; padding: 10px 20px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.shop-act.owned { background: linear-gradient(180deg, #7ff0b0, #17b26a); color: #04351d; box-shadow: 0 6px 0 #0b7a46, 0 14px 26px rgba(0, 20, 70, 0.4), inset 0 3px 0 rgba(255,255,255,0.55); }
+.shop-act.equipped { background: rgba(255,255,255,0.18); color: #fff; box-shadow: none; }
+.shop-act.cant { filter: grayscale(0.6); opacity: 0.75; }
+.tabs { display: flex; gap: 6px; flex-wrap: nowrap; overflow-x: auto; margin-bottom: 10px; touch-action: pan-x; scrollbar-width: none; } .tabs::-webkit-scrollbar { display: none; } .tabs button { flex: none; }
+@media (max-width: 560px) { .tabs button { padding: 7px 11px; font-size: 0.82rem; } }
+.tabs button { padding: 8px 14px; border-radius: 999px; font-weight: 800; font-size: 0.9rem; color: var(--ink-soft); background: rgba(5, 36, 96, 0.55); border: 1px solid var(--edge); }
+.tabs button.on { background: linear-gradient(180deg, #fff09a, var(--gold) 60%, #ffb800); color: var(--gold-ink); border-color: #fff; box-shadow: 0 3px 0 #d98a00; }
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; padding: 12px; max-height: min(62vh, 560px); overflow-y: auto; touch-action: pan-y; }
+.item { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 6px 8px; border-radius: 18px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); font-weight: 800; font-size: 0.82rem; text-align: center; }
+.item.sel { border-color: var(--gold); background: rgba(255, 210, 63, 0.16); box-shadow: 0 0 0 3px rgba(255, 210, 63, 0.3); }
+.item .sw { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-size: 1.9rem; border: 3px solid rgba(255,255,255,0.85); box-shadow: inset 0 -6px 10px rgba(0,0,0,0.25), 0 4px 8px rgba(0,20,70,0.35); }
+.item .pr { display: inline-flex; align-items: center; gap: 4px; font-family: var(--display); font-weight: 400; font-size: 1rem; } .item .pr .coin { width: 17px; height: 17px; } .item .pr .coin::after { inset: 4px; border-width: 1.5px; }
+.item .tag { font-size: 0.7rem; padding: 1px 8px; border-radius: 999px; background: rgba(255,255,255,0.18); }
+.item .tag.eq { background: var(--mint); color: #04351d; }
+.item.locked .sw { filter: saturate(0.85); }
+@media (max-width: 760px) { .shop-body { grid-template-columns: 1fr; } .shop-stage { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 8px; } .shop-stage canvas { max-width: 150px; }
+  .shop-sel { margin: 0; flex: 1; min-width: 120px; text-align: left; } .shop-act { width: auto; flex: 1 1 100%; } .shop-grid { max-height: 44vh; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); } .item .sw { width: 52px; height: 52px; font-size: 1.5rem; } }
+/* leaderboard */
+.lb { padding: 10px 12px 12px; }
+.lb-status { margin: 2px 4px 10px; font-weight: 700; font-size: 0.85rem; color: var(--ink-soft); }
+.lb-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 56vh; overflow-y: auto; touch-action: pan-y; }
+.lb-row { display: grid; grid-template-columns: 38px 40px 1fr auto auto; align-items: center; gap: 10px; padding: 7px 12px 7px 8px; border-radius: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); }
+.lb-row.me { background: rgba(255, 210, 63, 0.18); border-color: var(--gold); }
+.lb-row .rk { font-family: var(--display); font-size: 1.25rem; text-align: center; }
+.lb-row .rk.g { color: #ffd23f; } .lb-row .rk.s { color: #dfe8f5; } .lb-row .rk.b { color: #ffb27a; }
+.lb-row img, .lb-row .av { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; display: grid; place-items: center; font-family: var(--display); background: linear-gradient(160deg, #79c6ff, #1f78e8); }
+.lb-row .nm { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .lb-row .nm small { display: block; font-weight: 700; font-size: 0.72rem; color: var(--ink-soft); }
+.lb-row .sv { font-family: var(--display); font-size: 1.1rem; display: inline-flex; align-items: center; gap: 4px; } .lb-row .sv .st { color: var(--gold); }
+.lb-row .sc { font-weight: 800; font-size: 0.8rem; color: var(--ink-soft); min-width: 5ch; text-align: right; }
+.lb-me:not(:empty) { margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.25); }
+.lb-empty { padding: 18px 8px; text-align: center; font-weight: 700; color: var(--ink-soft); }
+/* rewards */
+.daily { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; margin-bottom: 14px; }
+.day { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px 7px; border-radius: 14px; background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.15); font-weight: 800; font-size: 0.72rem; }
+.day b { font-family: var(--display); font-weight: 400; font-size: 1rem; } .day .coin { width: 24px; height: 24px; }
+.day.done { opacity: 0.55; } .day.done::after { content: "✓"; font-weight: 900; color: var(--mint); }
+.day.today { border-color: var(--gold); background: rgba(255, 210, 63, 0.2); animation: pulse 1.4s ease-in-out infinite; }
+.day.big .coin { width: 30px; height: 30px; box-shadow: 0 0 14px rgba(255, 210, 63, 0.8); }
+#dailyClaim[disabled] { filter: grayscale(0.7); opacity: 0.7; pointer-events: none; }
+.ach { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-height: 40vh; overflow-y: auto; touch-action: pan-y; }
+.ach li { display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 16px; background: rgba(255,255,255,0.08); }
+.ach .ai { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font-size: 1.4rem; background: rgba(255,255,255,0.14); }
+.ach .at b { display: block; font-weight: 800; } .ach .at small { font-weight: 700; font-size: 0.75rem; color: var(--ink-soft); }
+.ach .bar { height: 7px; margin-top: 5px; border-radius: 99px; background: rgba(255,255,255,0.15); overflow: hidden; } .ach .bar i { display: block; height: 100%; background: linear-gradient(90deg, #4fe39a, #17b26a); border-radius: 99px; }
+.ach .claim { display: inline-flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 999px; font-family: var(--display); font-size: 1rem; color: var(--gold-ink); background: linear-gradient(180deg, #fff09a, var(--gold) 60%, #ffb800); box-shadow: 0 3px 0 #d98a00; }
+.ach .claim[disabled] { background: rgba(255,255,255,0.14); color: var(--ink-soft); box-shadow: none; } .ach .claim .coin { width: 18px; height: 18px; } .ach .claim .coin::after { inset: 4px; }
+.ach li.done { opacity: 0.6; }
+/* result coins */
+.res-coins { display: inline-flex; align-items: center; gap: 8px; margin: 4px auto 14px; padding: 6px 16px 6px 8px; border-radius: 999px; background: rgba(255, 210, 63, 0.18); border: 2px solid var(--gold); }
+.res-coins .coin { width: 30px; height: 30px; } .res-coins b { font-family: var(--display); font-weight: 400; font-size: 1.6rem; color: var(--gold); } .res-coins small { font-weight: 700; font-size: 0.78rem; color: var(--ink-soft); text-align: left; max-width: 170px; line-height: 1.15; }
+.toast-coin { position: fixed; left: 50%; top: 18%; transform: translateX(-50%); z-index: 60; display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px 10px 12px; border-radius: 999px; background: rgba(5, 30, 80, 0.85); border: 2px solid var(--gold); font-family: var(--display); font-size: 1.4rem; color: var(--gold); animation: coinpop 1.6s ease-out forwards; pointer-events: none; }
+@keyframes coinpop { 0% { opacity: 0; transform: translate(-50%, 20px) scale(0.7); } 15% { opacity: 1; transform: translate(-50%, 0) scale(1.08); } 25% { transform: translate(-50%, 0) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -30px); } }
 </style>
 </head>
 <body data-state="splash">
@@ -522,19 +629,26 @@ body:not([data-state="cine"]) .cine-cap { opacity: 0 !important; }
 </section>
 
 <section id="home" class="screen gs-screen">
-  <button class="gs-round" data-go="settings" aria-label="Settings"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
-  <div class="gs-center">
-    <p class="kicker">Dig. Push. Breathe. Escape.</p>
-    <h1 class="title gs-title">Aqua<br>Energizer</h1>
-  </div>
-  <div class="gs-bottom">
-    <button class="play-big" id="btnPlay"><b>PLAY</b><small id="playSub">Level 1</small></button>
-    <nav class="gs-tiles">
-      <button class="gs-tile" data-go="levels"><svg class="i" viewBox="0 0 24 24"><path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/></svg>Levels</button>
-      <button class="gs-tile" data-go="how"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.2 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5M12 17.5h.01"/></svg>How to play</button>
-      <button class="gs-tile" data-go="profile"><svg class="i" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>Records</button>
-      <button class="gs-tile" id="btnReplayIntro"><svg class="i" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg>Watch intro</button>
-    </nav>
+  <header class="hm-top">
+    <button class="hm-chip" data-go="profile" aria-label="Your profile"><span class="hm-ava" id="hmAva">D</span><span class="hm-who"><b id="hmName">Diver</b><small><i class="st">★</i> <span id="hmStars">0</span> · Level <span id="hmLvl">1</span></small></span></button>
+    <div class="hm-right">
+      <button class="hm-coins" data-go="rewards" aria-label="Coins, open rewards"><i class="coin" aria-hidden="true"></i><b id="hmCoins">0</b><span class="plus">+</span></button>
+      <button class="hm-sq" data-go="settings" aria-label="Settings"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    </div>
+  </header>
+  <div class="hm-logo"><h1 class="title hm-title"><span>Aqua</span><span>Energizer</span></h1><p class="hm-kicker">Dig · Push · Breathe · Escape</p></div>
+  <nav class="hm-side hm-l">
+    <button class="hm-big c-shop" data-go="shop"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></span><b>Shop</b></button>
+    <button class="hm-big c-rank" data-go="ranks"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></span><b>Ranks</b></button>
+    <button class="hm-big c-gift" data-go="rewards"><span class="ic"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v7h14v-7M12 8v12M12 8S10.5 3.5 8 4.2 7.5 8 12 8zM12 8s1.5-4.5 4-3.8S16.5 8 12 8z"/></svg></span><b>Rewards</b><i class="dot" id="hmDot" hidden></i></button>
+  </nav>
+  <nav class="hm-side hm-r">
+    <button class="hm-big c-lvl" data-go="levels"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/></svg></span><b>Levels</b></button>
+    <button class="hm-big c-how" data-go="how"><span class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.2 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5M12 17.5h.01"/></svg></span><b>How to</b></button>
+    <button class="hm-big c-intro" id="btnReplayIntro"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg></span><b>Intro</b></button>
+  </nav>
+  <div class="hm-bottom">
+    <button class="play-big hm-play" id="btnPlay"><b>PLAY</b><small id="playSub">Level 1</small></button>
   </div>
 </section>
 <div id="cineCap" class="cine-cap" aria-live="polite"></div>
@@ -622,6 +736,47 @@ body:not([data-state="cine"]) .cine-cap { opacity: 0 !important; }
   </div>
 </section>
 
+<section id="shop" class="screen sheet wide">
+  <div class="wrap">
+    <div class="ph"><button class="back" data-go="back" aria-label="Back"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h2>Shop</h2><span class="pill coins-pill"><i class="coin" aria-hidden="true"></i><b class="coinCount">0</b></span></div>
+    <div class="shop-body">
+      <div class="shop-stage panel"><canvas id="shopPreview" width="400" height="460" aria-label="Skin preview"></canvas>
+        <div class="shop-sel"><b id="shopSelName">Violet Star</b><small id="shopSelSub">Equipped</small></div>
+        <button class="cta shop-act" id="shopAct">Equipped</button></div>
+      <div class="shop-side">
+        <div class="tabs" id="shopTabs" role="tablist"></div>
+        <div class="shop-grid panel" id="shopGrid"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ranks" class="screen sheet center">
+  <div class="wrap">
+    <div class="ph"><button class="back" data-go="back" aria-label="Back"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h2>Leaderboard</h2></div>
+    <div class="panel lb">
+      <p class="lb-status" id="lbStatus">Loading…</p>
+      <ol class="lb-list" id="lbList"></ol>
+      <div class="lb-me" id="lbMe"></div>
+    </div>
+  </div>
+</section>
+
+<section id="rewards" class="screen sheet center">
+  <div class="wrap">
+    <div class="ph"><button class="back" data-go="back" aria-label="Back"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h2>Rewards</h2><span class="pill coins-pill"><i class="coin" aria-hidden="true"></i><b class="coinCount">0</b></span></div>
+    <div class="panel">
+      <h3 class="sec-h">Daily treasure</h3>
+      <div class="daily" id="daily"></div>
+      <button class="cta" id="dailyClaim">Claim</button>
+    </div>
+    <div class="panel">
+      <h3 class="sec-h">Achievements</h3>
+      <ul class="ach" id="achList"></ul>
+    </div>
+  </div>
+</section>
+
 <section id="result" class="screen sheet center">
   <div class="wrap" style="text-align:center">
     <div class="card-head"><p class="kicker" id="resKicker"></p><h1 class="title" id="resTitle">Energized!</h1></div>
@@ -630,6 +785,7 @@ body:not([data-state="cine"]) .cine-cap { opacity: 0 !important; }
       <span class="newbest" id="resBest" hidden>New best!</span>
       <div class="big-score" id="resScore">0</div><span>score</span>
       <div class="res-stats" id="resStats"></div>
+      <div class="res-coins" id="resCoins" hidden><i class="coin" aria-hidden="true"></i><b id="resCoinN">+0</b><small id="resCoinWhy"></small></div>
       <button class="cta" id="btnNext">Next level</button>
       <div class="duo">
         <button class="tile" id="btnRetry"><svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>

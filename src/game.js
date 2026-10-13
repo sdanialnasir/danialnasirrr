@@ -1406,9 +1406,103 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const scarf = []; { const knot = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.03, 10, 28), MAT.dScarf); knot.rotation.x = Math.PI / 2; knot.position.set(0.0, 0.03, 0); body.add(knot);
       for (const [z, len] of [[0.07, 0.42], [-0.04, 0.34]]) { const gg = new THREE.PlaneGeometry(len, 0.1, 8, 1); gg.translate(-len / 2, 0, 0); const P = gg.attributes.position; for (let i = 0; i < P.count; i++) { const x = -P.getX(i) / len; P.setY(i, P.getY(i) * (1 - x * 0.45)); }
         const piv = new THREE.Group(); piv.position.set(-0.12, 0.03, z); body.add(piv); const rib = new THREE.Mesh(gg, MAT.dScarf); piv.add(rib); scarf.push({ piv, geo: gg, base: Float32Array.from(P.array), len }); } }
-    g.userData = { body, head, face, armF, armB, legF: LF.hip, legB: LB.hip, finF: LF.finPivot, finB: LB.finPivot, lampGlow, scarf, eyes, happy, brows, cheeks, smile, mouthO, mouthJoy };
+    if (SKIN.scarf === 'none') body.children.forEach(c => { if (c.material === MAT.dScarf) c.visible = false; }), scarf.forEach(sc => { sc.piv.visible = false; });
+    const hat = makeHat(SKIN.hat); if (hat) head.add(hat);
+    g.userData = { body, head, face, armF, armB, legF: LF.hip, legB: LB.hip, finF: LF.finPivot, finB: LB.finPivot, lampGlow, scarf, eyes, happy, brows, cheeks, smile, mouthO, mouthJoy, hat };
     g.traverse(o => { if (o.isMesh) o.castShadow = true; });
     return withShadow(g);
+  }
+  // ---------------------------------------------------------------- skins (shop)
+  const SKIN = { suit: 'violet', scarf: 'pink', hat: 'none', trail: 'bubbles', pearl: 'ruby' };
+  const SKINS = {
+    suit: [
+      { id: 'violet', name: 'Violet Star', price: 0, helm: 0x5a12f0, suit: 0xffb800, fin: 0x00a8ff },
+      { id: 'coral', name: 'Coral Reef', price: 250, helm: 0xff3d5e, suit: 0xfff1d6, fin: 0xff9a3c },
+      { id: 'mint', name: 'Mint Breeze', price: 250, helm: 0x12b896, suit: 0xf0fff8, fin: 0x7a5cff },
+      { id: 'sunny', name: 'Sunshine', price: 300, helm: 0xffbf00, suit: 0x2b6cff, fin: 0xff4f6d },
+      { id: 'bubblegum', name: 'Bubblegum', price: 350, helm: 0xff6fd0, suit: 0xb8f2ff, fin: 0xff3fa0 },
+      { id: 'midnight', name: 'Midnight', price: 450, helm: 0x1b2448, suit: 0x3a4a80, fin: 0x00e5ff },
+      { id: 'shark', name: 'Shark', price: 500, helm: 0x6f8199, suit: 0xe9eef4, fin: 0x34445a },
+      { id: 'lava', name: 'Lava', price: 700, helm: 0x1a1a1a, suit: 0xff4a12, fin: 0xffc21a },
+      { id: 'gold', name: 'Golden Diver', price: 1200, helm: 0xffc533, suit: 0xfff0b3, fin: 0xffd23f, metal: true },
+      { id: 'rainbow', name: 'Rainbow', price: 2000, helm: 0xff3d5e, suit: 0xffd23f, fin: 0x00c8ff, rainbow: true },
+    ],
+    scarf: [
+      { id: 'pink', name: 'Bubble Pink', price: 0, col: 0xff1f6e }, { id: 'sky', name: 'Sky Blue', price: 120, col: 0x2fb6ff },
+      { id: 'lime', name: 'Lime', price: 120, col: 0x7ae82a }, { id: 'flame', name: 'Flame', price: 150, col: 0xff6a12 },
+      { id: 'royal', name: 'Royal', price: 180, col: 0x7a2fff }, { id: 'snow', name: 'Snow', price: 180, col: 0xf4f8ff },
+      { id: 'gold', name: 'Gold Silk', price: 400, col: 0xffc21a, metal: true }, { id: 'none', name: 'No scarf', price: 0, col: 0x445566 },
+    ],
+    hat: [
+      { id: 'none', name: 'No hat', price: 0, emoji: '·' }, { id: 'antenna', name: 'Antennae', price: 250, emoji: '📡' },
+      { id: 'party', name: 'Party Hat', price: 300, emoji: '🎉' }, { id: 'shark', name: 'Shark Fin', price: 400, emoji: '🦈' },
+      { id: 'bunny', name: 'Bunny Ears', price: 500, emoji: '🐰' }, { id: 'propeller', name: 'Propeller', price: 650, emoji: '🌀' },
+      { id: 'crown', name: 'Crown', price: 1000, emoji: '👑' },
+    ],
+    trail: [
+      { id: 'bubbles', name: 'Bubbles', price: 0, col: 0xcff3ff }, { id: 'sparkle', name: 'Gold Sparkle', price: 200, col: 0xffd84a },
+      { id: 'love', name: 'Love', price: 250, col: 0xff5fa8 }, { id: 'mint', name: 'Mint Glow', price: 250, col: 0x4fffc0 },
+      { id: 'ember', name: 'Embers', price: 300, col: 0xff7a1a }, { id: 'rainbow', name: 'Rainbow', price: 800, col: 0xffffff, rainbow: true },
+    ],
+    pearl: [
+      { id: 'ruby', name: 'Ruby', price: 0, col: 0xb00410, em: 0x9a0010, glow: 0xff4a18 }, { id: 'sapphire', name: 'Sapphire', price: 200, col: 0x0a3fd0, em: 0x0a2a9a, glow: 0x3a8aff },
+      { id: 'emerald', name: 'Emerald', price: 200, col: 0x05a050, em: 0x046a30, glow: 0x3aff8a }, { id: 'amethyst', name: 'Amethyst', price: 250, col: 0x7a12d0, em: 0x4a0a8a, glow: 0xc06aff },
+      { id: 'gold', name: 'Gold', price: 600, col: 0xffb800, em: 0x8a5a00, glow: 0xffd84a, metal: true },
+    ],
+  };
+  const skinOf = (cat, id) => SKINS[cat].find(x => x.id === id) || SKINS[cat][0];
+  function applySkin(sk) {
+    Object.assign(SKIN, sk); if (!MAT.dHelm) makeDiver();
+    const s = skinOf('suit', SKIN.suit), dim = (c, k) => new THREE.Color(c).multiplyScalar(k);
+    MAT.dHelm.color.set(s.helm); MAT.dHelm.emissive.copy(dim(s.helm, 0.25)); MAT.dSuit.color.set(s.suit); MAT.dSuit.emissive.copy(dim(s.suit, 0.12));
+    MAT.dFin.color.set(s.fin); MAT.dFin.emissive.copy(dim(s.fin, 0.35));
+    for (const m of [MAT.dHelm, MAT.dSuit]) { m.metalness = s.metal ? 0.75 : 0; m.roughness = s.metal ? 0.2 : m === MAT.dHelm ? 0.14 : 0.24; }
+    const sc = skinOf('scarf', SKIN.scarf); MAT.dScarf.color.set(sc.col); MAT.dScarf.emissive.copy(dim(sc.col, 0.3)); MAT.dScarf.metalness = sc.metal ? 0.7 : 0;
+    const pl = skinOf('pearl', SKIN.pearl); if (!MAT.pearl) makeBall(true);
+    for (const m of [MAT.pearl, MAT.ball]) { m.color.set(pl.col); m.emissive.set(pl.em); m.metalness = pl.metal ? 0.6 : 0; }
+    MAT.ballGlow.color.set(pl.glow); MAT.ballCore.color.set(new THREE.Color(pl.glow).lerp(new THREE.Color(0xffffff), 0.45));
+  }
+  function skinTick(t) { // animated skins
+    if (skinOf('suit', SKIN.suit).rainbow && MAT.dHelm) { const h = (t * 0.08) % 1; MAT.dHelm.color.setHSL(h, 0.85, 0.5); MAT.dSuit.color.setHSL((h + 0.33) % 1, 0.9, 0.6); MAT.dFin.color.setHSL((h + 0.66) % 1, 0.9, 0.55); }
+  }
+  function trailColor(t) { const tr = skinOf('trail', SKIN.trail); return tr.rainbow ? new THREE.Color().setHSL((t * 0.5) % 1, 0.9, 0.6) : new THREE.Color(tr.col); }
+  function makeHat(id) {
+    if (!id || id === 'none') return null; const g = new THREE.Group(); g.position.set(-0.03, 0.22, 0);
+    const P = (o) => new THREE.MeshPhysicalMaterial(Object.assign({ roughness: 0.35, clearcoat: 0.6 }, o));
+    if (id === 'antenna') { for (const z of [-0.08, 0.08]) { const st = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.01, 0.2, 6), P({ color: 0x333a4a, metalness: 0.6 })); st.position.set(0, 0.1, z); st.rotation.x = z * 2.2; g.add(st);
+        const b = new THREE.Mesh(new THREE.SphereGeometry(0.035, 12, 8), new THREE.MeshStandardMaterial({ color: 0xff3d8b, emissive: 0xff3d8b, emissiveIntensity: 1.2 })); b.position.set(0, 0.2, z * 2.6); g.add(b); } }
+    if (id === 'party') { const c = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.26, 20), P({ color: 0x2fb6ff })); c.position.y = 0.12; c.rotation.z = 0.15; g.add(c);
+      for (let i = 0; i < 3; i++) { const r = new THREE.Mesh(new THREE.TorusGeometry(0.075 - i * 0.022, 0.012, 6, 20), P({ color: [0xffd23f, 0xff3d8b, 0x7ae82a][i] })); r.rotation.x = Math.PI / 2; r.position.y = 0.05 + i * 0.065; c.add(r); r.position.set(0, -0.08 + i * 0.065, 0); }
+      const pom = new THREE.Mesh(new THREE.SphereGeometry(0.04, 12, 8), P({ color: 0xffd23f })); pom.position.y = 0.14; c.add(pom); }
+    if (id === 'shark') { const sh = new THREE.Shape(); sh.moveTo(-0.12, 0); sh.quadraticCurveTo(0.02, 0.06, 0.06, 0.24); sh.quadraticCurveTo(0.08, 0.08, 0.12, 0); sh.closePath();
+      const f = new THREE.Mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.03, bevelEnabled: true, bevelThickness: 0.012, bevelSize: 0.012, bevelSegments: 2 }), P({ color: 0x6f8199 })); f.position.set(0.0, 0.0, -0.02); f.rotation.y = 0; g.add(f); }
+    if (id === 'bunny') { for (const z of [-0.07, 0.07]) { const e = new THREE.Mesh(new THREE.CapsuleGeometry(0.035, 0.18, 6, 12), P({ color: 0xffffff })); e.position.set(-0.02, 0.13, z); e.rotation.x = z * 2.5; g.add(e);
+        const inn = new THREE.Mesh(new THREE.CapsuleGeometry(0.018, 0.14, 4, 8), P({ color: 0xff9ac4 })); inn.position.set(0.025, 0, 0); e.add(inn); } }
+    if (id === 'propeller') { const cap = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), P({ color: 0xff3d5e })); cap.position.y = 0.0; g.add(cap);
+      const rot = new THREE.Group(); rot.position.y = 0.13; g.add(rot); const st = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.06, 6), P({ color: 0x333a4a })); st.position.y = -0.03; rot.add(st);
+      for (const sgn of [-1, 1]) { const bl = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.008, 0.045), P({ color: sgn > 0 ? 0xffd23f : 0x2fb6ff })); bl.position.x = sgn * 0.1; rot.add(bl); }
+      rot.onBeforeRender = () => {}; cap.onBeforeRender = () => { rot.rotation.y = performance.now() / 1000 * 14; }; }
+    if (id === 'crown') { const gm = P({ color: 0xffc533, metalness: 0.85, roughness: 0.2 }); const band = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.07, 24, 1, true), gm); band.material.side = THREE.DoubleSide; band.position.y = 0.04; g.add(band);
+      for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2, sp = new THREE.Mesh(new THREE.ConeGeometry(0.028, 0.08, 8), gm); sp.position.set(Math.cos(a) * 0.115, 0.11, Math.sin(a) * 0.115); g.add(sp);
+        const jw = new THREE.Mesh(new THREE.SphereGeometry(0.016, 8, 6), new THREE.MeshStandardMaterial({ color: [0xff1f4e, 0x2fb6ff, 0x3ce05a][i % 3], emissive: [0xff1f4e, 0x2fb6ff, 0x3ce05a][i % 3], emissiveIntensity: 0.6 })); jw.position.set(Math.cos(a) * 0.123, 0.045, Math.sin(a) * 0.123); g.add(jw); } }
+    g.traverse(o => { if (o.isMesh) o.castShadow = true; }); return g;
+  }
+  // live 3D preview of the equipped / browsed skin (shop): its own small renderer
+  class SkinPreview {
+    constructor(cv) { this.cv = cv; this.r = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true }); this.r.setPixelRatio(Math.min(2, devicePixelRatio || 1)); this.r.setSize(cv.width, cv.height, false);
+      this.r.outputColorSpace = THREE.SRGBColorSpace; this.r.toneMapping = THREE.ACESFilmicToneMapping;
+      this.scene = new THREE.Scene(); this.cam = new THREE.PerspectiveCamera(30, cv.width / cv.height, 0.1, 50); this.cam.position.set(0, 0.55, 6.6); this.cam.lookAt(0, -0.2, 0);
+      this.scene.add(new THREE.HemisphereLight(0xdff4ff, 0x203060, 1.4)); const k = new THREE.DirectionalLight(0xfff0d8, 3.2); k.position.set(-2, 3, 4); this.scene.add(k); const r2 = new THREE.DirectionalLight(0x9fe8ff, 1.6); r2.position.set(3, 1, -2); this.scene.add(r2);
+      const ped = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.95, 0.18, 40), new THREE.MeshPhysicalMaterial({ color: 0xffd98a, roughness: 0.5, clearcoat: 0.6 })); ped.position.y = -0.95; this.scene.add(ped);
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.88, 0.035, 10, 48), new THREE.MeshPhysicalMaterial({ color: 0xffc533, metalness: 0.8, roughness: 0.25 })); rim.rotation.x = Math.PI / 2; rim.position.y = -0.86; this.scene.add(rim);
+      this.pearl = new THREE.Mesh(GEO.ball, MAT.pearl); this.pearl.scale.setScalar(0.55); this.pearl.position.set(0.95, -0.62, -0.3); this.scene.add(this.pearl); this.rebuild(); }
+    rebuild() { if (this.d) this.scene.remove(this.d); this.d = makeDiver(); this.d.scale.setScalar(2.3); this.d.position.y = 0.2; this.scene.add(this.d); this.hatId = SKIN.hat; this.scarfId = SKIN.scarf; }
+    render(t) { if (this.hatId !== SKIN.hat || (this.scarfId === 'none') !== (SKIN.scarf === 'none')) this.rebuild(); skinTick(t);
+      const u = this.d.userData; this.d.rotation.y = -0.6 + Math.sin(t * 0.6) * 0.55; this.d.position.y = 0.2 + Math.sin(t * 1.2) * 0.06;
+      u.armF.rotation.z = 0.5 + Math.sin(t * 1.6) * 0.25 + (Math.sin(t * 0.5) > 0.8 ? 2.2 + Math.sin(t * 14) * 0.3 : 0); u.armB.rotation.z = 0.4 + Math.sin(t * 1.6 + 1) * 0.2;
+      u.legF.rotation.z = Math.sin(t * 2) * 0.15; u.legB.rotation.z = -Math.sin(t * 2) * 0.15;
+      if (u.scarf) u.scarf.forEach((sc, j) => { const P = sc.geo.attributes.position, b = sc.base; for (let i = 0; i < P.count; i++) { const x = -b[i * 3] / sc.len; P.setY(i, b[i * 3 + 1] + Math.sin(t * 3 - x * 5 + j) * 0.025 * x); } P.needsUpdate = true; sc.piv.rotation.z = -0.5 + Math.sin(t + j) * 0.1; });
+      this.pearl.rotation.y = t * 0.8; this.pearl.position.y = -0.62 + Math.sin(t * 1.5 + 1) * 0.04; this.r.render(this.scene, this.cam); }
   }
   function makeFish() {
     const g = new THREE.Group(); const b = new THREE.Group(); g.add(b);
@@ -1960,7 +2054,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         const rc = P.refCam || (P.refCam = new THREE.PerspectiveCamera()); rc.fov = cam.fov; rc.aspect = cam.aspect; rc.near = cam.near; rc.far = cam.far; rc.updateProjectionMatrix();
         const d = cg.z; rc.position.set(cg.x, lg.y + d * Math.sin(this.tilt) - (lg.y - cg.y), d * Math.cos(this.tilt)); rc.lookAt(lg.x, lg.y, 0); rc.updateMatrixWorld(true);
         P.fixed = this.photoFit(rc, AR); }
-      let { pos, q, sc } = P.fixed;
+      let { pos, q, sc } = this.menuMode ? this.photoFit(cam, AR) : P.fixed;
       if (this.cineCam && this.cineT !== undefined && this.cineT < 4.2) { // intro fly-in: blend from screen-locked to the fixed placement
         const k = Math.min(1, this.cineT / 4), ee = k * k * (3 - 2 * k), live = this.photoFit(cam, AR);
         pos = live.pos.lerp(pos, ee); q = live.q.slerp(q, ee); sc = live.sc + (sc - live.sc) * ee; }
@@ -1998,7 +2092,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.gateObj = null; this.sandInst = null; this.treasures = []; this.digChunks = []; if (this.warn) this.warn.visible = false; this.ghosts = []; this.absorbing = []; this.deathTint = 0; this.setFx('');
     }
     loadLevel(e) {
-      this.clearLevel(); this.e = e; this.mood = null; this.playerAct = null; this.lastHup = -9; const ART = ART_SETS[NEW_ART_LEVELS.has(e.name) && !e.menu ? 'new' : 'old']; this.newArt = ART === ART_SETS.new; MAT.sandNew.value = this.newArt ? 1 : 0; this.tickMs = e.tickMs; this.menuMode = !!e.menu; this.playing = false; this.lead.set(0, 0); this.lastMove = -99; this.zoomK = 1.12; this.playerPos = null;
+      this.clearLevel(); this.e = e; this.mood = null; this.playerAct = null; this.lastHup = -9; const ART = ART_SETS[NEW_ART_LEVELS.has(e.name) || e.menu ? 'new' : 'old']; this.newArt = ART === ART_SETS.new; MAT.sandNew.value = this.newArt ? 1 : 0; this.tickMs = e.tickMs; this.menuMode = !!e.menu; this.playing = false; this.lead.set(0, 0); this.lastMove = -99; this.zoomK = 1.12; this.playerPos = null;
       const W = e.w, H = e.h; this.particles.top = 1;
       const sand = [], blocks = [], cobbles = [], solid = [];
       for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const t = e.get(x, y); if (t === T.SAND) sand.push([x, y]); else if (t === T.STEEL) { if (x === 0 || y === 0 || x === W - 1 || y === H - 1) continue; blocks.push([x, y]); solid.push([x, y]); } else if (t === T.WALL) { cobbles.push([x, y]); } }
@@ -2048,7 +2142,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         const pl = new THREE.Mesh(roundedBox(w + 0.7, 0.85, 1.3, 0.12), this.newArt ? [MAT.plinthN, MAT.plinthSideN] : [MAT.plinth, MAT.plinthSide]); pl.position.set(cx, yB - 0.42, 0); pl.castShadow = pl.receiveShadow = true; tank.add(pl);
         bar(w + 0.3, 0.1, zF - zB + 0.25, cx, yB - 0.02, 0).material = MAT.trim;
         this.pump = null; if (this.newArt) this.buildPremiumTank(tank, { x0, x1, yT, yB, cx, cy, w, h, zF, zB });
-        if (this.newArt) { const c = document.createElement('canvas'); c.width = 1024; c.height = 160; const g = c.getContext('2d'), idx = LEVELS.findIndex(l => l.name === e.name) + 1;
+        if (this.newArt && !e.menu) { const c = document.createElement('canvas'); c.width = 1024; c.height = 160; const g = c.getContext('2d'), idx = LEVELS.findIndex(l => l.name === e.name) + 1;
           const gr = g.createLinearGradient(0, 0, 0, 160); gr.addColorStop(0, '#ffe7a3'); gr.addColorStop(0.45, '#d9a63c'); gr.addColorStop(1, '#8a5a17');
           g.fillStyle = gr; g.beginPath(); g.roundRect(8, 8, 1008, 144, 36); g.fill(); g.lineWidth = 6; g.strokeStyle = '#5a3a0c'; g.stroke();
           g.strokeStyle = 'rgba(255,255,255,0.55)'; g.lineWidth = 3; g.beginPath(); g.roundRect(22, 22, 980, 116, 26); g.stroke();
@@ -2163,7 +2257,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           MAT.fgStone = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7, envMapIntensity: 0.4 }); }
         const sg = new THREE.PlaneGeometry(x1f - x0f, 4.2, 60, 16); sg.rotateX(-Math.PI / 2); const P = sg.attributes.position;
         for (let i = 0; i < P.count; i++) { const x = P.getX(i), z = P.getZ(i), front = Math.max(0, z + 0.6); P.setY(i, Math.sin(x * 0.9) * 0.05 + Math.sin(x * 2.3 + z * 1.7) * 0.03 - front * front * 0.12); } sg.computeVertexNormals();
-        const photoMode = PHOTO_LEVELS.has(e.name) && !e.menu, spots = [];
+        const photoMode = PHOTO_LEVELS.has(e.name) || !!e.menu, spots = [];
         const shelf = new THREE.Mesh(sg, MAT.fgSand); shelf.visible = !photoMode; shelf.position.set((x0f + x1f) / 2, yF + 0.02, 2.45); shelf.receiveShadow = true; this.levelGroup.add(shelf);
         const groundY = (x, z) => yF + 0.02 + Math.sin(x * 0.9) * 0.05 - Math.pow(Math.max(0, z - 2.45 + 0.6), 2) * 0.12;
         const place = (geo, mat, n, fn, shadowR = 0) => { const im = new THREE.InstancedMesh(geo, mat, n); for (let i = 0; i < n; i++) { dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1); const col = fn(dummy, i); if (shadowR) spots.push([dummy.position.x, dummy.position.z, shadowR * Math.max(dummy.scale.x, dummy.scale.z)]); dummy.updateMatrix(); im.setMatrixAt(i, dummy.matrix); if (col) im.setColorAt(i, col); }
@@ -2196,7 +2290,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
                 c = mix(c, vec3(1.0, 0.965, 0.553), net * 0.7 * (1.0 - far * 0.5));
                 c = mix(c, vec3(0.588, 0.733, 0.749), smoothstep(-13.0, -23.0, vW.z) * 0.6);                 // the painting's far, hazy sea floor
                 gl_FragColor = vec4(pow(c, vec3(2.2)), 1.0 - smoothstep(-14.0, -24.0, vW.z)); }` });
-          const gp = new THREE.PlaneGeometry(span + 90, 72); gp.rotateX(-Math.PI / 2); const ground = new THREE.Mesh(gp, gm); ground.position.set((W - 1) / 2, yF + 0.005, 6); ground.renderOrder = -6; ground.frustumCulled = false; this.levelGroup.add(ground);
+          const gp = new THREE.PlaneGeometry(span + 140, 160); gp.rotateX(-Math.PI / 2); const ground = new THREE.Mesh(gp, gm); ground.position.set((W - 1) / 2, yF + 0.005, 50); ground.renderOrder = -6; ground.frustumCulled = false; this.levelGroup.add(ground);
           const mk = (draw) => { const c = document.createElement('canvas'); c.width = c.height = 256; draw(c.getContext('2d')); const t = new THREE.CanvasTexture(c); return t; };
           const blob = mk(g => { const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128); gr.addColorStop(0, 'rgba(18,26,48,0.85)'); gr.addColorStop(0.55, 'rgba(18,26,48,0.35)'); gr.addColorStop(1, 'rgba(18,26,48,0)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256); });
           // tank shadow: darkest right under the base and along its front edge, fading toward the viewer
@@ -2270,7 +2364,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       { const S = Math.max(W, H) * 0.62 + 2, c = this.key.shadow.camera; c.left = -S; c.right = S; c.top = S; c.bottom = -S; c.near = 1; c.far = 40; c.updateProjectionMatrix(); }
       this.rim.target.position.copy(this.key.target.position); this.rim.position.set((W - 1) / 2 + 4, -(H - 1) / 2 + 10, -6);
       this.positionReef();
-      { const usePhoto = PHOTO_LEVELS.has(e.name) && !e.menu; this.photoMode = usePhoto; if (usePhoto) this.buildPhotoBg(); if (this.photo) this.photo.group.visible = usePhoto;
+      { const usePhoto = PHOTO_LEVELS.has(e.name) || !!e.menu; this.photoMode = usePhoto; if (usePhoto) this.buildPhotoBg(); if (this.photo) this.photo.group.visible = usePhoto;
         if (this.reef) this.reef.group.visible = !usePhoto; this.backdrop.visible = !usePhoto; this.rays.visible = !usePhoto; }
       this.fitCamera(true, !e.menu);
     }
@@ -2438,7 +2532,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         case 'land': { { const pl = e.player; if (pl && Math.abs(pl.x - ev.x) <= 1 && Math.abs(pl.y - ev.y) <= 1) { this.playerMood('flinch', 0.45); this.sfx('oof'); } } // a heavy thing lands right next to him
           this.shake = Math.max(this.shake, ev.t === T.ROCK ? 0.12 : 0.07); P.emit(x, y - 0.42, 0.4, 10, { color: SAND, speed: 1.2, life: 0.5, size: 0.1, kind: 1, spread: 0.7 }); this.sfx('land'); break; }
         case 'roll': this.sfx('roll'); break;
-        case 'absorb': { P.emit(x, y, 0.5, 40, { color: new THREE.Color(1, 0.55, 0.25), speed: 2.6, life: 0.8, size: 0.14 }); P.emit(x, y, 0.5, 30, { color: new THREE.Color(0.5, 0.9, 1), speed: 2, life: 1, size: 0.12 }); this.sfx('absorb'); this.playerMood('joy', 1.25); setTimeout(() => this.sfx('yay'), 260);
+        case 'absorb': { P.emit(x, y, 0.5, 40, { color: new THREE.Color(1, 0.55, 0.25), speed: 2.6, life: 0.8, size: 0.14 }); P.emit(x, y, 0.5, 30, { color: new THREE.Color(0.5, 0.9, 1), speed: 2, life: 1, size: 0.12 }); this.sfx('absorb'); if (this.onStat && !this.menuMode) this.onStat('pearl'); this.playerMood('joy', 1.25); setTimeout(() => this.sfx('yay'), 260);
           const ent = this.entities.get(ev.id); if (ent) { ent.absorbing = { t: 0, from: new V3(ev.fromX, -ev.fromY, 0.05), to: new V3(x, y, 0.3) }; this.entities.delete(ev.id); this.absorbing.push(ent); } break; }
         case 'gateOpen': { this.playerMood('joy', 1.25); this.flashFx('flash'); P.emit(x, y, 0.5, 70, { color: new THREE.Color(0.55, 0.95, 1), speed: 3.5, life: 1.3, size: 0.16 }); P.bubbles(x, y, 0.2, 18, 0.12, 0.8); this.sfx('gateOpen'); this.shake = 0.18; break; }
         case 'gateLocked': this.sfx('gateLocked'); this.playerMood('bonk', 0.55); this.sfx('hmm'); break;
@@ -2496,7 +2590,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
 
     // ---- per frame ----
     update(dt, now) {
-      this.time += dt; const t = this.time;
+      this.time += dt; const t = this.time; skinTick(t);
       this.rayMat.uniforms.time.value = t; MAT.causticT.value = t;
       this.particles.update(dt, t);
       if (!this.e) { this.camera.position.set(0, 0, 30); this.camera.lookAt(0, 0, 0); this.placeBackdrop(); return; }
@@ -2506,7 +2600,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (this.edgePlants) for (const ep of this.edgePlants) if (ep.m.visible && e.get(ep.x, ep.y) !== T.SAND) ep.m.visible = false;
       if (this.treasures) for (const tr of this.treasures) {
         const m = tr.m;
-        if (tr.state === 'buried') { if (e.get(tr.cx, tr.cy) !== T.SAND) { tr.state = 'falling'; tr.vy = 0.6; this.particles.emit(m.position.x, m.position.y, 0.5, 10, { color: new THREE.Color(1, 0.95, 0.7), speed: 1.4, life: 0.6, size: 0.12, spread: 0.2 }); this.sfx('treasure'); }
+        if (tr.state === 'buried') { if (e.get(tr.cx, tr.cy) !== T.SAND) { tr.state = 'falling'; tr.vy = 0.6; this.particles.emit(m.position.x, m.position.y, 0.5, 10, { color: new THREE.Color(1, 0.95, 0.7), speed: 1.4, life: 0.6, size: 0.12, spread: 0.2 }); if (!this.menuMode) { this.sfx('treasure'); if (this.onStat) this.onStat('treasure'); } }
           else { if (this.newArt && Math.random() < dt * 0.09) this.particles.emit(m.position.x + 0.08, m.position.y + 0.06, 0.48, 1, { color: new THREE.Color(1, 1, 0.9), speed: 0.01, life: 0.45, size: 0.3, spread: 0.02 }); continue; } }
         const row = Math.round(-m.position.y), col = Math.round(m.position.x);
         const below = e.get(col, row + 1), floorY = -(row + 1) + 0.5 + 0.06;
@@ -2637,7 +2731,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           u.lampGlow.material.opacity = 0.55 + Math.sin(t * 1.6) * 0.08;
           m.userData.shadow.visible = e.get(o.x, o.y + 1) !== T.EMPTY;
           ent.bub = (ent.bub || 0) - dt; if (ent.bub <= 0) { ent.bub = (pushE > 0 ? 0.25 : 1.1) + Math.random() * 1.4; this.particles.bubbles(gx + 0.15 * dir, gy + 0.45, 0.25, 1 + (Math.random() * 3 | 0), 0.05, 0.1); }
-          if (swimK > 0.3 && Math.random() < dt * 14) this.particles.bubbles(gx - 0.32 * dir, gy - 0.28, 0.2, 1, 0.035, 0.15); // a trail from the fins
+          if (swimK > 0.3 && Math.random() < dt * 14) { if (SKIN.trail === 'bubbles') this.particles.bubbles(gx - 0.32 * dir, gy - 0.28, 0.2, 1, 0.035, 0.15); else this.particles.emit(gx - 0.3 * dir, gy - 0.2, 0.3, 1, { color: trailColor(t), speed: 0.25, life: 0.7, size: 0.14, spread: 0.18, vx: -dir * 0.4 }); } // trail from the fins (shop skin)
         } else if (o.t === T.FISH) {
           m.position.set(ix, iy + Math.sin(t * 3 + ent.phase) * 0.04, 0.15);
           const D = [[1, 0], [0, 1], [-1, 0], [0, -1]]; const d = D[o.dir]; if (d[0]) ent.facing = d[0];
@@ -2701,7 +2795,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.peekK = (this.peekK || 0) + ((this.peek && !this.menuMode ? 1 : 0) - (this.peekK || 0)) * (1 - Math.exp(-dt * (this.peek ? 3.2 : 4)));
       if (this.peekK > 0.002) { const g0 = this.camGoal.clone(), l0 = this.lookGoal.clone(); this.updateCameraTarget(true); const k = this.peekK * this.peekK * (3 - 2 * this.peekK);
         this.camGoal.lerpVectors(g0, this.camGoal.clone(), k); this.lookGoal.lerpVectors(l0, this.lookGoal.clone(), k); }
-      if (this.menuMode) { this.camGoal.x += Math.sin(t * 0.15) * 1.2; this.lookGoal.x = this.camGoal.x; const lift = this.camGoal.z * 0.075; this.camGoal.y -= lift; this.lookGoal.y -= lift; }
+      if (this.menuMode) { this.camGoal.x += Math.sin(t * 0.15) * 1.2; this.lookGoal.x = this.camGoal.x; const lift = this.camGoal.z * (innerHeight > innerWidth ? 0.02 : -0.045); this.camGoal.y -= lift; this.lookGoal.y -= lift; } // menu: board sits between the logo and PLAY
       if (this.cineCam && this.cineT !== undefined && this.cineT < 4.2) { const k = Math.min(1, this.cineT / 4), ee = k * k * (3 - 2 * k), cx = (this.e.w - 1) / 2, cy = -(this.e.h - 1) / 2;
         this.camGoal.set(cx - 8 * (1 - ee), cy + 5 * (1 - ee), this.camGoal.z * (1 + 1.7 * (1 - ee))); this.lookGoal.set(cx - 3 * (1 - ee), cy + 1.5 * (1 - ee), 0); }
       const cl = 1 - Math.pow(0.012, dt);
@@ -2719,7 +2813,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     }
     render() { this.post.render(this.scene, this.camera, this.time); }
   }
-  return { create: c => new WorldImpl(c), isMobile };
+  return { create: c => new WorldImpl(c), isMobile, SKINS, SKIN, applySkin, preview: cv => new SkinPreview(cv), trailColor };
 })();
 
 // Aqua Energizer — hand-drawn doodle intro (≈28 s) and doodle menu background.
@@ -3568,7 +3662,7 @@ window.__doodle = Doodle; window.__T = T;
 (() => {
   const $ = s => document.querySelector(s);
   const canvas = $('#c');
-  const world = World.create(canvas); window.__dc = { world, get engine() { return engine; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { startLevel(i); beginPlay(); } };
+  const world = World.create(canvas); window.__dc = { world, get engine() { return engine; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { startLevel(i); beginPlay(); }, go: (id) => go(id) };
   world.onSfx = n => Audio.play(n);
   const isTouch = World.isMobile || navigator.maxTouchPoints > 0;
   document.body.classList.toggle('touch', isTouch);
@@ -3581,6 +3675,116 @@ window.__doodle = Doodle; window.__T = T;
   const buzz = ms => { if (save.settings.vibe && navigator.vibrate) navigator.vibrate(ms); };
   const click = () => Audio.play('click');
 
+  // ================= economy: coins, skins, daily treasure, achievements =================
+  save.coins = save.coins || 0; save.owned = save.owned || {}; save.equip = Object.assign({ suit: 'violet', scarf: 'pink', hat: 'none', trail: 'bubbles', pearl: 'ruby' }, save.equip || {});
+  save.stats = Object.assign({ dug: 0, treasures: 0, pearls: 0, wins: 0, perfect: 0 }, save.stats || {}); save.ach = save.ach || {}; save.daily = save.daily || { last: '', streak: 0 };
+  const owns = (cat, id) => World.SKINS[cat].find(x => x.id === id)?.price === 0 || !!save.owned[cat + ':' + id];
+  World.applySkin(save.equip);
+  const coinEls = () => document.querySelectorAll('.coinCount, #hmCoins');
+  function syncCoins() { coinEls().forEach(el => { el.textContent = save.coins.toLocaleString(); }); }
+  function addCoins(n, why) { if (!n) return; save.coins += n; persist(); syncCoins(); Audio.play('treasure');
+    const t = document.createElement('div'); t.className = 'toast-coin'; t.innerHTML = '<i class="coin"></i>'; const b = document.createElement('b'); b.textContent = `+${n}` + (why ? `  ${why}` : ''); t.appendChild(b); document.body.appendChild(t); setTimeout(() => t.remove(), 1700); }
+  world.onStat = (k) => { if (k === 'treasure') { runTreasures++; save.stats.treasures++; } else if (k === 'pearl') save.stats.pearls++; };
+  let runTreasures = 0;
+  const dayKey = (d = new Date()) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  const DAILY = [50, 80, 120, 160, 220, 300, 500];
+  function dailyState() { const today = dayKey(), y = new Date(); y.setDate(y.getDate() - 1); const D = save.daily;
+    const can = D.last !== today, streak = D.last === today ? D.streak : D.last === dayKey(y) ? D.streak % 7 : 0; return { can, day: can ? streak : (D.streak - 1) % 7 }; } // day = index of today's box
+  const ACH = [
+    { id: 'first', ic: '🏁', name: 'First dive', desc: 'Clear your first level', goal: 1, v: () => Math.max(save.stats.wins, Object.keys(save.stars).length), r: 50 },
+    { id: 'wins10', ic: '🌊', name: 'Deep diver', desc: 'Clear 10 levels', goal: 10, v: () => Object.keys(save.stars).length, r: 200 },
+    { id: 'stars10', ic: '⭐', name: 'Star collector', desc: 'Collect 10 stars', goal: 10, v: () => totalStars(), r: 120 },
+    { id: 'stars45', ic: '🌟', name: 'Star hoarder', desc: 'Collect 45 stars', goal: 45, v: () => totalStars(), r: 400 },
+    { id: 'perfect', ic: '💎', name: 'Flawless', desc: 'Get 3 stars on a level', goal: 1, v: () => Object.values(save.stars).filter(x => x >= 3).length, r: 80 },
+    { id: 'perfect5', ic: '👑', name: 'Perfectionist', desc: 'Get 3 stars on 5 levels', goal: 5, v: () => Object.values(save.stars).filter(x => x >= 3).length, r: 250 },
+    { id: 'dig', ic: '⛏️', name: 'Sand shoveler', desc: 'Dig 300 sand', goal: 300, v: () => save.stats.dug, r: 120 },
+    { id: 'treasure', ic: '🐚', name: 'Treasure hunter', desc: 'Dig out 40 treasures', goal: 40, v: () => save.stats.treasures, r: 150 },
+    { id: 'pearls', ic: '🔴', name: 'Pearl pusher', desc: 'Deliver 30 energy pearls', goal: 30, v: () => save.stats.pearls, r: 150 },
+    { id: 'world1', ic: '🏝️', name: 'Sunlit Shallows', desc: 'Clear all of world 1', goal: 10, v: () => [...Array(10).keys()].filter(i => save.stars[i + 1]).length, r: 500 },
+    { id: 'shopper', ic: '🛍️', name: 'Fresh look', desc: 'Buy something in the shop', goal: 1, v: () => Object.keys(save.owned).length, r: 60 },
+  ];
+  const claimableCount = () => ACH.filter(a => !save.ach[a.id] && a.v() >= a.goal).length + (dailyState().can ? 1 : 0);
+  function buildRewards() {
+    const ds = dailyState(), el = $('#daily'); el.innerHTML = '';
+    DAILY.forEach((n, i) => { const d = document.createElement('div'); d.className = 'day' + (i === 6 ? ' big' : '') + (i < ds.day || (!ds.can && i === ds.day) ? ' done' : '') + (ds.can && i === ds.day ? ' today' : '');
+      d.innerHTML = `<span>Day ${i + 1}</span><i class="coin"></i><b>${n}</b>`; el.appendChild(d); });
+    const btn = $('#dailyClaim'); btn.disabled = !ds.can; btn.textContent = ds.can ? `Claim ${DAILY[ds.day]} coins` : 'Come back tomorrow';
+    const ul = $('#achList'); ul.innerHTML = '';
+    ACH.slice().sort((a, b) => (!!save.ach[a.id] - !!save.ach[b.id]) || ((b.v() >= b.goal) - (a.v() >= a.goal))).forEach(a => { const v = Math.min(a.goal, a.v()), done = !!save.ach[a.id], ready = !done && v >= a.goal;
+      const li = document.createElement('li'); li.className = done ? 'done' : '';
+      li.innerHTML = `<span class="ai">${a.ic}</span><span class="at"><b></b><small></small><div class="bar"><i style="width:${(v / a.goal * 100).toFixed(0)}%"></i></div></span><button class="claim" ${ready ? '' : 'disabled'}><i class="coin"></i>${done ? '✓' : a.r}</button>`;
+      li.querySelector('b').textContent = a.name; li.querySelector('small').textContent = `${a.desc} · ${v}/${a.goal}`;
+      li.querySelector('.claim').onclick = () => { if (!ready) return; save.ach[a.id] = true; addCoins(a.r, a.name); buzz(20); buildRewards(); refreshHome(); };
+      ul.appendChild(li); });
+    syncCoins();
+  }
+  $('#dailyClaim').onclick = () => { const ds = dailyState(); if (!ds.can) return; save.daily = { last: dayKey(), streak: ds.day + 1 }; addCoins(DAILY[ds.day], `Day ${ds.day + 1}`); buzz(25); buildRewards(); refreshHome(); };
+
+  // ---- shop
+  const SHOP_TABS = [['suit', 'Suits'], ['hat', 'Hats'], ['scarf', 'Scarves'], ['trail', 'Trails'], ['pearl', 'Pearls']];
+  let shopTab = 'suit', shopSel = null, preview = null, previewRAF = 0;
+  const hex = c => '#' + c.toString(16).padStart(6, '0');
+  function swatch(cat, it) { const sw = document.createElement('span'); sw.className = 'sw';
+    if (cat === 'suit') sw.style.background = it.rainbow ? 'conic-gradient(#ff3d5e, #ffd23f, #3ce05a, #00c8ff, #a46bff, #ff3d5e)' : `linear-gradient(135deg, ${hex(it.helm)} 0 50%, ${hex(it.suit)} 50% 78%, ${hex(it.fin)} 78%)`;
+    else if (cat === 'hat') { sw.style.background = 'radial-gradient(circle at 40% 35%, #8fd0ff, #1f78e8)'; sw.textContent = it.emoji; }
+    else if (cat === 'scarf') { sw.style.background = it.id === 'none' ? 'repeating-linear-gradient(45deg, #445566 0 6px, #2a3644 6px 12px)' : `linear-gradient(160deg, ${hex(it.col)}, ${hex(new THREE.Color(it.col).multiplyScalar(0.6).getHex())})`; }
+    else if (cat === 'trail') sw.style.background = it.rainbow ? 'conic-gradient(#ff3d5e, #ffd23f, #3ce05a, #00c8ff, #a46bff, #ff3d5e)' : `radial-gradient(circle, ${hex(it.col)} 0 18%, transparent 20%) 0 0 / 22px 22px, radial-gradient(circle at 50% 50%, ${hex(it.col)}55, #0b2a66)`;
+    else sw.style.background = `radial-gradient(circle at 35% 30%, #fff 0 8%, ${hex(it.glow)} 22%, ${hex(it.col)} 60%, #200)`;
+    return sw; }
+  function buildShop() {
+    const tabs = $('#shopTabs'); tabs.innerHTML = '';
+    SHOP_TABS.forEach(([k, label]) => { const b = document.createElement('button'); b.textContent = label; b.className = k === shopTab ? 'on' : ''; b.onclick = () => { click(); shopTab = k; shopSel = save.equip[k]; tryOn(); buildShop(); }; tabs.appendChild(b); });
+    const grid = $('#shopGrid'); grid.innerHTML = ''; if (shopSel === null) shopSel = save.equip[shopTab];
+    World.SKINS[shopTab].forEach(it => { const own = owns(shopTab, it.id), eq = save.equip[shopTab] === it.id;
+      const b = document.createElement('button'); b.className = 'item' + (it.id === shopSel ? ' sel' : '') + (own ? '' : ' locked'); b.appendChild(swatch(shopTab, it));
+      const nm = document.createElement('span'); nm.textContent = it.name; b.appendChild(nm);
+      const tg = document.createElement('span'); if (eq) { tg.className = 'tag eq'; tg.textContent = 'Equipped'; } else if (own) { tg.className = 'tag'; tg.textContent = 'Owned'; } else { tg.className = 'pr'; tg.innerHTML = `<i class="coin"></i>${it.price}`; } b.appendChild(tg);
+      b.onclick = () => { click(); shopSel = it.id; tryOn(); buildShop(); }; grid.appendChild(b); });
+    const it = World.SKINS[shopTab].find(x => x.id === shopSel), own = owns(shopTab, it.id), eq = save.equip[shopTab] === it.id, act = $('#shopAct');
+    $('#shopSelName').textContent = it.name; $('#shopSelSub').textContent = eq ? 'Equipped' : own ? 'Owned · tap to wear' : `${it.price.toLocaleString()} coins`;
+    act.className = 'cta shop-act' + (eq ? ' equipped' : own ? ' owned' : save.coins < it.price ? ' cant' : '');
+    act.innerHTML = eq ? 'Equipped ✓' : own ? 'Wear it' : `<i class="coin"></i> Buy ${it.price.toLocaleString()}`;
+    act.onclick = () => { if (eq) return;
+      if (!own) { if (save.coins < it.price) { toast(`Need ${(it.price - save.coins).toLocaleString()} more coins: try Rewards or replay a level`); return; } save.coins -= it.price; save.owned[shopTab + ':' + it.id] = true; Audio.play('absorb'); buzz(30); }
+      save.equip[shopTab] = it.id; persist(); World.applySkin(save.equip); syncCoins(); buildShop(); refreshHome(); };
+    syncCoins(); }
+  function tryOn() { World.applySkin(Object.assign({}, save.equip, { [shopTab]: shopSel })); }
+  function openShop() { shopSel = save.equip[shopTab]; buildShop();
+    if (!preview) try { preview = World.preview($('#shopPreview')); } catch (er) { preview = null; }
+    cancelAnimationFrame(previewRAF); const t0 = performance.now(); const loop = (now) => { if (!$('#shop').classList.contains('on')) { World.applySkin(save.equip); return; } if (preview) preview.render((now - t0) / 1000); previewRAF = requestAnimationFrame(loop); }; previewRAF = requestAnimationFrame(loop); }
+
+  // ---- leaderboard (claude.ai artifact: shared db, one doc per player under their own id; elsewhere: your own records only)
+  const LB = { db: null, user: null, uid: null, unsub: null, ready: null, rows: [] };
+  LB.ready = (async () => { try { const C = window.claude; if (!C || !C.use) return; const [db, user] = await Promise.all([C.use('db'), C.use('user')]); LB.db = db; LB.user = user; LB.uid = user ? await user.id() : null; } catch (er) {} })();
+  const myEntry = () => ({ nick: (save.name || 'Diver').slice(0, 16), stars: totalStars(), levels: Object.keys(save.stars).length, score: Object.values(save.best).reduce((a, b) => a + b, 0), suit: save.equip.suit, updatedAt: Date.now() });
+  let lbWriting = Promise.resolve(), lbLast = '';
+  function pushScore() { lbWriting = lbWriting.then(async () => { await LB.ready; if (!LB.db || !LB.uid) return; const e = myEntry(), k = [e.nick, e.stars, e.levels, e.score, e.suit].join('|'); if (k === lbLast) return;
+      try { await LB.db.doc('board/' + LB.uid).set(e); lbLast = k; } catch (er) { if (er && er.code === 'invalid_argument') LB.readOnly = true; } }); }
+  async function openRanks() {
+    const st = $('#lbStatus'), list = $('#lbList'), me = $('#lbMe'); st.textContent = 'Loading…'; list.innerHTML = ''; me.innerHTML = '';
+    await LB.ready;
+    if (!LB.db) { st.textContent = 'Global ranks appear when you play on claude.ai. Your own best so far:'; renderRows([Object.assign(myEntry(), { id: 'me', isMe: true })]); return; }
+    pushScore(); if (LB.unsub) LB.unsub();
+    LB.unsub = LB.db.collection('board').orderBy('stars', 'desc').limit(100).onSnapshot(async snap => {
+      const rows = snap.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => (b.stars - a.stars) || (b.levels - a.levels) || (b.score - a.score));
+      st.textContent = rows.length ? `${rows.length} diver${rows.length === 1 ? '' : 's'} · live` : 'No scores yet: clear a level to be first!'; await renderRows(rows); },
+      er => { st.textContent = 'Leaderboard is offline right now. Your own best:'; renderRows([Object.assign(myEntry(), { id: 'me', isMe: true })]); });
+  }
+  async function renderRows(rows) {
+    const list = $('#lbList'), me = $('#lbMe'); let ps = {};
+    try { if (LB.user && rows.length) ps = await LB.user.profiles(rows.map(r => r.id).filter(id => id !== 'me')); } catch (er) {}
+    const row = (r, i) => { const li = document.createElement('li'); const mine = r.isMe || (LB.uid && r.id === LB.uid); li.className = 'lb-row' + (mine ? ' me' : '');
+      const rk = document.createElement('span'); rk.className = 'rk' + (i === 0 ? ' g' : i === 1 ? ' s' : i === 2 ? ' b' : ''); rk.textContent = i < 3 ? ['🥇', '🥈', '🥉'][i] : `${i + 1}`; li.appendChild(rk);
+      const p = ps[r.id]; if (p && p.avatarUrl) { const im = document.createElement('img'); im.src = p.avatarUrl; im.alt = ''; li.appendChild(im); } else { const av = document.createElement('span'); av.className = 'av'; av.textContent = (r.nick || 'D')[0].toUpperCase(); li.appendChild(av); }
+      const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = (r.nick || (p && p.name) || 'Diver') + (mine ? ' (you)' : ''); const sm = document.createElement('small'); sm.textContent = `${r.levels || 0} levels cleared`; nm.appendChild(sm); li.appendChild(nm);
+      const sv = document.createElement('span'); sv.className = 'sv'; sv.innerHTML = '<i class="st">★</i>'; sv.appendChild(document.createTextNode(r.stars || 0)); li.appendChild(sv);
+      const sc = document.createElement('span'); sc.className = 'sc'; sc.textContent = (r.score || 0).toLocaleString(); li.appendChild(sc); return li; };
+    list.innerHTML = ''; me.innerHTML = '';
+    if (!rows.length) { const e = document.createElement('li'); e.className = 'lb-empty'; e.textContent = 'Be the first diver on the board!'; list.appendChild(e); return; }
+    rows.forEach((r, i) => list.appendChild(row(r, i)));
+    if (LB.uid) { const i = rows.findIndex(r => r.id === LB.uid); if (i > 7) me.appendChild(row(rows[i], i)); }
+  }
+
   // ---- state ----
   let engine = null, levelIdx = 0, state = 'splash', acc = 0, lastFrame = performance.now(), overTimer = 0, lowAirBeep = 0, resultShown = false;
   const held = new Set(); let heldOrder = [];
@@ -3589,6 +3793,7 @@ window.__doodle = Doodle; window.__T = T;
   function setState(s) { state = s; document.body.dataset.state = s; }
   function go(id) {
     if (id === 'back') { id = screenStack.pop() || 'home'; } else { const cur = document.querySelector('.screen.on'); if (cur && cur.id !== id && id !== 'home') screenStack.push(cur.id); if (id === 'home') screenStack = []; }
+    if (id === 'shop') openShop(); if (id === 'rewards') buildRewards(); if (id === 'ranks') openRanks(); else if (LB.unsub) { LB.unsub(); LB.unsub = null; }
     if (id === 'levels') buildLevels(); if (id === 'profile') buildProfile(); if (id === 'settings') syncSettings(); if (id === 'home') refreshHome();
     if (id === 'name') { $('#nameInput').value = save.name || ''; setTimeout(() => $('#nameInput').focus(), 50); }
     show(id);
@@ -3598,12 +3803,12 @@ window.__doodle = Doodle; window.__T = T;
   // ---- home ----
   const WORLDS = [{ name: 'Sunlit Shallows', from: 0, to: 10 }, { name: 'Coral Caves', from: 10, to: 20 }, { name: 'The Deep', from: 20, to: LEVELS.length }];
   function refreshHome() {
-    if (!$('#homeName')) { const next = Math.min(save.unlocked, LEVELS.length); $('#playSub').textContent = save.unlocked > 1 ? `Continue · Level ${next}` : `Level 1 · ${LEVELS[0].name}`; return; }
     const next = Math.min(save.unlocked, LEVELS.length);
-    $('#homeName').textContent = save.name || 'Diver'; $('#homeSub').textContent = `★ ${totalStars()} · Level ${next}`;
-    $('#homeStars').textContent = totalStars();
-    $('#playSub').textContent = `Level ${next} · ${LEVELS[next - 1].name}`;
+    $('#playSub').textContent = save.unlocked > 1 ? `Continue · Level ${next}` : `Level 1 · ${LEVELS[0].name}`;
+    $('#hmName').textContent = save.name || 'Diver'; $('#hmAva').textContent = (save.name || 'D')[0].toUpperCase(); $('#hmStars').textContent = totalStars(); $('#hmLvl').textContent = next;
+    $('#hmDot').hidden = claimableCount() === 0; syncCoins();
   }
+
   let menuEngine = null;
   function showMenuScene() { menuEngine = new Engine(LEVELS[7]); menuEngine.time = 1e9; menuEngine.oxygen = 1e9; menuEngine.menu = true; world.loadLevel(menuEngine); world.onTick(menuEngine, performance.now()); }
   function openHome() { setPeekSafe(); doodleLevel = false; document.body.classList.remove('doodle-play'); Doodle.hide(); setState('menu'); go('home'); showMenuScene(); }
@@ -3677,6 +3882,7 @@ window.__doodle = Doodle; window.__T = T;
 
   // ---- levels ----
   function startLevel(i, custom) {
+    runTreasures = 0;
     Doodle.hide();
     levelIdx = i; const lv = custom || LEVELS[i];
     engine = new Engine(lv); world.loadLevel(engine);
@@ -3721,7 +3927,13 @@ window.__doodle = Doodle; window.__T = T;
     const starEls = [...document.querySelectorAll('#resStars i')]; starEls.forEach(s => s.className = '');
     if (won) {
       const frac = engine.oxygen / engine.time; const stars = frac >= 0.6 ? 3 : frac >= 0.3 ? 2 : 1;
-      save.stars[n] = Math.max(save.stars[n] || 0, stars); save.best[n] = Math.max(prevBest, engine.score);
+      const prevStars = save.stars[n] || 0, firstClear = !prevStars;
+      save.stars[n] = Math.max(prevStars, stars); save.best[n] = Math.max(prevBest, engine.score);
+      save.stats.wins++; save.stats.dug += engine.dug || 0;
+      { const parts = [['clear', 20], ['stars', stars * 10], ['first clear', firstClear ? 30 : 0], ['new stars', Math.max(0, stars - prevStars) * 15 * (firstClear ? 0 : 1)], ['treasures', runTreasures * 2]].filter(p => p[1] > 0), total = parts.reduce((a, p) => a + p[1], 0);
+        save.coins += total; $('#resCoins').hidden = false; $('#resCoinWhy').textContent = parts.map(p => `${p[0]} +${p[1]}`).join(' · ');
+        const el = $('#resCoinN'); let shown = 0; const t0 = performance.now(); const tick = (now) => { const k = Math.min(1, (now - t0) / 900); shown = Math.round(total * k * (2 - k)); el.textContent = `+${shown}`; if (k < 1) requestAnimationFrame(tick); else Audio.play('treasure'); }; setTimeout(() => requestAnimationFrame(tick), 900); }
+      pushScore();
       if (n >= save.unlocked && n < LEVELS.length) save.unlocked = n + 1; persist();
       $('#resTitle').textContent = n === LEVELS.length ? 'Cave escaped!' : ['Energized!', 'Great dive!', 'Brilliant!'][stars - 1];
       $('#resStars').hidden = false;
@@ -3731,6 +3943,7 @@ window.__doodle = Doodle; window.__T = T;
       $('#btnNext').textContent = 'Next level'; $('#btnNext').hidden = n >= LEVELS.length; $('#btnNext').classList.remove('green');
       $('#btnRetry').lastChild.textContent = 'Replay';
     } else {
+      $('#resCoins').hidden = true; save.stats.dug += engine.dug || 0; persist();
       const cause = { crushed: 'Crushed!', monster: 'Gobbled!', oxygen: 'Out of air!', self: 'Restarted', spiked: 'Spiked!' }[engine.deathCause] || 'Dive over';
       $('#resTitle').textContent = cause; $('#resStars').hidden = true; $('#resBest').hidden = true;
       $('#resStats').innerHTML = `<div class="stat"><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>energy</span></div><div class="stat"><b>${Math.max(0, Math.ceil(engine.oxygen))}s</b><span>air left</span></div>`;
