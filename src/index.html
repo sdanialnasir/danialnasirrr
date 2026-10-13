@@ -642,6 +642,17 @@ body[data-state="over"] #result.on ~ * .score, body[data-state="over"] .hud-c .s
 .world .lvl.cur { background: linear-gradient(180deg, #fff09a, var(--gold) 55%, #ffb800); border-color: #fff; box-shadow: 0 4px 0 #d98a00, 0 0 0 4px rgba(255, 210, 63, 0.35); }
 .world .lvl.perfect::after { content: "✦"; position: absolute; top: 3px; right: 6px; font-size: 0.8rem; color: #fff6b0; text-shadow: 0 0 6px #ffd23f; }
 .world .lvl { position: relative; }
+
+/* intro: letterbox bars + end title card (no colour fades) */
+body::before, body::after { content: ""; position: fixed; left: 0; right: 0; height: 0; z-index: 23; background: #01060f; transition: height .9s cubic-bezier(.3,.7,.2,1); pointer-events: none; }
+body::before { top: 0; } body::after { bottom: 0; }
+body[data-state="cine"]::before, body[data-state="cine"]::after { height: 9vh; }
+.cine-cap { background: linear-gradient(180deg, rgba(4, 28, 74, 0.82), rgba(2, 16, 46, 0.88)) !important; border: 2px solid rgba(255,255,255,0.35) !important; color: #fff !important; -webkit-text-stroke: 0 !important; text-shadow: 0 2px 0 rgba(0,0,0,0.35) !important; border-radius: 22px !important; font-size: clamp(1.05rem, 3.6vw, 1.6rem) !important; bottom: calc(env(safe-area-inset-bottom, 0px) + 12vh) !important; }
+.cine-title { position: fixed; inset: 0; z-index: 24; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; opacity: 0; transform: scale(0.92); transition: opacity .8s ease, transform 1.4s cubic-bezier(.2,.8,.2,1); pointer-events: none; }
+.cine-title.on { opacity: 1; transform: none; }
+.cine-title p { margin: 0; padding: 5px 18px; border-radius: 999px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; font-size: 0.9rem; background: rgba(5, 30, 80, 0.55); border: 1px solid rgba(255,255,255,0.4); }
+body:not([data-state="cine"]) .cine-title { opacity: 0 !important; }
+#skipIntro { z-index: 26; }
 </style>
 </head>
 <body data-state="splash">
@@ -716,6 +727,7 @@ body[data-state="over"] #result.on ~ * .score, body[data-state="over"] .hud-c .s
   </div>
 </section>
 <div id="cineCap" class="cine-cap" aria-live="polite"></div>
+<div id="cineTitle" class="cine-title" aria-hidden="true"><h1 class="title ld-title"><span>Aqua</span><span>Energizer</span></h1><p>Your dive begins</p></div>
 <div id="cineFade" class="cine-fade"></div>
 
 <section id="levels" class="screen sheet wide">

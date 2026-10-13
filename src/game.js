@@ -2059,7 +2059,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     }
     buildReef() {
       if (this.reef) { this.scene.remove(this.reef.group); this.reef.group.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
-      this.reef = Reef.build(this.quality === 'low'); this.scene.add(this.reef.group);
+      this.reef = Reef.build(this.quality === 'low'); this.scene.add(this.reef.group); this.reef.group.visible = !this.photoMode; // a tier change rebuilds it: keep it hidden behind the painting
       this.scene.fog = new THREE.Fog(0x0a4790, 60, 140);
       this.positionReef();
     }
@@ -2242,7 +2242,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         const pl = new THREE.Mesh(roundedBox(w + 0.7, 0.85, 1.3, 0.12), this.newArt ? [MAT.plinthN, MAT.plinthSideN] : [MAT.plinth, MAT.plinthSide]); pl.position.set(cx, yB - 0.42, 0); pl.castShadow = pl.receiveShadow = true; tank.add(pl);
         bar(w + 0.3, 0.1, zF - zB + 0.25, cx, yB - 0.02, 0).material = MAT.trim;
         this.pump = null; if (this.newArt) this.buildPremiumTank(tank, { x0, x1, yT, yB, cx, cy, w, h, zF, zB });
-        if (this.newArt && !e.menu) { const c = document.createElement('canvas'); c.width = 1024; c.height = 160; const g = c.getContext('2d'), idx = LEVELS.findIndex(l => l.name === e.name) + 1;
+        if (this.newArt && !e.menu && !e.cine) { const c = document.createElement('canvas'); c.width = 1024; c.height = 160; const g = c.getContext('2d'), idx = LEVELS.findIndex(l => l.name === e.name) + 1;
           const gr = g.createLinearGradient(0, 0, 0, 160); gr.addColorStop(0, '#ffe7a3'); gr.addColorStop(0.45, '#d9a63c'); gr.addColorStop(1, '#8a5a17');
           g.fillStyle = gr; g.beginPath(); g.roundRect(8, 8, 1008, 144, 36); g.fill(); g.lineWidth = 6; g.strokeStyle = '#5a3a0c'; g.stroke();
           g.strokeStyle = 'rgba(255,255,255,0.55)'; g.lineWidth = 3; g.beginPath(); g.roundRect(22, 22, 980, 116, 26); g.stroke();
@@ -2661,7 +2661,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.follow = this.camDist < dFull - 0.01;
       if (!isMobile) { this.camDist = dFull; this.follow = false; } // computers: always the whole level, no follow/zoom
       // on the home screen, pull back so the menu has room and the reef shows around the board
-      if (this.menuMode) { this.camDist = dFull * (aspect > 1 ? 2.0 : 1.35); this.follow = false; }
+      if (this.menuMode) { this.camDist = dFull * (aspect > 1 ? 1.75 : 0.98); this.follow = false; }
       if (snap) { this.updateCameraTarget(); this.camPos.copy(this.camGoal); this.camTarget.copy(this.lookGoal); }
     }
     updateCameraTarget(overview = false) {
@@ -2895,10 +2895,19 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.peekK = (this.peekK || 0) + ((this.peek && !this.menuMode ? 1 : 0) - (this.peekK || 0)) * (1 - Math.exp(-dt * (this.peek ? 3.2 : 4)));
       if (this.peekK > 0.002) { const g0 = this.camGoal.clone(), l0 = this.lookGoal.clone(); this.updateCameraTarget(true); const k = this.peekK * this.peekK * (3 - 2 * this.peekK);
         this.camGoal.lerpVectors(g0, this.camGoal.clone(), k); this.lookGoal.lerpVectors(l0, this.lookGoal.clone(), k); }
-      if (this.menuMode) { this.camGoal.x += Math.sin(t * 0.15) * 1.2; this.lookGoal.x = this.camGoal.x; const lift = this.camGoal.z * (innerHeight > innerWidth ? 0.02 : -0.045); this.camGoal.y -= lift; this.lookGoal.y -= lift; } // menu: board sits between the logo and PLAY
-      if (this.cineCam && this.cineT !== undefined && this.cineT < 4.2) { const k = Math.min(1, this.cineT / 4), ee = k * k * (3 - 2 * k), cx = (this.e.w - 1) / 2, cy = -(this.e.h - 1) / 2;
-        this.camGoal.set(cx - 8 * (1 - ee), cy + 5 * (1 - ee), this.camGoal.z * (1 + 1.7 * (1 - ee))); this.lookGoal.set(cx - 3 * (1 - ee), cy + 1.5 * (1 - ee), 0); }
-      const cl = 1 - Math.pow(0.012, dt);
+      if (this.menuMode) { this.camGoal.x += Math.sin(t * 0.15) * 1.2; this.lookGoal.x = this.camGoal.x; const lift = this.camGoal.z * (innerHeight > innerWidth ? 0.052 : -0.045); this.camGoal.y -= lift; this.lookGoal.y -= lift; } // menu: board sits between the logo and PLAY
+      let cl = 1 - Math.pow(0.012, dt);
+      if (this.cineCam && this.cineT !== undefined) { // the intro's director: descend from the surface -> follow the diver -> push in on the gate -> pull back wide
+        const e = this.e, cx = (e.w - 1) / 2, cy = -(e.h - 1) / 2, D = this.dFull || 20, T = this.cineT, sm = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
+        const pp = this.playerPos || new V3(cx, cy, 0), gx = e.gate ? e.gate.x : cx, gy = e.gate ? -e.gate.y : cy, S = this.cineShot || 'play';
+        let fx, fy, d, lift;
+        if (T < 4.6) { const k = sm(0, 4.6, T); fx = cx + (pp.x - cx) * k * 0.6; fy = cy + 3.2 * (1 - k) + (pp.y - cy) * k * 0.6; d = D * (1.25 - 0.55 * k); lift = 5.5 * (1 - k) + 0.6 * k; }
+        else if (S === 'gate') { fx = (pp.x + gx) / 2; fy = (pp.y + gy) / 2 + 0.2; d = D * 0.62; lift = 0.5; }
+        else if (S === 'wide') { fx = cx; fy = cy + 0.4; d = D * 1.08; lift = 2.2; }
+        else { fx = pp.x + this.moveDir.x * 0.6; fy = pp.y + 0.35; d = D * 0.68; lift = 0.6; }
+        const hw = Math.tan(this.camera.fov * Math.PI / 360) * d * this.camera.aspect; if (hw * 2 < e.w) fx = Math.max(hw - 1, Math.min(e.w - hw, fx)); else fx = cx; // stay inside the tank
+        this.camGoal.set(fx, fy + lift, d); this.lookGoal.set(fx, fy, 0); cl = 1 - Math.pow(T < 4.6 ? 0.2 : 0.08, dt); // slower, filmic easing
+      }
       this.camPos.lerp(this.camGoal, cl); this.camTarget.lerp(this.lookGoal, cl);
       this.shake = Math.max(0, this.shake - dt * 1.4); const sh = this.shake * this.shake * 0.5;
       const sx = (Math.random() - 0.5) * sh, sy = (Math.random() - 0.5) * sh;
@@ -3769,7 +3778,7 @@ window.__doodle = Doodle; window.__T = T;
 (() => {
   const $ = s => document.querySelector(s);
   const canvas = $('#c');
-  const world = World.create(canvas); window.__dc = { world, get engine() { return engine; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); } };
+  const world = World.create(canvas); window.__dc = { world, get engine() { return engine; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
   world.onSfx = n => Audio.play(n);
   const isTouch = World.isMobile || navigator.maxTouchPoints > 0;
   document.body.classList.toggle('touch', isTouch);
@@ -3860,7 +3869,7 @@ window.__doodle = Doodle; window.__T = T;
       save.equip[shopTab] = it.id; persist(); World.applySkin(save.equip); syncCoins(); buildShop(); refreshHome(); };
     syncCoins(); }
   // after boot, render the shop pictures a category at a time while the player sits on the home screen, so the shop opens fully drawn
-  function idleThumbs() { if (thumbBusy || state !== 'menu' && state !== 'splash') return; const cat = SHOP_TABS.map(t => t[0]).find(c => World.SKINS[c].some(it => !thumbs[c + ':' + it.id])); if (cat) setTimeout(() => { if (!thumbBusy && $('#home').classList.contains('on')) makeThumbs(cat); else setTimeout(idleThumbs, 3000); }, 1500); }
+  function idleThumbs() { if (window.__freeze || thumbBusy || state !== 'menu' && state !== 'splash') return; const cat = SHOP_TABS.map(t => t[0]).find(c => World.SKINS[c].some(it => !thumbs[c + ':' + it.id])); if (cat) setTimeout(() => { if (!thumbBusy && $('#home').classList.contains('on')) makeThumbs(cat); else setTimeout(idleThumbs, 3000); }, 1500); }
   function tryOn() { World.applySkin(Object.assign({}, save.equip, { [shopTab]: shopSel })); if (preview) preview.frame(shopTab === 'trail' ? 'trail' : 'full'); }
   // card pictures: each item rendered in 3D once (diver wearing it / its trail / the pearl), cached for the session
   const thumbs = {}; let thumbR = null, thumbBusy = false;
@@ -3931,7 +3940,7 @@ window.__doodle = Doodle; window.__T = T;
   }
 
   let menuEngine = null;
-  function showMenuScene() { menuEngine = new Engine(LEVELS[7]); menuEngine.time = 1e9; menuEngine.oxygen = 1e9; menuEngine.menu = true; world.loadLevel(menuEngine); world.onTick(menuEngine, performance.now()); }
+  function showMenuScene() { if (menuKeep) { menuKeep = false; return; } menuEngine = new Engine(LEVELS[0]); menuEngine.time = 1e9; menuEngine.oxygen = 1e9; menuEngine.menu = true; world.loadLevel(menuEngine); world.onTick(menuEngine, performance.now()); }
   function openHome() { setPeekSafe(); doodleLevel = false; document.body.classList.remove('doodle-play'); Doodle.hide(); setState('menu'); go('home'); showMenuScene(); idleThumbs(); }
   function setPeekSafe() { try { world.peek = false; } catch {} }
   // ---- intro cinematic: plays once (first launch) or on request; skippable; can't double-start
@@ -3941,15 +3950,17 @@ window.__doodle = Doodle; window.__T = T;
   let cineRunning = false;
   // ---- opening cinematic: the real game, played by itself (route verified to win Level 1)
   let cine = null, cineEngine = null;
+  let menuKeep = false; // after the intro, its finished tank stays on as the menu backdrop (no reload, no jump)
   const CINE_ROUTE = 'RRRRDDRRRRRDULLLLLULLDRRRRRRRDD';
   function cap(text) { const el = $('#cineCap'); el.classList.remove('on'); clearTimeout(cap.tm); cap.tm = setTimeout(() => { el.textContent = text; el.classList.toggle('on', !!text); }, text ? 260 : 0); }
   function startCine() {
     if (cineRunning) return; cineRunning = true; Doodle.hide();
-    setState('cine'); show(null); $('#skipIntro').hidden = false; const cf = $('#cineFade'); cf.style.transition = 'none'; cf.classList.add('on'); void cf.offsetWidth; cf.style.transition = ''; setTimeout(() => cf.classList.remove('on'), 120);
-    cineEngine = new Engine(LEVELS[0]); cineEngine.time = 999; cineEngine.oxygen = 999;
-    world.loadLevel(cineEngine); world.onTick(cineEngine, performance.now()); world.startPlay();
-    { const cx = (cineEngine.w - 1) / 2, cy = -(cineEngine.h - 1) / 2; world.camPos.set(cx - 8, cy + 5, world.camDist * 2.7); world.camTarget.set(cx - 3, cy + 1.5, 0); }
-    world.cineCam = true; world.cineT = 0; cine = { t: 0, i: 0, wait: 0, wonAt: null, said: {} }; acc = 0; frame.last = performance.now();
+    setState('cine'); show(null); $('#skipIntro').hidden = false; $('#cineTitle').classList.remove('on');
+    // same level, same look as the menu backdrop: swap engines in one frame and keep the camera where it is, so it just flies in
+    const cp = world.camPos.clone(), ct = world.camTarget.clone();
+    cineEngine = new Engine(LEVELS[0]); cineEngine.time = 999; cineEngine.oxygen = 999; cineEngine.cine = true;
+    world.loadLevel(cineEngine); world.onTick(cineEngine, performance.now()); world.startPlay(); world.camPos.copy(cp); world.camTarget.copy(ct);
+    world.cineCam = true; world.cineT = 0; world.cineShot = 'play'; cine = { t: 0, i: 0, wait: 0, wonAt: null, said: {} }; acc = 0; frame.last = performance.now();
     cap('Deep beneath the waves lies a hidden reef…');
   }
   function cineTick(realDt, now) {
@@ -3957,18 +3968,19 @@ window.__doodle = Doodle; window.__T = T;
     if (c.t > 4.2 && !c.said.b) { c.said.b = 1; cap('Its gates sleep until energy pearls wake them up.'); }
     if (c.t > 4.6 && c.i < CINE_ROUTE.length) { c.wait -= realDt * 1000; if (c.wait <= 0 && (!E.moveQueue || E.moveQueue.length === 0)) { E.press({ U: 'up', D: 'down', L: 'left', R: 'right' }[CINE_ROUTE[c.i++]]); c.wait = 300; } }
     if (c.i >= 22 && !c.said.c) { c.said.c = 1; cap('Dig through the sand and push the pearl into the gate!'); }
-    if (E.gate && E.gate.open && !c.said.d) { c.said.d = 1; cap('The gate is powered up!'); }
+    if (E.gate && E.gate.open && !c.said.d) { c.said.d = 1; c.gateAt = c.t; world.cineShot = 'gate'; cap('The gate is powered up!'); }
     acc += Math.min(250, realDt * 1000);
     while (acc >= E.tickMs) { acc -= E.tickMs; E.step(); world.onTick(E, now - acc); }
-    if (E.state === 'won' && c.wonAt === null) { c.wonAt = c.t; cap('Now dive deeper — the reef needs you!'); }
-    if (c.wonAt !== null && c.t - c.wonAt > 2.8) { $('#cineFade').classList.add('on'); }
-    if (c.wonAt !== null && c.t - c.wonAt > 3.5) endCine();
+    if (E.state === 'won' && c.wonAt === null) { c.wonAt = c.t; world.cineShot = 'wide'; cap('Now dive deeper — the reef needs you!'); }
+    if (c.wonAt !== null && c.t - c.wonAt > 2.6 && !c.said.e) { c.said.e = 1; cap(''); $('#cineTitle').classList.add('on'); }
+    if (c.wonAt !== null && c.t - c.wonAt > 5.2) endCine();
   }
   function endCine() {
-    if (!cineRunning) return; cineRunning = false; cine = null; world.cineCam = false; cap('');
-    $('#skipIntro').hidden = true; save.introSeen = true; persist(); openHome(); setTimeout(() => $('#cineFade').classList.remove('on'), 120);
+    if (!cineRunning) return; cineRunning = false; cine = null; world.cineCam = false; cap(''); $('#cineTitle').classList.remove('on');
+    menuEngine = cineEngine; cineEngine.menu = true; world.menuMode = true; world.playing = false; world.fitCamera(false); menuKeep = true; // the intro's tank becomes the menu backdrop as-is
+    $('#skipIntro').hidden = true; save.introSeen = true; persist(); openHome();
   }
-  $('#skipIntro').addEventListener('click', () => { click(); $('#cineFade').classList.add('on'); setTimeout(endCine, 380); });
+  $('#skipIntro').addEventListener('click', () => { click(); endCine(); });
   $('#btnReplayIntro').addEventListener('click', () => { click(); startCine(); });
 
   function buildLevels() {
