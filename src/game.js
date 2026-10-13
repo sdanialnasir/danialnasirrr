@@ -1986,10 +1986,13 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     }
   }
 
-  const PHOTO_BG_URI = window.AQ_DATA.PHOTO_BG_URI;
-  const PHOTO_LEVELS = new Set(LEVELS.slice(0, 4).map(l => l.name)); // painted background: the new-look trial levels (1-4)
+  const PHOTO_BG_URI = window.AQ_DATA.PHOTO_BG_URI; const PHOTO_IMG = new Image(); PHOTO_IMG.src = PHOTO_BG_URI;
+  const PHOTO_LEVELS = new Set(LEVELS.map(l => l.name)); // painted background on every level
   // which asset sheet dresses a level: 'new' (images/sheet2, the owner's new sheet) is on trial on the first 4 levels
-  const NEW_ART_LEVELS = new Set(LEVELS.slice(0, 4).map(l => l.name));
+  const NEW_ART_LEVELS = new Set(LEVELS.map(l => l.name)); // the new sheet / premium tank look on every level
+  // per-world mood for the painted backdrop: sunlit shallows, violet coral caves, the dark deep
+  const worldOf = (name) => { const i = LEVELS.findIndex(l => l.name === name); return i < 10 ? 0 : i < 20 ? 1 : 2; };
+  const WORLD_TINT = [0xffffff, 0xcdb2ff, 0x6a80c4], WORLD_FOG = [0, 0.12, 0.32];
   const ART_SETS = {
     old: { plinth: ['rocks', 'coralA', 'plant2', 'coralB', 'plant4', 'rocks', 'coralC', 'plantS', 'plant1', 'coralA', 'rocks', 'plant3', 'coralB'],
       ledge: ['plant1', 'plant2', 'plant3', 'plant4', 'plantS', 'coralA', 'coralC'], stars: ['star1', 'star2'], shells: ['shell1', 'shell2', 'shell3'], jelly: 'jelly', goal: 'goal', platform: 'platform' },
@@ -2106,7 +2109,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     // ---- photo background (test on the first level): your painting + bubbles, surface shimmer and a distant school
     buildPhotoBg() {
       if (this.photo) return; const g = new THREE.Group(); this.scene.add(g);
-      const tex = new THREE.TextureLoader().load(PHOTO_BG_URI); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4; tex.minFilter = THREE.LinearMipmapLinearFilter;
+      const tex = new THREE.Texture(PHOTO_IMG); if (PHOTO_IMG.complete && PHOTO_IMG.naturalWidth) tex.needsUpdate = true; else PHOTO_IMG.addEventListener('load', () => { tex.needsUpdate = true; }, { once: true }); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4; tex.minFilter = THREE.LinearMipmapLinearFilter;
       const AR = 1435 / 2560; const bg = new THREE.Mesh(new THREE.PlaneGeometry(1, AR), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, depthWrite: false, fog: false })); bg.renderOrder = -10; g.add(bg);
       const shimmer = new THREE.Mesh(new THREE.PlaneGeometry(1, AR), new THREE.ShaderMaterial({ uniforms: { uT: MAT.causticT }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, fog: false,
         vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
@@ -2154,11 +2157,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         const rc = P.refCam || (P.refCam = new THREE.PerspectiveCamera()); rc.fov = cam.fov; rc.aspect = cam.aspect; rc.near = cam.near; rc.far = cam.far; rc.updateProjectionMatrix();
         const d = cg.z; rc.position.set(cg.x, lg.y + d * Math.sin(this.tilt) - (lg.y - cg.y), d * Math.cos(this.tilt)); rc.lookAt(lg.x, lg.y, 0); rc.updateMatrixWorld(true);
         P.fixed = this.photoFit(rc, AR); }
-      let { pos, q, sc } = this.menuMode ? this.photoFit(cam, AR) : P.fixed;
-      if (this.cineCam && this.cineT !== undefined && this.cineT < 4.2) { // intro fly-in: blend from screen-locked to the fixed placement
-        const k = Math.min(1, this.cineT / 4), ee = k * k * (3 - 2 * k), live = this.photoFit(cam, AR);
-        pos = live.pos.lerp(pos, ee); q = live.q.slerp(q, ee); sc = live.sc + (sc - live.sc) * ee; }
-      for (const m of [P.bg, P.shimmer]) { m.scale.set(sc, sc, 1); m.position.copy(pos); m.quaternion.copy(q); }
+      let { pos, q, sc } = this.menuMode || this.cineCam ? this.photoFit(cam, AR) : P.fixed; // menu + intro fly-in: always fill the screen
+            for (const m of [P.bg, P.shimmer]) { m.scale.set(sc, sc, 1); m.position.copy(pos); m.quaternion.copy(q); }
       const fov = cam.fov * Math.PI / 180, hView = 2 * Math.tan(fov / 2) * (P.fixed.pos.distanceTo(P.refCam.position) - 8), wView = hView * cam.aspect, cx = P.refCam.position.x, cy = P.refCam.position.y;
       P.bubbles.position.set(cx, cy, 0); P.bubM.uniforms.uW.value = wView * 0.75; P.bubM.uniforms.uH.value = hView * 0.9; P.bubM.uniforms.scale.value = innerHeight * this.pixelRatio * 0.9;
       const d0 = new THREE.Object3D(), span = wView * 0.7, sx = ((t * 0.9) % (span * 2.4)) - span * 1.2;
@@ -2377,9 +2377,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           const nT = Math.round(span * 0.35); let k = 0; place(blade, gm, nT * 7, (d, i) => { if (i % 7 === 0) k = [x0f + rnd() * span, 1.0 + rnd() * 1.4]; const x = k[0] + (rnd() - 0.5) * 0.25, z = k[1] + (rnd() - 0.5) * 0.2; d.position.set(x, groundY(x, z) - 0.02, z); d.rotation.set((rnd() - 0.5) * 0.4, rnd() * 3, (rnd() - 0.5) * 0.5); d.scale.set(1, 0.6 + rnd() * 0.9, 1); return new THREE.Color().setHSL(0.3 + rnd() * 0.06, 0.5, 0.35 + rnd() * 0.15); }); }
         if (photoMode) { // ONE seabed: an unlit sand floor in the painting's own sand colours and light-net style, from the screen's bottom edge
           // back to where the painted sand meets the rocks, fading into the painting there (so the 3D props and the painting share one ground)
-          const gm = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uT: MAT.causticT },
+          const gm = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uT: MAT.causticT, uTint: { value: new THREE.Color(e.menu ? 0xffffff : WORLD_TINT[worldOf(e.name)]) } },
             vertexShader: 'varying vec3 vW; void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); vW = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; }',
-            fragmentShader: `uniform float uT; varying vec3 vW;
+            fragmentShader: `uniform float uT; uniform vec3 uTint; varying vec3 vW;
               float hs(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
               float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hs(i), hs(i + vec2(1.0, 0.0)), f.x), mix(hs(i + vec2(0.0, 1.0)), hs(i + vec2(1.0, 1.0)), f.x), f.y); }
               void main() { vec2 p = vW.xz; float far = smoothstep(2.0, -20.0, vW.z);
@@ -2389,7 +2389,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
                 float net = pow(max(0.0, 1.0 - abs(a + b) * 0.5), 5.0);                                  // the painting's bright light net, moving
                 c = mix(c, vec3(1.0, 0.965, 0.553), net * 0.7 * (1.0 - far * 0.5));
                 c = mix(c, vec3(0.588, 0.733, 0.749), smoothstep(-13.0, -23.0, vW.z) * 0.6);                 // the painting's far, hazy sea floor
-                gl_FragColor = vec4(pow(c, vec3(2.2)), 1.0 - smoothstep(-14.0, -24.0, vW.z)); }` });
+                gl_FragColor = vec4(pow(c, vec3(2.2)) * uTint, 1.0 - smoothstep(-14.0, -24.0, vW.z)); }` });
           const gp = new THREE.PlaneGeometry(span + 140, 160); gp.rotateX(-Math.PI / 2); const ground = new THREE.Mesh(gp, gm); ground.position.set((W - 1) / 2, yF + 0.005, 50); ground.renderOrder = -6; ground.frustumCulled = false; this.levelGroup.add(ground);
           const mk = (draw) => { const c = document.createElement('canvas'); c.width = c.height = 256; draw(c.getContext('2d')); const t = new THREE.CanvasTexture(c); return t; };
           const blob = mk(g => { const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128); gr.addColorStop(0, 'rgba(18,26,48,0.85)'); gr.addColorStop(0.55, 'rgba(18,26,48,0.35)'); gr.addColorStop(1, 'rgba(18,26,48,0)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256); });
@@ -2464,7 +2464,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       { const S = Math.max(W, H) * 0.62 + 2, c = this.key.shadow.camera; c.left = -S; c.right = S; c.top = S; c.bottom = -S; c.near = 1; c.far = 40; c.updateProjectionMatrix(); }
       this.rim.target.position.copy(this.key.target.position); this.rim.position.set((W - 1) / 2 + 4, -(H - 1) / 2 + 10, -6);
       this.positionReef();
-      { const usePhoto = PHOTO_LEVELS.has(e.name) || !!e.menu; this.photoMode = usePhoto; if (usePhoto) this.buildPhotoBg(); if (this.photo) this.photo.group.visible = usePhoto;
+      { const usePhoto = PHOTO_LEVELS.has(e.name) || !!e.menu; this.photoMode = usePhoto; if (usePhoto) this.buildPhotoBg(); if (this.photo) this.photo.bg.material.color.set(e.menu ? 0xffffff : WORLD_TINT[worldOf(e.name)]); if (this.photo) this.photo.group.visible = usePhoto;
         if (this.reef) this.reef.group.visible = !usePhoto; this.backdrop.visible = !usePhoto; this.rays.visible = !usePhoto; }
       this.fitCamera(true, !e.menu);
     }
@@ -2911,12 +2911,16 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (this.reef) { this.reef.update(t); const cd = this.camera.position.z; this.scene.fog.near = cd - 2; this.scene.fog.far = cd + 40; this.reef.snowMat.uniforms.scale.value = innerHeight * this.pixelRatio * 0.9; }
       if (this.fx) this.fx.classList.toggle('lowair', e.state === 'playing' && e.oxygen < 15);
     }
+    warm(e) { this.loadLevel(e); this.onTick(e, performance.now()); this.fitCamera(true, true); for (let i = 0; i < 2; i++) { this.update(0.016, performance.now()); this.render(); } }
     render() {
       // phones: refresh the shadow map every other frame (the key light and tank never move; bobbing at 30 Hz is indistinguishable)
       const sm = this.renderer.shadowMap; if (isMobile && sm.enabled) { sm.autoUpdate = false; this.frameN = (this.frameN || 0) + 1; if (this.frameN % 2 === 0 || this.shadowDirty) { sm.needsUpdate = true; this.shadowDirty = false; } }
       this.post.render(this.scene, this.camera, this.time); }
   }
-  return { create: c => new WorldImpl(c), isMobile, SKINS, SKIN, applySkin, preview: (cv, thumb) => new SkinPreview(cv, thumb), trailColor, rarityOf };
+  // resolves once every image the scenes use is decoded (the loading screen waits on it), reporting progress 0..1
+  function ready(onProgress) { const ims = [...Object.values(SPR.img), PHOTO_IMG]; let done = 0;
+    return Promise.all(ims.map(im => (im.decode ? im.decode() : Promise.resolve()).catch(() => {}).then(() => { done++; if (onProgress) onProgress(done / ims.length); }))); }
+  return { create: c => new WorldImpl(c), isMobile, ready, SKINS, SKIN, applySkin, preview: (cv, thumb) => new SkinPreview(cv, thumb), trailColor, rarityOf };
 })();
 
 // Aqua Energizer — hand-drawn doodle intro (≈28 s) and doodle menu background.
@@ -3765,7 +3769,7 @@ window.__doodle = Doodle; window.__T = T;
 (() => {
   const $ = s => document.querySelector(s);
   const canvas = $('#c');
-  const world = World.create(canvas); window.__dc = { world, get engine() { return engine; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { startLevel(i); beginPlay(); }, go: (id) => go(id) };
+  const world = World.create(canvas); window.__dc = { world, get engine() { return engine; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); } };
   world.onSfx = n => Audio.play(n);
   const isTouch = World.isMobile || navigator.maxTouchPoints > 0;
   document.body.classList.toggle('touch', isTouch);
@@ -3855,13 +3859,15 @@ window.__doodle = Doodle; window.__T = T;
       if (!own) { if (save.coins < it.price) { toast(`Need ${(it.price - save.coins).toLocaleString()} more coins: try Rewards or replay a level`); return; } save.coins -= it.price; save.owned[shopTab + ':' + it.id] = true; Audio.play('absorb'); buzz(30); }
       save.equip[shopTab] = it.id; persist(); World.applySkin(save.equip); syncCoins(); buildShop(); refreshHome(); };
     syncCoins(); }
+  // after boot, render the shop pictures a category at a time while the player sits on the home screen, so the shop opens fully drawn
+  function idleThumbs() { if (thumbBusy || state !== 'menu' && state !== 'splash') return; const cat = SHOP_TABS.map(t => t[0]).find(c => World.SKINS[c].some(it => !thumbs[c + ':' + it.id])); if (cat) setTimeout(() => { if (!thumbBusy && $('#home').classList.contains('on')) makeThumbs(cat); else setTimeout(idleThumbs, 3000); }, 1500); }
   function tryOn() { World.applySkin(Object.assign({}, save.equip, { [shopTab]: shopSel })); if (preview) preview.frame(shopTab === 'trail' ? 'trail' : 'full'); }
   // card pictures: each item rendered in 3D once (diver wearing it / its trail / the pearl), cached for the session
   const thumbs = {}; let thumbR = null, thumbBusy = false;
   function makeThumbs(cat) { if (thumbBusy) return; const todo = World.SKINS[cat].filter(it => !thumbs[cat + ':' + it.id]); if (!todo.length) return;
     try { if (!thumbR) { const cv = document.createElement('canvas'); cv.width = cv.height = 220; thumbR = World.preview(cv, true); } } catch (er) { return; }
     thumbBusy = true; const mode = cat === 'hat' ? 'head' : cat === 'trail' ? 'trailCard' : cat === 'pearl' ? 'pearl' : 'card';
-    const step = () => { const it = todo.shift(); if (!it) { thumbBusy = false; tryOn(); if ($('#shop').classList.contains('on')) buildShop(); return; } // also starts the tab the player moved to meanwhile
+    const step = () => { const it = todo.shift(); if (!it) { thumbBusy = false; tryOn(); if ($('#shop').classList.contains('on')) buildShop(); else idleThumbs(); return; } // also starts the tab the player moved to meanwhile
       World.applySkin(Object.assign({}, save.equip, { [cat]: it.id })); thumbs[cat + ':' + it.id] = thumbR.shot(mode); tryOn(); setTimeout(step, 0); }; // restore right away so the live preview never shows a card's skin
     step(); }
   function openShop() { shopSel = save.equip[shopTab]; buildShop();
@@ -3926,7 +3932,7 @@ window.__doodle = Doodle; window.__T = T;
 
   let menuEngine = null;
   function showMenuScene() { menuEngine = new Engine(LEVELS[7]); menuEngine.time = 1e9; menuEngine.oxygen = 1e9; menuEngine.menu = true; world.loadLevel(menuEngine); world.onTick(menuEngine, performance.now()); }
-  function openHome() { setPeekSafe(); doodleLevel = false; document.body.classList.remove('doodle-play'); Doodle.hide(); setState('menu'); go('home'); showMenuScene(); }
+  function openHome() { setPeekSafe(); doodleLevel = false; document.body.classList.remove('doodle-play'); Doodle.hide(); setState('menu'); go('home'); showMenuScene(); idleThumbs(); }
   function setPeekSafe() { try { world.peek = false; } catch {} }
   // ---- intro cinematic: plays once (first launch) or on request; skippable; can't double-start
   // EXPERIMENT: the first DOODLE_LEVELS levels are drawn in the hand-drawn style. Set to 0 to revert.
@@ -3939,7 +3945,7 @@ window.__doodle = Doodle; window.__T = T;
   function cap(text) { const el = $('#cineCap'); el.classList.remove('on'); clearTimeout(cap.tm); cap.tm = setTimeout(() => { el.textContent = text; el.classList.toggle('on', !!text); }, text ? 260 : 0); }
   function startCine() {
     if (cineRunning) return; cineRunning = true; Doodle.hide();
-    setState('cine'); show(null); $('#skipIntro').hidden = false;
+    setState('cine'); show(null); $('#skipIntro').hidden = false; const cf = $('#cineFade'); cf.style.transition = 'none'; cf.classList.add('on'); void cf.offsetWidth; cf.style.transition = ''; setTimeout(() => cf.classList.remove('on'), 120);
     cineEngine = new Engine(LEVELS[0]); cineEngine.time = 999; cineEngine.oxygen = 999;
     world.loadLevel(cineEngine); world.onTick(cineEngine, performance.now()); world.startPlay();
     { const cx = (cineEngine.w - 1) / 2, cy = -(cineEngine.h - 1) / 2; world.camPos.set(cx - 8, cy + 5, world.camDist * 2.7); world.camTarget.set(cx - 3, cy + 1.5, 0); }
@@ -3967,14 +3973,14 @@ window.__doodle = Doodle; window.__T = T;
 
   function buildLevels() {
     const box = $('#worlds'); box.innerHTML = '';
-    WORLDS.forEach(w => {
-      const sec = document.createElement('div'); sec.className = 'world';
+    WORLDS.forEach((w, wi) => {
+      const sec = document.createElement('div'); sec.className = 'world w' + wi;
       let st = 0; for (let i = w.from; i < w.to; i++) st += save.stars[i + 1] || 0;
-      sec.innerHTML = `<h3>${w.name}<span>★ ${st} / ${(w.to - w.from) * 3}</span></h3>`;
+      sec.innerHTML = `<h3><em>World ${wi + 1}</em>${w.name}<span>★ ${st} / ${(w.to - w.from) * 3}</span></h3>`;
       const grid = document.createElement('div'); grid.className = 'lgrid';
       for (let i = w.from; i < w.to; i++) {
         const n = i + 1, locked = n > save.unlocked, stars = save.stars[n] || 0;
-        const b = document.createElement('button'); b.className = 'lvl' + (locked ? ' locked' : '') + (n === save.unlocked ? ' cur' : '');
+        const b = document.createElement('button'); b.className = 'lvl' + (locked ? ' locked' : '') + (n === save.unlocked ? ' cur' : '') + (stars === 3 ? ' perfect' : '');
         b.setAttribute('aria-label', locked ? `Level ${n}, locked` : `Level ${n}, ${LEVELS[i].name}, ${stars} stars`);
         b.innerHTML = locked ? `<span class="n">${n}</span><svg class="i" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`
           : `<span class="n">${n}</span><span class="st">${'★'.repeat(stars)}<i>${'★'.repeat(3 - stars)}</i></span>`;
@@ -3987,6 +3993,7 @@ window.__doodle = Doodle; window.__T = T;
   }
   function buildProfile() {
     $('#profName').textContent = save.name || 'Diver';
+    $('#profAva').textContent = (save.name || 'D')[0].toUpperCase();
     const cleared = Object.keys(save.stars).length, best = Object.values(save.best).reduce((a, b) => a + b, 0), three = Object.values(save.stars).filter(s => s === 3).length;
     $('#profSub').textContent = `Reached level ${Math.min(save.unlocked, LEVELS.length)} of ${LEVELS.length}`;
     $('#profStats').innerHTML = `<div class="stat"><b>${totalStars()}</b><span>stars</span></div><div class="stat"><b>${cleared}</b><span>levels cleared</span></div><div class="stat"><b>${three}</b><span>perfect levels</span></div>
@@ -3997,6 +4004,7 @@ window.__doodle = Doodle; window.__T = T;
 
   // ---- levels ----
   function startLevel(i, custom) {
+    if (typeof booting !== 'undefined' && booting) dropLoader();
     runTreasures = 0;
     Doodle.hide();
     levelIdx = i; const lv = custom || LEVELS[i];
@@ -4109,7 +4117,7 @@ window.__doodle = Doodle; window.__T = T;
   });
   addEventListener('keyup', ev => { const dir = KEYS[ev.key]; if (dir) setHeld(dir, false); });
   addEventListener('blur', () => { held.clear(); heldOrder = []; endTouch(); if (engine) engine.hold(null); });
-  document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'playing') pause(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'playing') pause(); const ac = Audio.ctx; if (ac) { try { document.hidden ? ac.suspend() : ac.resume(); } catch (er) {} } }); // silent + paused in the background
 
   // ---- hold to view the whole map ----
   const mapBtn = $('#btnMap');
@@ -4229,7 +4237,19 @@ window.__doodle = Doodle; window.__T = T;
   }
   addEventListener('resize', () => world.resize());
   requestAnimationFrame(frame);
-  setState('splash'); show('splash'); showMenuScene();
+  // ---- boot: loading screen -> decode art -> pre-build & pre-compile the intro level, a monster level and the menu -> title screen
+  setState('splash'); show(null); let booting = true;
+  const dropLoader = () => { booting = false; const L = $('#loader'); if (L) { L.classList.add('done'); setTimeout(() => L.remove(), 700); } };
+  (async () => { const bar = $('#loadBar'), tip = $('#loadTip'), pause = () => new Promise(r => setTimeout(r, 0)); let shown = 0;
+    const prog = (k, msg) => { shown = Math.max(shown, k); if (bar) bar.style.width = (shown * 100).toFixed(0) + '%'; if (msg && tip) tip.textContent = msg; };
+    try {
+      prog(0.04, 'Filling the tank…'); await World.ready(k => prog(0.04 + k * 0.46));
+      if (!booting) return; prog(0.52, 'Warming up the lights…'); await pause(); if (!booting) return; const e1 = new Engine(LEVELS[0]); e1.time = e1.oxygen = 999; world.warm(e1);
+      if (!booting) return; prog(0.72, 'Waking up the reef…'); await pause(); if (!booting) return; const e2 = new Engine(LEVELS[Math.min(13, LEVELS.length - 1)]); e2.time = e2.oxygen = 999; world.warm(e2);
+      if (!booting) return; prog(0.9, 'Almost there…'); await pause(); if (!booting) return; showMenuScene(); world.warm(menuEngine);
+    } catch (er) { console.warn('preload', er); try { showMenuScene(); } catch (e2) {} }
+    if (!booting) return; prog(1, 'Ready!'); await new Promise(r => setTimeout(r, 250)); if (!booting) return;
+    show('splash'); dropLoader(); setTimeout(idleThumbs, 4000); })();
 })();
 
 })();

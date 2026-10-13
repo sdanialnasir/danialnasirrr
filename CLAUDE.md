@@ -115,5 +115,29 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 3. Walking into a closed gate gives no feedback — add a short toast ("Deliver all energy first").
 4. Undo rebuilds the level visuals: treasures that had fallen jump back into the sand.
 5. Roll the painted background out to all levels (or per-world paintings) once the owner approves.
-6. Skins / shop / currency (the HUD has no "+" yet) — planned by the owner, not started.
+6. ~~Skins / shop / currency~~ — done (see below).
 7. Delete the legacy `Doodle` module and unused CSS once nothing references them.
+
+---
+
+## Added in the launch pass (keep in sync)
+- **Look:** every level uses the new sheet (`src/assets/images/sheet2`, `ART_SETS.new`), the painted background,
+  one shader seabed in the painting's colours, and the premium tank (navy frame, teak stand, brass level plaque,
+  water surface, sun shafts, air-stone bubbles). Per-world mood via `WORLD_TINT` (shallows / violet caves / deep).
+- **Shadows:** baked sprite shadows (`addSprShadow`), back-wall AO + cast shadow (`buildOcclusion`), entity drop +
+  contact shadows (`syncEntityShadows`). All fall down-right along `SHADOW_DIR` (the key light).
+- **Sand:** 3D blocks with matching rounded corners + inner fillets (`syncSandBlocks`); a dug cell and its
+  neighbours switch at the dig midpoint (k = 0.5) so nothing seams mid-dig.
+- **Diver:** spring locomotion, lean, reach/push, expressive face, moods (`playerMood`), death poses
+  (`animateDeath`), voice SFX (`voice()` in Audio). Skins: `SKINS` / `applySkin` / `makeHat` / `suitTex`.
+- **Graphics tiers:** low/medium/high/ultra + Auto (`setQuality`, `autoQuality`; phones use dynamic resolution
+  first). Post has a NaN/Inf guard — keep `pow()` bases clamped in shaders (mobile GPUs return NaN for x<0).
+- **Boot:** `#loader` decodes all art (`World.ready`) and pre-builds/compiles level 1, a monster level and the
+  menu (`world.warm`) before the title shows. Shop thumbnails render in idle time on the home screen.
+- **Meta:** coins, shop (5 categories, rarity tiers, 3D card renders), daily treasure + achievements, leaderboard.
+  Save keys in `localStorage['dc-save']`: coins, owned, equip, stats, ach, daily. Leaderboard uses the claude.ai
+  artifact `db` capability (`board/<userId>` docs; rules: everyone reads, each writes own) and falls back to the
+  player's own best elsewhere. Publish with capabilities
+  `{db:{rules:[{path:"board",read:"view",write:"owner"},{path:"board/{self}",write:"interact"}]},user:{scopes:["profile"]}}`.
+- **Tests on this machine:** headless rendering is software, so the loader takes ~50 s here (1-3 s on devices);
+  tests call `startIndex` / `__dc.go`, which skip the loader.

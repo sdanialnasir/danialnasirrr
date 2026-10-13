@@ -1,13 +1,13 @@
 {
-  "name": "Deep Current",
-  "short_name": "Deep Current",
-  "description": "Underwater stone-and-sand puzzle. Dig, push the energy balls home, escape before your air runs out.",
+  "name": "Aqua Energizer",
+  "short_name": "Aqua Energizer",
+  "description": "Cosy underwater dig-and-push puzzle: roll energy pearls into the gate and escape before your air runs out.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "fullscreen",
   "orientation": "any",
-  "background_color": "#041a2e",
-  "theme_color": "#041a2e",
+  "background_color": "#0b5fc4",
+  "theme_color": "#0b5fc4",
   "icons": [
     {
       "src": "icons/icon-192.png",
