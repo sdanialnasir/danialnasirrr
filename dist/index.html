@@ -593,6 +593,7 @@ body[data-state="playing"] #hudB { display: flex; }
 #lvlBanner.on { opacity: 1; transform: translate(-50%, 0) scale(1); }
 #lvlBanner small { display: block; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.14em; text-transform: uppercase; color: #cfe6ff; text-shadow: 0 2px 6px rgba(0, 20, 70, 0.8); }
 #lvlBanner b { display: block; font-family: var(--display); font-weight: 400; font-size: 2.3rem; line-height: 1; color: var(--gold); -webkit-text-stroke: 5px #0b2f6e; paint-order: stroke fill; text-shadow: 0 4px 0 #062a6a, 0 8px 20px rgba(0,0,0,0.4); white-space: nowrap; }
+#lvlBanner.go b { color: #7dffc0; -webkit-text-stroke-color: #0b3a2a; text-shadow: 0 4px 0 #06281c, 0 0 26px rgba(80,255,170,0.6); }
 #lvlBanner em { display: block; margin-top: 8px; font-style: normal; font-weight: 800; font-size: 1rem; color: #fff; text-shadow: 0 2px 6px rgba(0, 20, 70, 0.9); max-width: 86vw; white-space: normal; }
 </style>
 </head>
@@ -3603,7 +3604,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         case 'roll': this.sfx('roll'); break;
         case 'absorb': { P.emit(x, y, 0.5, 40, { color: new THREE.Color(1, 0.55, 0.25), speed: 2.6, life: 0.8, size: 0.14 }); P.emit(x, y, 0.5, 30, { color: new THREE.Color(0.5, 0.9, 1), speed: 2, life: 1, size: 0.12 }); this.sfx('absorb'); this.popText(x, y + 0.2, e.ballsIn >= e.ballsTotal ? 'All energy!' : `${e.ballsIn}/${e.ballsTotal}`, '#ffb36a'); if (this.onStat && !this.menuMode) this.onStat('pearl'); this.playerMood('joy', 1.25); setTimeout(() => this.sfx('yay'), 260);
           const ent = this.entities.get(ev.id); if (ent) { ent.absorbing = { t: 0, from: new V3(ev.fromX, -ev.fromY, 0.05), to: new V3(x, y, 0.3) }; this.entities.delete(ev.id); this.absorbing.push(ent); } break; }
-        case 'gateOpen': { this.playerMood('joy', 1.25); this.flashFx('flash'); P.emit(x, y, 0.5, 70, { color: new THREE.Color(0.55, 0.95, 1), speed: 3.5, life: 1.3, size: 0.16 }); P.bubbles(x, y, 0.2, 18, 0.12, 0.8); this.sfx('gateOpen'); this.shake = 0.18; break; }
+        case 'gateOpen': { if (this.onGateOpen && !this.menuMode) this.onGateOpen(); this.playerMood('joy', 1.25); this.flashFx('flash'); P.emit(x, y, 0.5, 70, { color: new THREE.Color(0.55, 0.95, 1), speed: 3.5, life: 1.3, size: 0.16 }); P.bubbles(x, y, 0.2, 18, 0.12, 0.8); this.sfx('gateOpen'); this.shake = 0.18; break; }
         case 'gateLocked': if (this.onToast && this.time - (this.lastLockToast ?? -9) > 2.5) { this.lastLockToast = this.time; this.onToast(`Deliver all energy first (${e.ballsIn}/${e.ballsTotal})`); } this.sfx('gateLocked'); this.playerMood('bonk', 0.55); this.sfx('hmm'); break;
         case 'monsterDeath': { P.bubbles(x, y, 0.2, 14, 0.1, 0.6); this.popText(x, y, 'Bonk!', '#ff8fd0'); P.emit(x, y, 0.4, 20, { color: new THREE.Color(1, 0.7, 0.4), speed: 2, life: 0.7, size: 0.12 }); this.sfx('monsterDeath'); this.shake = Math.max(this.shake, 0.12);
           for (const ent of this.entities.values()) if (ent.o.x === ev.x && ent.o.y === ev.y && ent.o.t === ev.t) { ent.ghost = { t: 0, kind: 'monster' }; this.ghosts.push(ent); this.entities.delete(ent.o.id); } break; }
@@ -3840,7 +3841,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             fragmentShader: 'uniform float uT, uK; varying vec2 vUv; void main(){ float x = abs(vUv.x - 0.5) * 2.0; float a = pow(max(0.0, 1.0 - x), 2.5) * pow(max(0.0, 1.0 - vUv.y), 1.6) * (0.7 + 0.3 * sin(uT * 3.0 - vUv.y * 9.0)) * uK; gl_FragColor = vec4(vec3(0.55, 1.0, 0.8) * a, a); }' }));
           this.gateBeam.renderOrder = 7; this.scene.add(this.gateBeam); }
         this.gateBeam.position.set(this.gateObj.position.x, this.gateObj.position.y + 1.95, 0.5);
-        const bk = this.gateBeam.material.uniforms.uK; bk.value += ((open ? 0.85 : 0) - bk.value) * Math.min(1, dt * 3); this.gateBeam.visible = bk.value > 0.01; } else if (this.gateBeam) this.gateBeam.visible = false; if (!this.gateObj) this.gateLight.intensity = 0;
+        const bk = this.gateBeam.material.uniforms.uK; bk.value += ((open ? 0.85 : 0) - bk.value) * Math.min(1, dt * 3); this.gateBeam.visible = bk.value > 0.01; } else if (this.gateBeam) this.gateBeam.visible = false; if (!this.gateObj) { this.gateLight.intensity = 0; if (this.gateArrow) this.gateArrow.visible = false; }
       // gate
       if (this.gateObj) {
         const g = this.gateObj, open = e.gate.open ? 1 : 0; g.userData.k = (g.userData.k || 0) + (open - (g.userData.k || 0)) * Math.min(1, dt * 3); const ok = g.userData.k;
@@ -3848,6 +3849,15 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         g.userData.glow.material.opacity = 0.18 + ok * 0.28 + Math.sin(t * 4) * 0.05 * (0.3 + ok);
         g.userData.screen.position.y = -0.06 + (open ? Math.sin(t * 5) * 0.01 : 0);
         if (open && Math.random() < 0.25) this.particles.bubbles(g.position.x + (Math.random() - 0.5) * 0.5, g.position.y, 0.5, 1, 0.06, 0.2);
+        { // once the gate is awake, a bouncing "Swim in!" marker above it until the diver goes in (new players didn't know to)
+          if (!this.gateArrow) { const c = document.createElement('canvas'); c.width = 256; c.height = 200; const gx = c.getContext('2d');
+            gx.font = '58px "Lilita One", "Baloo 2", sans-serif'; gx.textAlign = 'center'; gx.textBaseline = 'middle'; gx.lineJoin = 'round';
+            gx.fillStyle = 'rgba(4,40,30,0.55)'; gx.beginPath(); gx.roundRect(18, 6, 220, 84, 42); gx.fill(); gx.lineWidth = 10; gx.strokeStyle = '#0b3a2a'; gx.strokeText('Swim in!', 128, 50); gx.fillStyle = '#9dffcf'; gx.fillText('Swim in!', 128, 50);
+            gx.beginPath(); gx.moveTo(92, 112); gx.lineTo(164, 112); gx.lineTo(128, 186); gx.closePath(); gx.lineWidth = 12; gx.strokeStyle = '#0b3a2a'; gx.stroke(); gx.fillStyle = '#5dffb0'; gx.fill();
+            const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; this.gateArrow = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthTest: false, depthWrite: false, toneMapped: false })); this.gateArrow.renderOrder = 9; this.gateArrow.scale.set(1.7, 1.33, 1); this.scene.add(this.gateArrow);
+            if (document.fonts && document.fonts.load) document.fonts.load('58px "Lilita One"').then(() => { gx.clearRect(0, 0, 256, 200); gx.fillStyle = 'rgba(4,40,30,0.55)'; gx.beginPath(); gx.roundRect(18, 6, 220, 84, 42); gx.fill(); gx.lineWidth = 10; gx.strokeStyle = '#0b3a2a'; gx.strokeText('Swim in!', 128, 50); gx.fillStyle = '#9dffcf'; gx.fillText('Swim in!', 128, 50); gx.beginPath(); gx.moveTo(92, 112); gx.lineTo(164, 112); gx.lineTo(128, 186); gx.closePath(); gx.lineWidth = 12; gx.strokeStyle = '#0b3a2a'; gx.stroke(); gx.fillStyle = '#5dffb0'; gx.fill(); tx.needsUpdate = true; }).catch(() => {}); }
+          const show = !!e.gate.open && e.state === 'playing' && !this.menuMode && !e.cine; this.gateArrow.visible = show;
+          if (show) { const b = Math.abs(Math.sin(t * 3.2)); this.gateArrow.position.set(g.position.x, g.position.y + 1.45 + b * 0.25, 0.9); this.gateArrow.material.opacity = Math.min(1, ok * 1.5); } }
         const G = this.gateFx; if (G) { const fr = e.ballsTotal ? e.ballsIn / e.ballsTotal : 1;
           if (e.ballsIn > G.lit) { G.lit = e.ballsIn; G.burst = 1; } if (e.ballsIn < G.lit) G.lit = e.ballsIn;
           G.burst = Math.max(0, G.burst - dt * 1.4); const pulse = 0.5 + 0.5 * Math.sin(t * (2 + fr * 4 + ok * 3));
@@ -3925,6 +3935,8 @@ window.__T = T;
   const canvas = $('#c');
   const world = World.create(canvas); window.__dc = { world, get engine() { return engine; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), World, intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
   world.onSfx = n => Audio.play(n); world.onToast = m => toast(m);
+  let gateOpenAt = 0, gateNudged = true;
+  world.onGateOpen = () => { gateOpenAt = performance.now(); gateNudged = false; banner('The gate is awake!', 'Swim in!', 'Swim into the glowing gate to carry the light home.', 3200); };
   const isTouch = World.isMobile || navigator.maxTouchPoints > 0;
   document.body.classList.toggle('touch', isTouch);
 
@@ -4171,7 +4183,7 @@ window.__T = T;
     runTreasures = 0;
     levelIdx = i; const lv = custom || LEVELS[i];
     engine = new Engine(lv); world.loadLevel(engine);
-    window.__LEVELSCENE = (custom || LEVELS[i]).scene || null; history = []; stuckTimer = 0; stuckShown = false;
+    window.__LEVELSCENE = (custom || LEVELS[i]).scene || null; history = []; stuckTimer = 0; stuckShown = false; gateNudged = true;
     { const ph = $('#pauseHint'); if (ph) ph.textContent = lv.hint || ''; }
     tickWorld(engine, performance.now());
     held.clear(); heldOrder = []; acc = 0; overTimer = 0; lowAirBeep = 0; resultShown = false; endTouch();
@@ -4182,9 +4194,11 @@ window.__T = T;
   }
   function beginPlay() { if (state !== 'intro' && state !== 'paused') return; const fromIntro = state === 'intro'; setState('playing'); show(null); lastFrame = performance.now(); acc = 0; world.lastTick = performance.now(); if (fromIntro) { world.startPlay(); banner(); } }
   let bannerTimer = null;
-  function banner() { const lv = LEVELS[levelIdx], b = $('#lvlBanner'); if (!lv) return; $('#lbNum').textContent = `Level ${levelIdx + 1}`; $('#lbName').textContent = lv.name;
-    const tip = (lv.tip && !(save.tipsSeen || {})[levelIdx]) ? lv.tip : ''; $('#lbTip').textContent = tip; if (tip) { save.tipsSeen = save.tipsSeen || {}; save.tipsSeen[levelIdx] = 1; persist(); }
-    b.classList.add('on'); clearTimeout(bannerTimer); bannerTimer = setTimeout(() => b.classList.remove('on'), tip ? 3600 : 1900); }
+  function banner(small, big, line, ms) { const lv = LEVELS[levelIdx], b = $('#lvlBanner'); if (!lv) return;
+    let tip = line || '';
+    if (small === undefined) { small = `Level ${levelIdx + 1}`; big = lv.name; tip = (lv.tip && !(save.tipsSeen || {})[levelIdx]) ? lv.tip : ''; if (tip) { save.tipsSeen = save.tipsSeen || {}; save.tipsSeen[levelIdx] = 1; persist(); } ms = tip ? 3600 : 1900; }
+    $('#lbNum').textContent = small; $('#lbName').textContent = big; $('#lbTip').textContent = tip; b.classList.toggle('go', big === 'Swim in!');
+    b.classList.add('on'); clearTimeout(bannerTimer); bannerTimer = setTimeout(() => b.classList.remove('on'), ms || 1900); }
   let toastTimer = null;
   function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 2200); }
   function pause() { if (state !== 'playing') return; endTouch(); setPeek(false); setState('paused'); syncSound(); show('pause'); }
@@ -4381,6 +4395,7 @@ window.__T = T;
           if (engine.state !== 'playing') { overTimer = 0; setState('over'); held.clear(); heldOrder = []; endTouch(); buzz(engine.state === 'won' ? 30 : [40, 40, 60]); break; }
         }
         if (engine.state === 'playing') {
+          if (engine.gate && engine.gate.open && !gateNudged && performance.now() - gateOpenAt > 8000) { gateNudged = true; toast('Swim into the glowing gate to finish ✨'); }
           stuckTimer += realDt; if (!stuckShown && stuckTimer > 22 && engine.ballsIn < engine.ballsTotal) { stuckShown = true; toast(isTouch ? 'Stuck? Tap ↶ to undo, or ⟲ to restart' : 'Stuck? Press Z to undo, R to restart'); }
           if (engine.oxygen < 15) { lowAirBeep -= dt; if (lowAirBeep <= 0) { lowAirBeep = engine.oxygen < 6 ? 0.5 : 1; Audio.play('lowAir'); } }
         }
