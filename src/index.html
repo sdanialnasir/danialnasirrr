@@ -251,11 +251,8 @@ body[data-state="playing"] #hud, body[data-state="over"] #hud, body[data-state="
   border: 3px solid rgba(255,255,255,0.45); background: radial-gradient(circle, rgba(255,255,255,0) 30%, rgba(255,255,255,0.12) 100%); }
 #stick .ring::before { content: ""; position: absolute; inset: 22%; border-radius: 50%; border: 2px dashed rgba(255,255,255,0.3); }
 #stick .knob { position: absolute; left: -26px; top: -26px; width: 52px; height: 52px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #cfe9ff 60%, #8fc4ff); box-shadow: 0 4px 12px rgba(0, 20, 70, 0.45); transition: background .15s; }
-#stick.fast .knob { background: radial-gradient(circle at 35% 30%, #fff8c8, var(--gold) 60%, #ff9f1c); }
+#stick.fast .knob { background: radial-gradient(circle at 35% 30%, #fff8c8, var(--gold) 60%, #ff9f1c); }/* ---------- doodle intro + menu (hand-drawn identity) ---------- */
 
-/* ---------- doodle intro + menu (hand-drawn identity) ---------- */
-#doodle { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 9; display: none; }
-body[data-state="splash"] #doodle, body[data-state="cine"] #doodle, body.doodle-play #doodle { display: block; }
 .dd-screen.on { display: flex; }
 #splash.dd-screen { pointer-events: auto; cursor: pointer; }
 #home.dd-screen::before { display: none; }
@@ -274,87 +271,9 @@ body[data-state="splash"] #doodle, body[data-state="cine"] #doodle, body.doodle-
 .dd-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 520px; }
 .dd-links button { font-family: "Patrick Hand", cursive; font-size: 1.15rem; color: #1b1b1f; background: #fffdf6; border: 2.5px solid #1b1b1f; padding: 4px 16px; border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px; box-shadow: 2px 3px 0 #1b1b1f; }
 .dd-links button:active { transform: translate(2px, 2px); box-shadow: 0 1px 0 #1b1b1f; }
-.dd-skip { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 14px); right: max(14px, env(safe-area-inset-right, 0px)); z-index: 30; font-family: "Patrick Hand", cursive; font-size: 1.2rem; color: #1b1b1f; background: #fffdf6; border: 2.5px solid #1b1b1f; padding: 5px 16px; border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px; box-shadow: 2px 3px 0 #1b1b1f; }
-/* sheets opened from the doodle menu adopt the same paper-and-ink look */
-body.doodle-play .screen.sheet { background: rgba(251, 246, 234, 0.82); }
-body.doodle-play .panel { background: #fffdf6; color: #1b1b1f; border: 3px solid #1b1b1f; box-shadow: 5px 6px 0 #1b1b1f; backdrop-filter: none; -webkit-backdrop-filter: none; border-radius: 22px 28px 20px 30px; }
-body.doodle-play .ph h2 { color: #1b1b1f; text-shadow: none; font-family: "Gochi Hand", cursive; font-size: 2.3rem; }
-body.doodle-play .back, body.doodle-play .pill { background: #fffdf6; color: #1b1b1f; border: 2.5px solid #1b1b1f; backdrop-filter: none; }
-body.doodle-play .row { border-bottom-color: rgba(0,0,0,0.12); }
-body.doodle-play .how b { color: #e8402e; }
-body.doodle-play .world h3 { color: #1b1b1f; } body.doodle-play .world h3 span { color: #c48a00; }
-body.doodle-play .stat { background: #f3eee2; } body.doodle-play .stat b { color: #1b1b1f; } body.doodle-play .stat span, body.doodle-play .prof-head small, body.doodle-play .msg { color: #555; }
-body.doodle-play .tile { background: #fffdf6; color: #1b1b1f; border-color: #1b1b1f; }
-body.doodle-play .seg { background: #eee8da; } body.doodle-play .seg button { color: #555; } body.doodle-play .seg button.on { background: #ffcc33; color: #1b1b1f; }
-body.doodle-play .toggle { background: #d8d2c4; } body.doodle-play .toggle:checked { background: #3aa655; }
-body.doodle-play .danger-link { color: #c0392b; }
-body.doodle-play .lvl.locked { background: #ece6d8; border: 2px solid #c9c1b0; color: #9a917f; }
-body.doodle-play .lvl:not(.locked) { border-color: #1b1b1f; box-shadow: 0 4px 0 #1b1b1f; }
-body.doodle-play .hint { color: #555; text-shadow: none; }
-body.doodle-play #doodle { display: block; z-index: 1; }
+.dd-skip { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 14px); right: max(14px, env(safe-area-inset-right, 0px)); z-index: 30; font-family: "Patrick Hand", cursive; font-size: 1.2rem; color: #1b1b1f; background: #fffdf6; border: 2.5px solid #1b1b1f; padding: 5px 16px; border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px; box-shadow: 2px 3px 0 #1b1b1f; }/* sheets opened from the doodle menu adopt the same paper-and-ink look */
+
 .dd-only { display: none !important; }
-body.doodle-play .dd-only { display: revert !important; }
-body.doodle-play .score, body.doodle-play .prog .node.cur, body.doodle-play .track span, body.doodle-play .airbar, body.doodle-play .air small { display: none !important; }
-body.doodle-play .hud-c { position: relative; padding: 6px 22px 8px; background: linear-gradient(175deg, #fbf1d6, #efdcb2); border: 3px solid #26201b; border-radius: 18px 26px 16px 24px / 22px 16px 26px 18px; box-shadow: 3px 5px 0 rgba(38,32,27,0.35); min-width: min(440px, 62vw); margin-top: 2px; }
-body.doodle-play .dd-title { font-family: "Gochi Hand", "Patrick Hand", cursive; font-size: 1.9rem; line-height: 1; color: #26201b; text-align: center; }
-body.doodle-play .dd-etxt { font-family: "Gochi Hand", "Patrick Hand", cursive; font-size: 1.25rem; color: #26201b; text-align: center; margin-top: 2px; }
-body.doodle-play .hud-c .prog { background: none !important; border: 0 !important; box-shadow: none !important; padding: 0; margin-top: 4px; max-width: none; width: 100%; gap: 8px; }
-body.doodle-play .hud-c { justify-self: center; width: min(460px, 64vw); }
-body.doodle-play .hud-c .dd-title::after { display: none; }
-body.doodle-play .dd-drop { width: 30px; height: 30px; flex: none; background: linear-gradient(160deg, #8fdcff, #2a86ea); border: 2.5px solid #1d4f8c; border-radius: 50% 50% 50% 0; transform: rotate(-45deg) scale(0.8); box-shadow: inset -3px 3px 0 rgba(255,255,255,0.5); }
-body.doodle-play .prog .track { height: 22px; border-radius: 12px; }
-body.doodle-play .prog .node.gate { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(180deg, #8fcbff, #3a8ff0) !important; color: #fff !important; border: 2.5px solid #1d4f8c !important; }
-body.doodle-play .prog .node.gate.open { background: linear-gradient(180deg, #8fe8a8, #2bb862) !important; border-color: #1b6b3a !important; }
-body.doodle-play .hbtn { width: 64px; height: 64px; border-radius: 16px 20px 14px 18px !important; }
-body.doodle-play .hbtn svg.i { width: 30px; height: 30px; stroke-width: 3.8; }
-body.doodle-play .air { flex-direction: row; align-items: center; padding: 8px 18px 8px 12px; min-width: 0; }
-body.doodle-play .air .top { font-size: 1.9rem; gap: 10px; }
-body.doodle-play .bub { width: 30px; height: 30px; background: linear-gradient(160deg, #8fdcff, #2a86ea) !important; border: 2.5px solid #1d4f8c !important; }
-body.doodle-play #btnMap { width: 96px; height: 96px; border-radius: 26px 22px 28px 20px !important; font-size: 1.35rem; gap: 2px; }
-body.doodle-play #btnMap svg.i { width: 40px; height: 40px; stroke-width: 2.8; }
-body.doodle-play #btnMapView { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); z-index: 5; align-items: center; gap: 10px; padding: 10px 22px 10px 16px;
-  background: linear-gradient(175deg, #fbf1d6, #efdcb2); border: 3px solid #26201b; border-radius: 26px 18px 24px 20px; box-shadow: 3px 4px 0 rgba(38,32,27,0.4); color: #26201b; font-family: "Gochi Hand", cursive; font-size: 1.4rem; }
-body.doodle-play #btnMapView svg.i { width: 30px; height: 30px; stroke-width: 2.6; }
-body.doodle-play:not([data-state="playing"]):not([data-state="intro"]) #btnMapView { display: none !important; }
-body.doodle-play #btnMapView { display: flex !important; }
-body.doodle-play[data-state="paused"] #btnMapView, body.doodle-play[data-state="over"] #btnMapView { display: none !important; }
-body.doodle-play #mapTag { display: none; }
-@media (max-width: 560px) { body.doodle-play .hud-c { min-width: 0; padding: 4px 10px 6px; width: 54vw; } body.doodle-play .air { padding: 6px 10px 6px 8px; } body.doodle-play .bub { width: 22px; height: 22px; } body.doodle-play .dd-title { font-size: 1.35rem; } body.doodle-play .dd-etxt { font-size: 1rem; }
-  body.doodle-play .hbtn { width: 48px; height: 48px; } body.doodle-play .air .top { font-size: 1.35rem; } body.doodle-play #btnMap { width: 74px; height: 74px; font-size: 1.1rem; }
-  body.doodle-play #btnMapView { font-size: 1.1rem; padding: 8px 14px 8px 12px; } }
-body.doodle-play .hbtn, body.doodle-play .air, body.doodle-play .prog { background: linear-gradient(170deg, #f8ecd0, #ead8b0) !important; border: 3px solid #3a2c20 !important; border-radius: 16px 20px 14px 22px !important; box-shadow: 3px 4px 0 rgba(58,44,32,0.45) !important; color: #2b211a !important; }
-body.doodle-play .hbtn svg.i { stroke-width: 3.6; }
-body.doodle-play .prog { padding: 6px 10px; gap: 8px; max-width: 420px; }
-body.doodle-play .prog .track { margin: 0; height: 20px; border: 2.5px solid #3a2c20 !important; background: #e3d3ad !important; box-shadow: inset 0 2px 3px rgba(0,0,0,0.15) !important; }
-body.doodle-play .prog .track i { background: linear-gradient(180deg, #7fd0ff, #2a8ff0) !important; }
-body.doodle-play .prog .node { box-shadow: none !important; }
-body.doodle-play .prog .node.cur { background: #3aa0f0 !important; color: #fff !important; border-color: #3a2c20 !important; }
-body.doodle-play .prog .node.gate { background: #e9f4ff !important; color: #2a7fe0 !important; }
-body.doodle-play #btnMap { background: linear-gradient(180deg, #ffd84a, #f6b81c) !important; border: 3px solid #3a2c20 !important; border-radius: 22px 18px 24px 16px !important; box-shadow: 3px 4px 0 rgba(58,44,32,0.5) !important; color: #2b211a !important; font-family: "Gochi Hand", cursive; font-size: 1rem; }
-body.doodle-play #mapTag { background: linear-gradient(170deg, #f8ecd0, #ead8b0); border: 3px solid #3a2c20; left: 20px; transform: none; }
-body.doodle-play .bub { background: #3aa0f0 !important; border: 2px solid #1e5f9e !important; border-radius: 50% 50% 50% 0 !important; transform: rotate(-45deg) scale(0.85); }
-body.doodle-play .hbtn, body.doodle-play #btnMap { background: #fffdf6; color: #1b1b1f; border: 2.5px solid #1b1b1f; box-shadow: 2px 3px 0 #1b1b1f; }
-body.doodle-play #btnMap.on { background: #ffcc33; }
-body.doodle-play .node { border-color: #1b1b1f; box-shadow: 2px 2px 0 #1b1b1f; }
-body.doodle-play .node.cur { background: #ffcc33; color: #1b1b1f; text-shadow: none; font-family: "Gochi Hand", cursive; }
-body.doodle-play .node.gate { background: #fffdf6; color: #2f8cff; } body.doodle-play .node.gate.open { background: #2f8cff; color: #fff; }
-body.doodle-play .track { background: #fffdf6; border-color: #1b1b1f; box-shadow: 2px 2px 0 #1b1b1f; }
-body.doodle-play .track i { background: #e8402e; } body.doodle-play .track span { color: #1b1b1f; text-shadow: none; font-family: "Patrick Hand", cursive; font-size: 0.95rem; }
-body.doodle-play .score { color: #1b1b1f; -webkit-text-stroke: 0; text-shadow: none; font-family: "Gochi Hand", cursive; }
-body.doodle-play .air { background: #fffdf6; color: #1b1b1f; border-color: #1b1b1f; box-shadow: 2px 3px 0 #1b1b1f; }
-body.doodle-play .air .top { font-family: "Gochi Hand", cursive; } body.doodle-play .airbar { background: #e9e3d4; } body.doodle-play .airbar i { background: #2f8cff; }
-body.doodle-play .bub { background: #fff; border: 2px solid #2f8cff; box-shadow: none; }
-body.doodle-play #toast, body.doodle-play #mapTag { background: #fffdf6; color: #1b1b1f; border-color: #1b1b1f; font-family: "Patrick Hand", cursive; backdrop-filter: none; }
-body.doodle-play #stick .ring { border-color: rgba(27,27,31,0.5); background: none; } body.doodle-play #stick .knob { background: #ffcc33; border: 2.5px solid #1b1b1f; box-shadow: none; }
-body.doodle-play .screen.sheet .title { color: #1b1b1f; text-shadow: none; font-family: "Gochi Hand", cursive; }
-body.doodle-play .kicker { color: #555; text-shadow: none; }
-body.doodle-play #result.win, body.doodle-play #result.lose { background: rgba(251, 246, 234, 0.85); }
-body.doodle-play #result.win .panel, body.doodle-play #result.lose .panel { background: #fffdf6; border: 3px solid #1b1b1f; }
-body.doodle-play #result.lose .title { color: #e8402e; text-shadow: none; }
-body.doodle-play .big-score { color: #1b1b1f; -webkit-text-stroke: 0; text-shadow: none; font-family: "Gochi Hand", cursive; }
-body.doodle-play .chip { background: #f3eee2; color: #1b1b1f; }
-body.doodle-play .cta { background: #ffcc33; color: #1b1b1f; border: 3px solid #1b1b1f; box-shadow: 3px 4px 0 #1b1b1f; font-family: "Gochi Hand", cursive; }
-body.doodle-play .cta.green { background: #8fe0a8; }
 /* hold-to-view map */
 #btnMap { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); z-index: 5; display: none;
   width: 70px; height: 70px; border-radius: 24px; flex-direction: column; align-items: center; justify-content: center; gap: 1px; color: #1460c8; font-weight: 800; font-size: 0.72rem; touch-action: none;
@@ -416,31 +335,13 @@ body[data-state="playing"] #btnMap, body[data-state="intro"] #btnMap { display: 
   .side .ic svg.i { width: 38px; height: 38px; }
   .rail.left { left: 5vw; } .rail.right { right: 5vw; }
 }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
-/* ---- doodle levels: menu-style paper & ink HUD ---- */
-body.doodle-play .hud-c, body.doodle-play .hbtn, body.doodle-play .air, body.doodle-play #btnMapView { background: #fffdf6 !important; border: 3px solid #1b1b1f !important; box-shadow: 3px 4px 0 #1b1b1f !important; color: #1b1b1f !important; }
-body.doodle-play .hud-c { border-radius: 255px 18px 225px 18px / 18px 225px 18px 255px !important; transform: rotate(-0.6deg); }
-body.doodle-play .hbtn { border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px !important; }
-body.doodle-play .air, body.doodle-play #btnMapView { border-radius: 225px 15px 255px 15px / 15px 255px 15px 225px !important; }
-body.doodle-play .dd-title, body.doodle-play .dd-etxt, body.doodle-play .air .top, body.doodle-play #btnMapView { font-family: "Gochi Hand", "Patrick Hand", cursive !important; }
-body.doodle-play .hud-c .prog .track { background: #fffdf6 !important; border: 2.5px solid #1b1b1f !important; box-shadow: none !important; }
-body.doodle-play .hud-c .prog .track i { background: repeating-linear-gradient(-45deg, #e8402e 0 8px, #f2654f 8px 16px) !important; }
-body.doodle-play .dd-drop { width: 24px !important; height: 24px !important; border-radius: 50% !important; transform: none !important; background: #e8402e !important; border: 2.5px solid #1b1b1f !important; box-shadow: inset -3px -3px 0 rgba(0,0,0,0.12), inset 3px 3px 0 rgba(255,255,255,0.5) !important; }
-body.doodle-play .prog .node.gate { background: #fffdf6 !important; color: #2f8cff !important; border: 2.5px solid #1b1b1f !important; border-radius: 10px 14px 9px 13px !important; }
-body.doodle-play .prog .node.gate.open { background: #2f8cff !important; color: #fff !important; }
-body.doodle-play .bub { background: #fffdf6 !important; border: 2.5px solid #2f8cff !important; border-radius: 50% !important; transform: none !important; }
-body.doodle-play #btnMap { background: #ffcc33 !important; border: 3px solid #1b1b1f !important; border-radius: 255px 18px 225px 18px / 18px 225px 18px 255px !important; box-shadow: 3px 4px 0 #1b1b1f !important; color: #1b1b1f !important; font-family: "Gochi Hand", cursive !important; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }/* ---- doodle levels: menu-style paper & ink HUD ---- */
 /* ---- doodle levels: HUD in the board palette ---- */
-body.doodle-play .hud-c, body.doodle-play .hbtn, body.doodle-play .air, body.doodle-play #btnMapView { background: #fffaf0 !important; border-color: #2b2420 !important; box-shadow: 4px 5px 0 #5d6aa0 !important; color: #2b2420 !important; }
-body.doodle-play #btnMap { background: #f5c75f !important; border-color: #2b2420 !important; box-shadow: 4px 5px 0 #5d6aa0 !important; color: #2b2420 !important; }
-body.doodle-play .hud-c .prog .track { border-color: #2b2420 !important; }
-body.doodle-play .prog .node.gate { color: #3d8be0 !important; border-color: #2b2420 !important; }
-body.doodle-play .dd-title { color: #2b2420 !important; } body.doodle-play .dd-etxt { color: #5d6aa0 !important; }
+
 /* mockup HUD tweaks (3D levels) */
 body:not(.doodle-play) .hbtn { background: linear-gradient(180deg, #fffaf0, #f3e3c3) !important; color: #3a2a1a !important; box-shadow: 0 5px 0 #c9b28a, 0 10px 18px rgba(0, 20, 70, 0.35) !important; }
-body:not(.doodle-play) .air { background: linear-gradient(180deg, #0f3f86, #0a2c63) !important; border-color: rgba(255,255,255,0.85) !important; }
-/* ---------- 3D-game style splash, menu and intro (matches the in-game HUD) ---------- */
-#doodle { display: none !important; }
+body:not(.doodle-play) .air { background: linear-gradient(180deg, #0f3f86, #0a2c63) !important; border-color: rgba(255,255,255,0.85) !important; }/* ---------- 3D-game style splash, menu and intro (matches the in-game HUD) ---------- */
+
 .gs-screen { display: none; pointer-events: none; }
 .gs-screen.on { display: block; }
 .gs-screen > * { pointer-events: auto; }
@@ -654,6 +555,45 @@ body[data-state="cine"]::before, body[data-state="cine"]::after { height: 9vh; }
 body:not([data-state="cine"]) .cine-title { opacity: 0 !important; }
 #skipIntro { z-index: 26; }
 .duo:has(#btnResHome) { grid-template-columns: repeat(3, 1fr); }
+
+/* ---------- HUD v2: one slim top bar, small controls at the bottom ---------- */
+#hud { align-items: center; gap: 10px; }
+#hud .score { display: none; }
+#hud .track { display: none; }
+.hud-c { justify-self: center; }
+.prog { width: auto; max-width: none; margin-top: 0; gap: 6px; padding: 4px 6px 4px 4px; border-radius: 999px; background: rgba(4, 28, 78, 0.55); border: 2px solid rgba(255,255,255,0.85);
+  box-shadow: 0 3px 0 rgba(0, 20, 70, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transition: box-shadow .3s, border-color .3s; }
+.prog.open { border-color: #8cffc8; box-shadow: 0 0 0 3px rgba(80, 255, 170, 0.35), 0 0 22px rgba(80, 255, 170, 0.55); }
+.node { width: 32px; height: 32px; font-size: 1rem; border-width: 2px; box-shadow: none; }
+.node.gate svg.i { width: 17px; height: 17px; }
+.pearls { display: flex; align-items: center; gap: 5px; padding: 0 4px; font-family: var(--display); font-size: 1.05rem; color: #fff; text-shadow: 0 2px 0 rgba(0,20,70,0.6); white-space: nowrap; }
+.pearls i { width: 20px; height: 20px; border-radius: 50%; flex: none; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.35) 0 18%, rgba(255,255,255,0.08) 40%, rgba(0,0,0,0.2) 100%); border: 2px dashed rgba(255,255,255,0.55); transition: transform .3s; }
+.pearls i.on { border: 0; background: radial-gradient(circle at 34% 28%, #fff 0 12%, #ffb08a 18%, #ff4a2a 55%, #b0160a 100%); box-shadow: 0 0 10px rgba(255, 90, 40, 0.8); animation: pearlIn .45s cubic-bezier(.2,1.6,.4,1); }
+@keyframes pearlIn { 0% { transform: scale(0.2); } 100% { transform: scale(1); } }
+.air { flex-direction: column; gap: 3px; padding: 4px 10px 6px 5px; min-width: 0; margin-top: 0; border-radius: 16px; border-width: 2px; border-color: rgba(255,255,255,0.85); background: rgba(4, 28, 78, 0.55);
+  box-shadow: 0 3px 0 rgba(0, 20, 70, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.air .top { font-size: 1.15rem; gap: 6px; }
+.air .bub { width: 20px; height: 20px; }
+.air .airstars { margin: 0 0 0 2px; font-size: 0.72rem; }
+.airbar { height: 5px; }
+.hbtn { width: 46px; height: 46px; border-radius: 15px; }
+#hudB { position: fixed; left: max(14px, env(safe-area-inset-left, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); z-index: 5; display: none; gap: 10px; }
+body[data-state="playing"] #hudB { display: flex; }
+#hudB .hbtn { width: 46px; height: 46px; border-radius: 50%; }
+#hudB .hbtn:active { transform: translateY(2px) scale(0.95); }
+#btnMap { width: 52px; height: 52px; border-radius: 50%; color: #3a2a1a; background: linear-gradient(180deg, #fffaf0, #f3e3c3); box-shadow: 0 5px 0 #c9b28a, 0 10px 18px rgba(0, 20, 70, 0.35); bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); }
+#btnMap svg.i { width: 24px; height: 24px; }
+#btnMap.on { transform: translateY(2px); background: linear-gradient(180deg, #fff09a, var(--gold)); color: var(--gold-ink); box-shadow: none; }
+@media (max-width: 560px) {
+  #hud { gap: 6px; } .hbtn { width: 42px; height: 42px; } .node { width: 28px; height: 28px; font-size: 0.92rem; }
+  .pearls { gap: 4px; padding: 0 2px; font-size: 0.95rem; } .pearls i { width: 17px; height: 17px; }
+  .air .top { font-size: 1.05rem; } .air .bub { width: 17px; height: 17px; } .air .airstars { font-size: 0.62rem; }
+  #hudB .hbtn { width: 44px; height: 44px; } #btnMap { width: 50px; height: 50px; border-radius: 50%; } }
+#lvlBanner { position: fixed; left: 50%; top: 22%; z-index: 6; transform: translate(-50%, -8px) scale(0.92); opacity: 0; pointer-events: none; text-align: center; transition: opacity .35s, transform .35s cubic-bezier(.2,1.4,.4,1); }
+#lvlBanner.on { opacity: 1; transform: translate(-50%, 0) scale(1); }
+#lvlBanner small { display: block; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.14em; text-transform: uppercase; color: #cfe6ff; text-shadow: 0 2px 6px rgba(0, 20, 70, 0.8); }
+#lvlBanner b { display: block; font-family: var(--display); font-weight: 400; font-size: 2.3rem; line-height: 1; color: var(--gold); -webkit-text-stroke: 5px #0b2f6e; paint-order: stroke fill; text-shadow: 0 4px 0 #062a6a, 0 8px 20px rgba(0,0,0,0.4); white-space: nowrap; }
+#lvlBanner em { display: block; margin-top: 8px; font-style: normal; font-weight: 800; font-size: 1rem; color: #fff; text-shadow: 0 2px 6px rgba(0, 20, 70, 0.9); max-width: 86vw; white-space: normal; }
 </style>
 </head>
 <body data-state="splash">
@@ -668,31 +608,31 @@ body:not([data-state="cine"]) .cine-title { opacity: 0 !important; }
 <div id="hud">
   <div class="hud-l">
     <button class="hbtn" id="btnPause" aria-label="Pause"><svg class="i" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg></button>
-    <button class="hbtn sm" id="btnUndo" aria-label="Undo last move"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
-    <button class="hbtn sm" id="btnRestartHud" aria-label="Restart level"><svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
   </div>
   <div class="hud-c">
-    <div class="dd-title dd-only" id="ddTitle">Level 1</div>
-    <div class="prog">
-      <span class="dd-drop dd-only" aria-hidden="true"></span>
+    <div class="prog" id="hudProg">
       <span class="node cur" id="hudLvl">1</span>
+      <div class="pearls" id="hudPearls" aria-label="Energy pearls delivered"></div>
       <div class="track"><i id="energyFill"></i><span id="energyTxt">0 / 1 energy</span></div>
       <span class="node gate" id="hudGate" aria-label="Gate"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
     </div>
-    <div class="dd-etxt dd-only" id="ddEtxt">0 / 1 Energy</div>
     <div class="score" id="hudScore">0</div>
   </div>
-  <div class="air" id="air"><div class="top"><i class="bub"></i><b id="airTxt">60</b><small>sec</small></div><div class="airbar"><i id="airFill"></i><span class="mk" style="left:30%"></span><span class="mk" style="left:60%"></span></div><div class="airstars" id="airStars" aria-label="Stars if you finish now"><i>★</i><i>★</i><i>★</i></div></div>
+  <div class="air" id="air"><div class="top"><i class="bub"></i><b id="airTxt">60</b><div class="airstars" id="airStars" aria-label="Stars if you finish now"><i>★</i><i>★</i><i>★</i></div></div><div class="airbar"><i id="airFill"></i><span class="mk" style="left:30%"></span><span class="mk" style="left:60%"></span></div></div>
+</div>
+<div id="hudB">
+  <button class="hbtn sm" id="btnUndo" aria-label="Undo last move"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+  <button class="hbtn sm" id="btnRestartHud" aria-label="Restart level"><svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
 </div>
 
 <div id="stick"><div class="ring"></div><div class="knob"></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
-<button id="btnMap" aria-label="Hold to view the whole map"><svg class="i" viewBox="0 0 24 24"><path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/></svg>Hold</button>
+<div id="lvlBanner" aria-live="polite"><small id="lbNum">Level 1</small><b id="lbName">First Light</b><em id="lbTip"></em></div>
+<button id="btnMap" aria-label="Hold to view the whole map"><svg class="i" viewBox="0 0 24 24"><path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/></svg></button>
 <div id="mapTag">Map view</div>
-<button id="btnMapView" class="dd-only" aria-label="Toggle map view"><svg class="i" viewBox="0 0 24 24"><path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/></svg><span>Map view</span></button>
 
 
-<canvas id="doodle" aria-hidden="true"></canvas>
+
 <button id="skipIntro" class="dd-skip" hidden>Skip ▸▸</button>
 
 <section id="splash" class="screen on gs-screen">

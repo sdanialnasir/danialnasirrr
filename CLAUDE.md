@@ -27,11 +27,12 @@ src/                     editable source (open src/index.html directly in a brow
 tools/
   build_assets.py        images -> src/assets/art-data.js
   build.py               build_assets + inline everything -> dist/index.html (single file) + manifest + icons
-  solver/                Node tools that drive the REAL engine: macro.js (best-first solver),
+  solver/                Node tools that drive the REAL engine: macro.js (best-first solver), plan.js + plans.json
+                         (hand-written plans -> exact routes; build_routes.js regenerates tests/routes.json for 12–30),
                          replay.js (check a route), extract_engine.py (regenerates engine.js + levels.json)
 tests/                   Playwright tests (run against src/index.html or dist/index.html)
   smoke.py               every level starts, no page errors
-  play_routes.py         plays verified winning routes (routes.json) for levels 1–11; all must win
+  play_routes.py         plays verified winning routes (routes.json) for all 30 levels; all must win
   fuzz_levels.py         random play on all 30 levels inside the real renderer; must produce 0 errors
 dist/                    build output (what gets published / hosted)
 ```
@@ -50,7 +51,7 @@ Tests use Playwright's bundled Chromium; set `CHROME_PATH` to use another. Rende
 in headless mode, so it is slow: tests freeze the game's rAF loop (`window.__freeze = true`) and drive
 frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS animations stall there).
 
-**Definition of done for any change:** `build.py` succeeds, `smoke.py` passes, `play_routes.py` 11/11 won,
+**Definition of done for any change:** `build.py` succeeds, `smoke.py` passes, `play_routes.py` 30/30 won,
 `fuzz_levels.py` 0 errors, and you have looked at a screenshot of the affected screen/level.
 
 ---
@@ -65,7 +66,6 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 | 896–930 | `SPR`, `sprTex`, `sprPlane`, `shelfFace` — helpers that turn the asset-sheet cut-outs into scene objects. |
 | 1644 | `PHOTO_LEVELS` — which levels use the painted background (`bg_photo.jpg`). Currently `{'First Light'}`. |
 | 1728–1790 | `buildPhotoBg` / `placePhotoBg` — painted background facing the camera + surface shimmer, bubbles, sprite fish. |
-| 2275–3110 | `Doodle` — LEGACY hand-drawn 2D renderer (old intro/menu/doodle levels). Not shown any more (`DOODLE_LEVELS = 0`, `#doodle` hidden). Safe to delete later. |
 | 3114–end | Controller: saves (`localStorage['dc-save']`), screens, HUD, intro cinematic (plays Level 1 by itself), touch drag stick, keyboard, undo history, frame loop. Debug handle: `window.__dc` (`startIndex(i)`, `engine`, `world`). |
 
 ---
@@ -109,14 +109,13 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - If you change `LEVELS`, re-verify with the solver/replay tools and update `tests/routes.json`.
 
 ## Known gaps / backlog
-1. Levels 12–30 are not independently solved by our solver (it runs out of time on big open levels);
-   they rely on the original author's verification + crash fuzzing. Improving `tools/solver/macro.js` is welcome.
+1. ~~Levels 12–30 unverified~~ — done: every level has a verified route in `tests/routes.json`.
 2. Desktop: mouse drag does not move the diver (keyboard only). Add mouse-drag support.
-3. Walking into a closed gate gives no feedback — add a short toast ("Deliver all energy first").
-4. Undo rebuilds the level visuals: treasures that had fallen jump back into the sand.
+3. ~~Closed-gate feedback~~ — done (toast).
+4. ~~Undo resets fallen treasures~~ — done (`keepTreasures`).
 5. Roll the painted background out to all levels (or per-world paintings) once the owner approves.
 6. ~~Skins / shop / currency~~ — done (see below).
-7. Delete the legacy `Doodle` module and unused CSS once nothing references them.
+7. ~~Delete the legacy `Doodle` module~~ — done.
 
 ---
 
@@ -141,3 +140,18 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   `{db:{rules:[{path:"board",read:"view",write:"owner"},{path:"board/{self}",write:"interact"}]},user:{scopes:["profile"]}}`.
 - **Tests on this machine:** headless rendering is software, so the loader takes ~50 s here (1-3 s on devices);
   tests call `startIndex` / `__dc.go`, which skip the loader.
+
+## Polish pass (audit fixes)
+- **HUD:** one slim top bar (pause · level + one pearl icon per energy ball → gate · air), undo/restart as small round buttons
+  bottom-left (`#hudB`), icon-only map button. Score shows only on the result screen. Level name shows once as `#lvlBanner`
+  at start (plus a one-time `tip` from `LEVELS` when a new element or world first appears); no brass plaque on the stand.
+- **Phone camera:** bigger cells (`innerWidth / 6.4`, 50–66 px) and the tank centred (slightly low) in the free area.
+- **Sand:** sun-bleached top → amber → damp russet with depth, saturation boost, lower light response (it was clipping to
+  beige). Sand blocks use polygonOffset (edge-on block sides were showing through the face as thin seams under MSAA).
+  Treasures are fewer and grouped in patches.
+- **Worlds:** `WORLD_STYLE` (frame lacquer, in-tank water colours, glowing specks in the deep, crystal clusters on the
+  seabed for worlds 2–3) and per-world shelf mixes (sheet plank / reef coral with polyps / slate / driftwood).
+- **Monsters** rebuilt in the diver's style (`monMats`, `cartoonEye`, `rimMat`); crab claws snap.
+- **Gate:** beacon halo + ring that brighten per pearl delivered, one slot light per pearl, sparkles when open.
+- **Juice:** `popText` floating words ("+1" treasure, "2/3" pearl, "Phew!", "Bonk!").
+- **Audio:** pad a little warmer + rare far-off single chimes (still no tune).
