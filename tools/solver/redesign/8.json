@@ -1,0 +1,14 @@
+{
+ "level": 8,
+ "entry": "{ name: \"Pitfall\", time: 55, hint: \"A pearl stuck against a wall can never be pushed again. Choose where it lands.\", map: [\n'################',\n'#WW..........WW#',\n'#W   B        P#',\n'#W WWWWWWW WWWW#',\n'#W WW....W ....#',\n'#W WWWWWWW ....#',\n'#W            E#',\n'#WWWWWWWWWWWWWW#',\n'################',\n]},",
+ "plan": "12,2 12,1 3,1 3,2 R:5 s 2,2 2,6 9,6 R:4 14,6",
+ "route": "LLULLLLLLLLLDRRRRRLLLLLLDDDDRRRRRRRRRRRR.",
+ "moves": 40,
+ "air_used": "6/55",
+ "aha": "Push the pearl right so it rolls down the open drop onto the road with room on both sides, not left into the corner against the wall.",
+ "deadlocks": [
+  "Pushing the pearl left (the way the diver arrives): it rolls off the shelf into the left corner against the wall, never pushable again.",
+  "Digging down the right sand pocket to the road and pushing the landed pearl left: it ends against the left wall."
+ ],
+ "macro_solved": true
+}

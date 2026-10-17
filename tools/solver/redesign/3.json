@@ -1,0 +1,14 @@
+{
+ "level": 3,
+ "entry": "{ name: \"The Shaft\", time: 45, hint: \"The first thing down the shaft rolls left into the pit. Choose what goes first.\", tip: \"Falling stones and pearls roll off round tops, left first.\", map: [\n'##############',\n'#P...........#',\n'#...B   R....#',\n'#WWWWW WWWWWW#',\n'#WWWW   WWWWW#',\n'#WWWW W WWWWW#',\n'#WWWWWWEWWWWW#',\n'##############',\n]},",
+ "plan": "9,1 9,2 L:2 s 7,1 3,1 3,2 R:2 s 6,4!v 7,4 7,6!v",
+ "route": "RRRRRRRRDLLULLLLDRR..RDDRDD.",
+ "moves": 25,
+ "air_used": "4/45",
+ "aha": "Falling things roll off round tops, left first: the first object down the shaft rolls left into the pit, so the stone must go first to fill it; then the pearl rolls right onto the gate.",
+ "deadlocks": [
+  "Pushing the pearl into the shaft first: it rolls left into the pit and is stuck between walls forever.",
+  "Then dropping the stone too: it lands on the gate and seals it."
+ ],
+ "macro_solved": true
+}

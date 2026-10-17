@@ -1,0 +1,14 @@
+{
+ "level": 4,
+ "entry": "{ name: \"Two Roads\", time: 45, hint: \"The high pearl drops into the low pearl's road. Clear the low road first.\", map: [\n'##############',\n'#P.....  ....#',\n'#.WW...B...W #',\n'#.WWWWW.WWWW #',\n'#..B        E#',\n'#WWWWWWWWWWWW#',\n'##############',\n]},",
+ "plan": "1,4!v 2,4 R:9 s 7,4 m:UDL s R:5 m:R",
+ "route": "DDDRRRRRRRRRRLLLLUDL.RRRRRR.",
+ "moves": 26,
+ "air_used": "4/45",
+ "aha": "The high pearl can only drop into the low pearl's corridor; deliver the low pearl first, then open the plug from below and step aside.",
+ "deadlocks": [
+  "Digging the plug before the low pearl has passed: the high pearl lands in front of / on top of the low pearl's road and blocks it (two pearls cannot be pushed together).",
+  "Digging the plug from below and stepping back down: crushed by the high pearl."
+ ],
+ "macro_solved": true
+}

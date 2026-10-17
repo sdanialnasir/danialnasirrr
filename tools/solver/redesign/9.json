@@ -1,0 +1,14 @@
+{
+ "level": 9,
+ "entry": "{ name: \"Ambush\", time: 70, hint: \"The crab rushes along open rows. Drop the pearl on it, or cross when it's far away.\", tip: \"New: crabs. They patrol the open water.\", map: [\n'##################',\n'#W...B..........P#',\n'#......W....W....#',\n'# WWW WWWWWWWWWWW#',\n'#             C  #',\n'#WWWWWWWWWWWW WWW#',\n'#WWW......... ...#',\n'#E            ...#',\n'#WWWWWWWWWWWWWWWW#',\n'##################',\n]},",
+ "plan": "6,1 6,2 5,2 4,2 1,2 1,3 w:10 1,4 4,4 R:6 w:5 m:R 13,4 13,6 14,6 14,7 L:12 1,7",
+ "route": "LLLLLLLLLLDLLLLLD..........DRRRRRRRRR.....R.RRDDRDLLLLLLLLLLLLL.",
+ "moves": 47,
+ "air_used": "9/70",
+ "aha": "The crab rushes along the open corridor: drop the pearl into it (crushing the crab if timed), shove it along behind you as a shield, and leave through the hole when the crab is far away.",
+ "deadlocks": [
+  "Stepping out to the floor hole when the crab is close: it rushes along the clear row and gets you.",
+  "Leaving the dig under the pearl downwards: the pearl falls on the diver."
+ ],
+ "macro_solved": false
+}

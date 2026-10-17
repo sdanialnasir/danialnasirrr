@@ -1,0 +1,14 @@
+{
+ "level": 2,
+ "entry": "{ name: \"Pinned\", time: 45, hint: \"Dig under the pearl, then step aside. Never stay below anything that can fall.\", tip: \"New: falling stones. Never stand right under one!\", map: [\n'##############',\n'#P.......WWWW#',\n'#WWWW....RWWW#',\n'#WWWW....BWWW#',\n'#  W......WWW#',\n'#  W.WWWW WWW#',\n'#  W.....EWWW#',\n'##############',\n]},",
+ "plan": "5,1 5,4!v 8,4 m:RL s 4,4 4,6!v 9,6",
+ "route": "RRRRDDDRRRRL...LLLLDDRRRRR.",
+ "moves": 23,
+ "air_used": "4/45",
+ "aha": "Stones and pearls fall when the sand under them is dug: dig the plug under the pearl from the side, then step back sideways so the pearl (and the stone riding on it) drop onto the gate instead of onto you.",
+ "deadlocks": [
+  "Digging straight down beside the stone (column 8): the stone rolls off the pearl and follows you down - crushed.",
+  "After digging the plug, stepping down into the shaft below the pearl - crushed by the falling pearl."
+ ],
+ "macro_solved": true
+}

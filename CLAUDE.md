@@ -156,7 +156,9 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - **Juice:** `popText` floating words ("+1" treasure, "2/3" pearl, "Phew!", "Bonk!").
 - **Audio:** pad a little warmer + rare far-off single chimes (still no tune).
 
-## Level redesign (levels 12–30) + gate cue
+## Level redesign (levels 2–30) + gate cue + ending
+- Levels 2–11 are now a compact one-idea-per-level tutorial (stones fall, roll left first (tip on 3), two pearls, piranha, jellyfish,
+  plug a hole, wall deadlock, crab, fill a shaft, counterweight). Level 1 is unchanged (the intro cinematic plays it).
 - Levels 12–30 were rebuilt as constrained "thinking" puzzles (walls/shafts/pockets instead of open sand fields; monsters on the
   solution path; deliberate deadlocks so order matters). Difficulty targets: 12–15 ≥60 moves, 16–20 ≥75, 21–25 ≥90, 26–30 ≥110.
   Per-level design notes (aha, deadlocks, plan, route, blind-solver result) live in `tools/solver/redesign/<n>.json`;
@@ -166,3 +168,5 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   only the sides that face open water, so no seams); single-row W runs stay shelves.
 - When the last pearl goes in: banner "The gate is awake! Swim in!", a bouncing "Swim in!" marker over the gate (`gateArrow`),
   and a reminder toast after 8 s if the diver hasn't entered.
+- Ending: winning level 30 turns the result button into "The reef awakens ✨", which opens `#ending` (`openEnding`): story payoff,
+  stars/treasures/coins, one-time +200 coin bonus (`save.finished`).

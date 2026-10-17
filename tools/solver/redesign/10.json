@@ -1,0 +1,15 @@
+{
+ "level": 10,
+ "entry": "{ name: \"Stone Bridge\", time: 75, hint: \"Three stones fill the shaft. The pearl crosses last.\", map: [\n'#################',\n'#P.....R...WWWWW#',\n'#.....W.W.......#',\n'#WW...W.W. R....#',\n'#.....W.W..WW...#',\n'# B  R         E#',\n'#WWWWWWWW WWWWWW#',\n'#WWWWWWWW WWWWWW#',\n'#WWWWWWWW WWWWWW#',\n'#################',\n]},",
+ "plan": "4,1 4,5 R:4 s 7,5 7,2!v m:DDDL s R:2 s 13,5 13,3 12,3 m:L 10,4!v 10,5 m:R s 11,5 L:1 s 1,4 1,5 R:14",
+ "route": "RRRDDDDRRRRLUUUDDDL.RRLRRRRRRUULLULLDDRDR...LLLLLLLLULLDRRRRRRRRRRRRRR.",
+ "moves": 66,
+ "air_used": "11/75",
+ "aha": "The shaft is three deep: all three stones (road, silo, shelf) must go in before the pearl can cross.",
+ "deadlocks": [
+  "Pushing the pearl before all three stones are in: it drops into the shaft.",
+  "Digging up the silo pillar and stepping back down without side-stepping (crushed by the stone).",
+  "Pushing the road stone left from its right side: it can end up jammed against the pearl."
+ ],
+ "macro_solved": false
+}

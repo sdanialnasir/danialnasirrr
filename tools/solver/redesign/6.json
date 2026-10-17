@@ -1,0 +1,14 @@
+{
+ "level": 6,
+ "entry": "{ name: \"Jelly Shaft\", time: 50, hint: \"The jellyfish surges when you are in its column. Wait till it's far, then cross.\", tip: \"New: jellyfish. They surge up and down their shaft.\", map: [\n'##############',\n'#P....WJW....#',\n'#...... W....#',\n'#WWWWWW .....#',\n'#WWWWWW WWWW.#',\n'#WWWWWW WWWW.#',\n'#E         B.#',\n'##############',\n]},",
+ "plan": "6,2 w:8 7,2 7,3 12,3 12,6!v w:0 L:10 m:L",
+ "route": "RRRRDR........RDRRRRRDDDLLLLLLLLLLL.",
+ "moves": 27,
+ "air_used": "5/50",
+ "aha": "The jellyfish surges at you when you share its column; the upper crossing keeps you in the column for two ticks, so wait beside the shaft until it drifts far away, then cross.",
+ "deadlocks": [
+  "Crossing the upper gap without waiting: the jellyfish surges up the column and stings you.",
+  "Pushing the pearl through the shaft bottom while the jellyfish is just above: one tick in its column is enough to get stung."
+ ],
+ "macro_solved": false
+}

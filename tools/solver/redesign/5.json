@@ -1,0 +1,14 @@
+{
+ "level": 5,
+ "entry": "{ name: \"Piranha Pit\", time: 55, hint: \"Watch the piranha. Push the stone down the shaft as it swims underneath.\", tip: \"New: piranha. It hunts you once it sees you.\", map: [\n'################',\n'#....   ..   ..#',\n'#.......WW....P#',\n'#W R.B..WWWWWWW#',\n'#W .W.W.WWWWWWW#',\n'#W       F    E#',\n'#WWWWWWWWWWWWWW#',\n'################',\n]},",
+ "plan": "10,2 10,1 4,1 4,3!v w:0 L:1 s 4,2 7,2 7,4!v m:D 5,5 m:UDL s R:9 m:R",
+ "route": "LLLLULLLLLLDDLRURRRDDDLLUDL.RRRRRRRRRR.",
+ "moves": 37,
+ "air_used": "6/55",
+ "aha": "You cannot get past the piranha in its tunnel; push the stone down the side shaft when it swims to the dead end below, then the tunnel is safe for the pearl.",
+ "deadlocks": [
+  "Pushing the stone down the shaft while the piranha is elsewhere: the stone lands in the dead end, the piranha lives on and blocks the tunnel.",
+  "Entering the tunnel (or opening the pearl plug) while the piranha is alive: it charges along the clear row."
+ ],
+ "macro_solved": true
+}
