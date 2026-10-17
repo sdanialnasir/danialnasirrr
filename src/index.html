@@ -595,6 +595,21 @@ body[data-state="playing"] #hudB { display: flex; }
 #lvlBanner b { display: block; font-family: var(--display); font-weight: 400; font-size: 2.3rem; line-height: 1; color: var(--gold); -webkit-text-stroke: 5px #0b2f6e; paint-order: stroke fill; text-shadow: 0 4px 0 #062a6a, 0 8px 20px rgba(0,0,0,0.4); white-space: nowrap; }
 #lvlBanner.go b { color: #7dffc0; -webkit-text-stroke-color: #0b3a2a; text-shadow: 0 4px 0 #06281c, 0 0 26px rgba(80,255,170,0.6); }
 #lvlBanner em { display: block; margin-top: 8px; font-style: normal; font-weight: 800; font-size: 1rem; color: #fff; text-shadow: 0 2px 6px rgba(0, 20, 70, 0.9); max-width: 86vw; white-space: normal; }
+
+/* ---------- the ending ---------- */
+#ending { background: radial-gradient(ellipse at 50% 35%, rgba(255, 214, 90, 0.5), rgba(20, 120, 170, 0.75) 45%, rgba(3, 30, 80, 0.92) 80%); overflow: hidden; }
+#ending .end-glow { position: absolute; inset: -30%; background: repeating-conic-gradient(from 0deg at 50% 40%, rgba(255,240,180,0.16) 0 8deg, rgba(255,240,180,0) 8deg 22deg); animation: endspin 40s linear infinite; pointer-events: none; }
+@keyframes endspin { to { transform: rotate(360deg); } }
+#ending .wrap { position: relative; }
+#ending .end-title { font-size: clamp(2.6rem, 10vw, 4.4rem); }
+#ending .msg { color: #fff; }
+.end-spark i { position: absolute; top: -20px; width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle, #fff, #ffd23f 50%, rgba(255,210,63,0)); animation: endfall 4.5s linear infinite; pointer-events: none; }
+.end-spark i:nth-child(2n) { background: radial-gradient(circle, #fff, #7ff0ff 50%, rgba(127,240,255,0)); width: 8px; height: 8px; }
+.end-spark i:nth-child(1) { left: 6%; animation-delay: 0s; } .end-spark i:nth-child(2) { left: 14%; animation-delay: 1.2s; } .end-spark i:nth-child(3) { left: 23%; animation-delay: 2.5s; }
+.end-spark i:nth-child(4) { left: 31%; animation-delay: .6s; } .end-spark i:nth-child(5) { left: 40%; animation-delay: 3.1s; } .end-spark i:nth-child(6) { left: 49%; animation-delay: 1.8s; }
+.end-spark i:nth-child(7) { left: 57%; animation-delay: .3s; } .end-spark i:nth-child(8) { left: 66%; animation-delay: 2.2s; } .end-spark i:nth-child(9) { left: 74%; animation-delay: 3.6s; }
+.end-spark i:nth-child(10) { left: 82%; animation-delay: 1s; } .end-spark i:nth-child(11) { left: 90%; animation-delay: 2.8s; } .end-spark i:nth-child(12) { left: 96%; animation-delay: .9s; }
+@keyframes endfall { to { transform: translateY(105vh) rotate(200deg); opacity: 0.3; } }
 </style>
 </head>
 <body data-state="splash">
@@ -810,6 +825,21 @@ body[data-state="playing"] #hudB { display: flex; }
         <button class="tile" id="btnResLevels"><svg class="i" viewBox="0 0 24 24"><path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/></svg>Levels</button>
         <button class="tile" id="btnResHome"><svg class="i" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>Home</button>
       </div>
+    </div>
+  </div>
+</section>
+
+<section id="ending" class="screen sheet center">
+  <div class="end-glow" aria-hidden="true"></div><div class="end-spark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="wrap" style="text-align:center">
+    <div class="card-head"><p class="kicker">All 30 gates are awake</p><h1 class="title end-title">The Glow Reef<br>shines again!</h1></div>
+    <div class="panel">
+      <p class="msg">The storm has passed. Thanks to one brave little diver, light flows through every corner of the reef once more.</p>
+      <div class="res-stats" id="endStats"></div>
+      <div class="res-coins" id="endCoins" hidden><i class="coin" aria-hidden="true"></i><b id="endCoinN">+200</b><small>finale bonus</small></div>
+      <button class="cta" id="btnEndStars">Find every star</button>
+      <div class="duo"><button class="tile" id="btnEndIntro"><svg class="i" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Watch intro</button>
+        <button class="tile" id="btnEndHome"><svg class="i" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>Home</button></div>
     </div>
   </div>
 </section>

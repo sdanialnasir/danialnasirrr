@@ -3454,12 +3454,12 @@ window.__T = T;
         const el = $('#resCoinN'); let shown = 0; const t0 = performance.now(); const tick = (now) => { const k = Math.min(1, (now - t0) / 900); shown = Math.round(total * k * (2 - k)); el.textContent = `+${shown}`; if (k < 1) requestAnimationFrame(tick); else Audio.play('treasure'); }; setTimeout(() => requestAnimationFrame(tick), 900); }
       pushScore();
       if (n >= save.unlocked && n < LEVELS.length) save.unlocked = n + 1; persist();
-      $('#resTitle').textContent = n === LEVELS.length ? 'Cave escaped!' : ['Energized!', 'Great dive!', 'Brilliant!'][stars - 1];
+      $('#resTitle').textContent = n === LEVELS.length ? 'Last gate open!' : ['Energized!', 'Great dive!', 'Brilliant!'][stars - 1];
       $('#resStars').hidden = false;
       starEls.forEach((s, i) => setTimeout(() => { s.classList.add('show'); if (i < stars) { s.classList.add('on'); Audio.play('click'); buzz(12); } }, 250 + i * 260));
       $('#resBest').hidden = !(engine.score > prevBest && prevBest > 0);
       $('#resStats').innerHTML = `<div class="stat"><b>${Math.ceil(engine.oxygen)}s</b><span>air left</span></div><div class="stat"><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>energy</span></div>`;
-      $('#btnNext').textContent = 'Next level'; $('#btnNext').hidden = n >= LEVELS.length; $('#btnNext').classList.remove('green');
+      $('#btnNext').textContent = n >= LEVELS.length ? 'The reef awakens ✨' : 'Next level'; $('#btnNext').hidden = false; $('#btnNext').classList.toggle('green', n >= LEVELS.length);
       $('#btnRetry').lastChild.textContent = 'Replay';
     } else {
       $('#resCoins').hidden = true; save.stats.dug += engine.dug || 0; persist();
@@ -3573,7 +3573,16 @@ window.__T = T;
   $('#btnQuit').onclick = () => { click(); openHome(); };
   $('#btnResHome').onclick = () => { click(); openHome(); };
   function nextLevel() { click(); startLevel(levelIdx + 1); }
-  $('#btnNext').onclick = () => { if (engine.state === 'won' && levelIdx + 1 < LEVELS.length) nextLevel(); else if (engine.state !== 'won' && history.length) undo(); else restart(); };
+  $('#btnNext').onclick = () => { if (engine.state === 'won' && levelIdx + 1 < LEVELS.length) nextLevel(); else if (engine.state === 'won') openEnding(); else if (engine.state !== 'won' && history.length) undo(); else restart(); };
+  // the finale: all 30 gates awake. A one-time coin bonus, the story's payoff, and a nudge to go back for every star.
+  function openEnding() { click(); Audio.play('win'); setState('over'); show('ending'); const first = !save.finished;
+    if (first) { save.finished = 1; save.coins += 200; persist(); } $('#endCoins').hidden = !first;
+    const stars = totalStars(), tr = (save.stats && save.stats.treasures) || 0;
+    $('#endStats').innerHTML = `<div class="stat"><b>${stars}/${LEVELS.length * 3}</b><span>stars</span></div><div class="stat"><b>${tr}</b><span>treasures</span></div><div class="stat"><b>${save.coins}</b><span>coins</span></div>`;
+    $('#btnEndStars').textContent = stars >= LEVELS.length * 3 ? 'Every star found!' : 'Find every star'; }
+  $('#btnEndStars').onclick = () => { click(); openHome(); go('levels'); };
+  $('#btnEndHome').onclick = () => { click(); openHome(); };
+  $('#btnEndIntro').onclick = () => { click(); openHome(); setTimeout(() => { if (typeof startCine === 'function') startCine(); }, 50); };
   $('#btnRetry').onclick = () => { restart(); };
   $('#btnResLevels').onclick = () => { click(); openHome(); go('levels'); };
   function tryFullscreen(force) { const el = document.documentElement; if (!document.fullscreenElement && el.requestFullscreen && (force || !isTouch)) el.requestFullscreen().catch(() => {}); }
