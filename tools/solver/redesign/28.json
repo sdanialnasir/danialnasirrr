@@ -1,0 +1,16 @@
+{
+  "level": 28,
+  "entry": "{ name: \"Abyss\", time: 130, hint: \"Two deep jellyfish shafts. Stones go down first, and count how deep each one is.\", map: [\n'########################',\n'#P.....W........W......#',\n'#...B.. .R.R.B.. ...R..#',\n'#.WWWWW WWWWWWWW WWWWWW#',\n'#.WW  WJWW   WWW WW  WW#',\n'#.WWWWW WWWWWWWWJWWWWWW#',\n'#...... ........ ..... #',\n'#WWWWWW WWWWWWWW WWWWW #',\n'#WWWWWW WWWWWWWWWWWWWWE#',\n'########################',\n]},",
+  "plan": "8,2 8,1 10,1 10,2 L:2 s 12,1 12,2 L:4 s 17,2 19,2 19,1 21,1 21,2 L:3 w:?0-8 m:L s 14,2 15,2 7,2 7,6 21,6 22,6 22,7 7,6 7,2 12,2 R:3 s 7,2 7,6 15,6 R:6 s 15,6 7,6 7,2 5,2 6,2 3,2 R:3 s 1,6!v 6,6 R:15 s 22,8",
+  "route": "RRRRRDRRURRDLLRRURRDLLLLRRRRURRRDRRRRURRDLLLL.....LLLLRLULLLLLLDLDDDDRRRRRRRRRRRRRRRDULLLLLLLLLLLLLLLUUUURRRRRRRRLLLLLLLLDDDDRRRRRRRRRRRRRRLLLLLLLLLLLLLLUUUULLRLULLDRRRLLLLLDDDDRRRRRRRRRRRRRRRRRRRR..RDD.",
+  "moves": 195,
+  "air_used": "30/130",
+  "aha": "Both shafts must be filled with stones before any pearl goes down, and the left shaft is two deep while the right is one deep. Dig the road under the shafts before dropping a pearl, and drop and deliver one pearl at a time.",
+  "deadlocks": [
+    "Dropping a pearl before its shaft is filled: it sinks to the bottom (killing the jellyfish) and is lost.",
+    "Only one stone in the deeper left shaft: the pearl lands below road level and is stuck.",
+    "Dropping the right pearl before the road to the gate is dug: nobody can get past it to dig, so it is stuck.",
+    "Dropping both pearls before delivering either: the left pearl is pushed up against the right one and they jam."
+  ],
+  "macro_solved": false
+}

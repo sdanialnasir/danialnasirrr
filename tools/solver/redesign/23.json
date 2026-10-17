@@ -1,0 +1,16 @@
+{
+ "level": 23,
+ "entry": "{ name: \"Deep Pressure\", time: 16, hint: \"Every capsule props up a stone. Mind where that stone will land.\", map: [\n'########################',\n'#                      #',\n'#W.WRWWWRWRWWRWWWWRWWW #',\n'#W.WAWWWAWAWWAWWWWAWWW #',\n'#P B                   #',\n'#.WWWWWWWW WWWWWWWWWWW #',\n'#.WWWWRWWWWWRWWWWRWWWW #',\n'#.WWWWAWWWWWAWWWWAWWWW #',\n'#  B                  E#',\n'#WWWWWWWWWWWWWWWWWWWWWW#',\n'########################',\n]},",
+ "plan": "2,4 2,1!v 22,1 22,4!v 11,4 10,4 m:UDR s 22,4 22,1!v 2,1 2,4!v R:2 m:UDR R:3 m:UDR R:4 m:UDR R:4 m:UDR R:2 s 21,1 1,1 1,8!v 2,8 R:4 m:UDR R:5 m:UDR R:4 m:UDR R:3 m:R",
+ "route": "RUUURRRRRRRRRRRRRRRRRRRRDDDLLLLLLLLLLLLUDR..RRRRRRRRRRRUUULLLLLLLLLLLLLLLLLLLLDDDRRUDRRRRUDRRRRRUDRRRRRUDRRR.RUUULLLLLLLLLLLLLLLLLLLLLRDDDLDDDDRRRRRUDRRRRRRUDRRRRRUDRRRRR.",
+ "moves": 167,
+ "air_used": "0.9/16",
+ "aha": "Every capsule holds up a stone: the hole under the middle capsule must be plugged before the pearl arrives, so you fetch that capsule the long way round (over the top and back along the road), and every other capsule is only taken after the pearl has passed under it.",
+ "deadlocks": [
+  "Grabbing a road capsule ahead of a pearl (e.g. at x=13/18 on the loop, or any lower-road capsule early): its stone drops into the 1-high road in front of the pearl.",
+  "Pushing the upper pearl before the hole at x=10 is plugged: it drops into the hole.",
+  "A stone shoved to the right end of the upper road falls down the shaft onto the gate and seals it."
+ ],
+ "macro_solved": false,
+ "air_note": "capsules required: route lasts 25.6 s against 16 s of air; 8 capsules collected; lowest air on the route ~9.4 s"
+}

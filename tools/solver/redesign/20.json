@@ -1,0 +1,16 @@
+{
+  "level": 20,
+  "entry": "{ name: \"Lockstep\", time: 110, hint: \"The stack drops in lockstep. Each push decides which side of the next drop you land on.\", map: [\n'####################',\n'#P.......... ......#',\n'#W.WWW.WBWWW WWWW.W#',\n'#W.WWW.WBWWWJWWWW.W#',\n'#W.WWW.WRWWW WWWW.W#',\n'#W......B.........E#',\n'#WWWWWWWWWW WWWWWWW#',\n'#WWWWWWWWWWWWWWWWWW#',\n'####################',\n]},",
+  "plan": "6,1 6,5!v 5,5 7,5 6,5 6,1!v w:0 17,1 17,5!v 9,5 L:3 s 7,5 R:3 s 17,5 17,1!v w:2 6,1 6,5!v 7,5 R:10 s 17,1!v w:0 6,1 6,5!v 7,5 R:10 s 17,1!v w:0 2,1 2,5!v 4,5 R:13 m:R",
+  "route": "RRRRRDDDDLRRLUUUURRRRRRRRRRRDDDDLLLLLLLLLLLRRRR.RRRRRRRUUUU..LL...LLLLLLLLLDDDDRRRRRRRRRRRUUUULLLLLLLLLLLDDDDRRRRRRRRRRRUUUULLLLLLLLLLLLLLLDDDDRRRRRRRRRRRRRRRR.",
+  "moves": 153,
+  "air_used": "24/110",
+  "aha": "The bottom pearl has to go out the back (left), three cells, and you push it twice more so the stone that drops lands in FRONT of you. Then the stone plugs the pit and the rest of the stack comes out one at a time, with a loop past the jellyfish after each drop.",
+  "deadlocks": [
+    "Pushing the bottom pearl right first: it rolls into the open pit.",
+    "Stepping back right after the first left push: the stone drops on your left and you can only shove it into the parked pearl (deadlock).",
+    "Parking the first pearl only 2 cells left: it blocks the access shaft, so you can never get behind the stack again.",
+    "Crossing the jellyfish column on the top row while it is near the top: it surges into you."
+  ],
+  "macro_solved": false
+}

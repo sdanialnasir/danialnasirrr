@@ -1,0 +1,15 @@
+{
+ "level": 25,
+ "entry": "{ name: \"Chain Reaction\", time: 90, hint: \"Count how deep each pit is. Leaning stones topple in after their neighbour.\", map: [\n'######################',\n'#P                   #',\n'#.WWWW.WBW.WWWW.WWWWW#',\n'#.WRRW.WRW.WRRW.WWRWW#',\n'#.WRRW.WRW.WRRW.WWRWW#',\n'#........W.........WW#',\n'#.B       F         E#',\n'#WWW WWW WWW WWWWWWWW#',\n'#WWW WWW WWW WWWWWWWW#',\n'#WWW WWWWWWW WWWWWWWW#',\n'######################',\n]},",
+ "plan": "6,1 6,4!v w:4 6,5 5,5 4,5 5,5 s 6,5 6,1!v 10,1 10,5!v 11,5 12,5 11,5 s 10,5 10,1!v 6,1 6,5!v 7,5 8,5 7,5 s 7,6 R:12 s 19,6 7,6 7,5 6,5 6,1!v 1,1 1,6!v R:18 m:R",
+ "route": "RRRRRDDD....DLLR......RUUUURRRRDDDDRRL......LUUUULLLLDDDDRRL....DRRRRRRRRRRRRLLLLLLLLLLLLULUUUULLLLLDDDDDRRRRRRRRRRRRRRRRRRR.",
+ "moves": 104,
+ "air_used": "18.6/90",
+ "aha": "Only columns over or beside a pit may fall (stones on the trench floor roll into a neighbouring pit, leaning tops topple in after their neighbour); free the pearl on the middle column and push it home first, and time a drop to crush the piranha.",
+ "deadlocks": [
+  "Dropping the column next to the gate (no pit): its stones block the trench at the gate.",
+  "Pushing the first pearl before the second pearl has been pushed home: the two pearls jam in the trench.",
+  "Dropping the leftover stone of the left pair (x=3) after its pit is full: it lands in the trench right in front of the pearl."
+ ],
+ "macro_solved": false
+}

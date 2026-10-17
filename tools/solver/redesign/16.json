@@ -1,0 +1,16 @@
+{
+ "level": 16,
+ "entry": "{ name: \"Vault\", time: 80, hint: \"The vault has two doors. Only one lets the stone out without sealing the gate.\", map: [\n'####################',\n'#P...........R WWWW#',\n'#.....WWWWWWWW WWWW#',\n'#.WWW.W......W WWWW#',\n'#.WWW.W.BW...W WWWW#',\n'#.WWW.W.R....WJWWWW#',\n'#.....WWWW.W.W WWWW#',\n'#.....WWWW W   WWWW#',\n'#..B.....  WWW WWWW#',\n'#WWWWWWWWWEWWWWWWWW#',\n'####################',\n]},",
+ "plan": "1,8 2,8 8,8 2,8 R:7 s 5,1 12,1 R:1 s w:4 14,7 12,7 12,5 9,5 10,3!v 7,3 7,5!v R:4 s 10,6 10,3!v 7,3 7,5!v R:2 s 10,9",
+ "route": "DDDDDDDRURRRDRRRLLLLULLDRRRRRRRLLLLUUUUUUURRRRRRRR....RDDDDDDLLUULLLRUULLLDDRRRRLDUUULLLDDRR....RDDDD.",
+ "moves": 93,
+ "air_used": "15/80",
+ "aha": "The vault has a front door (above the gate shaft) and a back door (over the stone dump); entering through the front leaves a hole the stone must cross, so you must kill the jellyfish with the loose stone, go in through the back door, roll the vault stone out into the dump, and only then open the front door for the pearl.",
+ "deadlocks": [
+  "Entering through the front door over the gate shaft: the vault stone can then only fall into the shaft and seal the gate, or be pushed left and trap the pearl.",
+  "Digging out both cells to the left of the stacked pearl and stepping away: the pearl rolls off its stone into the corner and the stone can never be pushed again.",
+  "Pushing the vault stone left instead of right.",
+  "Going down the jellyfish shaft without dropping the stone on the jelly first."
+ ],
+ "macro_solved": true
+}

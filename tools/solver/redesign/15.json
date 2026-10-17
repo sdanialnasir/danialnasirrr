@@ -1,0 +1,16 @@
+{
+ "level": 15,
+ "entry": "{ name: \"Avalanche\", time: 120, hint: \"Each stone needs a home of its own. Count them before you empty a silo.\", map: [\n'####################',\n'#P.................#',\n'#........WWW.......#',\n'#WW.WWWW.WBW.WWWWWW#',\n'#WW.WWBW.WRW.WWWWWW#',\n'#WW.WWRW.WRW.WWWWWW#',\n'#W....R...R......WW#',\n'#WEW WWW WWWW WWWWW#',\n'####################',\n]},",
+ "plan": "3,1 3,6 2,6 5,6 3,6 3,1 8,1 8,6 7,6 L:2 s 8,6 8,1 3,1 3,6 5,6 R:2 s L:4 s 8,6 8,1 12,1 12,6 11,6 16,6 9,6 R:3 s 12,6 12,1 8,1 8,6 9,6 R:6 s 12,6 12,1 8,1 8,6 9,6 R:5 s 11,6 L:8 s 2,7",
+ "route": "RRDDDDDLRRRLLUUUUURRRRRDDDDDLLL..LLUUUURRRRRDDDDUUUUULLLLLDDDDDRRRR..LLLLRRRRRUUUUURRRRDDDDDLRRRRRLLLLUUUUULLLLDDDDDRRRRUUUUULLLLDDDDDRRRRRRRLLLUUUUULLLLDDDDDRRRRRRLLLLLLLLLLL.LD.",
+ "moves": 173,
+ "air_used": "27/120",
+ "aha": "Two stone silos drain onto one shelf with three holes; each stone needs a hole or parking spot of its own: one left silo stone into each hole beside it, all right silo stones to the right, and the right silo's last stone must leave the diver on its right side.",
+ "deadlocks": [
+  "Pushing both left-silo stones right: the second rolls over the filled hole and parks against the right silo, blocking it.",
+  "Pushing both left-silo stones left: the second rolls over the filled hole onto the gate.",
+  "Pushing a right-silo stone left: it rolls across the shelf onto the gate.",
+  "Delivering a pearl before the hole on its road is plugged."
+ ],
+ "macro_solved": true
+}

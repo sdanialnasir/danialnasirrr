@@ -1,0 +1,15 @@
+{
+ "level": 12,
+ "entry": "{ name: \"Air Supply\", time: 18, hint: \"Air is short, but a capsule grabbed too early can cost you the level.\", tip: \"New: air capsules. Each one gives +30 s of air.\", map: [\n'######################',\n'#....WWWWWWWWWWWWW...#',\n'#P.B.B             ..#',\n'#WWWWWWWWAWWWWWWWW W.#',\n'#WWWWWWWW W.WRW... W.#',\n'#W.......W...A.... W.#',\n'#W.                ..#',\n'#WA WWWWWWWWWWWWWWWWW#',\n'#W.                 E#',\n'######################',\n]},",
+ "plan": "1,1 4,1 4,2 R:13 s 4,2 4,1 2,1 2,2 R:15 s 9,2 m:DU 20,2 20,6 19,6 L:15 s 2,6 2,7 2,8 R:17 s 3,8 3,6 17,6 18,2 20,2 20,6 19,6 L:6 m:UD L:9 s 2,6 2,8 R:17 s 20,8",
+ "route": "URRRDRRRRRRRRRRRRRLLLLLLLLLLLLLULLDRRRRRRRRRRRRRRRLLLLLLLLDURRRRRRRRRRRDDDDLLLLLLLLLLLLLLLLULLDDDRRRRRRRRRRRRRRRRRLLLLLLLLLLLLLLLLUURRRRRRRRRRRRRRUURUURRDDDDLLLLLLLUDLLLLLLLLLULLDDDRRRRRRRRRRRRRRRRRR.",
+ "moves": 199,
+ "air_used": "5/18 (route is 200 ticks = 30 s against an 18 s tank; dies at tick 120 without capsules)",
+ "aha": "Capsules are solid blocks until grabbed: the floor capsule holds up the pearls' road and the middle capsule props up a stone, so each must be taken only after both pearls have passed it.",
+ "deadlocks": [
+  "Grabbing the floor capsule (9,3) before both pearls have crossed it opens a hole; a pearl pushed over it drops into the sealed pocket below.",
+  "Grabbing the middle capsule (13,5) while a pearl is still east of it drops its stone onto the lower road between that pearl and the gate.",
+  "Running out of air: the route needs at least one refill, and at human pace all three."
+ ],
+ "macro_solved": false
+}

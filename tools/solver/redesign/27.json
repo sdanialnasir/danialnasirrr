@@ -1,0 +1,17 @@
+{
+  "level": 27,
+  "entry": "{ name: \"Undertow\", time: 95, hint: \"Whatever falls crushes what's below. Wait for the monster, then step out of the notch.\", map: [\n'########################',\n'#P.....................#',\n'#............R.........#',\n'#.B......R...B.....R...#',\n'#.W WWWW.W WW.WWWW WWWW#',\n'#C    .        .     FE#',\n'#WWWWWWWWW WWWWWWW WWWW#',\n'#WWWWWWWWWWWWWWWWWWWWWW#',\n'########################',\n]},",
+  "plan": "3,1 3,3!v w:6 m:U s 18,1 18,2!v w:0 m:D m:U s 10,1 10,3!v m:U s 8,5!v 6,5 15,5 8,5 8,1!v 1,1 1,5!v 2,5 R:19 s 13,5 m:U m:D m:L s R:9 s 22,5",
+  "route": "RRDD......U...RRRRRRRRRURRRRRRDDU....LLLLULLLLDDU....DDDLLLLRRRRRRRRRLLLLLLLUUUULLLLLLLDDDDRRRRRRRRRRRRRRRRRRRRLLLLLLLLUDL.RRRRRRRRRR.",
+  "moves": 115,
+  "air_used": "20/95",
+  "aha": "Stepping out of a sand notch lets the pearl/stone beside it roll into the hole below: release the pearl onto the crab, a stone onto the piranha (it also plugs the pit), a stone into the middle pit, then pull the pinned pearl down from below last so its stone falls in behind it.",
+  "deadlocks": [
+    "Releasing the pearl when the crab is not underneath: the crab survives and walls off the pearl lane (or kills you at the entry), so you have to undo.",
+    "Releasing the stone when the piranha is not under it: the stone still plugs the pit, but the piranha lives and charges you as soon as you dig into its room.",
+    "Pushing the left pearl along the trench before the middle pit is plugged: it drops into the pit and is lost.",
+    "Pulling the pinned right-hand pearl down before the left pearl has passed: its stone drops into the lane behind it and walls off the left pearl.",
+    "Stepping right instead of left after pulling the pinned pearl down: the diver ends up on the gate side and can only push it away from the gate."
+  ],
+  "macro_solved": false
+}

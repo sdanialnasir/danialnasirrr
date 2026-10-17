@@ -1,0 +1,16 @@
+{
+  "level": 21,
+  "entry": "{ name: \"Night Shoal\", time: 85, hint: \"Three piranhas, two stones. The pearl is a weapon too, and order is everything.\", tip: \"World 3: the Deep\", map: [\n'########################',\n'#...  R...R  W  B.....P#',\n'#WWW WW...WW W WWWWWWW.#',\n'#WWWFWWWW.WWFW WWWWWWW.#',\n'#WWW WWWW.WW WFWWWWWWW.#',\n'#WWW WWWW.WW W WWWWWWW.#',\n'#E.....................#',\n'#WWW WWWWWWW WWWWWWWWWW#',\n'########################',\n]},",
+  "plan": "22,6!v 15,6 w:0 13,6 w:0 11,6 9,6 9,2!v 7,2 7,1 L:1 s 9,1 R:1 s 9,2!v 9,6!v 2,6 13,6 w:0 15,6 22,6 22,1!v 17,1 L:1 s 22,1 22,6!v 15,6 L:13 m:L",
+  "route": "DDDDDLLLLLLLLLLLLLUUUULLULRRRR..........LDDDDDLLLLLLLRRRRRRRRRRRRRRRRRRRRUUUUULLLLLLRRRRRRDDDDDLLLLLLLLLLLLLLLLLLLLL.",
+  "moves": 106,
+  "air_used": "17/85",
+  "aha": "The piranha shafts with pits take the stones. The shaft without a pit takes the PEARL, which crushes that piranha and lands on the road. Do it in order: right of the start you cannot reach the stones, so first run the road under the live piranhas (timing) and climb the zig-zag middle shaft. Push the left stone first, because the moment you open the cell beside it, it rolls into the middle shaft and wedges.",
+  "deadlocks": [
+    "Pushing the pearl first (it sits right next to the start): it blocks the road and the plateau is split, so the stones can only be reached with a long recovery trick (pass under it, nudge it right, climb the emptied shaft).",
+    "Digging toward the right stone before pushing the left one: the left stone rolls into the middle shaft, wedges, and the left pit can never be plugged (unwinnable).",
+    "Pushing the pearl along the road before both pits are plugged: it drops into a pit.",
+    "Lingering on the road under a live piranha's shaft, or digging the plateau next to a piranha's gap cell: it bites."
+  ],
+  "macro_solved": true
+}

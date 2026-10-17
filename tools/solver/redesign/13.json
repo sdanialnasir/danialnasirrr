@@ -1,0 +1,16 @@
+{
+ "level": 13,
+ "entry": "{ name: \"Trapdoor\", time: 75, hint: \"When the trapdoor opens, the stones beside it follow the pearl down. Decide where.\", map: [\n'####################',\n'#P.................#',\n'#...RBR.WWWWWWWWW..#',\n'#WW.W.W.WWWWWWWWW..#',\n'#WW W WWWWWWWWWWW..#',\n'#WW W WWWWWBWWWWW..#',\n'#WWWW  ............#',\n'#WWWWE WWWWWWWWWWWW#',\n'####################',\n]},",
+ "plan": "3,1 3,3 m:UU s 17,1 17,6 7,6 5,6 5,3 m:DDDRR w:6 s 5,1 17,1 17,6 12,6 L:6 s 5,7",
+ "route": "RRDDUU....RRRRRRRRRRRRRRDDDDDLLLLLLLLLLLLUUUDDDRR......LLUUUUURRRRRRRRRRRRDDDDDLLLLLLLLLLL.LD.",
+ "moves": 82,
+ "air_used": "14/75",
+ "aha": "The trapdoor can only be dug from below, and when it opens both neighbouring stones roll in after the pearl; the gate's side pocket takes exactly one, so exactly one stone must be sent away first.",
+ "deadlocks": [
+  "Opening the trapdoor with both stones still beside it: one rolls into the pocket, the second lands on the gate and seals it.",
+  "Sending both stones away (left into the sump and right onto the ledge): the pocket stays open and the second pearl drops into it.",
+  "Pushing the second pearl over the pocket before a stone has filled it.",
+  "Lingering in the shaft after digging the trapdoor (crushed by the pearl), or hiding in the pocket (crushed by the stone)."
+ ],
+ "macro_solved": false
+}

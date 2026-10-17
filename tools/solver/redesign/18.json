@@ -1,0 +1,16 @@
+{
+  "level": 18,
+  "entry": "{ name: \"Crab Cave\", time: 70, hint: \"Crabs die under stones too. Watch its rhythm before you pull the plug.\", tip: \"Twist: stones crush crabs too\", map: [\n'########################',\n'#.................WWWWW#',\n'#.WWWWWWWWWWWWWWW.WWWWW#',\n'#.WWBWWWWWWWWWWWW.WWWWW#',\n'#.WW.WWRWWWWWWWWW.RWWWW#',\n'#.WW WW.WWWWWWWWW..WWWW#',\n'#P.............  C    E#',\n'#WWWWWWWWWWW WWWWWWW WW#',\n'########################',\n]},",
+  "plan": "1,1!v 17,1 17,5!v m:R w:0 m:L s m:D R:2 7,6 m:U m:D m:L s R:5 4,6 4,4!v m:DDL s R:18 m:R",
+  "route": "UUUUURRRRRRRRRRRRRRRRDDDDRL..DRRLLLLLLLLLLLLUDL.RRRRRLLLLLLLUUDDL.RRRRRRRRRRRRRRRRRRR.",
+  "moves": 81,
+  "air_used": "13/70",
+  "aha": "Drop the stone on the crab as it walks under the plug, then shove that stone into the pit by the gate. The second stone has to be released from below with a step to the LEFT so it falls in front of you and can be pushed into the near pit. The pearl is also released from below, so keep moving or it lands on you.",
+  "deadlocks": [
+    "Pulling the plug when the crab is not underneath: the stone seals the crab in beside the gate and nothing can reach it (unwinnable, or instant death when you open its water).",
+    "Digging the cave road into the crab's water while it lives: it rushes you.",
+    "Pushing the pearl along the cave before the near pit is plugged: it drops into the pit for good.",
+    "Standing still under the pearl after digging it free: crushed."
+  ],
+  "macro_solved": false
+}

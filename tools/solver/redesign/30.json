@@ -1,0 +1,16 @@
+{
+  "level": 30,
+  "entry": "{ name: \"Deep Current\", time: 155, hint: \"Three pearls, one shaft. Fill it to the road, free the vault, and mind the order.\", map: [\n'######################',\n'#P...................#',\n'#.....R.B..R.R.R.B...#',\n'#W.WW WWWW.W WWWWWWWW#',\n'#W B    CW.W WWWWWWWW#',\n'#WWWW WW.W.WJWWWWWWWW#',\n'#WWWWWW..W.W WWWWWWWW#',\n'#WWWWWW..... ...A...E#',\n'#WWWWWWWWWWW WWWWWWWW#',\n'#WWWWWWWWWWW WWWWWWWW#',\n'#WWWWWWWWWWW WWWWWWWW#',\n'######################',\n]},",
+  "plan": "5,1 5,2!v w:3 m:U s 12,1 12,2!v m:U s 14,2 14,1 16,1 16,2 L:3 s 12,2 12,7!v 19,7 7,7 12,7 12,1!v 2,1 2,4!v R:5 s 2,4 2,1!v 10,1 10,7!v 8,7 8,5!v m:D m:L s 7,7!v R:12 s 12,7 12,1!v 9,2 9,1 7,1 7,2 R:2 s 2,1 2,4!v 8,4 8,7!v 9,7 R:10 s 12,7 12,1!v 17,1 18,1 18,2 L:5 s 10,1 10,7!v 11,7 R:8 s 20,7",
+  "route": "RRRRD...U....RRRRRRRDU..........RRDURRDLLLLLLLDDDDDRRRRRRRRRLLLLLLLLLLLLRRRRRUUUUUULLLLLLLLLLDDDRRRRRLLLLLUUURRRRRRRRDDDDDDLLUUDL..DRRRRRRRRRRRRLLLLLLLUUUUUULLLDULLDRRLLLLLLLUDDDRRRRRRDDDRRRRRRRRRRRLLLLLLLUUUUUURRRRRRDLLLLLULLLDDDDDDRRRRRRRRRR.",
+  "moves": 224,
+  "air_used": "28/155",
+  "aha": "One notch dig drops two stones down the jellyfish shaft (killing it), but the shaft is three deep, so a third stone must follow before any pearl. Kill the vault crab with the stone over the vault pit, push the vault pearl onto the floor plug and pull it down from below, and deliver pearls one at a time.",
+  "deadlocks": [
+    "Dropping a pearl after only the two notch stones: it lands below road level and is lost.",
+    "Pushing the vault pearl while the crab lives, or before the vault pit is plugged: it gets jammed against the crab or falls into the pit.",
+    "Dropping a second pearl into the shaft while another pearl waits on the road to its left (e.g. at the chimney foot): they jam.",
+    "Pushing a pearl past the air capsule or undug road: blocked, and the diver cannot get around it."
+  ],
+  "macro_solved": false
+}

@@ -1,0 +1,15 @@
+{
+  "level": 19,
+  "entry": "{ name: \"The Pit\", time: 80, hint: \"The shaft bends twice. Whatever drops first decides where the next one rolls.\", map: [\n'####################',\n'#P.................#',\n'#.B.R.R....R....B..#',\n'#WWWWWWWW WWW WWWWW#',\n'#WWWWWWWW WWWWWWWWW#',\n'#WWWWWWW   WWWWWWWW#',\n'#WWWWWWW W WWWWWWWW#',\n'#WWWWWWWW   WWWWWWW#',\n'#WWWWWWWW W WWWWWWW#',\n'#WWWWWWWWWW WWWWWWW#',\n'#WWWWWWWWWWEWWWWWWW#',\n'####################',\n]},",
+  "plan": "13,1 13,2!v 12,2 12,1!v 10,1 10,2!v R:1 s 9,2 7,2 7,1!v 5,1 5,2!v R:2 s 3,1 3,2!v R:4 s 1,2 R:6 s 15,1 15,2!v 14,2 14,1!v 17,1 17,2!v L:6 s 11,10",
+  "route": "RRRRRRRRRRRRDLULLDRLLLLULLDRRLLULLDRRRRLLLLULLDRRRRRRURRRRRRRRDLURRRDLLLLLLU..........LLDDDDRDDRDDD.",
+  "moves": 89,
+  "air_used": "15/80",
+  "aha": "The shaft has two bends that each roll things left into a dead pocket first. Feed it two stones before any pearl (one per pocket); the third stone, the one by the right pearl, belongs in the small notch on the right, not in the shaft.",
+  "deadlocks": [
+    "Pushing a pearl into the shaft first: it rolls into a pocket and is stuck.",
+    "Sending the right-hand stone down the shaft instead of into the notch: one left stone then has nowhere to go. It either blocks the left pearl or rolls all the way down and sits on the gate.",
+    "Pushing the right pearl left before the notch is plugged: it falls into the notch."
+  ],
+  "macro_solved": false
+}

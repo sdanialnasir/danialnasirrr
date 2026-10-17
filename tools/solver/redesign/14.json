@@ -1,0 +1,16 @@
+{
+ "level": 14,
+ "entry": "{ name: \"Crossfire\", time: 70, hint: \"The left well holds exactly two stones. Pick the right two before you drop any.\", tip: \"Twist: two piranhas at once\", map: [\n'####################',\n'#P....R..W.........#',\n'#............W.....#',\n'#.B..R ...R.. ..B..#',\n'#WWWWW WWWWWW WWWWW#',\n'#WWWWWFWWWWWW WWWWW#',\n'#WWWWWWWWWWWW WWWWW#',\n'#WWWWWWWWWWWWFWWWWW#',\n'#WWWWWWWWWWWWEWWWWW#',\n'####################',\n]},",
+ "plan": "4,2 4,3 R:1 s w:4 9,3 9,2 11,2 11,3 L:4 s 15,2 15,3 w:3 m:LR 17,2 17,3 L:3 s 12,3 3,3 3,2 1,2 1,3 R:11 s 13,8",
+ "route": "RRRDDR....RRRRURRDLLLLRRRRRRRRUD...LRURRDLLLUDLLLLLLLLLLLULLDRRRRRRRRRRR.....RDDDDD.",
+ "moves": 71,
+ "air_used": "12/70",
+ "aha": "The left piranha well holds exactly two stones and there are three: the stone hanging over the well (the obvious one to drop on the fish) must be left alone, and the two road stones go in, one pushed from each side.",
+ "deadlocks": [
+  "Dropping the hanging stone into the left well: the well is then full after one more and the remaining road stone blocks the pearl.",
+  "Pushing the middle stone right into the gate well: it kills the piranha but lands on the gate.",
+  "Pushing the left pearl before both stones are in the well: it falls in and is stuck.",
+  "Standing next to the right well's mouth while its piranha comes up (eaten); the final dig there must be timed."
+ ],
+ "macro_solved": false
+}

@@ -1,0 +1,15 @@
+{
+  "level": 17,
+  "entry": "{ name: \"Switchback\", time: 90, hint: \"Two holes in the road. Stones fill holes, but you can only push from behind.\", map: [\n'####################',\n'#P..B         R   .#',\n'#.WWWWWWWW WWWWWW .#',\n'#.WWWWWWRWWWWWWWW .#',\n'#       .          #',\n'#. WWWWWWWWWWW WWWW#',\n'#. WWWWWWWWWWWWWWWW#',\n'#.                E#',\n'#WWWWWWWWWWWWWWWWWW#',\n'####################',\n]},",
+  "plan": "1,4!v 8,4 m:L s R:6 s 18,4 18,1!v 15,1 L:4 s 18,1 18,4!v 1,4 1,1!v 3,1 R:13 s 18,1 18,4!v L:15 s 1,4 1,7!v R:16 m:R",
+  "route": "DDDRRRRRRRL.RRRRRR.RRRRRUUULLLLLLLRRRRRRRDDDLLLLLLLLLLLLLLLLLUUURRRRRRRRRRRRRRRLRRRDDDLLLLLLLLLLLLLLLRLLLDDDRRRRRRRRRRRRRRRRR.",
+  "moves": 123,
+  "air_used": "19/90",
+  "aha": "The holes in the top and middle roads must be plugged with their stones from the far side: loop around through the side shafts, and when you dig out the middle stone, step back left so it drops on your right and can be shoved forward into the hole.",
+  "deadlocks": [
+    "Pushing the pearl right before the top hole is plugged: it drops into the 1-deep pocket and can never move again.",
+    "Digging under the middle stone and carrying on right: it drops behind you, you can only push it away from its hole, and the right half of the level is cut off from the left (unwinnable).",
+    "Pushing the pearl along the middle road before that hole is plugged: lost in the pocket."
+  ],
+  "macro_solved": true
+}

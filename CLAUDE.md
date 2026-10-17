@@ -155,3 +155,14 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - **Gate:** beacon halo + ring that brighten per pearl delivered, one slot light per pearl, sparkles when open.
 - **Juice:** `popText` floating words ("+1" treasure, "2/3" pearl, "Phew!", "Bonk!").
 - **Audio:** pad a little warmer + rare far-off single chimes (still no tune).
+
+## Level redesign (levels 12–30) + gate cue
+- Levels 12–30 were rebuilt as constrained "thinking" puzzles (walls/shafts/pockets instead of open sand fields; monsters on the
+  solution path; deliberate deadlocks so order matters). Difficulty targets: 12–15 ≥60 moves, 16–20 ≥75, 21–25 ≥90, 26–30 ≥110.
+  Per-level design notes (aha, deadlocks, plan, route, blind-solver result) live in `tools/solver/redesign/<n>.json`;
+  waypoint plans in `tools/solver/plans.json` (`node tools/solver/build_routes.js <n>` regenerates and checks a route).
+  Air on 12 (35 s) and 23 (24 s) is deliberately tight so the capsules matter; others use ≈ route time × 3.5 + 25 s.
+- Thick wall masses (a W run with W above/below) render as one merged reef-rock mesh (`massMat`, world-coloured, front faces +
+  only the sides that face open water, so no seams); single-row W runs stay shelves.
+- When the last pearl goes in: banner "The gate is awake! Swim in!", a bouncing "Swim in!" marker over the gate (`gateArrow`),
+  and a reminder toast after 8 s if the diver hasn't entered.
