@@ -744,11 +744,11 @@ body[data-state="cine"]::before, body[data-state="cine"]::after { height: 10vh !
   <div class="wrap">
     <div class="ph"><button class="back" data-go="home" aria-label="Back"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h2>How to play</h2></div>
     <div class="panel how">
-      <div class="r"><i class="ic ball"></i><p><b>Push every red energy ball into the gate,</b> then swim into the gate yourself.</p></div>
-      <div class="r"><i class="ic sand"></i><p><b>Swim into sand to dig.</b> Balls and stones only move into open water, so dig the road first.</p></div>
-      <div class="r"><i class="ic stone"></i><p><b>Stones fall</b> when nothing holds them up and roll off round things. One on your head ends the dive. Drop them on enemies.</p></div>
+      <div class="r"><i class="ic ball"></i><p><b>Push every red energy pearl into the gate,</b> then swim into the glowing gate yourself.</p></div>
+      <div class="r"><i class="ic sand"></i><p><b>Swim into sand to dig.</b> Pearls and stones only move into open water, so dig the road first.</p></div>
+      <div class="r"><i class="ic stone"></i><p><b>Stones and pearls fall</b> when nothing holds them up and roll off round things (left first). One on your head ends the dive. Drop them on enemies.</p></div>
       <div class="r"><i class="ic fish"></i><p><b>Piranhas, jellyfish and crabs</b> patrol the caves. Touching one ends the dive.</p></div>
-      <div class="r"><i class="ic airc"></i><p><b>Watch your air.</b> Bubbles refill it. Finish with more air for more stars: the ★★★ under the timer shows what you'd get right now.</p></div>
+      <div class="r"><i class="ic airc"></i><p><b>Watch your air.</b> Air capsules give +30 seconds. Finish with more air for more stars: the ★★★ under the timer shows what you'd get right now.</p></div>
       <div class="r"><i class="ic stone"></i><p><b>Made a mistake?</b> Tap ↶ (or press Z) to undo moves, even after a crash. ⟲ restarts instantly. A red <b>!</b> warns you when a stone sits right above you.</p></div>
       <p class="hint touch-only" style="text-shadow:none">Drag anywhere to swim: a short drag steps carefully, a long drag swims fast.</p>
     </div>
@@ -1235,7 +1235,7 @@ Engine.prototype.fullKey = function () {
 //         P diver  F piranha (hunts)  J jellyfish (vertical)  C crab (horizontal)  A air capsule
 // `time` is oxygen in seconds. Every level is verified winnable by tools/verify.js.
 const LEVELS = [
-{ name: "First Light", time: 60, hint: "Push the energy ball into the gate, then swim in. Balls only move into open water, so dig the road first.", map: [
+{ name: "First Light", time: 60, hint: "Push the energy pearl into the gate, then swim in. Pearls only roll into open water, so dig the road first.", map: [
 '############',
 '#P.........#',
 '#..........#',
@@ -1337,7 +1337,7 @@ const LEVELS = [
 '#WWWWWWWW WWWWWW#',
 '#################',
 ]},
-{ name: "Counterweight", time: 70, hint: "Each stone rests on the sand below it. Dig only under the stones you need.", tip: "World 2: the Violet Caves", map: [
+{ name: "Counterweight", time: 70, hint: "Each stone rests on the sand below it. Dig only under the stones you need.", tip: "World 2: the Coral Caves", map: [
 '##################',
 '#               P#',
 '#WW.WWRWWWRWWRW.W#',
@@ -4448,7 +4448,7 @@ window.__T = T;
     tickWorld(engine, performance.now());
     held.clear(); heldOrder = []; acc = 0; overTimer = 0; lowAirBeep = 0; resultShown = false; endTouch();
     $('#introNum').textContent = `Level ${i + 1} of ${LEVELS.length}`; $('#introName').textContent = lv.name; $('#introHint').textContent = lv.hint;
-    $('#introBalls').textContent = engine.ballsTotal === 1 ? '1 energy ball' : `${engine.ballsTotal} energy balls`; $('#introAir').textContent = `${lv.time}s of air`;
+    $('#introBalls').textContent = engine.ballsTotal === 1 ? '1 energy pearl' : `${engine.ballsTotal} energy pearls`; $('#introAir').textContent = `${lv.time}s of air`;
     screenStack = []; setState('intro'); show('intro'); hudKey = ''; updateHud();
     Audio.setMusic(save.settings.music);
   }

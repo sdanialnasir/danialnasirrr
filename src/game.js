@@ -332,7 +332,7 @@ Engine.prototype.fullKey = function () {
 //         P diver  F piranha (hunts)  J jellyfish (vertical)  C crab (horizontal)  A air capsule
 // `time` is oxygen in seconds. Every level is verified winnable by tools/verify.js.
 const LEVELS = [
-{ name: "First Light", time: 60, hint: "Push the energy ball into the gate, then swim in. Balls only move into open water, so dig the road first.", map: [
+{ name: "First Light", time: 60, hint: "Push the energy pearl into the gate, then swim in. Pearls only roll into open water, so dig the road first.", map: [
 '############',
 '#P.........#',
 '#..........#',
@@ -434,7 +434,7 @@ const LEVELS = [
 '#WWWWWWWW WWWWWW#',
 '#################',
 ]},
-{ name: "Counterweight", time: 70, hint: "Each stone rests on the sand below it. Dig only under the stones you need.", tip: "World 2: the Violet Caves", map: [
+{ name: "Counterweight", time: 70, hint: "Each stone rests on the sand below it. Dig only under the stones you need.", tip: "World 2: the Coral Caves", map: [
 '##################',
 '#               P#',
 '#WW.WWRWWWRWWRW.W#',
@@ -3545,7 +3545,7 @@ window.__T = T;
     tickWorld(engine, performance.now());
     held.clear(); heldOrder = []; acc = 0; overTimer = 0; lowAirBeep = 0; resultShown = false; endTouch();
     $('#introNum').textContent = `Level ${i + 1} of ${LEVELS.length}`; $('#introName').textContent = lv.name; $('#introHint').textContent = lv.hint;
-    $('#introBalls').textContent = engine.ballsTotal === 1 ? '1 energy ball' : `${engine.ballsTotal} energy balls`; $('#introAir').textContent = `${lv.time}s of air`;
+    $('#introBalls').textContent = engine.ballsTotal === 1 ? '1 energy pearl' : `${engine.ballsTotal} energy pearls`; $('#introAir').textContent = `${lv.time}s of air`;
     screenStack = []; setState('intro'); show('intro'); hudKey = ''; updateHud();
     Audio.setMusic(save.settings.music);
   }
