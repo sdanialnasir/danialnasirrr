@@ -192,3 +192,14 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - **Stage lighting in play:** `MAT.lamp` (x, y, radius, strength) + `MAT.lampAmb` drive a warm pool of light around the diver in the
   sand, reef-rock, shelf (`causticify`) and in-tank water shaders, with the far corners of the tank falling gently into shade; the
   painted backdrop and seabed darken and the post vignette deepens (`vig`). Strength per world: shallows mild → the Deep strongest.
+
+## Launch hardening (pre-publish audit)
+- `disposeLevel()` (called by `clearLevel`) frees every per-level geometry/material/texture except the shared caches
+  (GEO/MAT/TEX/SPR/sandGeoCache). GPU memory now stays flat across level loads, restarts and undos (it leaked ~2 MB per load).
+- Undo is refused once a level is won (was an infinite-coins loop); treasures count once per cell per run (`runTreasureSet`).
+- Frame loop caps tick catch-up at 300 ms (a long stall used to fast-forward the dive into "out of air"); intro dt capped at 0.1 s.
+- Boot ignores taps/keys until loading ends; context restore reloads the right engine (intro/menu/level) and resumes play;
+  audio resumes on the next pointerdown (iOS interruptions); SFX reuse one noise buffer; the ending has its own state.
+- Saves: damaged fields are dropped; save `v: 2` resets stars/best/tips from the pre-redesign levels (coins/skins/progress kept).
+- Air retuned for careful first-time players (levels 11–30; capsule levels 12 → 55 s, 23 → 40 s); hints rewritten on 9/20/22,
+  dodge warnings on 4/12/23. All 30 routes re-verified.

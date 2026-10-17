@@ -361,7 +361,7 @@ const LEVELS = [
 '#WWWWWWEWWWWW#',
 '##############',
 ]},
-{ name: "Two Roads", time: 45, hint: "The high pearl drops into the low pearl's road. Clear the low road first.", map: [
+{ name: "Two Roads", time: 45, hint: "Clear the low road first. When you pull a plug from below, step aside at once!", map: [
 '##############',
 '#P.....  ....#',
 '#.WW...B...W #',
@@ -410,7 +410,7 @@ const LEVELS = [
 '#WWWWWWWWWWWWWW#',
 '################',
 ]},
-{ name: "Ambush", time: 70, hint: "The crab rushes along open rows. Drop the pearl on it, or cross when it's far away.", tip: "New: crabs. They patrol the open water.", map: [
+{ name: "Ambush", time: 70, hint: "Push the pearl ahead as a shield and slip down the hole when the crab is at the far end.", tip: "New: crabs. They patrol the open water.", map: [
 '##################',
 '#W...B..........P#',
 '#......W....W....#',
@@ -434,7 +434,7 @@ const LEVELS = [
 '#WWWWWWWW WWWWWW#',
 '#################',
 ]},
-{ name: "Counterweight", time: 70, hint: "Each stone rests on the sand below it. Dig only under the stones you need.", tip: "World 2: the Coral Caves", map: [
+{ name: "Counterweight", time: 75, hint: "Each stone rests on the sand below it. Dig only under the stones you need.", tip: "World 2: the Coral Caves", map: [
 '##################',
 '#               P#',
 '#WW.WWRWWWRWWRW.W#',
@@ -445,7 +445,7 @@ const LEVELS = [
 '#WWWWWWWWW WWWWWW#',
 '##################',
 ]},
-{ name: "Air Supply", time: 35, hint: "Air is short, but a capsule grabbed too early can cost you the level.", tip: "New: air capsules. Each one gives +30 s of air.", map: [
+{ name: "Air Supply", time: 55, hint: "Grab capsules only after the pearls pass. Pull a plug from below? Step aside at once!", tip: "New: air capsules. Each one gives +30 s of air.", map: [
 '######################',
 '#....WWWWWWWWWWWWW...#',
 '#P.B.B             ..#',
@@ -457,7 +457,7 @@ const LEVELS = [
 '#W.                 E#',
 '######################',
 ]},
-{ name: "Trapdoor", time: 75, hint: "When the trapdoor opens, the stones beside it follow the pearl down. Decide where.", map: [
+{ name: "Trapdoor", time: 110, hint: "When the trapdoor opens, the stones beside it follow the pearl down. Decide where.", map: [
 '####################',
 '#P.................#',
 '#...RBR.WWWWWWWWW..#',
@@ -468,7 +468,7 @@ const LEVELS = [
 '#WWWWE WWWWWWWWWWWW#',
 '####################',
 ]},
-{ name: "Crossfire", time: 70, hint: "The left well holds exactly two stones. Pick the right two before you drop any.", tip: "Twist: two piranhas at once", map: [
+{ name: "Crossfire", time: 115, hint: "The left well holds exactly two stones. Pick the right two before you drop any.", tip: "Twist: two piranhas at once", map: [
 '####################',
 '#P....R..W.........#',
 '#............W.....#',
@@ -480,7 +480,7 @@ const LEVELS = [
 '#WWWWWWWWWWWWEWWWWW#',
 '####################',
 ]},
-{ name: "Avalanche", time: 120, hint: "Each stone needs a home of its own. Count them before you empty a silo.", map: [
+{ name: "Avalanche", time: 190, hint: "Each stone needs a home of its own. Count them before you empty a silo.", map: [
 '####################',
 '#P.................#',
 '#........WWW.......#',
@@ -491,7 +491,7 @@ const LEVELS = [
 '#WEW WWW WWWW WWWWW#',
 '####################',
 ]},
-{ name: "Vault", time: 80, hint: "The vault has two doors. Only one lets the stone out without sealing the gate.", map: [
+{ name: "Vault", time: 140, hint: "The vault has two doors. Only one lets the stone out without sealing the gate.", map: [
 '####################',
 '#P...........R WWWW#',
 '#.....WWWWWWWW WWWW#',
@@ -504,7 +504,7 @@ const LEVELS = [
 '#WWWWWWWWWEWWWWWWWW#',
 '####################',
 ]},
-{ name: "Switchback", time: 90, hint: "Two holes in the road. Stones fill holes, but you can only push from behind.", map: [
+{ name: "Switchback", time: 140, hint: "Two holes in the road. Stones fill holes, but you can only push from behind.", map: [
 '####################',
 '#P..B         R   .#',
 '#.WWWWWWWW WWWWWW .#',
@@ -516,7 +516,7 @@ const LEVELS = [
 '#WWWWWWWWWWWWWWWWWW#',
 '####################',
 ]},
-{ name: "Crab Cave", time: 70, hint: "Crabs die under stones too. Watch its rhythm before you pull the plug.", tip: "Twist: stones crush crabs too", map: [
+{ name: "Crab Cave", time: 115, hint: "Crabs die under stones too. Watch its rhythm before you pull the plug.", tip: "Twist: stones crush crabs too", map: [
 '########################',
 '#.................WWWWW#',
 '#.WWWWWWWWWWWWWWW.WWWWW#',
@@ -527,7 +527,7 @@ const LEVELS = [
 '#WWWWWWWWWWW WWWWWWW WW#',
 '########################',
 ]},
-{ name: "The Pit", time: 80, hint: "The shaft bends twice. Whatever drops first decides where the next one rolls.", map: [
+{ name: "The Pit", time: 130, hint: "The shaft bends twice. Whatever drops first decides where the next one rolls.", map: [
 '####################',
 '#P.................#',
 '#.B.R.R....R....B..#',
@@ -541,7 +541,7 @@ const LEVELS = [
 '#WWWWWWWWWWEWWWWWWW#',
 '####################',
 ]},
-{ name: "Lockstep", time: 110, hint: "The stack drops in lockstep. Each push decides which side of the next drop you land on.", map: [
+{ name: "Lockstep", time: 180, hint: "Push the bottom pearl LEFT, out the back, so the stone drops in front of you.", map: [
 '####################',
 '#P.......... ......#',
 '#W.WWW.WBWWW WWWW.W#',
@@ -552,7 +552,7 @@ const LEVELS = [
 '#WWWWWWWWWWWWWWWWWW#',
 '####################',
 ]},
-{ name: "Night Shoal", time: 85, hint: "Three piranhas, two stones. The pearl is a weapon too, and order is everything.", tip: "World 3: the Deep", map: [
+{ name: "Night Shoal", time: 170, hint: "Three piranhas, two stones. The pearl is a weapon too, and order is everything.", tip: "World 3: the Deep", map: [
 '########################',
 '#...  R...R  W  B.....P#',
 '#WWW WW...WW W WWWWWWW.#',
@@ -563,7 +563,7 @@ const LEVELS = [
 '#WWW WWWWWWW WWWWWWWWWW#',
 '########################',
 ]},
-{ name: "Hourglass", time: 100, hint: "Dug valves never close. Plan which side each stone and each pearl must fall to.", map: [
+{ name: "Hourglass", time: 185, hint: "Open the gate-side valve first; the near pearl goes before any stone.", map: [
 '####################',
 '#P                 #',
 '#  R  B     R B  R #',
@@ -576,7 +576,7 @@ const LEVELS = [
 '#WWWWWWWW WEWWWWWWW#',
 '####################',
 ]},
-{ name: "Deep Pressure", time: 24, hint: "Every capsule props up a stone. Mind where that stone will land.", map: [
+{ name: "Deep Pressure", time: 40, hint: "Every capsule props up a stone: grab it, then step aside at once. Mind where it lands.", map: [
 '########################',
 '#                      #',
 '#W.WRWWWRWRWWRWWWWRWWW #',
@@ -589,7 +589,7 @@ const LEVELS = [
 '#WWWWWWWWWWWWWWWWWWWWWW#',
 '########################',
 ]},
-{ name: "Gauntlet", time: 90, hint: "Some shafts sink below the road. Not every stone has to fall where it starts.", map: [
+{ name: "Gauntlet", time: 150, hint: "Some shafts sink below the road. Not every stone has to fall where it starts.", map: [
 '######################',
 '#P                  W#',
 '#.WWR.WWWWWWR.WWR.W.W#',
@@ -600,7 +600,7 @@ const LEVELS = [
 '#WWWW WWWWWWWWWWWWWWW#',
 '######################',
 ]},
-{ name: "Chain Reaction", time: 90, hint: "Count how deep each pit is. Leaning stones topple in after their neighbour.", map: [
+{ name: "Chain Reaction", time: 175, hint: "Count how deep each pit is. Leaning stones topple in after their neighbour.", map: [
 '######################',
 '#P                   #',
 '#.WWWW.WBW.WWWW.WWWWW#',
@@ -613,7 +613,7 @@ const LEVELS = [
 '#WWW WWWWWWW WWWWWWWW#',
 '######################',
 ]},
-{ name: "Citadel", time: 110, hint: "The vault tips left unless that side is sealed. Count every pit before a drop.", map: [
+{ name: "Citadel", time: 220, hint: "The vault tips left unless that side is sealed. Count every pit before a drop.", map: [
 '########################',
 '#P                     #',
 '#.WWBWW.WWWWWW.WWWWWWW.#',
@@ -627,7 +627,7 @@ const LEVELS = [
 '#WWWWWWWW WWWWWW WWW WW#',
 '########################',
 ]},
-{ name: "Undertow", time: 95, hint: "Whatever falls crushes what's below. Wait for the monster, then step out of the notch.", map: [
+{ name: "Undertow", time: 195, hint: "Whatever falls crushes what's below. Wait for the monster, then step out of the notch.", map: [
 '########################',
 '#P.....................#',
 '#............R.........#',
@@ -638,7 +638,7 @@ const LEVELS = [
 '#WWWWWWWWWWWWWWWWWWWWWW#',
 '########################',
 ]},
-{ name: "Abyss", time: 130, hint: "Two deep jellyfish shafts. Stones go down first, and count how deep each one is.", map: [
+{ name: "Abyss", time: 225, hint: "Two deep jellyfish shafts. Stones go down first, and count how deep each one is.", map: [
 '########################',
 '#P.....W........W......#',
 '#...B.. .R.R.B.. ...R..#',
@@ -650,7 +650,7 @@ const LEVELS = [
 '#WWWWWW WWWWWWWWWWWWWWE#',
 '########################',
 ]},
-{ name: "The Energizer", time: 155, hint: "Everything you have learned. Ready the deep road before a single pearl drops.", map: [
+{ name: "The Energizer", time: 270, hint: "Everything you have learned. Ready the deep road before a single pearl drops.", map: [
 '########################',
 '#P.....................#',
 '#......................#',
@@ -664,7 +664,7 @@ const LEVELS = [
 '#WWWWWWWWWW WWWWWWWWWWW#',
 '########################',
 ]},
-{ name: "Deep Current", time: 155, hint: "Three pearls, one shaft. Fill it to the road, free the vault, and mind the order.", map: [
+{ name: "Deep Current", time: 270, hint: "Three pearls, one shaft. Fill it to the road, free the vault, and mind the order.", map: [
 '######################',
 '#P...................#',
 '#.....R.B..R.R.R.B...#',
@@ -706,8 +706,9 @@ const Audio = (() => {
   }
   function resume() { if (!ctx) init(); if (ctx && ctx.state === 'suspended') ctx.resume(); if (!started) { started = true; startMusic(); } }
 
-  function noiseBuffer(seconds = 2) {
-    const b = ctx.createBuffer(1, ctx.sampleRate * seconds, ctx.sampleRate);
+  const noiseCache = {};
+  function noiseBuffer(seconds = 2) { if (noiseCache[seconds]) return noiseCache[seconds]; // one buffer per length, reused (it was re-made on every sound effect)
+    const b = noiseCache[seconds] = ctx.createBuffer(1, ctx.sampleRate * seconds, ctx.sampleRate);
     const d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     return b;
   }
@@ -1628,7 +1629,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.rebuild(); this.mode = 'full'; }
     frame(mode) { this.mode = mode; const C = { full: [0, 0.55, 6.6, -0.2], trailCard: [-0.6, 0.4, 6.4, 0.05], card: [0, 0.45, 4.9, 0.05], head: [0.2, 1.35, 3.3, 1.1], trail: [-0.3, 0.45, 8.6, -0.05], pearl: [0, 0.2, 3.6, 0] }[mode] || [0, 0.55, 6.6, -0.2];
       this.cam.position.set(C[0], C[1], C[2]); this.cam.lookAt(C[0] * 0.5, C[3], 0); }
-    rebuild() { if (this.d) this.scene.remove(this.d); this.d = makeDiver(); this.d.scale.setScalar(2.3); this.d.position.y = 0.2; this.scene.add(this.d); this.hatId = SKIN.hat; this.scarfId = SKIN.scarf; }
+    rebuild() { if (this.d) { this.scene.remove(this.d); this.d.traverse(o => { if (o.geometry) o.geometry.dispose(); }); } this.d = makeDiver(); this.d.scale.setScalar(2.3); this.d.position.y = 0.2; this.scene.add(this.d); this.hatId = SKIN.hat; this.scarfId = SKIN.scarf; }
     render(t) { if (this.hatId !== SKIN.hat || (this.scarfId === 'none') !== (SKIN.scarf === 'none')) this.rebuild(); skinTick(t);
       const u = this.d.userData, pm = this.mode === 'pearl', tm = this.mode === 'trail' || this.mode === 'trailCard';
       this.d.visible = !pm; this.ped.visible = !pm && !tm && this.mode !== 'head';
@@ -2328,8 +2329,18 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
 
     // ---- level construction ----
     keepTreasures() { this._keepTreasures = (this.treasures || []).filter(t => t.state !== 'buried').map(t => ({ cx: t.cx, cy: t.cy, x: t.m.position.x, y: t.m.position.y, rz: t.m.rotation.z })); }
+    // free everything a level built on the GPU (geometries, materials, textures) except the shared caches (GEO / MAT / TEX / SPR /
+    // sand shapes). Without this every level load, restart and undo leaked ~2 MB of GPU memory until the context died.
+    disposeLevel() { const shared = new Set(), seen = new Set();
+      const scan = (o, d) => { if (!o || typeof o !== 'object' || d > 4 || seen.has(o)) return; seen.add(o);
+        if (o.isMaterial || o.isBufferGeometry || o.isTexture) { shared.add(o); if (o.isMaterial) for (const k in o) { const v = o[k]; if (v && v.isTexture) shared.add(v); } return; }
+        if (o.isObject3D) return; if (o instanceof Map) { for (const v of o.values()) scan(v, d + 1); return; } for (const k in o) scan(o[k], d + 1); };
+      scan(GEO, 0); scan(MAT, 0); scan(TEX, 0); scan(SPR, 0); scan(sandGeoCache, 0);
+      const freeMat = (m) => { if (!m || shared.has(m)) return; for (const k in m) { const v = m[k]; if (v && v.isTexture && !shared.has(v)) v.dispose(); } m.dispose(); };
+      this.levelGroup.traverse(o => { if (o.geometry && !shared.has(o.geometry)) o.geometry.dispose(); if (o.material) [].concat(o.material).forEach(freeMat); });
+      for (const t of [this.maskTex, this.occTex]) if (t) t.dispose(); }
     clearLevel() {
-      this.levelGroup.clear(); this.entShadows = []; this.entities.clear(); this.particles.n = 0; this.particles.bub.n = 0;
+      this.disposeLevel(); this.levelGroup.clear(); this.entShadows = []; this.entities.clear(); this.particles.n = 0; this.particles.bub.n = 0;
       this.gateObj = null; this.gateFx = null; this.pops = []; this.coachCells = null; this.sandInst = null; this.treasures = []; this.digChunks = []; if (this.warn) this.warn.visible = false; this.ghosts = []; this.absorbing = []; this.deathTint = 0; this.setFx('');
     }
     loadLevel(e) {
@@ -2988,7 +2999,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (this.edgePlants) for (const ep of this.edgePlants) if (ep.m.visible && e.get(ep.x, ep.y) !== T.SAND) ep.m.visible = false;
       if (this.treasures) for (const tr of this.treasures) {
         const m = tr.m;
-        if (tr.state === 'buried') { if (e.get(tr.cx, tr.cy) !== T.SAND) { tr.state = 'falling'; tr.vy = 0.6; this.particles.emit(m.position.x, m.position.y, 0.5, 10, { color: new THREE.Color(1, 0.95, 0.7), speed: 1.4, life: 0.6, size: 0.12, spread: 0.2 }); if (!this.menuMode) { this.sfx('treasure'); if (this.onStat) this.onStat('treasure'); this.popText(m.position.x, m.position.y, '+1', '#ffe066'); this.particles.emit(m.position.x, m.position.y, 0.55, 12, { color: new THREE.Color(1, 0.85, 0.3), speed: 1.6, life: 0.6, size: 0.09, kind: 2, spread: 0.1 }); } }
+        if (tr.state === 'buried') { if (e.get(tr.cx, tr.cy) !== T.SAND) { tr.state = 'falling'; tr.vy = 0.6; this.particles.emit(m.position.x, m.position.y, 0.5, 10, { color: new THREE.Color(1, 0.95, 0.7), speed: 1.4, life: 0.6, size: 0.12, spread: 0.2 }); if (!this.menuMode) { this.sfx('treasure'); if (this.onStat) this.onStat('treasure', tr.cx + ',' + tr.cy); this.popText(m.position.x, m.position.y, '+1', '#ffe066'); this.particles.emit(m.position.x, m.position.y, 0.55, 12, { color: new THREE.Color(1, 0.85, 0.3), speed: 1.6, life: 0.6, size: 0.09, kind: 2, spread: 0.1 }); } }
           else { if (this.newArt && Math.random() < dt * 0.09) this.particles.emit(m.position.x + 0.08, m.position.y + 0.06, 0.48, 1, { color: new THREE.Color(1, 1, 0.9), speed: 0.01, life: 0.45, size: 0.3, spread: 0.02 }); continue; } }
         const row = Math.round(-m.position.y), col = Math.round(m.position.x);
         const below = e.get(col, row + 1), floorY = -(row + 1) + 0.5 + 0.06;
@@ -3273,6 +3284,11 @@ window.__T = T;
   // ---- save ----
   const save = (() => { const d = { name: '', unlocked: 1, stars: {}, best: {}, settings: { music: true, sfx: true, dpad: false, vibe: true, quality: World.isMobile ? 'high' : 'high' } };
     try { const s = JSON.parse(localStorage.getItem('dc-save') || '{}'); Object.assign(d, s); d.settings = Object.assign({ music: true, sfx: true, dpad: false, vibe: true, quality: 'high' }, s.settings || {}); } catch {} return d; })();
+  // guard against damaged saves (a null field used to stop the game from booting) and move old saves to the redesigned levels:
+  // stars/best/tips from before v2 belonged to different level layouts, so they reset (coins, skins and progress are kept)
+  for (const k of ['stars', 'best', 'owned', 'stats', 'ach', 'daily', 'equip', 'tipsSeen']) if (save[k] !== undefined && (save[k] === null || typeof save[k] !== 'object' || Array.isArray(save[k]))) delete save[k];
+  save.stars = save.stars || {}; save.best = save.best || {}; if (typeof save.coins !== 'number' || !isFinite(save.coins)) save.coins = 0; save.unlocked = Math.max(1, Math.min(30, +save.unlocked || 1));
+  if ((save.v || 1) < 2) { const s1 = save.stars[1], b1 = save.best[1]; save.stars = s1 ? { 1: s1 } : {}; save.best = b1 ? { 1: b1 } : {}; save.tipsSeen = {}; save.v = 2; }
   const persist = () => { try { localStorage.setItem('dc-save', JSON.stringify(save)); } catch {} };
   const totalStars = () => Object.values(save.stars).reduce((a, b) => a + b, 0);
   const buzz = ms => { if (save.settings.vibe && navigator.vibrate) navigator.vibrate(ms); };
@@ -3287,8 +3303,8 @@ window.__T = T;
   function syncCoins() { coinEls().forEach(el => { el.textContent = save.coins.toLocaleString(); }); }
   function addCoins(n, why) { if (!n) return; save.coins += n; persist(); syncCoins(); Audio.play('treasure');
     const t = document.createElement('div'); t.className = 'toast-coin'; t.innerHTML = '<i class="coin"></i>'; const b = document.createElement('b'); b.textContent = `+${n}` + (why ? `  ${why}` : ''); t.appendChild(b); document.body.appendChild(t); setTimeout(() => t.remove(), 1700); }
-  world.onStat = (k) => { if (k === 'treasure') { runTreasures++; save.stats.treasures++; } else if (k === 'pearl') save.stats.pearls++; };
-  let runTreasures = 0;
+  world.onStat = (k, id) => { if (k === 'treasure') { if (id && runTreasureSet.has(id)) return; if (id) runTreasureSet.add(id); runTreasures++; save.stats.treasures++; } else if (k === 'pearl') save.stats.pearls++; };
+  let runTreasures = 0; const runTreasureSet = new Set(); // a treasure re-dug after an undo doesn't count twice
   const dayKey = (d = new Date()) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
   const DAILY = [50, 80, 120, 160, 220, 300, 500];
   function dailyState() { const today = dayKey(), y = new Date(); y.setDate(y.getDate() - 1); const D = save.daily;
@@ -3384,7 +3400,7 @@ window.__T = T;
     pushScore(); if (LB.unsub) LB.unsub();
     LB.unsub = LB.db.collection('board').orderBy('stars', 'desc').limit(100).onSnapshot(async snap => {
       const rows = snap.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => (b.stars - a.stars) || (b.levels - a.levels) || (b.score - a.score));
-      st.textContent = rows.length ? `${rows.length} diver${rows.length === 1 ? '' : 's'} · live` : 'No scores yet: clear a level to be first!'; await renderRows(rows); },
+      st.textContent = (rows.length ? `${rows.length} diver${rows.length === 1 ? '' : 's'} · live` : 'No scores yet: clear a level to be first!') + (LB.readOnly ? ' (Viewing only: open your own copy of the game to post your score.)' : ''); await renderRows(rows); },
       er => { st.textContent = 'Leaderboard is offline right now. Your own best:'; renderRows([Object.assign(myEntry(), { id: 'me', isMe: true })]); });
   }
   async function renderRows(rows) {
@@ -3461,7 +3477,7 @@ window.__T = T;
     setTimeout(() => $('#cineFade').classList.remove('on'), 120); // fade up from black
   }
   function cineTick(realDt, now) {
-    cine.t += realDt; world.cineT = cine.t; const c = cine, E = cineEngine, T = c.t, F = world.cineFx, once = (k, fn) => { if (!c.said[k]) { c.said[k] = 1; fn(); } };
+    realDt = Math.min(realDt, 0.1); cine.t += realDt; world.cineT = cine.t; const c = cine, E = cineEngine, T = c.t, F = world.cineFx, once = (k, fn) => { if (!c.said[k]) { c.said[k] = 1; fn(); } };
     const shot = (n) => { world.cineShot = n; world.shotT0 = T; };
     // 1. the legend: the reef at night, alive with drifting pearl-light
     if (c.gateAt === null) { F.glow = Math.min(F.glow, 1); }
@@ -3537,7 +3553,7 @@ window.__T = T;
   // ---- levels ----
   function startLevel(i, custom) {
     if (typeof booting !== 'undefined' && booting) dropLoader();
-    runTreasures = 0;
+    runTreasures = 0; runTreasureSet.clear();
     levelIdx = i; const lv = custom || LEVELS[i];
     engine = new Engine(lv); world.loadLevel(engine);
     window.__LEVELSCENE = (custom || LEVELS[i]).scene || null; history = []; stuckTimer = 0; stuckShown = false; gateNudged = true; coachStart(i, custom);
@@ -3599,7 +3615,7 @@ window.__T = T;
     n.obj = e.obj.map(o => (o ? map.get(o) || null : null)); n.player = e.player ? map.get(e.player) : null; n.gate = e.gate ? { ...e.gate } : null;
     n.events = []; n.moveQueue = []; n.held = null; return n; }
   function undo() {
-    if (!history.length || !engine || (state !== 'playing' && state !== 'over')) { if (state === 'playing') toast('Nothing to undo yet'); return; }
+    if (!history.length || !engine || (state !== 'playing' && state !== 'over') || engine.state === 'won' || $('#ending').classList.contains('on')) { if (state === 'playing') toast('Nothing to undo yet'); return; }
     click(); buzz(10); const snap = history.pop(); const cp = world.camPos.clone(), ct = world.camTarget.clone();
     engine = cloneEngine(snap); world.keepTreasures(); world.loadLevel(engine); world.onTick(engine, performance.now()); world.startPlay(); world.camPos.copy(cp); world.camTarget.copy(ct);
     held.clear(); heldOrder = []; endTouch(); acc = 0; overTimer = 0; resultShown = false; hudKey = ''; lastScore = -1;
@@ -3684,6 +3700,7 @@ window.__T = T;
   });
   addEventListener('keyup', ev => { const dir = KEYS[ev.key]; if (dir) setHeld(dir, false); });
   addEventListener('blur', () => { held.clear(); heldOrder = []; endTouch(); if (engine) engine.hold(null); });
+  window.addEventListener('pointerdown', () => { const ac = Audio.ctx; if (ac && ac.state !== 'running') { try { ac.resume(); } catch (er) {} } }, { passive: true }); // iOS: an interruption (call, lock) can leave audio suspended until a gesture
   document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'playing') pause(); const ac = Audio.ctx; if (ac) { try { document.hidden ? ac.suspend() : ac.resume(); } catch (er) {} } }); // silent + paused in the background
 
   // ---- hold to view the whole map ----
@@ -3733,7 +3750,7 @@ window.__T = T;
   }
 
   // ---- buttons ----
-  function unlock() { if (state !== 'splash') return; Audio.init(); Audio.resume(); Audio.setMusic(save.settings.music); Audio.setMuted(false); tryFullscreen(); if (!save.introSeen) startCine(); else openHome(); }
+  function unlock() { if (state !== 'splash' || (typeof booting !== 'undefined' && booting)) return; Audio.init(); Audio.resume(); Audio.setMusic(save.settings.music); Audio.setMuted(false); tryFullscreen(); if (!save.introSeen) startCine(); else openHome(); }
   $('#splash').addEventListener('pointerup', unlock);
   $('#btnPlay').onclick = () => { click(); buzz(10); startLevel(Math.min(save.unlocked, LEVELS.length) - 1); };
   $('#btnDive').onclick = () => { click(); beginPlay(); };
@@ -3746,7 +3763,7 @@ window.__T = T;
   function nextLevel() { click(); startLevel(levelIdx + 1); }
   $('#btnNext').onclick = () => { if (engine.state === 'won' && levelIdx + 1 < LEVELS.length) nextLevel(); else if (engine.state === 'won') openEnding(); else if (engine.state !== 'won' && history.length) undo(); else restart(); };
   // the finale: all 30 gates awake. A one-time coin bonus, the story's payoff, and a nudge to go back for every star.
-  function openEnding() { click(); Audio.play('win'); setState('over'); show('ending'); const first = !save.finished;
+  function openEnding() { click(); Audio.play('win'); setState('ending'); show('ending'); const first = !save.finished;
     if (first) { save.finished = 1; save.coins += 200; persist(); } $('#endCoins').hidden = !first;
     const stars = totalStars(), tr = (save.stats && save.stats.treasures) || 0;
     $('#endStats').innerHTML = `<div class="stat"><b>${stars}/${LEVELS.length * 3}</b><span>stars</span></div><div class="stat"><b>${tr}</b><span>treasures</span></div><div class="stat"><b>${save.coins}</b><span>coins</span></div>`;
@@ -3783,7 +3800,7 @@ window.__T = T;
     if (engine && (state === 'playing' || state === 'over')) {
       if (state === 'playing') {
         stickTick(realDt * 1000);
-        acc += (now - (frame.last || now)); frame.last = now;
+        acc = Math.min(acc + (now - (frame.last || now)), 300); frame.last = now; // a long gap (tab throttled, iframe off-screen, GC) must not fast-forward the dive
         while (acc >= engine.tickMs) {
           acc -= engine.tickMs;
           const pre = (engine.moveQueue.length || engine.held) && engine.player ? cloneEngine(engine) : null, px0 = engine.player && engine.player.x, py0 = engine.player && engine.player.y;
@@ -3814,7 +3831,7 @@ window.__T = T;
   }
   addEventListener('resize', () => world.resize());
   canvas.addEventListener('webglcontextlost', ev => { ev.preventDefault(); if (state === 'playing') pause(); }, false);
-  canvas.addEventListener('webglcontextrestored', () => { try { const e = state === 'menu' || state === 'splash' ? menuEngine : engine; if (e) { world.loadLevel(e); world.onTick(e, performance.now()); } } catch (er) {} }, false);
+  canvas.addEventListener('webglcontextrestored', () => { try { const e = state === 'cine' ? cineEngine : state === 'menu' || state === 'splash' ? menuEngine : engine; if (e) { if (state === 'playing' || state === 'paused' || state === 'over') world.keepTreasures(); world.loadLevel(e); world.onTick(e, performance.now()); if (state === 'playing' || state === 'paused' || state === 'over' || state === 'cine') world.startPlay(); if (state === 'cine') world.cineCam = true; } } catch (er) { console.warn('context restore', er); } }, false);
   requestAnimationFrame(frame);
   // ---- boot: loading screen -> decode art -> pre-build & pre-compile the intro level, a monster level and the menu -> title screen
   setState('splash'); show(null); let booting = true;
