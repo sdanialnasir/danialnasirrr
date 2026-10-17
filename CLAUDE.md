@@ -182,3 +182,13 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   (`night` uniform: mids sink, real lights keep glowing) + `uNight` on the sand shader + seabed tint; low tier falls back to `#cineDark`.
 - **Voice-over:** lines in `CINE_LINES` (vo1…vo7); drop ElevenLabs MP3s in `src/assets/vo/<id>.mp3` and rebuild — `build_assets.py`
   embeds them as `AQ_DATA.VO`, `Audio.vo(id)` plays them with the ambience ducked. Script + timings: `docs/voiceover-script.md`.
+
+## Performance + stage lighting
+- **Static batching** (`bakeStatic`, end of `loadLevel`): every static sheet sprite, its baked shadow and contact patch is merged
+  into one mesh per material; plant sway moved into the vertex shader (`aSw` attribute). Treasures, ledge plants, the gate sprite,
+  the foreground fish group, photo backdrop and reef stay separate. Contact-patch materials are shared (`SPR.cm`).
+- **Shadow casters:** only character/monster parts bigger than ~16% of the model's size cast real shadows (eyes, teeth, spots don't).
+  Together: draw calls −40% on busy levels (845 → ~500), triangles −20%, same picture.
+- **Stage lighting in play:** `MAT.lamp` (x, y, radius, strength) + `MAT.lampAmb` drive a warm pool of light around the diver in the
+  sand, reef-rock, shelf (`causticify`) and in-tank water shaders, with the far corners of the tank falling gently into shade; the
+  painted backdrop and seabed darken and the post vignette deepens (`vig`). Strength per world: shallows mild → the Deep strongest.

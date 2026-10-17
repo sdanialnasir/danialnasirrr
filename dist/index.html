@@ -1905,7 +1905,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     if (ground) addContact(sp, wd, op, false);
   }
   // soft patch on the ground under a standing sprite; `cast` stretches it back-right along the light like a low-sun shadow
-  function addContact(sp, wd, op, cast) { const cp = new THREE.Mesh(new THREE.PlaneGeometry(wd * (cast ? 1.25 : 1.05), Math.min(cast ? 0.55 : 0.4, wd * (cast ? 0.6 : 0.4))), new THREE.MeshBasicMaterial({ map: getContactTex(), transparent: true, opacity: op * 1.1, depthWrite: false }));
+  function addContact(sp, wd, op, cast) { const ck = 'c' + (op * 1.1).toFixed(3); const cp = new THREE.Mesh(new THREE.PlaneGeometry(wd * (cast ? 1.25 : 1.05), Math.min(cast ? 0.55 : 0.4, wd * (cast ? 0.6 : 0.4))), (SPR.cm || (SPR.cm = {}))[ck] || (SPR.cm[ck] = new THREE.MeshBasicMaterial({ map: getContactTex(), transparent: true, opacity: op * 1.1, depthWrite: false })));
     cp.rotation.x = -Math.PI / 2; if (cast) cp.rotation.z = -0.5; cp.position.set(wd * (cast ? 0.22 : 0.06), 0.012, cast ? -0.12 : -0.04); cp.renderOrder = sp.renderOrder; cp.userData.fakeShadow = true; sp.add(cp); sp.userData.contact = cp; }
   // the movable-platform sprite as a 3-slice face for one coral shelf of `len` cells
   function shelfFace(len, nm = 'platform') { const im = SPR.img[nm]; if (!im || !im.complete || !im.naturalWidth) return null; const W = Math.round(len * 128), H = 64, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
@@ -1919,8 +1919,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (mask) { sh.uniforms.uMask = mask.tex; sh.uniforms.uSize = mask.size; }
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWp; varying vec3 vNo;')
         .replace('#include <project_vertex>', '#include <project_vertex>\n{ vec4 wp4 = vec4(transformed, 1.0);\n#ifdef USE_INSTANCING\n wp4 = instanceMatrix * wp4;\n#endif\n vWp = (modelMatrix * wp4).xyz; vNo = normal; }');
-      sh.uniforms.uCausticT = MAT.causticT; sh.uniforms.uSandTex = { value: sprTex('sand') }; sh.uniforms.uNew = MAT.sandNew; sh.uniforms.uNight = MAT.sandNight;
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uCausticT, uNew, uNight; uniform sampler2D uSandTex; varying vec3 vWp; varying vec3 vNo; float vEdge = 0.0; float vBotOpen = 0.0; float vLine = 0.0; float vWet = 0.0; float vTopOpen = 0.0; vec2 vLc = vec2(0.5); vec3 vGlint = vec3(0.0);' + (mask ? '\nuniform sampler2D uMask; uniform vec2 uSize;' : ''))
+      sh.uniforms.uCausticT = MAT.causticT; sh.uniforms.uSandTex = { value: sprTex('sand') }; sh.uniforms.uNew = MAT.sandNew; sh.uniforms.uNight = MAT.sandNight; sh.uniforms.uLamp = MAT.lamp; sh.uniforms.uLampAmb = MAT.lampAmb;
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uCausticT, uNew, uNight, uLampAmb; uniform vec4 uLamp; uniform sampler2D uSandTex; varying vec3 vWp; varying vec3 vNo; float vEdge = 0.0; float vBotOpen = 0.0; float vLine = 0.0; float vWet = 0.0; float vTopOpen = 0.0; vec2 vLc = vec2(0.5); vec3 vGlint = vec3(0.0);' + (mask ? '\nuniform sampler2D uMask; uniform vec2 uSize;' : ''))
         .replace('#include <clipping_planes_fragment>', mask ? `#include <clipping_planes_fragment>
         { vec2 cell = vec2(floor(vWp.x + 0.5), floor(-vWp.y + 0.5)); vec2 lc = vec2(vWp.x + 0.5, -vWp.y + 0.5) - cell;
           if (cell.x < 0.0 || cell.y < 0.0 || cell.x >= uSize.x || cell.y >= uSize.y) discard;
@@ -2019,6 +2019,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           c = mix(c, c * vec3(0.72, 0.62, 0.5), vWet * 0.75); c += vec3(0.25, 0.2, 0.12) * smoothstep(0.03, 0.0, abs(vWet - 0.75)) * vWet;
           if (uNew > 0.5) { float l = dot(c, vec3(0.299, 0.587, 0.114)); c = max(vec3(0.0), mix(vec3(l), c, 1.5)); } // richer, warmer sand (the lights were greying it out)
           c = mix(c, c * vec3(0.16, 0.22, 0.42), uNight); // the intro's night
+          { float d = length(vWp.xy - uLamp.xy), pool = smoothstep(uLamp.z * 1.9, 0.0, d), core = smoothstep(uLamp.z, 0.0, d); // the diver's lamp
+            c *= 1.0 - uLampAmb * (1.0 - pool); c += c * vec3(0.75, 0.5, 0.22) * core * uLamp.w; }
           diffuseColor.rgb = c; }`)
         .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         if (vNo.z > 0.5) { vec2 p = vWp.xy; float w = p.y * 7.0 + sin(p.x * 1.7) * 1.4; float cw = cos(w);
@@ -2031,16 +2033,17 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   // moving caustic light from the water surface, added on top of a lit material
   function causticify(m, k = 0.12) {
     m.onBeforeCompile = (sh) => {
-      sh.uniforms.uCausticT = MAT.causticT;
+      sh.uniforms.uCausticT = MAT.causticT; sh.uniforms.uLamp = MAT.lamp;
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWpC;')
         .replace('#include <project_vertex>', '#include <project_vertex>\n{ vec4 wp4 = vec4(transformed, 1.0);\n#ifdef USE_INSTANCING\n wp4 = instanceMatrix * wp4;\n#endif\n vWpC = (modelMatrix * wp4).xyz; }');
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uCausticT; varying vec3 vWpC;')
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uCausticT; uniform vec4 uLamp; varying vec3 vWpC;')
         .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         { vec2 p = vWpC.xy * 0.8 + vWpC.z * 0.3;
           float a = sin(p.x * 3.1 + uCausticT * 0.9 + sin(p.y * 2.3 + uCausticT * 0.6) * 1.5);
           float b = sin(p.y * 2.7 - uCausticT * 0.7 + sin(p.x * 2.9 - uCausticT * 0.8) * 1.5);
           float cau = pow(max(0.0, 1.0 - abs(a + b) * 0.5), 6.0);
-          totalEmissiveRadiance += vec3(0.75, 0.95, 1.0) * cau * ${k.toFixed(3)} * (0.4 + diffuseColor.rgb); }`);
+          totalEmissiveRadiance += vec3(0.75, 0.95, 1.0) * cau * ${k.toFixed(3)} * (0.4 + diffuseColor.rgb);
+          { float core = smoothstep(uLamp.z, 0.0, length(vWpC.xy - uLamp.xy)) * step(abs(vWpC.z), 1.2); totalEmissiveRadiance += diffuseColor.rgb * vec3(1.0, 0.72, 0.38) * core * core * uLamp.w * 0.45; } }`);
     };
     m.customProgramCacheKey = () => 'caustic' + k;
     return m;
@@ -2058,7 +2061,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     MAT.caveWall = causticify(new THREE.MeshStandardMaterial({ color: 0x2a62c8, roughness: 0.85, envMapIntensity: 0.3 }), 0.1);
     MAT.causticT = { value: 0 };
     MAT.sand = sandify(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7, metalness: 0, envMapIntensity: 0.4, polygonOffset: true, polygonOffsetFactor: 6, polygonOffsetUnits: 6 })); // offset: edge-on block sides were winning the depth test through the sand face (thin seams under MSAA)
-    MAT.sandMask = { tex: { value: null }, size: { value: new THREE.Vector2(1, 1) } }; MAT.sandNew = { value: 0 }; MAT.sandNight = { value: 0 };
+    MAT.sandMask = { tex: { value: null }, size: { value: new THREE.Vector2(1, 1) } }; MAT.sandNew = { value: 0 }; MAT.sandNight = { value: 0 }; MAT.lamp = { value: new THREE.Vector4(0, 0, 2.6, 0) }; MAT.lampAmb = { value: 0 }; // the diver's lamp: (x, y, radius, strength) + how much the tank falls into shade away from it
     MAT.sandFront = sandify(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.72, metalness: 0, envMapIntensity: 0.2, toneMapped: false }), MAT.sandMask);
     MAT.stone = phys({ color: 0x0f52d8, roughness: 0.12, metalness: 0.05, clearcoat: 1, clearcoatRoughness: 0.02, envMapIntensity: 1.4 });
     MAT.ball = phys({ color: 0xff2200, roughness: 0.14, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.02, emissive: 0xc81800, emissiveIntensity: 0.45, envMapIntensity: 1.1, sheen: 0.6, sheenColor: 0xff9a60, sheenRoughness: 0.35 });
@@ -2560,9 +2563,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       TEX.cobbleRock = new THREE.CanvasTexture(c); TEX.cobbleRock.wrapS = TEX.cobbleRock.wrapT = THREE.RepeatWrapping; TEX.cobbleRock.colorSpace = THREE.NoColorSpace; }
     const COL = [[0.82, 0.46, 0.3], [0.5, 0.34, 0.75], [0.24, 0.4, 0.6]][world] || [0.82, 0.46, 0.3];
     const m = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85, envMapIntensity: 0.3 });
-    m.onBeforeCompile = (sh) => { sh.uniforms.uMask = MAT.sandMask.tex; sh.uniforms.uSize = MAT.sandMask.size; sh.uniforms.uRock = { value: TEX.cobbleRock }; sh.uniforms.uCol = { value: new THREE.Vector3(...COL) }; sh.uniforms.uCausticT = MAT.causticT;
+    m.onBeforeCompile = (sh) => { sh.uniforms.uMask = MAT.sandMask.tex; sh.uniforms.uSize = MAT.sandMask.size; sh.uniforms.uRock = { value: TEX.cobbleRock }; sh.uniforms.uCol = { value: new THREE.Vector3(...COL) }; sh.uniforms.uCausticT = MAT.causticT; sh.uniforms.uLamp = MAT.lamp; sh.uniforms.uLampAmb = MAT.lampAmb;
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWm; varying vec3 vNm;').replace('#include <project_vertex>', '#include <project_vertex>\n{ vec4 wp4 = vec4(transformed, 1.0);\n#ifdef USE_INSTANCING\n wp4 = instanceMatrix * wp4;\n#endif\n vWm = (modelMatrix * wp4).xyz; vNm = normal; }');
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform sampler2D uMask, uRock; uniform vec2 uSize; uniform vec3 uCol; uniform float uCausticT; varying vec3 vWm; varying vec3 vNm;')
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform sampler2D uMask, uRock; uniform vec2 uSize; uniform vec3 uCol; uniform float uCausticT, uLampAmb; uniform vec4 uLamp; varying vec3 vWm; varying vec3 vNm;')
         .replace('#include <color_fragment>', `#include <color_fragment>
         { vec2 p = vWm.xy; float r = texture2D(uRock, p * 0.42).r; float r2 = texture2D(uRock, p * 0.17 + 0.37).r;
           vec3 c = uCol * (0.16 + 0.4 * r * r) * (0.8 + 0.35 * r2);
@@ -2576,6 +2579,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           float a = sin(p.x * 3.1 + uCausticT * 0.9 + sin(p.y * 2.3 + uCausticT * 0.6) * 1.5), b = sin(p.y * 2.7 - uCausticT * 0.7 + sin(p.x * 2.9 - uCausticT * 0.8) * 1.5);
           c += vec3(0.6, 0.85, 0.9) * pow(max(0.0, 1.0 - abs(a + b) * 0.5), 8.0) * 0.08;
           if (vNm.z < 0.5) c *= 0.7;                                                // block sides a bit darker
+          { float d = length(p - uLamp.xy), pool = smoothstep(uLamp.z * 1.9, 0.0, d), core = smoothstep(uLamp.z, 0.0, d); c *= 1.0 - uLampAmb * (1.0 - pool); c += c * vec3(0.9, 0.6, 0.28) * core * core * uLamp.w; }
           diffuseColor.rgb = c; }`); };
     m.customProgramCacheKey = () => 'mass' + world;
     return (MAT.mass[world] = m); }
@@ -2976,8 +2980,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           for (int i = 0; i < 64; i++) { if (float(i) >= n) break; uv -= d; acc += src(uv) * w; tot += w; w *= 0.965; }
           float a = acc / tot; float flick = 0.85 + 0.15 * sin(time * 0.6 + vUv.x * 9.0);
           gl_FragColor = vec4(vec3(0.85, 0.97, 1.0) * a * flick, 1.0); }`);
-      this.compMat = M({ tScene: { value: this.main.texture }, tBloom: { value: null }, tRays: { value: null }, strength: { value: this.strength }, rays: { value: 0 }, lens: { value: 0 }, aspect: { value: 1 }, time: { value: 0 }, night: { value: 0 } },
-        `uniform sampler2D tScene, tBloom, tRays; uniform float strength, rays, lens, aspect, time, night; varying vec2 vUv;
+      this.compMat = M({ tScene: { value: this.main.texture }, tBloom: { value: null }, tRays: { value: null }, strength: { value: this.strength }, rays: { value: 0 }, lens: { value: 0 }, aspect: { value: 1 }, time: { value: 0 }, night: { value: 0 }, vig: { value: 0 } },
+        `uniform sampler2D tScene, tBloom, tRays; uniform float strength, rays, lens, aspect, time, night, vig; varying vec2 vUv;
         vec3 safe(vec3 c){ return (any(isnan(c)) || any(isinf(c))) ? vec3(0.0) : clamp(c, 0.0, 32.0); }
         void main(){ vec3 c = safe(texture2D(tScene, vUv).rgb); vec3 b = safe(texture2D(tBloom, vUv).rgb);
           if (lens > 0.0) { vec2 dv = (vUv - 0.5) * lens * 0.0012 * dot(vUv - 0.5, vUv - 0.5) * 4.0; c.r = safe(texture2D(tScene, vUv + dv).rgb).r; c.b = safe(texture2D(tScene, vUv - dv).rgb).b; } // faint chromatic fringe at the edges
@@ -2991,7 +2995,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           c = mix(c * vec3(0.94, 0.99, 1.06), c * vec3(1.03, 1.0, 0.96), smoothstep(0.2, 0.8, l));
           c = max(c, 0.0); vec3 cc = min(c, 1.0); c += (cc * cc * (3.0 - 2.0 * cc) - cc) * 0.62;
           // soft vignette
-          vec2 d = vUv - 0.5; d.x *= aspect; float v = smoothstep(1.05, 0.3, length(d)); c *= mix(0.58 - 0.4 * night, 1.0, v);
+          vec2 d = vUv - 0.5; d.x *= aspect; float v = smoothstep(1.05, 0.3, length(d)); c *= mix(0.58 - 0.4 * night - 0.12 * vig, 1.0, v);
           gl_FragColor = vec4(c, 1.0);
           #include <colorspace_fragment>
           gl_FragColor.rgb += (fract(sin(dot(gl_FragCoord.xy + time, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0; }`);
@@ -3261,14 +3265,15 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         }
         // back glass (tinted, you see the reef through it), side panes, faint front reflections
         const WS = WORLD_STYLE[e.menu || e.cine ? 0 : worldOf(e.name)];
-        const back = new THREE.Mesh(new THREE.PlaneGeometry(w, h), this.newArt ? (MAT.waterBack || (MAT.waterBack = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uT: MAT.causticT, uH: { value: new THREE.Vector2() }, uLo: { value: new THREE.Color() }, uHi: { value: new THREE.Color() }, uGlow: { value: 0 } },
+        const back = new THREE.Mesh(new THREE.PlaneGeometry(w, h), this.newArt ? (MAT.waterBack || (MAT.waterBack = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uT: MAT.causticT, uH: { value: new THREE.Vector2() }, uLo: { value: new THREE.Color() }, uHi: { value: new THREE.Color() }, uGlow: { value: 0 }, uLamp: MAT.lamp, uLampAmb: MAT.lampAmb },
           vertexShader: 'varying vec3 vW; void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); vW = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; }',
-          fragmentShader: `uniform float uT, uGlow; uniform vec2 uH; uniform vec3 uLo, uHi; varying vec3 vW; void main(){ float k = clamp((vW.y - uH.x) / (uH.y - uH.x), 0.0, 1.0);
+          fragmentShader: `uniform float uT, uGlow, uLampAmb; uniform vec2 uH; uniform vec3 uLo, uHi; uniform vec4 uLamp; varying vec3 vW; void main(){ float k = clamp((vW.y - uH.x) / (uH.y - uH.x), 0.0, 1.0);
             vec3 c = mix(uLo, uHi, pow(k, 1.1));
             { vec2 q = vW.xy * 2.2 + vec2(0.0, uT * 0.12); vec2 ci = floor(q); float h = fract(sin(dot(ci, vec2(37.1, 91.7))) * 43758.5); vec2 f = fract(q) - 0.5 - (vec2(fract(h * 7.3), fract(h * 3.1)) - 0.5) * 0.6;
               c += vec3(0.4, 0.95, 1.0) * uGlow * step(0.9, h) * smoothstep(0.09, 0.0, length(f)) * (0.5 + 0.5 * sin(uT * 2.0 + h * 40.0)); } // the deep: drifting bioluminescent specks c += vec3(0.1, 0.18, 0.2) * smoothstep(0.35, 0.0, abs(fract(vW.x * 0.11 + 0.3) - 0.5)) * k; // lighter, bluer water with soft light pools                                     // deep blue at the floor -> bright cyan under the surface
             vec2 p = vW.xy * 0.9; float a = sin(p.x * 3.1 + uT * 0.8 + sin(p.y * 2.3 + uT * 0.55) * 1.5), b = sin(p.y * 2.7 - uT * 0.65 + sin(p.x * 2.9 - uT * 0.7) * 1.5);
             float cau = pow(max(0.0, 1.0 - abs(a + b) * 0.5), 6.0); c += vec3(0.55, 0.95, 1.0) * cau * (0.1 + 0.18 * k);            // moving caustic net on the back glass
+            { float d = length(vW.xy - uLamp.xy), pool = smoothstep(uLamp.z * 2.0, 0.0, d); c *= 1.0 - uLampAmb * 0.8 * (1.0 - pool); c += vec3(0.5, 0.42, 0.25) * pool * pool * uLamp.w * 0.35; }
             gl_FragColor = vec4(pow(c, vec3(2.2)), 0.72); }` }))) : MAT.glassBack);
         if (this.newArt) { const U = back.material.uniforms; U.uH.value.set(yB, yT); U.uLo.value.setRGB(...WS.lo); U.uHi.value.setRGB(...WS.hi); U.uGlow.value = WS.glow; }
         back.position.set(cx, cy, zB); back.renderOrder = 1; tank.add(back);
@@ -3322,7 +3327,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             const NA = this.newArt, n = Math.max(5, Math.round((w + 1.6) / (NA ? 0.78 : 1.05))); for (let k = 0; k < n; k++) { const nm = row[(k + W) % row.length], hgt = (isRockSpr(nm) ? 0.62 + rnd() * 0.2 : isPlantSpr(nm) ? (NA ? 0.6 + rnd() * 0.25 : 0.8 + rnd() * 0.45) : 0.55 + rnd() * 0.25) * (NA ? 0.7 + rnd() * 0.65 : 1);
               const px0 = x0 - 0.6 + (k + 0.5) * (w + 1.2) / n; 
               const sp = sprPlane(nm, hgt, true, { dz: 0.16, op: 0.6, lean: 0.38 }); sp.position.set(x0 - 0.6 + (k + 0.5) * (w + 1.2) / n + (rnd() - 0.5) * (NA ? 0.7 : 0.3), yB - 0.9, (NA ? 0.86 + rnd() * 0.42 : 0.92 + rnd() * 0.25)); if (rnd() < 0.5) sp.scale.x = -1;
-              if (isPlantSpr(nm)) { const ph = rnd() * 6; sp.onBeforeRender = () => { sp.rotation.z = Math.sin(performance.now() / 1000 * 1.2 + ph) * 0.06; }; } tank.add(sp); } }
+              if (isPlantSpr(nm)) { const ph = rnd() * 6; sp.userData.sway = [0.06, 1.2, ph]; sp.onBeforeRender = () => { sp.rotation.z = Math.sin(performance.now() / 1000 * 1.2 + ph) * 0.06; }; } tank.add(sp); } }
           // seaweed fronds hugging the tank's sides, gently swaying
           const blade = new THREE.PlaneGeometry(0.16, 1, 1, 8); blade.translate(0, 0.5, 0); { const P = blade.attributes.position; for (let i = 0; i < P.count; i++) { const yy = P.getY(i); P.setX(i, P.getX(i) * (1 - yy * 0.7) + Math.sin(yy * 4) * 0.05); } blade.computeVertexNormals(); }
           const weedM = new THREE.MeshPhysicalMaterial({ color: 0x3fae58, roughness: 0.45, clearcoat: 0.4, side: THREE.DoubleSide, emissive: 0x0b3018, emissiveIntensity: 1, sheen: 0.6, sheenColor: 0xbaffc8 });
@@ -3461,7 +3466,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; im.castShadow = true; im.receiveShadow = true; this.levelGroup.add(im); return im; };
         const span = x1f - x0f, nS = Math.round(span * (this.newArt ? 0.32 : photoMode ? 0.55 : 1.1)), zMin = photoMode ? 1.55 : 1.0, NA = this.newArt;
         place(new THREE.IcosahedronGeometry(0.12, 1), MAT.fgStone, nS, (d, i) => { const x = x0f + rnd() * span, z = zMin + rnd() * 1.4, sc = NA ? 0.45 + rnd() * 0.75 : 0.6 + rnd() * 1.4; d.position.set(x, groundY(x, z) + sc * (NA ? 0.0 : 0.05), z); d.scale.set(sc * 1.3, sc * (NA ? 0.55 : 0.7), sc); d.rotation.set(rnd(), rnd() * 6, rnd()); return NA ? new THREE.Color().setHSL([0.62, 0.7, 0.5][(rnd() * 3) | 0] + rnd() * 0.03, 0.45, 0.32 + rnd() * 0.14) : new THREE.Color().setHSL(0.6 + rnd() * 0.04, 0.35, 0.3 + rnd() * 0.18); }, 0.17);
-        const sway = (sp, amt) => { const ph = rnd() * 6; sp.onBeforeRender = () => { sp.rotation.z = Math.sin(performance.now() / 1000 * 1.2 + ph) * amt; }; };
+        const sway = (sp, amt) => { const ph = rnd() * 6; sp.userData.sway = [amt, 1.2, ph]; sp.onBeforeRender = () => { sp.rotation.z = Math.sin(performance.now() / 1000 * 1.2 + ph) * amt; }; };
         if (this.newArt) { // the sheet's shells and sea plants on the seabed, each with a light-facing ground shadow
           const nSh = Math.round(span * 0.32); for (let i = 0; i < nSh; i++) { const x = x0f + rnd() * span, z = 1.05 + rnd() * 1.4, sp = sprPlane(ART.shells[i % ART.shells.length], 0.2 + rnd() * 0.1, true, { drop: false, op: 0.6 });
             sp.position.set(x, groundY(x, z) - 0.01, z); sp.rotation.z = (rnd() - 0.5) * 0.4; if (rnd() < 0.5) sp.scale.x = -1; this.levelGroup.add(sp); }
@@ -3572,14 +3577,49 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.positionReef();
       { const usePhoto = PHOTO_LEVELS.has(e.name) || !!e.menu; this.photoMode = usePhoto; if (usePhoto) this.buildPhotoBg(); this.bgTint = new THREE.Color(e.menu ? 0xffffff : WORLD_TINT[worldOf(e.name)]); if (this.photo) this.photo.bg.material.color.copy(this.bgTint); if (this.photo) this.photo.group.visible = usePhoto;
         if (this.reef) this.reef.group.visible = !usePhoto; this.backdrop.visible = !usePhoto; this.rays.visible = !usePhoto; }
+      this.bakeStatic();
       this.fitCamera(true, !e.menu);
     }
+    // ---- static batching: after a level is built, every static decoration (sheet sprites, their baked shadows, contact patches)
+    // that shares a material is merged into ONE mesh. Plant sway moves into the vertex shader (same motion, no per-object JS).
+    // Treasures, ledge plants (they vanish when dug), the gate sprite and anything animated stay separate. Draw calls drop a lot.
+    bakeStatic() { const LG = this.levelGroup; LG.updateMatrixWorld(true); const inv = new THREE.Matrix4().copy(LG.matrixWorld).invert();
+      const skip = new Set(); (this.treasures || []).forEach(t => t.m.traverse(o => skip.add(o))); (this.edgePlants || []).forEach(p => p.m.traverse(o => skip.add(o))); if (this.gateSprite) this.gateSprite.traverse(o => skip.add(o)); for (const g of [this.fg && this.fg.group, this.photo && this.photo.group, this.reef && this.reef.group]) if (g) g.traverse(o => skip.add(o));
+      const sprMats = new Set(Object.values(SPR.mat || {})), shMats = new Set([...Object.values(SPR.shm || {}), ...Object.values(SPR.cm || {})]);
+      const groups = new Map(), victims = [];
+      LG.traverse(o => { if (!o.isMesh || o.isInstancedMesh || skip.has(o) || !o.visible) return; const m = o.material; if (Array.isArray(m) || !(sprMats.has(m) || shMats.has(m))) return;
+        let p = o.parent, ok = true; while (p && p !== LG) { if (skip.has(p) || !p.visible) { ok = false; break; } p = p.parent; } if (!ok) return;
+        if (o.userData.fakeShadow && o.onBeforeRender) { o.onBeforeRender(); o.updateMatrixWorld(true); }
+        const owner = o.userData.fakeShadow ? o.parent : o, sw = owner && owner.userData.sway;
+        if (sw && !o.userData.fakeShadow) o.rotation.z = 0, o.updateMatrixWorld(true);
+        (groups.get(m) || groups.set(m, []).get(m)).push({ o, sw: o.userData.fakeShadow ? null : sw }); });
+      const _m = new THREE.Matrix4(), _n = new THREE.Matrix3(), v = new V3();
+      for (const [mat, list] of groups) {
+        let nv = 0, ni = 0; for (const { o } of list) { nv += o.geometry.attributes.position.count; ni += o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count; }
+        const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), uv = new Float32Array(nv * 2), swa = new Float32Array(nv * 3), idx = new Uint32Array(ni); let vo = 0, io = 0, anySway = false;
+        for (const { o, sw } of list) { const g = o.geometry, P = g.attributes.position, N = g.attributes.normal, U = g.attributes.uv; _m.multiplyMatrices(inv, o.matrixWorld); _n.getNormalMatrix(_m);
+          const sy = new V3().setFromMatrixColumn(_m, 1).length();
+          for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); const ly = v.y; v.applyMatrix4(_m); pos.set([v.x, v.y, v.z], (vo + i) * 3);
+            if (N) { v.fromBufferAttribute(N, i).applyMatrix3(_n).normalize(); nor.set([v.x, v.y, v.z], (vo + i) * 3); } else nor.set([0, 0, 1], (vo + i) * 3);
+            if (U) uv.set([U.getX(i), U.getY(i)], (vo + i) * 2);
+            if (sw) { anySway = true; swa.set([Math.max(0, ly) * sy * sw[0], sw[1], sw[2]], (vo + i) * 3); } }
+          if (g.index) for (let i = 0; i < g.index.count; i++) idx[io++] = g.index.getX(i) + vo; else for (let i = 0; i < P.count; i++) idx[io++] = vo + i;
+          vo += P.count; victims.push(o); }
+        const mg = new THREE.BufferGeometry(); mg.setAttribute('position', new THREE.BufferAttribute(pos, 3)); mg.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); mg.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); mg.setIndex(new THREE.BufferAttribute(idx, 1));
+        let mm = mat; if (anySway) { mg.setAttribute('aSw', new THREE.BufferAttribute(swa, 3)); mm = (MAT.swayed || (MAT.swayed = new Map())).get(mat);
+          if (!mm) { mm = mat.clone(); mm.onBeforeCompile = (sh) => { sh.uniforms.uSwT = MAT.causticT; sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec3 aSw; uniform float uSwT;')
+              .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed.x -= sin(uSwT * aSw.y + aSw.z) * aSw.x;'); }; mm.customProgramCacheKey = () => 'sway'; MAT.swayed.set(mat, mm); } }
+        const merged = new THREE.Mesh(mg, mm); merged.renderOrder = list[0].o.renderOrder; merged.receiveShadow = list[0].o.receiveShadow; merged.frustumCulled = false; LG.add(merged); }
+      for (const o of victims) { o.onBeforeRender = () => {}; if (o.parent) o.parent.remove(o); } }
     spawn(o) {
       let m;
       if (o.t === T.ROCK) m = makeStone(this.newArt); else if (o.t === T.BALL) m = makeBall(this.newArt); else if (o.t === T.PLAYER) m = makeDiver();
       else if (o.t === T.FISH) m = makeFish(); else if (o.t === T.JELLY) m = makeJelly(); else if (o.t === T.CRAB) m = makeCrab();
       if (!m) return;
-      m.traverse(c => { if (c.isMesh) c.castShadow = true; });
+      // only parts big enough to throw a visible shadow cast one (eyes, pupils, highlights, teeth, spots don't): halves their cost in the shadow pass
+      { m.updateMatrixWorld(true); const R = new THREE.Box3().setFromObject(m).getSize(new V3()).length() / 2 || 1, ws = new V3();
+        m.traverse(c => { if (!c.isMesh) return; if (!c.geometry.boundingSphere) c.geometry.computeBoundingSphere(); ws.setFromMatrixScale(c.matrixWorld); const r = c.geometry.boundingSphere.radius * Math.max(ws.x, ws.y, ws.z);
+          c.castShadow = r > R * 0.16 && !(c.material && c.material.transparent); }); }
       m.position.set(o.x, -o.y, 0.05);
       if (o.t === T.PLAYER) { // measure the model once and size it to stand inside one cell
         m.scale.setScalar(1); m.rotation.set(0, -0.35, 0); m.updateMatrixWorld(true);
@@ -3740,10 +3780,10 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       // storm: sand and grit tearing across the tank
       if (on && F.storm > 0.05) { const n = Math.round(F.storm * 90 * dt * 10); for (let i = 0; i < n; i++) this.particles.emit(-1 + Math.random() * 3, -Math.random() * (H + 2) + 1.5, 0.3 + Math.random() * 1.2, 1, { color: new THREE.Color(0.75 + Math.random() * 0.2, 0.62, 0.42), speed: 0.4, life: 1.4, size: 0.1 + Math.random() * 0.14, kind: 1, spread: 0.3, vx: 7 + Math.random() * 7, vy: -0.4 + Math.random() * 0.8 }); }
       // the diver's helmet lamp: a warm pool of light and a beam in the facing direction
-      const lk = on ? F.lamp : 0, pp = this.playerPos;
-      if (lk > 0.01 && pp) { const dir = this.playerFacing || 1, fl = 0.92 + Math.sin(t * 13) * 0.03 + Math.sin(t * 7.3) * 0.03;
+      const lk = on ? F.lamp : (this.playLamp || 0) * 0.42, pp = this.playerPos;
+      if (lk > 0.01 && pp && (on || (this.e && this.e.state === 'playing'))) { const dir = this.playerFacing || 1, fl = 0.92 + Math.sin(t * 13) * 0.03 + Math.sin(t * 7.3) * 0.03;
         this.lampGlow.visible = this.lampBeam.visible = true; this.lampGlow.position.set(pp.x + 0.18 * dir, pp.y + 0.3, 0.75); this.lampGlow.scale.setScalar(2.4 * lk * fl); this.lampGlow.material.opacity = 0.75 * lk;
-        this.lampBeam.position.set(pp.x + 1.6 * dir, pp.y + 0.22, 0.7); this.lampBeam.scale.set(3.6 * lk, 1.1 * lk, 1); this.lampBeam.material.opacity = 0.35 * lk * fl; }
+        this.lampBeam.position.set(pp.x + 1.6 * dir, pp.y + 0.22, 0.7); this.lampBeam.scale.set(3.6 * lk, 1.1 * lk, 1); this.lampBeam.material.opacity = (on ? 0.35 : 0.2) * lk * fl; }
       else if (this.lampGlow) this.lampGlow.visible = this.lampBeam.visible = false;
       // the gate waking: a ring of light racing outward
       const wt = on && this.wakeT !== undefined ? t - this.wakeT : 99;
@@ -4068,6 +4108,17 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (this.menuMode) { this.camGoal.x += Math.sin(t * 0.15) * 1.2; this.lookGoal.x = this.camGoal.x; const lift = this.camGoal.z * (innerHeight > innerWidth ? 0.052 : -0.045); this.camGoal.y -= lift; this.lookGoal.y -= lift; } // menu: board sits between the logo and PLAY
       let cl = 1 - Math.pow(0.012, dt);
       { const dim = this.cineCam ? (this.storyDim || 0) : 0; this.nightK = this.cineCam ? Math.min(1, Math.max(0, (dim - 0.2) / 0.9)) : 0; MAT.sandNight.value = this.nightK; if (this.groundTint) this.groundTint.value.copy(this.groundTint0).lerp(new THREE.Color(0.05, 0.09, 0.22), this.nightK * 0.85); if (this.post && this.post.compMat) this.post.compMat.uniforms.night.value = this.nightK; this.renderer.toneMappingExposure = Math.max(0.12, 1 - 0.62 * dim) + (this.cineCam ? (this.flashK || 0) * 1.4 : 0); if (this.photo) this.photo.bg.material.color.copy(this.bgTint || new THREE.Color(1, 1, 1)).lerp(new THREE.Color(0.08, 0.14, 0.32), Math.min(1, 0.78 * dim)); } // the story's dark reef, lit again when the gate wakes
+      { // stage lighting in play: the world outside the tank sinks into cooler shade (deeper worlds more), the diver's lamp warms the
+        // sand/rock/water around them and the far corners of the tank fall gently into shadow. Never dark: it adds depth, not gloom.
+        const e0 = this.e, play = !!(e0 && !this.menuMode && !this.cineCam), wl = e0 && !e0.menu && !e0.cine ? worldOf(e0.name) : 0;
+        const L = [[0.85, 0.24, 0.62], [1.0, 0.32, 0.52], [1.2, 0.4, 0.44]][wl] || [0.85, 0.24, 0.62], pp = this.playerPos;
+        const goal = play && pp && e0.state !== 'won' ? 1 : 0; this.lampK = (this.lampK || 0) + (goal - (this.lampK || 0)) * Math.min(1, dt * 2.5);
+        if (this.cineCam && this.cineFx && pp) { MAT.lamp.value.set(pp.x + 0.15, pp.y + 0.25, 2.8, this.cineFx.lamp * 1.1); MAT.lampAmb.value = 0; }
+        else { if (pp) MAT.lamp.value.set(pp.x + 0.1, pp.y + 0.2, 3.3, L[0] * this.lampK); else MAT.lamp.value.w = 0; MAT.lampAmb.value = L[1] * this.lampK; }
+        this.playLamp = L[0] * this.lampK;
+        if (!this.cineCam) { const b = 1 + (L[2] - 1) * this.lampK; if (this.photo) this.photo.bg.material.color.copy(this.bgTint || new THREE.Color(1, 1, 1)).multiplyScalar(b);
+          if (this.groundTint) this.groundTint.value.copy(this.groundTint0).multiplyScalar(b * 0.9); }
+        if (this.post && this.post.compMat && this.post.compMat.uniforms.vig) this.post.compMat.uniforms.vig.value = this.lampK; }
       if (this.cineCam && this.cineT !== undefined) { // the intro's director: descend from the surface -> follow the diver -> push in on the gate -> pull back wide
         const e = this.e, cx = (e.w - 1) / 2, cy = -(e.h - 1) / 2, D = this.dFull || 20, T = this.cineT, sm = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
         const pp = this.playerPos || new V3(cx, cy, 0), gx = e.gate ? e.gate.x : cx, gy = e.gate ? -e.gate.y : cy, S = this.cineShot || 'play';
