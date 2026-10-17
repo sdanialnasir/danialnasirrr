@@ -178,10 +178,13 @@ class Engine {
         if (!o || !HEAVY.has(o.t) || o.moved === this.tick) continue;
         o.px = o.x; o.py = o.y;
         const below = this.get(x, y + 1);
-        if (below === T.EMPTY) { o.falling = true; this.moveObj(o, x, y + 1); continue; }
+        if (below === T.EMPTY) { o.fallN = o.falling ? (o.fallN || 0) + 1 : 1; o.falling = true; this.moveObj(o, x, y + 1); continue; }
         if (o.falling) {
           // landing on something
           const victim = this.objAt(x, y + 1);
+          // grace: something that has dropped only one cell onto the diver teeters for one tick first, so a quick sideways
+          // step (e.g. right after pulling a plug from below) saves you. Monsters get no grace.
+          if (victim && victim.t === T.PLAYER && o.fallN === 1 && !o.graced) { o.graced = true; this.emit('teeter', { x, y, id: o.id }); continue; }
           if (victim && (victim.t === T.PLAYER || MONSTERS.has(victim.t))) {
             if (victim.t === T.PLAYER) { this.die('crushed'); }
             else { this.emit('monsterDeath', { x: victim.x, y: victim.y, t: victim.t }); this.score += 100; this.removeObj(victim); }
@@ -193,13 +196,13 @@ class Engine {
         // roll off rounded things
         if (ROUNDED.has(below) || (below === T.GATE)) {
           if (this.get(x - 1, y) === T.EMPTY && this.get(x - 1, y + 1) === T.EMPTY && !this.objAt(x - 1, y + 1)) {
-            o.falling = true; this.moveObj(o, x - 1, y); this.emit('roll', { x: x - 1, y }); continue;
+            o.falling = true; o.fallN = 0; this.moveObj(o, x - 1, y); this.emit('roll', { x: x - 1, y }); continue;
           }
           if (this.get(x + 1, y) === T.EMPTY && this.get(x + 1, y + 1) === T.EMPTY && !this.objAt(x + 1, y + 1)) {
-            o.falling = true; this.moveObj(o, x + 1, y); this.emit('roll', { x: x + 1, y }); continue;
+            o.falling = true; o.fallN = 0; this.moveObj(o, x + 1, y); this.emit('roll', { x: x + 1, y }); continue;
           }
         }
-        if (o.falling) { o.falling = false; this.emit('land', { x, y, t: o.t }); }
+        if (o.falling) { o.falling = false; o.fallN = 0; o.graced = false; this.emit('land', { x, y, t: o.t }); }
       }
     }
   }

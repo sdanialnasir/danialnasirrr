@@ -1084,10 +1084,13 @@ class Engine {
         if (!o || !HEAVY.has(o.t) || o.moved === this.tick) continue;
         o.px = o.x; o.py = o.y;
         const below = this.get(x, y + 1);
-        if (below === T.EMPTY) { o.falling = true; this.moveObj(o, x, y + 1); continue; }
+        if (below === T.EMPTY) { o.fallN = o.falling ? (o.fallN || 0) + 1 : 1; o.falling = true; this.moveObj(o, x, y + 1); continue; }
         if (o.falling) {
           // landing on something
           const victim = this.objAt(x, y + 1);
+          // grace: something that has dropped only one cell onto the diver teeters for one tick first, so a quick sideways
+          // step (e.g. right after pulling a plug from below) saves you. Monsters get no grace.
+          if (victim && victim.t === T.PLAYER && o.fallN === 1 && !o.graced) { o.graced = true; this.emit('teeter', { x, y, id: o.id }); continue; }
           if (victim && (victim.t === T.PLAYER || MONSTERS.has(victim.t))) {
             if (victim.t === T.PLAYER) { this.die('crushed'); }
             else { this.emit('monsterDeath', { x: victim.x, y: victim.y, t: victim.t }); this.score += 100; this.removeObj(victim); }
@@ -1099,13 +1102,13 @@ class Engine {
         // roll off rounded things
         if (ROUNDED.has(below) || (below === T.GATE)) {
           if (this.get(x - 1, y) === T.EMPTY && this.get(x - 1, y + 1) === T.EMPTY && !this.objAt(x - 1, y + 1)) {
-            o.falling = true; this.moveObj(o, x - 1, y); this.emit('roll', { x: x - 1, y }); continue;
+            o.falling = true; o.fallN = 0; this.moveObj(o, x - 1, y); this.emit('roll', { x: x - 1, y }); continue;
           }
           if (this.get(x + 1, y) === T.EMPTY && this.get(x + 1, y + 1) === T.EMPTY && !this.objAt(x + 1, y + 1)) {
-            o.falling = true; this.moveObj(o, x + 1, y); this.emit('roll', { x: x + 1, y }); continue;
+            o.falling = true; o.fallN = 0; this.moveObj(o, x + 1, y); this.emit('roll', { x: x + 1, y }); continue;
           }
         }
-        if (o.falling) { o.falling = false; this.emit('land', { x, y, t: o.t }); }
+        if (o.falling) { o.falling = false; o.fallN = 0; o.graced = false; this.emit('land', { x, y, t: o.t }); }
       }
     }
   }
@@ -3834,6 +3837,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         case 'land': { { const pl = e.player; if (pl && Math.abs(pl.x - ev.x) <= 1 && Math.abs(pl.y - ev.y) <= 1) { this.playerMood('flinch', 0.45); this.sfx('oof'); if (ev.t === T.ROCK && ev.y >= pl.y && (pl.px === ev.x || Math.abs(pl.x - ev.x) === 1 && pl.y === ev.y)) { this.popText(pl.x, -pl.y + 0.3, 'Phew!', '#9ff0ff'); this.sfx('eep'); } } } // a heavy thing lands right next to him
           this.shake = Math.max(this.shake, ev.t === T.ROCK ? 0.12 : 0.07); P.emit(x, y - 0.42, 0.4, 10, { color: SAND, speed: 1.2, life: 0.5, size: 0.1, kind: 1, spread: 0.7 }); this.sfx('land'); break; }
         case 'roll': this.sfx('roll'); break;
+        case 'teeter': { const ent = this.entities.get(ev.id); if (ent) ent.teeter = 1; this.sfx('eep'); this.playerMood('surprise', 0.5); this.shake = Math.max(this.shake, 0.06); break; } // grace tick: the stone wobbles, the diver yelps
         case 'absorb': { P.emit(x, y, 0.5, 40, { color: new THREE.Color(1, 0.55, 0.25), speed: 2.6, life: 0.8, size: 0.14 }); P.emit(x, y, 0.5, 30, { color: new THREE.Color(0.5, 0.9, 1), speed: 2, life: 1, size: 0.12 }); this.sfx('absorb'); this.popText(x, y + 0.2, e.ballsIn >= e.ballsTotal ? 'All energy!' : `${e.ballsIn}/${e.ballsTotal}`, '#ffb36a'); if (this.onStat && !this.menuMode) this.onStat('pearl'); this.playerMood('joy', 1.25); setTimeout(() => this.sfx('yay'), 260);
           const ent = this.entities.get(ev.id); if (ent) { ent.absorbing = { t: 0, from: new V3(ev.fromX, -ev.fromY, 0.05), to: new V3(x, y, 0.3) }; this.entities.delete(ev.id); this.absorbing.push(ent); } break; }
         case 'gateOpen': { if (this.onGateOpen && !this.menuMode && !e.cine) this.onGateOpen(); this.playerMood('joy', 1.25); this.flashFx('flash'); P.emit(x, y, 0.5, 70, { color: new THREE.Color(0.55, 0.95, 1), speed: 3.5, life: 1.3, size: 0.16 }); P.bubbles(x, y, 0.2, 18, 0.12, 0.8); this.sfx('gateOpen'); this.shake = 0.18; break; }
@@ -3940,6 +3944,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             ent.roll += ((ent.rollTarget || 0) - ent.roll) * Math.min(1, dt * 14); m.userData.spin.rotation.z = ent.roll; }
           if (ent.wasFalling && !o.falling && !moving) ent.squash = 1; ent.wasFalling = o.falling || moving;
           const sq = ent.squash; m.scale.set(1 + sq * 0.12, 1 - sq * 0.14, 1 + sq * 0.12); ent.squash = Math.max(0, sq - dt * 7);
+          if (ent.teeter > 0) { ent.teeter = Math.max(0, ent.teeter - dt * 5); m.rotation.z = Math.sin(t * 60) * 0.12 * ent.teeter; m.position.y += Math.sin(t * 45) * 0.03 * ent.teeter; } else if (m.rotation.z) m.rotation.z = 0;
           m.userData.shadow.visible = e.get(o.x, o.y + 1) !== T.EMPTY && !o.falling;
           if (o.t === T.BALL) { const pulse = Math.sin(t * 4 + ent.phase); m.userData.glow.scale.setScalar(1.7 + pulse * 0.12); m.userData.core.material.opacity = 0.45 + pulse * 0.15;
             ent.spark = (ent.spark || 0) - dt; if (ent.spark <= 0) { ent.spark = 0.25 + Math.random() * 0.45; const an = Math.random() * 6.28; this.particles.emit(ix + Math.cos(an) * 0.38, iy + Math.sin(an) * 0.38, 0.45, 1, { color: new THREE.Color(1, 0.6 + Math.random() * 0.3, 0.2), speed: 0.35, life: 0.7, size: 0.07, kind: 2, spread: 0.02 }); } }

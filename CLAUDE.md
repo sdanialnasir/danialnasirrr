@@ -203,3 +203,5 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - Saves: damaged fields are dropped; save `v: 2` resets stars/best/tips from the pre-redesign levels (coins/skins/progress kept).
 - Air retuned for careful first-time players (levels 11–30; capsule levels 12 → 55 s, 23 → 40 s); hints rewritten on 9/20/22,
   dodge warnings on 4/12/23. All 30 routes re-verified.
+- **Crush grace:** a stone/pearl that has dropped exactly one cell onto the diver teeters for one tick (`teeter` event: wobble +
+  yelp) before crushing, so the plug-pull dodge is fair. Tracked with `o.fallN` / `o.graced` in `physics()`; monsters get no grace.
