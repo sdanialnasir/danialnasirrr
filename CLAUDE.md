@@ -170,3 +170,15 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   and a reminder toast after 8 s if the diver hasn't entered.
 - Ending: winning level 30 turns the result button into "The reef awakens ✨", which opens `#ending` (`openEnding`): story payoff,
   stars/treasures/coins, one-time +200 coin bonus (`save.finished`).
+
+## Level-1 coach + intro film
+- **Coach (level 1 only):** `COACH_ROUTE` (the verified level-1 route) is simulated once into reference states (positions of
+  pearls/rocks). When the player hesitates (1.2 s first time, then 3.5 s; 6 s once level 1 has stars), it finds where they are on
+  that route and shows a glowing trail (`world.setCoachTrail`) to the next spot and an animated swipe hand (`#coachHand`; a key cap
+  on computers) for the next move. If the board has left the route, it points at Undo (`#btnUndo.nudge`).
+- **Intro film** (`startCine`/`cineTick`): seven beats — night reef with drifting pearl-lights (`world.cineFx.glow`), storm (thunder
+  SFX, `#cineFlash` lightning, grit streaks, `cineFx.storm`), darkness, helmet lamp on (`cineFx.lamp`), the first dive, the gate
+  waking (`world.cineWake` shockwave + light pours back), wide shot, title on black, fade into the menu. Night is a post-pass grade
+  (`night` uniform: mids sink, real lights keep glowing) + `uNight` on the sand shader + seabed tint; low tier falls back to `#cineDark`.
+- **Voice-over:** lines in `CINE_LINES` (vo1…vo7); drop ElevenLabs MP3s in `src/assets/vo/<id>.mp3` and rebuild — `build_assets.py`
+  embeds them as `AQ_DATA.VO`, `Audio.vo(id)` plays them with the ambience ducked. Script + timings: `docs/voiceover-script.md`.

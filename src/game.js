@@ -804,6 +804,15 @@ const Audio = (() => {
     mix.connect(g); g.connect(sfxBus); o.start(t); vib.start(t); o.stop(t + dur + 0.05); vib.stop(t + dur + 0.05);
   }
   const SFX = {
+    // ---- intro cinematic
+    thunder() { const t = ctx.currentTime; burst(1.8, 120, 0.6, 0.5, t, 'lowpass'); burst(0.25, 900, 0.8, 0.25, t); thump(70, 1.6, 0.55, t + 0.02); burst(2.4, 60, 0.5, 0.35, t + 0.25, 'lowpass'); },
+    stormWind() { const t = ctx.currentTime, src = ctx.createBufferSource(); src.buffer = noiseBuffer(2); src.loop = true; const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.2;
+      f.frequency.setValueAtTime(300, t); f.frequency.linearRampToValueAtTime(900, t + 1.6); f.frequency.linearRampToValueAtTime(380, t + 4.5); const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.22, t + 0.8); g.gain.setValueAtTime(0.22, t + 3.6); g.gain.linearRampToValueAtTime(0, t + 5);
+      src.connect(f); f.connect(g); g.connect(sfxBus); src.start(t); src.stop(t + 5.1); },
+    lampOn() { const t = ctx.currentTime; burst(0.05, 2400, 3, 0.25, t); note(1320, t + 0.03, 0.5, 'sine', 0.07); note(1980, t + 0.06, 0.6, 'sine', 0.04); },
+    wake() { const t = ctx.currentTime; [0, 4, 7, 12, 16, 19, 24].forEach((st, i) => note(220 * Math.pow(2, st / 12), t + i * 0.07, 2.6, 'sine', 0.06)); burst(1.6, 3000, 0.7, 0.06, t + 0.1, 'highpass'); thump(110, 1.2, 0.35, t); },
+    riser() { const t = ctx.currentTime, o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(440, t + 2.2); const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(2400, t + 2.2);
+      const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.05, t + 2); g.gain.linearRampToValueAtTime(0, t + 2.3); o.connect(f); f.connect(g); g.connect(sfxBus); o.start(t); o.stop(t + 2.4); thump(60, 1.4, 0.5, t + 2.2); note(330, t + 2.2, 2.4, 'triangle', 0.05); note(495, t + 2.2, 2.4, 'triangle', 0.04); },
     // ---- the diver's cute sounds
     swim() { const t = ctx.currentTime, f = 230 + Math.random() * 70; // a soft double 'blub' of fin bubbles
       for (const [d, k] of [[0, 1], [0.045, 1.35]]) { const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(f * k, t + d); o.frequency.exponentialRampToValueAtTime(f * k * 2.1, t + d + 0.07);
@@ -843,10 +852,18 @@ const Audio = (() => {
     bite() { burst(0.1, 1500, 2, 0.3); thump(200, 0.1, 0.3); },
   };
   function play(name) { if (!ctx || muted) return; try { SFX[name] && SFX[name](); } catch {} }
+  // voice-over: plays an embedded clip (src/assets/vo/<id>.mp3, baked in by build_assets.py) and ducks the ambience under it.
+  // Returns the clip length in seconds (0 when no clip exists yet, so the captions keep their own timing).
+  let voEl = null;
+  function vo(id) { const src = window.AQ_DATA && AQ_DATA.VO && AQ_DATA.VO[id]; if (!src || muted) return 0;
+    try { if (voEl) voEl.pause(); voEl = new window.Audio(src); voEl.volume = settings.sfx; voEl.play().catch(() => {});
+      if (musicBus && ctx) { musicBus.gain.setTargetAtTime(musicOn ? settings.music * 0.35 : 0, ctx.currentTime, 0.2); voEl.onended = () => musicBus.gain.setTargetAtTime(musicOn ? settings.music : 0, ctx.currentTime, 0.6); }
+      return voEl.duration || 0; } catch { return 0; } }
+  function stopVo() { if (voEl) { voEl.pause(); voEl = null; } if (musicBus && ctx) musicBus.gain.setTargetAtTime(musicOn ? settings.music : 0, ctx.currentTime, 0.4); }
   function setMuted(m) { muted = m; if (master) master.gain.value = m ? 0 : 1; }
   function setMusic(on) { musicOn = on; if (musicBus && ctx) musicBus.gain.setTargetAtTime(on ? settings.music : 0, ctx.currentTime, 0.6); }
   function setVolumes(music, sfx) { settings.music = music; settings.sfx = sfx; if (musicBus) musicBus.gain.value = musicOn ? music : 0; if (sfxBus) sfxBus.gain.value = sfx; try { localStorage.setItem('dc-audio', JSON.stringify(settings)); } catch {} }
-  return { init, resume, play, setMuted, setMusic, setVolumes, settings, get ctx() { return ctx; } };
+  return { init, resume, play, vo, stopVo, setMuted, setMusic, setVolumes, settings, get ctx() { return ctx; } };
 })();
 
 // Deep Current — renderer v3: clean, bright, front-on puzzle board built from premium primitives.
@@ -999,8 +1016,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (mask) { sh.uniforms.uMask = mask.tex; sh.uniforms.uSize = mask.size; }
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWp; varying vec3 vNo;')
         .replace('#include <project_vertex>', '#include <project_vertex>\n{ vec4 wp4 = vec4(transformed, 1.0);\n#ifdef USE_INSTANCING\n wp4 = instanceMatrix * wp4;\n#endif\n vWp = (modelMatrix * wp4).xyz; vNo = normal; }');
-      sh.uniforms.uCausticT = MAT.causticT; sh.uniforms.uSandTex = { value: sprTex('sand') }; sh.uniforms.uNew = MAT.sandNew;
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uCausticT, uNew; uniform sampler2D uSandTex; varying vec3 vWp; varying vec3 vNo; float vEdge = 0.0; float vBotOpen = 0.0; float vLine = 0.0; float vWet = 0.0; float vTopOpen = 0.0; vec2 vLc = vec2(0.5); vec3 vGlint = vec3(0.0);' + (mask ? '\nuniform sampler2D uMask; uniform vec2 uSize;' : ''))
+      sh.uniforms.uCausticT = MAT.causticT; sh.uniforms.uSandTex = { value: sprTex('sand') }; sh.uniforms.uNew = MAT.sandNew; sh.uniforms.uNight = MAT.sandNight;
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uCausticT, uNew, uNight; uniform sampler2D uSandTex; varying vec3 vWp; varying vec3 vNo; float vEdge = 0.0; float vBotOpen = 0.0; float vLine = 0.0; float vWet = 0.0; float vTopOpen = 0.0; vec2 vLc = vec2(0.5); vec3 vGlint = vec3(0.0);' + (mask ? '\nuniform sampler2D uMask; uniform vec2 uSize;' : ''))
         .replace('#include <clipping_planes_fragment>', mask ? `#include <clipping_planes_fragment>
         { vec2 cell = vec2(floor(vWp.x + 0.5), floor(-vWp.y + 0.5)); vec2 lc = vec2(vWp.x + 0.5, -vWp.y + 0.5) - cell;
           if (cell.x < 0.0 || cell.y < 0.0 || cell.x >= uSize.x || cell.y >= uSize.y) discard;
@@ -1098,6 +1115,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
                   c = mix(c, pc, smoothstep(0.006, -0.004, d)); } } } }
           c = mix(c, c * vec3(0.72, 0.62, 0.5), vWet * 0.75); c += vec3(0.25, 0.2, 0.12) * smoothstep(0.03, 0.0, abs(vWet - 0.75)) * vWet;
           if (uNew > 0.5) { float l = dot(c, vec3(0.299, 0.587, 0.114)); c = max(vec3(0.0), mix(vec3(l), c, 1.5)); } // richer, warmer sand (the lights were greying it out)
+          c = mix(c, c * vec3(0.16, 0.22, 0.42), uNight); // the intro's night
           diffuseColor.rgb = c; }`)
         .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         if (vNo.z > 0.5) { vec2 p = vWp.xy; float w = p.y * 7.0 + sin(p.x * 1.7) * 1.4; float cw = cos(w);
@@ -1137,7 +1155,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     MAT.caveWall = causticify(new THREE.MeshStandardMaterial({ color: 0x2a62c8, roughness: 0.85, envMapIntensity: 0.3 }), 0.1);
     MAT.causticT = { value: 0 };
     MAT.sand = sandify(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7, metalness: 0, envMapIntensity: 0.4, polygonOffset: true, polygonOffsetFactor: 6, polygonOffsetUnits: 6 })); // offset: edge-on block sides were winning the depth test through the sand face (thin seams under MSAA)
-    MAT.sandMask = { tex: { value: null }, size: { value: new THREE.Vector2(1, 1) } }; MAT.sandNew = { value: 0 };
+    MAT.sandMask = { tex: { value: null }, size: { value: new THREE.Vector2(1, 1) } }; MAT.sandNew = { value: 0 }; MAT.sandNight = { value: 0 };
     MAT.sandFront = sandify(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.72, metalness: 0, envMapIntensity: 0.2, toneMapped: false }), MAT.sandMask);
     MAT.stone = phys({ color: 0x0f52d8, roughness: 0.12, metalness: 0.05, clearcoat: 1, clearcoatRoughness: 0.02, envMapIntensity: 1.4 });
     MAT.ball = phys({ color: 0xff2200, roughness: 0.14, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.02, emissive: 0xc81800, emissiveIntensity: 0.45, envMapIntensity: 1.1, sheen: 0.6, sheenColor: 0xff9a60, sheenRoughness: 0.35 });
@@ -2055,11 +2073,13 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           for (int i = 0; i < 64; i++) { if (float(i) >= n) break; uv -= d; acc += src(uv) * w; tot += w; w *= 0.965; }
           float a = acc / tot; float flick = 0.85 + 0.15 * sin(time * 0.6 + vUv.x * 9.0);
           gl_FragColor = vec4(vec3(0.85, 0.97, 1.0) * a * flick, 1.0); }`);
-      this.compMat = M({ tScene: { value: this.main.texture }, tBloom: { value: null }, tRays: { value: null }, strength: { value: this.strength }, rays: { value: 0 }, lens: { value: 0 }, aspect: { value: 1 }, time: { value: 0 } },
-        `uniform sampler2D tScene, tBloom, tRays; uniform float strength, rays, lens, aspect, time; varying vec2 vUv;
+      this.compMat = M({ tScene: { value: this.main.texture }, tBloom: { value: null }, tRays: { value: null }, strength: { value: this.strength }, rays: { value: 0 }, lens: { value: 0 }, aspect: { value: 1 }, time: { value: 0 }, night: { value: 0 } },
+        `uniform sampler2D tScene, tBloom, tRays; uniform float strength, rays, lens, aspect, time, night; varying vec2 vUv;
         vec3 safe(vec3 c){ return (any(isnan(c)) || any(isinf(c))) ? vec3(0.0) : clamp(c, 0.0, 32.0); }
         void main(){ vec3 c = safe(texture2D(tScene, vUv).rgb); vec3 b = safe(texture2D(tBloom, vUv).rgb);
           if (lens > 0.0) { vec2 dv = (vUv - 0.5) * lens * 0.0012 * dot(vUv - 0.5, vUv - 0.5) * 4.0; c.r = safe(texture2D(tScene, vUv + dv).rgb).r; c.b = safe(texture2D(tScene, vUv - dv).rgb).b; } // faint chromatic fringe at the edges
+          // the intro's night grade: mid-tones sink into deep blue, but bright lights (pearl-lights, lamp, lightning) keep shining
+          if (night > 0.0) { vec3 hi = max(c - 1.15, 0.0); c = mix(c, c * vec3(0.12, 0.18, 0.4) + hi * 3.0, night); b *= 1.0 + night * 1.6; }
           c += b * strength;
           if (rays > 0.0) c += safe(texture2D(tRays, vUv).rgb) * rays;
           // gentle grade: a touch more contrast and saturation, cool shadows, warm highlights
@@ -2068,7 +2088,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           c = mix(c * vec3(0.94, 0.99, 1.06), c * vec3(1.03, 1.0, 0.96), smoothstep(0.2, 0.8, l));
           c = max(c, 0.0); vec3 cc = min(c, 1.0); c += (cc * cc * (3.0 - 2.0 * cc) - cc) * 0.62;
           // soft vignette
-          vec2 d = vUv - 0.5; d.x *= aspect; float v = smoothstep(1.05, 0.3, length(d)); c *= mix(0.58, 1.0, v);
+          vec2 d = vUv - 0.5; d.x *= aspect; float v = smoothstep(1.05, 0.3, length(d)); c *= mix(0.58 - 0.4 * night, 1.0, v);
           gl_FragColor = vec4(c, 1.0);
           #include <colorspace_fragment>
           gl_FragColor.rgb += (fract(sin(dot(gl_FragCoord.xy + time, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0; }`);
@@ -2306,7 +2326,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     keepTreasures() { this._keepTreasures = (this.treasures || []).filter(t => t.state !== 'buried').map(t => ({ cx: t.cx, cy: t.cy, x: t.m.position.x, y: t.m.position.y, rz: t.m.rotation.z })); }
     clearLevel() {
       this.levelGroup.clear(); this.entShadows = []; this.entities.clear(); this.particles.n = 0; this.particles.bub.n = 0;
-      this.gateObj = null; this.gateFx = null; this.pops = []; this.sandInst = null; this.treasures = []; this.digChunks = []; if (this.warn) this.warn.visible = false; this.ghosts = []; this.absorbing = []; this.deathTint = 0; this.setFx('');
+      this.gateObj = null; this.gateFx = null; this.pops = []; this.coachCells = null; this.sandInst = null; this.treasures = []; this.digChunks = []; if (this.warn) this.warn.visible = false; this.ghosts = []; this.absorbing = []; this.deathTint = 0; this.setFx('');
     }
     loadLevel(e) {
       this.clearLevel(); this.e = e; this.shadowDirty = true; this.mood = null; this.playerAct = null; this.lastHup = -9; const ART = ART_SETS[NEW_ART_LEVELS.has(e.name) || e.menu ? 'new' : 'old']; this.newArt = ART === ART_SETS.new; MAT.sandNew.value = this.newArt ? 1 : 0; this.tickMs = e.tickMs; this.menuMode = !!e.menu; this.playing = false; this.lead.set(0, 0); this.lastMove = -99; this.zoomK = 1.12; this.playerPos = null;
@@ -2565,7 +2585,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
                 c *= mix(1.0, 0.7, smoothstep(1.5, 7.0, vW.z));                                          // the seabed nearest the camera falls into soft shade so it doesn't shout
                 c = mix(c, vec3(0.588, 0.733, 0.749), smoothstep(-13.0, -23.0, vW.z) * 0.6);                 // the painting's far, hazy sea floor
                 gl_FragColor = vec4(pow(c, vec3(2.2)) * uTint, 1.0 - smoothstep(-14.0, -24.0, vW.z)); }` });
-          const gp = new THREE.PlaneGeometry(span + 140, 160); gp.rotateX(-Math.PI / 2); const ground = new THREE.Mesh(gp, gm); ground.position.set((W - 1) / 2, yF + 0.005, 50); ground.renderOrder = -6; ground.frustumCulled = false; this.levelGroup.add(ground);
+          const gp = new THREE.PlaneGeometry(span + 140, 160); gp.rotateX(-Math.PI / 2); const ground = new THREE.Mesh(gp, gm); ground.position.set((W - 1) / 2, yF + 0.005, 50); ground.renderOrder = -6; ground.frustumCulled = false; this.levelGroup.add(ground); this.groundTint = gm.uniforms.uTint; this.groundTint0 = gm.uniforms.uTint.value.clone();
           const mk = (draw) => { const c = document.createElement('canvas'); c.width = c.height = 256; draw(c.getContext('2d')); const t = new THREE.CanvasTexture(c); return t; };
           const blob = mk(g => { const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128); gr.addColorStop(0, 'rgba(18,26,48,0.85)'); gr.addColorStop(0.55, 'rgba(18,26,48,0.35)'); gr.addColorStop(1, 'rgba(18,26,48,0)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256); });
           // tank shadow: darkest right under the base and along its front edge, fading toward the viewer
@@ -2796,10 +2816,47 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     setFx(cls) { if (this.fx) this.fx.className = cls; }
     flashFx(cls) { if (!this.fx) return; this.fx.classList.remove(cls); void this.fx.offsetWidth; this.fx.classList.add(cls); }
     // little floating words for small wins ("+1", "Phew!", "Bonk!"): a canvas sprite that pops, rises and fades
-    popText(x, y, text, col = '#ffd84a') { if (this.menuMode) return; this.pops = this.pops || []; const c = document.createElement('canvas'); c.width = 256; c.height = 96; const g = c.getContext('2d');
+    popText(x, y, text, col = '#ffd84a') { if (this.menuMode || (this.e && this.e.cine)) return; this.pops = this.pops || []; const c = document.createElement('canvas'); c.width = 256; c.height = 96; const g = c.getContext('2d');
       g.font = '64px "Lilita One", "Baloo 2", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round'; g.lineWidth = 12; g.strokeStyle = '#0b2f6e'; g.strokeText(text, 128, 50); g.fillStyle = col; g.fillText(text, 128, 50);
       const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, depthTest: false, toneMapped: false }));
       sp.position.set(x, y + 0.3, 0.9); sp.renderOrder = 9; sp.scale.set(0.01, 0.01, 1); this.levelGroup.add(sp); this.pops.push({ sp, t: 0, y: y + 0.3 }); }
+    // ---- intro cinematic effects, driven by the controller through this.cineFx = { glow, storm, lamp } (0..1 each)
+    cineFlash(k = 1) { this.flashK = Math.max(this.flashK || 0, k); }
+    cineWake() { this.wakeT = this.time; }
+    tickCine(dt) { const F = this.cineFx, on = !!(this.cineCam && F && this.e); const t = this.time;
+      if (!this.cineGlow) { this.cineGlow = []; const mk = (c) => new THREE.SpriteMaterial({ map: TEX.dot, color: c, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+        for (let i = 0; i < 90; i++) { const sp = new THREE.Sprite(mk([0xff8a3a, 0xffc94a, 0xff5a2a, 0x7ff0ff][i % 4])); sp.visible = false; sp.renderOrder = 7; this.scene.add(sp); this.cineGlow.push({ sp, ph: Math.random() * 6.28, sz: 0.3 + Math.random() * 0.45, sp0: 0.15 + Math.random() * 0.3 }); }
+        const lm = new THREE.SpriteMaterial({ map: TEX.dot, color: 0xfff1c0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+        this.lampGlow = new THREE.Sprite(lm); this.lampBeam = new THREE.Sprite(lm.clone()); for (const l of [this.lampGlow, this.lampBeam]) { l.visible = false; l.renderOrder = 7; this.scene.add(l); }
+        this.wakeRing = new THREE.Mesh(new THREE.RingGeometry(0.8, 1, 64), new THREE.MeshBasicMaterial({ color: 0xbfffe8, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); this.wakeRing.visible = false; this.wakeRing.renderOrder = 7; this.scene.add(this.wakeRing); }
+      const e = this.e, W = e ? e.w : 12, H = e ? e.h : 7;
+      this.cineGlow.forEach((g, i) => { if (!on || F.glow < 0.01) { g.sp.visible = false; g.init = false; return; }
+        if (!g.init) { g.init = true; g.x = -1.5 + Math.random() * (W + 2); g.y = -(H + 0.5) + Math.random() * (H + 4); }
+        g.y += dt * g.sp0 * (1 - F.storm); g.x += dt * (F.storm * (4 + g.sp0 * 8) + Math.sin(t * 0.7 + g.ph) * 0.12); if (g.y > 3.5) g.y = -(H + 0.5); if (g.x > W + 2) { g.x = -2; g.y = -(H + 0.5) + Math.random() * (H + 4); }
+        const tw = 0.55 + 0.45 * Math.sin(t * 2.2 + g.ph); g.sp.visible = true; g.sp.position.set(g.x, g.y, -0.2 + (i % 3) * 0.5); const sz = g.sz * (1 + F.storm * 0.6); g.sp.scale.set(sz * (1 + F.storm * 2.5), sz, 1); g.sp.material.opacity = Math.min(1, F.glow * tw * 1.3); });
+      // storm: sand and grit tearing across the tank
+      if (on && F.storm > 0.05) { const n = Math.round(F.storm * 90 * dt * 10); for (let i = 0; i < n; i++) this.particles.emit(-1 + Math.random() * 3, -Math.random() * (H + 2) + 1.5, 0.3 + Math.random() * 1.2, 1, { color: new THREE.Color(0.75 + Math.random() * 0.2, 0.62, 0.42), speed: 0.4, life: 1.4, size: 0.1 + Math.random() * 0.14, kind: 1, spread: 0.3, vx: 7 + Math.random() * 7, vy: -0.4 + Math.random() * 0.8 }); }
+      // the diver's helmet lamp: a warm pool of light and a beam in the facing direction
+      const lk = on ? F.lamp : 0, pp = this.playerPos;
+      if (lk > 0.01 && pp) { const dir = this.playerFacing || 1, fl = 0.92 + Math.sin(t * 13) * 0.03 + Math.sin(t * 7.3) * 0.03;
+        this.lampGlow.visible = this.lampBeam.visible = true; this.lampGlow.position.set(pp.x + 0.18 * dir, pp.y + 0.3, 0.75); this.lampGlow.scale.setScalar(2.4 * lk * fl); this.lampGlow.material.opacity = 0.75 * lk;
+        this.lampBeam.position.set(pp.x + 1.6 * dir, pp.y + 0.22, 0.7); this.lampBeam.scale.set(3.6 * lk, 1.1 * lk, 1); this.lampBeam.material.opacity = 0.35 * lk * fl; }
+      else if (this.lampGlow) this.lampGlow.visible = this.lampBeam.visible = false;
+      // the gate waking: a ring of light racing outward
+      const wt = on && this.wakeT !== undefined ? t - this.wakeT : 99;
+      if (wt < 1.6 && e && e.gate) { const k = wt / 1.6; this.wakeRing.visible = true; this.wakeRing.position.set(e.gate.x, -e.gate.y, 0.8); this.wakeRing.scale.setScalar(0.5 + k * 9); this.wakeRing.material.opacity = (1 - k) * 0.85; } else this.wakeRing.visible = false;
+      this.flashK = Math.max(0, (this.flashK || 0) - dt * 3.2); }
+    // level-1 coach: a pulsing trail of light along the cells the diver should swim/dig through next (cells: [[x,y],...] or null)
+    toScreen(x, y, z = 0.5) { const v = new V3(x, -y, z).project(this.camera); return [(v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight]; }
+    setCoachTrail(cells) { this.coachCells = cells && cells.length ? cells : null; }
+    tickCoach(dt) { const C = this.coachCells; this.coachK = (this.coachK || 0) + ((C ? 1 : 0) - (this.coachK || 0)) * Math.min(1, dt * 5);
+      if (!this.coachPool) { this.coachPool = []; const m0 = new THREE.SpriteMaterial({ map: TEX.dot, color: 0x9dffe0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, toneMapped: false });
+        for (let i = 0; i < 40; i++) { const sp = new THREE.Sprite(m0.clone()); sp.renderOrder = 8; sp.visible = false; this.scene.add(sp); this.coachPool.push(sp); } }
+      const t = this.time; this.coachPool.forEach((sp, i) => { const c = C && C[i]; if (!c || this.coachK < 0.02 || !this.e || this.e.state !== 'playing') { sp.visible = false; return; }
+        if (C !== this.coachLast) { sp.position.set(c[0], -c[1], 0.62); }
+        sp.position.lerp(new V3(c[0], -c[1], 0.62), Math.min(1, dt * 10)); const wave = Math.max(0, Math.cos((i * 0.55 - t * 4.2))), last = i === C.length - 1;
+        sp.visible = true; const sz = (last ? 0.62 : 0.32) + wave * 0.16; sp.scale.set(sz, sz, 1); sp.material.opacity = this.coachK * (last ? 0.9 : 0.35 + wave * 0.5); sp.material.color.set(last ? 0xffe27a : 0x9dffe0); });
+      this.coachLast = C; }
     tickPops(dt) { if (!this.pops || !this.pops.length) return; this.pops = this.pops.filter(p => { p.t += dt; const k = p.t, s = k < 0.18 ? (k / 0.18) * 1.15 : 1.15 - Math.min(0.15, (k - 0.18) * 0.8);
       p.sp.scale.set(1.3 * s, 0.49 * s, 1); p.sp.position.y = p.y + Math.min(1, k) * 0.7; p.sp.material.opacity = k < 0.8 ? 1 : Math.max(0, 1 - (k - 0.8) / 0.4);
       if (k > 1.2) { this.levelGroup.remove(p.sp); p.sp.material.map.dispose(); p.sp.material.dispose(); return false; } return true; }); }
@@ -2825,7 +2882,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         case 'roll': this.sfx('roll'); break;
         case 'absorb': { P.emit(x, y, 0.5, 40, { color: new THREE.Color(1, 0.55, 0.25), speed: 2.6, life: 0.8, size: 0.14 }); P.emit(x, y, 0.5, 30, { color: new THREE.Color(0.5, 0.9, 1), speed: 2, life: 1, size: 0.12 }); this.sfx('absorb'); this.popText(x, y + 0.2, e.ballsIn >= e.ballsTotal ? 'All energy!' : `${e.ballsIn}/${e.ballsTotal}`, '#ffb36a'); if (this.onStat && !this.menuMode) this.onStat('pearl'); this.playerMood('joy', 1.25); setTimeout(() => this.sfx('yay'), 260);
           const ent = this.entities.get(ev.id); if (ent) { ent.absorbing = { t: 0, from: new V3(ev.fromX, -ev.fromY, 0.05), to: new V3(x, y, 0.3) }; this.entities.delete(ev.id); this.absorbing.push(ent); } break; }
-        case 'gateOpen': { if (this.onGateOpen && !this.menuMode) this.onGateOpen(); this.playerMood('joy', 1.25); this.flashFx('flash'); P.emit(x, y, 0.5, 70, { color: new THREE.Color(0.55, 0.95, 1), speed: 3.5, life: 1.3, size: 0.16 }); P.bubbles(x, y, 0.2, 18, 0.12, 0.8); this.sfx('gateOpen'); this.shake = 0.18; break; }
+        case 'gateOpen': { if (this.onGateOpen && !this.menuMode && !e.cine) this.onGateOpen(); this.playerMood('joy', 1.25); this.flashFx('flash'); P.emit(x, y, 0.5, 70, { color: new THREE.Color(0.55, 0.95, 1), speed: 3.5, life: 1.3, size: 0.16 }); P.bubbles(x, y, 0.2, 18, 0.12, 0.8); this.sfx('gateOpen'); this.shake = 0.18; break; }
         case 'gateLocked': if (this.onToast && this.time - (this.lastLockToast ?? -9) > 2.5) { this.lastLockToast = this.time; this.onToast(`Deliver all energy first (${e.ballsIn}/${e.ballsTotal})`); } this.sfx('gateLocked'); this.playerMood('bonk', 0.55); this.sfx('hmm'); break;
         case 'monsterDeath': { P.bubbles(x, y, 0.2, 14, 0.1, 0.6); this.popText(x, y, 'Bonk!', '#ff8fd0'); P.emit(x, y, 0.4, 20, { color: new THREE.Color(1, 0.7, 0.4), speed: 2, life: 0.7, size: 0.12 }); this.sfx('monsterDeath'); this.shake = Math.max(this.shake, 0.12);
           for (const ent of this.entities.values()) if (ent.o.x === ev.x && ent.o.y === ev.y && ent.o.t === ev.t) { ent.ghost = { t: 0, kind: 'monster' }; this.ghosts.push(ent); this.entities.delete(ent.o.id); } break; }
@@ -2883,7 +2940,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     update(dt, now) {
       this.time += dt; const t = this.time; skinTick(t);
       this.rayMat.uniforms.time.value = t; MAT.causticT.value = t;
-      this.particles.update(dt, t); this.tickPops(dt);
+      this.particles.update(dt, t); this.tickPops(dt); this.tickCoach(dt); this.tickCine(dt);
       if (!this.e) { this.camera.position.set(0, 0, 30); this.camera.lookAt(0, 0, 0); this.placeBackdrop(); return; }
       const e = this.e;
       const a = Math.min(1, (now - this.lastTick) / this.tickMs), ease = a * a * (3 - 2 * a);
@@ -2969,7 +3026,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           u.head.rotation.z = -ent.lean * 0.35 + Math.sin(t * 0.8 + ph + 1) * 0.04 * floatK + (mk === 'bonk' ? Math.sin(mt * 30) * 0.18 * Math.max(0, 1 - mt / 0.5) : 0) + (vyW > 0.4 ? 0.12 : vyW < -0.4 ? -0.18 : 0) * swimK;
           // body slides toward what it pushes so the gloves actually touch it
           const lean2 = dir * (0.31 * Math.max(ent.reach, pushE) + 0.03 * pushE), hop = joy * 0.16 * Math.abs(Math.sin(mt * 6.5)) ;
-          m.position.set(gx0 + lean2, gy0 + fit.yOff + ent.lift + bob + hop, 0.14); this.playerPos = m.position;
+          m.position.set(gx0 + lean2, gy0 + fit.yOff + ent.lift + bob + hop, 0.14); this.playerPos = m.position; this.playerFacing = ent.facing || 1;
           const gx = gx0, gy = gy0;
           // danger cue: a heavy stone/pearl in the column right above the diver (it falls if he moves the wrong way)
           { if (!this.warn) { const c = document.createElement('canvas'); c.width = c.height = 128; const g2 = c.getContext('2d');
@@ -3107,13 +3164,14 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         this.camGoal.lerpVectors(g0, this.camGoal.clone(), k); this.lookGoal.lerpVectors(l0, this.lookGoal.clone(), k); }
       if (this.menuMode) { this.camGoal.x += Math.sin(t * 0.15) * 1.2; this.lookGoal.x = this.camGoal.x; const lift = this.camGoal.z * (innerHeight > innerWidth ? 0.052 : -0.045); this.camGoal.y -= lift; this.lookGoal.y -= lift; } // menu: board sits between the logo and PLAY
       let cl = 1 - Math.pow(0.012, dt);
-      { const dim = this.cineCam ? (this.storyDim || 0) : 0; this.renderer.toneMappingExposure = 1 - 0.62 * dim; if (this.photo) this.photo.bg.material.color.copy(this.bgTint || new THREE.Color(1, 1, 1)).lerp(new THREE.Color(0.08, 0.14, 0.32), 0.78 * dim); } // the story's dark reef, lit again when the gate wakes
+      { const dim = this.cineCam ? (this.storyDim || 0) : 0; this.nightK = this.cineCam ? Math.min(1, Math.max(0, (dim - 0.2) / 0.9)) : 0; MAT.sandNight.value = this.nightK; if (this.groundTint) this.groundTint.value.copy(this.groundTint0).lerp(new THREE.Color(0.05, 0.09, 0.22), this.nightK * 0.85); if (this.post && this.post.compMat) this.post.compMat.uniforms.night.value = this.nightK; this.renderer.toneMappingExposure = Math.max(0.12, 1 - 0.62 * dim) + (this.cineCam ? (this.flashK || 0) * 1.4 : 0); if (this.photo) this.photo.bg.material.color.copy(this.bgTint || new THREE.Color(1, 1, 1)).lerp(new THREE.Color(0.08, 0.14, 0.32), Math.min(1, 0.78 * dim)); } // the story's dark reef, lit again when the gate wakes
       if (this.cineCam && this.cineT !== undefined) { // the intro's director: descend from the surface -> follow the diver -> push in on the gate -> pull back wide
         const e = this.e, cx = (e.w - 1) / 2, cy = -(e.h - 1) / 2, D = this.dFull || 20, T = this.cineT, sm = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
         const pp = this.playerPos || new V3(cx, cy, 0), gx = e.gate ? e.gate.x : cx, gy = e.gate ? -e.gate.y : cy, S = this.cineShot || 'play';
         let fx, fy, d, lift;
         if (S === 'descent') { const k = sm(0, 9.4, T); fx = cx + (pp.x - cx) * k * 0.5; fy = cy + 4.2 * (1 - k) + (pp.y - cy) * k * 0.5; d = D * (1.35 - 0.6 * k); lift = 6.5 * (1 - k) + 0.8 * k; }
-        else if (S === 'hero') { fx = pp.x + 0.25; fy = pp.y + 0.15; d = D * 0.42; lift = 0.25; }
+        else if (S === 'hero') { const k = sm(0, 4, T - (this.shotT0 || 0)); fx = pp.x + 0.25; fy = pp.y + 0.15; d = D * (0.5 - 0.12 * k); lift = 0.25; }
+        else if (S === 'storm') { const k = sm(0, 5, T - (this.shotT0 || 0)); fx = cx + (k - 0.5) * 1.2; fy = cy - 0.6; d = D * (0.78 - 0.1 * k); lift = -0.6; }
         else if (S === 'gate') { fx = (pp.x + gx) / 2; fy = (pp.y + gy) / 2 + 0.2; d = D * 0.62; lift = 0.5; }
         else if (S === 'wide') { fx = cx; fy = cy + 0.4; d = D * 1.08; lift = 2.2; }
         else { fx = pp.x + this.moveDir.x * 0.6; fy = pp.y + 0.35; d = D * 0.68; lift = 0.6; }
@@ -3330,37 +3388,64 @@ window.__T = T;
   let menuKeep = false; // after the intro, its finished tank stays on as the menu backdrop (no reload, no jump)
   const CINE_ROUTE = 'RRRRDDRRRRRDULLLLLULLDRRRRRRRDD';
   function cap(text) { const el = $('#cineCap'); el.classList.remove('on'); clearTimeout(cap.tm); cap.tm = setTimeout(() => { el.textContent = text; el.classList.toggle('on', !!text); }, text ? 260 : 0); }
+  // ---- the intro: a short in-engine film in seven beats. Every spoken line has an id (vo1…vo7) so ElevenLabs clips dropped in
+  // src/assets/vo/<id>.mp3 play automatically (see docs/voiceover-script.md); without clips the subtitles carry the story.
+  const CINE_LINES = {
+    vo1: 'Long ago, the Glow Reef shone with the light of a thousand energy pearls.',
+    vo2: 'Then one night, a great storm tore through the deep…',
+    vo3: '…scattering the pearls, until every gate went dark.',
+    vo4: 'But one little diver refused to let the light fade.',
+    vo5: 'Dig through the sand… and roll the pearl home.',
+    vo6: 'One gate awakens, and light returns to the reef.',
+    vo7: 'Twenty-nine gates still sleep. The reef is counting on you.' };
+  function say(id) { cap(CINE_LINES[id] || ''); Audio.vo(id); }
+  const ramp = (from, to, t0, dur, T) => from + (to - from) * Math.min(1, Math.max(0, (T - t0) / dur));
   function startCine() {
     if (cineRunning) return; cineRunning = true;
-    setState('cine'); show(null); $('#skipIntro').hidden = false; $('#cineTitle').classList.remove('on');
-    // same level, same look as the menu backdrop: swap engines in one frame and keep the camera where it is, so it just flies in
-    const cp = world.camPos.clone(), ct = world.camTarget.clone();
+    setState('cine'); show(null); $('#skipIntro').hidden = false; $('#cineTitle').classList.remove('on'); $('#cineFade').classList.add('on'); $('#cineFade').classList.add('black');
     cineEngine = new Engine(LEVELS[0]); cineEngine.time = 999; cineEngine.oxygen = 999; cineEngine.cine = true;
-    world.loadLevel(cineEngine); world.onTick(cineEngine, performance.now()); world.startPlay(); world.camPos.copy(cp); world.camTarget.copy(ct);
-    world.cineCam = true; world.cineT = 0; world.cineShot = 'descent'; world.storyDim = 1; cine = { t: 0, i: 0, wait: 0, wonAt: null, said: {} }; acc = 0; frame.last = performance.now();
-    cap('Long ago, the Glow Reef shone with the light of a thousand energy pearls.');
+    world.loadLevel(cineEngine); world.onTick(cineEngine, performance.now()); world.startPlay();
+    world.cineCam = true; world.cineT = 0; world.cineShot = 'descent'; world.shotT0 = 0; world.storyDim = 0.95; world.cineFx = { glow: 0, storm: 0, lamp: 0 }; world.wakeT = undefined;
+    cine = { t: 0, i: 0, wait: 0, wonAt: null, gateAt: null, said: {} }; acc = 0; frame.last = performance.now();
+    setTimeout(() => $('#cineFade').classList.remove('on'), 120); // fade up from black
   }
   function cineTick(realDt, now) {
-    cine.t += realDt; world.cineT = cine.t; const c = cine, E = cineEngine, T = c.t;
-    // act 1 - the legend (dark reef, camera sinks from the surface)
-    if (T > 4.8 && !c.said.b) { c.said.b = 1; cap('Then a great storm scattered the pearls… and every gate in the deep went dark.'); }
-    // act 2 - the hero
-    if (T > 9.4 && !c.said.h) { c.said.h = 1; world.cineShot = 'hero'; cap('Only one little diver was brave enough to bring the light back.'); world.playerMood('joy', 1.3); Audio.play('hi'); }
-    // act 3 - the first dive
-    if (T > 13.2 && !c.said.p) { c.said.p = 1; world.cineShot = 'play'; cap('Swim into the sand to dig a path…'); }
-    if (T > 13.6 && c.i < CINE_ROUTE.length) { c.wait -= realDt * 1000; if (c.wait <= 0 && (!E.moveQueue || E.moveQueue.length === 0)) { E.press({ U: 'up', D: 'down', L: 'left', R: 'right' }[CINE_ROUTE[c.i++]]); c.wait = 300; } }
-    if (c.i >= 22 && !c.said.c) { c.said.c = 1; cap('…then push the energy pearl into the gate!'); }
-    if (E.gate && E.gate.open && !c.said.d) { c.said.d = 1; c.gateAt = T; world.cineShot = 'gate'; cap('The first gate wakes, and light pours back into the reef!'); }
-    world.storyDim = c.gateAt !== undefined ? Math.max(0, 1 - (T - c.gateAt) / 2.2) : 1;
+    cine.t += realDt; world.cineT = cine.t; const c = cine, E = cineEngine, T = c.t, F = world.cineFx, once = (k, fn) => { if (!c.said[k]) { c.said[k] = 1; fn(); } };
+    const shot = (n) => { world.cineShot = n; world.shotT0 = T; };
+    // 1. the legend: the reef at night, alive with drifting pearl-light
+    if (c.gateAt === null) { F.glow = Math.min(F.glow, 1); }
+    if (T < 5.6) { F.glow = ramp(0, 1, 0.2, 2.2, T); world.storyDim = 0.95; }
+    once('l1', () => {}); if (T > 1.0) once('v1', () => say('vo1'));
+    // 2. the storm: thunder, flashes, grit tearing across the tank, the lights swept away
+    if (T > 5.6) once('st', () => { shot('storm'); Audio.play('thunder'); Audio.play('stormWind'); world.cineFlash(1); world.shake = 0.5; flash(); say('vo2'); });
+    if (T > 5.6 && T < 11.6) { F.storm = T < 10.4 ? ramp(0, 1, 5.6, 1.0, T) : ramp(1, 0, 10.4, 0.8, T); F.glow = ramp(1, 0, 6.0, 3.6, T); world.storyDim = ramp(0.95, 1.3, 5.6, 1.4, T); world.shake = Math.max(world.shake, F.storm * 0.18); }
+    if (T > 7.9) once('th2', () => { Audio.play('thunder'); world.cineFlash(0.8); world.shake = 0.45; flash(); });
+    if (T > 9.0) once('v3', () => say('vo3'));
+    // 3. the hero: darkness, then a helmet lamp clicks on
+    if (T > 11.6) once('hero', () => { shot('hero'); F.storm = 0; cap(''); });
+    if (T > 12.4) { once('lamp', () => { Audio.play('lampOn'); world.playerMood('surprise', 0.8); }); if (c.gateAt === null) F.lamp = ramp(0, 1, 12.4, 0.35, T); }
+    if (T > 13.1) once('v4', () => { say('vo4'); setTimeout(() => { if (cineRunning) { Audio.play('hi'); world.playerMood('joy', 1.3); } }, 900); });
+    // 4. the first dive, lit by the lamp
+    if (T > 16.8) once('play', () => { shot('play'); say('vo5'); });
+    if (T > 17.2 && c.i < CINE_ROUTE.length) { c.wait -= realDt * 1000; if (c.wait <= 0 && (!E.moveQueue || E.moveQueue.length === 0)) { E.press({ U: 'up', D: 'down', L: 'left', R: 'right' }[CINE_ROUTE[c.i++]]); c.wait = 300; } }
+    // 5. the gate wakes: a ring of light, the pearl-lights pour back, the reef relights
+    if (E.gate && E.gate.open && c.gateAt === null) { c.gateAt = T; shot('gate'); Audio.play('wake'); world.cineWake(); world.cineFlash(0.7); say('vo6'); }
+    if (c.gateAt !== null) { const k = T - c.gateAt; world.storyDim = ramp(1.3, 0, 0.2, 2.2, k); F.glow = ramp(0, 1, 0.3, 2.4, k); F.lamp = ramp(1, 0, 0.6, 1.6, k); }
+    $('#cineDark').style.opacity = world.post && world.post.enabled ? 0 : (world.nightK || 0) * 0.72; // low tier: no post pass, darken with an overlay
     acc += Math.min(250, realDt * 1000);
     while (acc >= E.tickMs) { acc -= E.tickMs; E.step(); world.onTick(E, now - acc); }
-    // finale
-    if (E.state === 'won' && c.wonAt === null) { c.wonAt = T; world.cineShot = 'wide'; cap('29 more gates still sleep. The reef is counting on you!'); }
-    if (c.wonAt !== null && T - c.wonAt > 3.4 && !c.said.e) { c.said.e = 1; cap(''); $('#cineTitle').classList.add('on'); }
-    if (c.wonAt !== null && T - c.wonAt > 6.2) endCine();
+    // 6. pull back wide, then the title on black, then fade into the menu
+    if (E.state === 'won' && c.wonAt === null) { c.wonAt = T; shot('wide'); setTimeout(() => { if (cineRunning) say('vo7'); }, 500); }
+    if (c.wonAt !== null) { const k = T - c.wonAt;
+      if (k > 3.2) once('riser', () => Audio.play('riser'));
+      if (k > 4.0) once('fadeout', () => { cap(''); $('#cineFade').classList.add('on'); });
+      if (k > 5.4) once('title', () => $('#cineTitle').classList.add('on'));
+      if (k > 9.2) endCine(); }
   }
+  function flash() { const f = $('#cineFlash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); }
   function endCine() {
-    if (!cineRunning) return; cineRunning = false; cine = null; world.cineCam = false; world.storyDim = 0; cap(''); $('#cineTitle').classList.remove('on');
+    if (!cineRunning) return; cineRunning = false; cine = null; world.cineCam = false; world.storyDim = 0; world.cineFx = null; world.flashK = 0; $('#cineDark').style.opacity = 0; cap(''); Audio.stopVo(); $('#cineTitle').classList.remove('on');
+    $('#cineFade').classList.add('on'); setTimeout(() => $('#cineFade').classList.remove('on'), 60); // the menu fades up out of black
     menuEngine = cineEngine; cineEngine.menu = true; world.menuMode = true; world.playing = false; world.fitCamera(false); menuKeep = true; // the intro's tank becomes the menu backdrop as-is
     $('#skipIntro').hidden = true; save.introSeen = true; persist(); openHome();
   }
@@ -3404,7 +3489,7 @@ window.__T = T;
     runTreasures = 0;
     levelIdx = i; const lv = custom || LEVELS[i];
     engine = new Engine(lv); world.loadLevel(engine);
-    window.__LEVELSCENE = (custom || LEVELS[i]).scene || null; history = []; stuckTimer = 0; stuckShown = false; gateNudged = true;
+    window.__LEVELSCENE = (custom || LEVELS[i]).scene || null; history = []; stuckTimer = 0; stuckShown = false; gateNudged = true; coachStart(i, custom);
     { const ph = $('#pauseHint'); if (ph) ph.textContent = lv.hint || ''; }
     tickWorld(engine, performance.now());
     held.clear(); heldOrder = []; acc = 0; overTimer = 0; lowAirBeep = 0; resultShown = false; endTouch();
@@ -3415,6 +3500,37 @@ window.__T = T;
   }
   function beginPlay() { if (state !== 'intro' && state !== 'paused') return; const fromIntro = state === 'intro'; setState('playing'); show(null); lastFrame = performance.now(); acc = 0; world.lastTick = performance.now(); if (fromIntro) { world.startPlay(); banner(); } }
   let bannerTimer = null;
+  // ---- level-1 coach: follows the verified winning route. When the player hesitates it shows a glowing trail to where the
+  // diver should go next and, once there, an animated hand (key cap on computers) showing which way to swipe.
+  // If the pearl ends up somewhere the route can't recover from, it points at Undo instead.
+  const COACH_ROUTE = 'DDDRRRL..DRRRRRRL..UULLLLDLDR..R..R..R..R..R..R';
+  const COACH = { on: false, refs: null, idle: 0, lastP: '', undoShown: false };
+  const objKey = (e) => { const a = []; for (const o of e.objects.values()) if (o.t === T.ROCK || o.t === T.BALL) a.push(o.x + ',' + o.y); return a.sort().join(';') + '|' + e.ballsIn; };
+  function coachStart(i, custom) { COACH.on = i === 0 && !custom; COACH.idle = 0; COACH.undoShown = false; world.setCoachTrail(null); coachHand(null);
+    if (!COACH.on) return;
+    if (!COACH.refs) { const e = new Engine(LEVELS[0]); e.time = e.oxygen = 999; const M = { U: 'up', D: 'down', L: 'left', R: 'right' }; COACH.refs = [{ key: objKey(e), p: [e.player.x, e.player.y] }];
+      for (const c of COACH_ROUTE) { if (c !== '.') e.press(M[c]); e.step(); COACH.refs.push({ key: objKey(e), p: e.player ? [e.player.x, e.player.y] : null }); } } }
+  function coachHand(pos, dir) { const h = $('#coachHand'); if (!pos) { h.classList.remove('on'); return; }
+    h.style.left = pos[0] + 'px'; h.style.top = pos[1] + 'px'; h.dataset.dir = dir; h.classList.add('on'); h.classList.toggle('keys', !document.body.classList.contains('touch')); }
+  function coachPath(e, from, to) { const W = e.w, H = e.h, prev = new Int32Array(W * H).fill(-1), q = [from[1] * W + from[0]]; prev[q[0]] = q[0]; const goal = to[1] * W + to[0];
+    const ok = (x, y) => { const t = e.get(x, y); return t === T.EMPTY || t === T.SAND || t === T.AIR || (t === T.GATE && e.gate.open && x === to[0] && y === to[1]); };
+    for (let qi = 0; qi < q.length; qi++) { const c = q[qi]; if (c === goal) break; const cx = c % W, cy = (c / W) | 0;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = cx + dx, ny = cy + dy, n = ny * W + nx; if (nx < 0 || ny < 0 || nx >= W || ny >= H || prev[n] >= 0 || !ok(nx, ny)) continue; prev[n] = c; q.push(n); } }
+    if (prev[goal] < 0) return null; const out = []; for (let c = goal; c !== prev[c]; c = prev[c]) out.push([c % W, (c / W) | 0]); return out.reverse(); }
+  function coachTick(realDt) {
+    if (!COACH.on || state !== 'playing' || !engine || !engine.player || engine.state !== 'playing') { if (COACH.on) { world.setCoachTrail(null); coachHand(null); } return; }
+    const pk = engine.player.x + ',' + engine.player.y; if (pk !== COACH.lastP) { COACH.lastP = pk; COACH.idle = 0; world.setCoachTrail(null); coachHand(null); } else COACH.idle += realDt;
+    const wait = save.stars[1] ? 6 : COACH.firstDone ? 3.5 : 1.2; if (COACH.idle < wait) return;
+    const pl = [engine.player.x, engine.player.y]; let target = null, dir = null;
+    if (engine.gate.open) target = [engine.gate.x, engine.gate.y];
+    else { const R = COACH.refs, cur = objKey(engine); let j = -1; for (let k = R.length - 1; k >= 0; k--) if (R[k].key === cur) { j = k; break; }
+      if (j < 0) { world.setCoachTrail(null); coachHand(null); if (!COACH.undoShown) { COACH.undoShown = true; toast(document.body.classList.contains('touch') ? 'Oops! Tap ↶ to undo' : 'Oops! Press Z to undo'); $('#btnUndo').classList.add('nudge'); setTimeout(() => $('#btnUndo').classList.remove('nudge'), 4000); } return; }
+      let k = j + 1; while (k < R.length && R[k].key === cur) k++; if (k >= R.length) target = [engine.gate.x, engine.gate.y];
+      else { let m = k; while (m > 0 && COACH_ROUTE[m - 1] === '.') m--; target = R[m - 1].p; dir = COACH_ROUTE[m - 1]; } }
+    if (!target) return; COACH.firstDone = true;
+    if (pl[0] === target[0] && pl[1] === target[1] && dir) { world.setCoachTrail(null); const sp = world.toScreen(pl[0], pl[1]); coachHand(sp, dir); }
+    else { const path = coachPath(engine, pl, target); world.setCoachTrail(path); coachHand(null);
+      if (path && path.length) { const first = path[0], d = first[0] > pl[0] ? 'R' : first[0] < pl[0] ? 'L' : first[1] > pl[1] ? 'D' : 'U'; coachHand(world.toScreen(pl[0], pl[1]), d); } } }
   function banner(small, big, line, ms) { const lv = LEVELS[levelIdx], b = $('#lvlBanner'); if (!lv) return;
     let tip = line || '';
     if (small === undefined) { small = `Level ${levelIdx + 1}`; big = lv.name; tip = (lv.tip && !(save.tipsSeen || {})[levelIdx]) ? lv.tip : ''; if (tip) { save.tipsSeen = save.tipsSeen || {}; save.tipsSeen[levelIdx] = 1; persist(); } ms = tip ? 3600 : 1900; }
@@ -3625,6 +3741,7 @@ window.__T = T;
           if (engine.state !== 'playing') { overTimer = 0; setState('over'); held.clear(); heldOrder = []; endTouch(); buzz(engine.state === 'won' ? 30 : [40, 40, 60]); break; }
         }
         if (engine.state === 'playing') {
+          coachTick(realDt);
           if (engine.gate && engine.gate.open && !gateNudged && performance.now() - gateOpenAt > 8000) { gateNudged = true; toast('Swim into the glowing gate to finish ✨'); }
           stuckTimer += realDt; if (!stuckShown && stuckTimer > 22 && engine.ballsIn < engine.ballsTotal) { stuckShown = true; toast(isTouch ? 'Stuck? Tap ↶ to undo, or ⟲ to restart' : 'Stuck? Press Z to undo, R to restart'); }
           if (engine.oxygen < 15) { lowAirBeep -= dt; if (lowAirBeep <= 0) { lowAirBeep = engine.oxygen < 6 ? 0.5 : 1; Audio.play('lowAir'); } }
