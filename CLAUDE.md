@@ -205,3 +205,9 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   dodge warnings on 4/12/23. All 30 routes re-verified.
 - **Crush grace:** a stone/pearl that has dropped exactly one cell onto the diver teeters for one tick (`teeter` event: wobble +
   yelp) before crushing, so the plug-pull dodge is fair. Tracked with `o.fallN` / `o.graced` in `physics()`; monsters get no grace.
+- **Phone speed / Auto quality:** recent iPhones (`strongPhone`: iOS, 3x screen) start on High and Auto never drops them below it;
+  the boot benchmark warms shaders first and uses a 9-frame median; Auto ignores long gaps and the first seconds after a level or
+  tier change (`aqHold`), and if a drop doesn't raise fps it reverts and stops (frame-rate cap, e.g. iOS Low Power Mode at 30 fps).
+  Dynamic resolution never goes below 85%. Phones: no MSAA on the screen buffer (post anti-aliases), light rays at 1/8 res,
+  standard instead of physical shading on big matte surfaces (`surfMat`), shimmer skips the bottom of the backdrop.
+  Settings → Show FPS (`#fpsMeter`) shows fps · tier · resolution on the device.

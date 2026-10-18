@@ -876,6 +876,13 @@ const Audio = (() => {
 const World = (() => {
   const V3 = THREE.Vector3;
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && innerWidth < 1100);
+  // recent iPhones/iPads (3x screens, Apple GPUs) handle the High tier comfortably; Auto starts them there instead of guessing from boot frames
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+  const strongPhone = isIOS && (devicePixelRatio || 1) >= 3 && Math.max(screen.width, screen.height) >= 844;
+  // big, mostly-matte surfaces (tank frame, stand, shelves, side glass): full physical shading on computers, the cheaper standard
+  // model on phones (clearcoat/sheen/iridescence are barely visible at phone size but cost a lot per pixel)
+  const PHYS_ONLY = ['clearcoat', 'clearcoatRoughness', 'sheen', 'sheenColor', 'sheenRoughness', 'iridescence', 'iridescenceIOR', 'specularIntensity', 'transmission', 'ior', 'thickness'];
+  function surfMat(o) { if (!isMobile) return new THREE.MeshPhysicalMaterial(o); const q = Object.assign({}, o); PHYS_ONLY.forEach(k => delete q[k]); return new THREE.MeshStandardMaterial(q); }
   const col = h => new THREE.Color(h);
 
   // ---------------------------------------------------------------- canvas helpers
@@ -2033,7 +2040,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   // ---------------------------------------------------------------- post: bloom + grade
   class Post {
     constructor(renderer, mobile) {
-      this.r = renderer; const gl2 = renderer.capabilities.isWebGL2;
+      this.r = renderer; this.mobile = mobile; const gl2 = renderer.capabilities.isWebGL2;
       this.enabled = gl2; this.supported = gl2;
       if (!this.enabled) return;
       const fp = renderer.extensions.has('EXT_color_buffer_float');
@@ -2106,7 +2113,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.main.setSize(w, h); this.compMat.uniforms.aspect.value = w / h;
       let bw = Math.max(1, w >> 1), bh = Math.max(1, h >> 1);
       for (let i = 0; i < this.levels; i++) { this.down[i].setSize(bw, bh); this.up[i].setSize(bw, bh); bw = Math.max(1, bw >> 1); bh = Math.max(1, bh >> 1); }
-      this.raysRT.setSize(Math.max(1, w >> 2), Math.max(1, h >> 2));
+      const rsh = this.mobile ? 3 : 2; this.raysRT.setSize(Math.max(1, w >> rsh), Math.max(1, h >> rsh));
     }
     pass(mat, target) { this.quad.material = mat; this.r.setRenderTarget(target); this.r.render(this.scene, this.cam); }
     render(scene, camera, t) {
@@ -2146,7 +2153,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   class WorldImpl {
     constructor(cv) {
       this.canvas = cv;
-      this.renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: 'high-performance', alpha: false });
+      this.renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: !isMobile, powerPreference: 'high-performance', alpha: false }); // phones: the post pass anti-aliases; a multisampled screen buffer on top only cost bandwidth
       this.renderer.outputColorSpace = THREE.SRGBColorSpace; MAIN_R = this.renderer;
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.0;
       this.renderer.shadowMap.enabled = true; this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -2220,21 +2227,24 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const shOn = c.sh > 0; if (this.renderer.shadowMap.enabled !== shOn) { this.renderer.shadowMap.enabled = shOn; this.scene.traverse(o => { if (o.material) [].concat(o.material).forEach(m => m.needsUpdate = true); }); }
       if (shOn && this.key.shadow.mapSize.x !== c.sh) { this.key.shadow.mapSize.set(c.sh, c.sh); if (this.key.shadow.map) { this.key.shadow.map.dispose(); this.key.shadow.map = null; } }
       if (prev === undefined || wasLow !== isLow) this.buildReef();
-      this.resize(); if (this.e && this.levelGroup) this.render(); // redraw at once: a resized canvas is blank until the next draw (that blank frame was the flicker)
+      this.aqHold = performance.now() + 1800; this.resize(); if (this.e && this.levelGroup) this.render(); // redraw at once: a resized canvas is blank until the next draw (that blank frame was the flicker)
       if (this.onQuality) this.onQuality(q);
     }
     // adaptive quality: watch the real frame rate; drop a tier quickly when it struggles, climb back slowly when there's headroom
     autoQuality(realDt) {
       const A = this.aq || (this.aq = { t: 0, n: 0, sum: 0, since: 0, banned: {} }), order = ['low', 'medium', 'high', 'ultra'];
-      if (document.hidden || realDt <= 0) { A.t = A.n = A.sum = A.slow = 0; return; }
-      if (realDt > 1) { A.t = A.n = A.sum = 0; A.slow = (A.slow || 0) + 1; if (A.slow >= 3 && this.quality !== 'low') { A.slow = 0; this.setQuality('low'); } return; } // one long gap = tab switch; several in a row = a very slow device
-      A.slow = 0;
+      // ignore: hidden tabs, long gaps (app switch, GC), and the first seconds after a level/tier change (one-time shader compiles)
+      if (document.hidden || realDt <= 0 || realDt > 0.25 || performance.now() < (this.aqHold || 0)) { A.t = A.n = A.sum = 0; return; }
       A.t += realDt; A.n++; A.sum += realDt; A.since += realDt; const i = order.indexOf(this.quality);
       if (A.t < 1.5) return; const fps = A.n / A.sum;
+      // a drop that didn't speed anything up means the browser is capping the frame rate (e.g. iOS Low Power Mode at 30 fps), not
+      // the GPU struggling: go back up and stop dropping for this session
+      if (A.check && A.t >= 2.5) { const c = A.check; A.check = null; if (fps < c.fps * 1.15) { A.capped = true; this.resScale = c.rs; this.setQuality(c.from); A.t = A.n = A.sum = 0; return; } }
+      if (A.capped) { A.t = A.n = A.sum = 0; return; }
       if (isMobile) { const rs = this.resScale || 1;
-        if (fps < 45 && A.t >= 2.5 && rs > 0.72) { this.resScale = Math.max(0.7, rs - 0.1); this.setQuality(this.quality); A.t = A.n = A.sum = 0; A.since = 0; return; }
+        if (fps < 45 && A.t >= 2.5 && rs > 0.87) { A.check = { from: this.quality, rs, fps }; this.resScale = Math.max(0.85, rs - 0.075); this.setQuality(this.quality); A.t = A.n = A.sum = 0; A.since = 0; return; }
         if (fps >= 58 && rs < 1 && A.since > 4) { this.resScale = Math.min(1, rs + 0.05); this.setQuality(this.quality); A.t = A.n = A.sum = 0; A.since = 0; return; } }
-      if (fps < (this.menuMode ? 47 : 38) && A.t >= 3 && i > 0) { A.banned[order[i]] = performance.now() + 120000; this.setQuality(order[Math.max(0, i - (fps < 25 ? 2 : 1))]); A.since = 0; }
+      if (fps < (this.menuMode ? 47 : 38) && A.t >= 3 && i > (strongPhone ? 2 : 0)) { A.check = { from: this.quality, rs: this.resScale || 1, fps }; A.banned[order[i]] = performance.now() + 120000; this.setQuality(order[Math.max(0, i - 1)]); A.since = 0; }
       else if (A.t >= 4 && fps >= 57 && i < 3 && A.since > 6 && (this.menuMode || !this.e) && !((A.banned[order[i + 1]] || 0) > performance.now())) { this.setQuality(order[i + 1]); A.since = 0; }
       else if (A.t < 4) return;
       A.t = A.n = A.sum = 0;
@@ -2257,7 +2267,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const AR = 1435 / 2560; const bg = new THREE.Mesh(new THREE.PlaneGeometry(1, AR), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, depthWrite: false, fog: false })); bg.renderOrder = -10; g.add(bg);
       const shimmer = new THREE.Mesh(new THREE.PlaneGeometry(1, AR), new THREE.ShaderMaterial({ uniforms: { uT: MAT.causticT }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, fog: false,
         vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-        fragmentShader: `uniform float uT; varying vec2 vUv; void main(){ vec2 p = vUv * vec2(9.0, 4.0);
+        fragmentShader: `uniform float uT; varying vec2 vUv; void main(){ if (vUv.y < 0.25) discard; vec2 p = vUv * vec2(9.0, 4.0);
           float a = sin(p.x * 1.3 + uT * 0.8 + sin(p.y * 2.1 + uT * 0.5) * 1.6), b = sin(p.y * 2.7 - uT * 0.6 + sin(p.x * 1.7 - uT * 0.7) * 1.4);
           float c = pow(max(0.0, 1.0 - abs(a + b) * 0.5), 7.0) * smoothstep(0.62, 0.98, vUv.y);
           float rays = pow(max(0.0, sin(vUv.x * 26.0 + sin(uT * 0.25) * 2.0 + vUv.y * 4.0)), 18.0) * smoothstep(0.25, 0.95, vUv.y) * (0.5 + 0.5 * sin(uT * 0.7 + vUv.x * 9.0));
@@ -2360,7 +2370,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         const tank = new THREE.Group(); this.levelGroup.add(tank);
         if (!MAT.glassBack) {
           MAT.glassBack = new THREE.MeshPhysicalMaterial({ color: 0x1f6fb8, transparent: true, opacity: 0.62, roughness: 0.08, metalness: 0, clearcoat: 1, envMapIntensity: 1.4, depthWrite: false });
-          MAT.glassSide = new THREE.MeshPhysicalMaterial({ color: 0xbfeaf2, transparent: true, opacity: 0.22, roughness: 0.05, clearcoat: 1, envMapIntensity: 1.6, depthWrite: false, side: THREE.DoubleSide });
+          MAT.glassSide = surfMat({ color: 0xbfeaf2, transparent: true, opacity: 0.22, roughness: 0.05, clearcoat: 1, envMapIntensity: 1.6, depthWrite: false, side: THREE.DoubleSide });
           const c = document.createElement('canvas'); c.width = 512; c.height = 256; const g = c.getContext('2d');
           const streak = (x, wd, a) => { const gr = g.createLinearGradient(x, 0, x + wd, 0); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(0.5, `rgba(255,255,255,${a})`); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.save(); g.transform(1, 0, -0.45, 1, 0, 0); g.fillRect(x, 0, wd, 256); g.restore(); };
           streak(90, 60, 0.22); streak(170, 18, 0.18); streak(380, 40, 0.12);
@@ -2370,9 +2380,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           MAT.plinth = causticify(new THREE.MeshPhysicalMaterial({ color: 0xcdb78f, roughness: 0.75, clearcoat: 0.2, envMapIntensity: 0.4 }), 0.15);
           MAT.plinthSide = new THREE.MeshPhysicalMaterial({ color: 0xa48e66, roughness: 0.8, envMapIntensity: 0.3 });
           // new look: deep navy lacquered frame + warm teak stand
-          MAT.trimN = new THREE.MeshPhysicalMaterial({ color: 0x18284f, metalness: 0.5, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.5 });
-          MAT.plinthN = causticify(new THREE.MeshPhysicalMaterial({ color: 0x8a5a36, roughness: 0.55, clearcoat: 0.6, clearcoatRoughness: 0.25, envMapIntensity: 0.6, sheen: 0.3, sheenColor: 0xffd29a }), 0.12);
-          MAT.plinthSideN = new THREE.MeshPhysicalMaterial({ color: 0x5e3b22, roughness: 0.6, clearcoat: 0.4, envMapIntensity: 0.4 });
+          MAT.trimN = surfMat({ color: 0x18284f, metalness: 0.5, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.5 });
+          MAT.plinthN = causticify(surfMat({ color: 0x8a5a36, roughness: 0.55, clearcoat: 0.6, clearcoatRoughness: 0.25, envMapIntensity: 0.6, sheen: 0.3, sheenColor: 0xffd29a }), 0.12);
+          MAT.plinthSideN = surfMat({ color: 0x5e3b22, roughness: 0.6, clearcoat: 0.4, envMapIntensity: 0.4 });
         }
         // back glass (tinted, you see the reef through it), side panes, faint front reflections
         const WS = WORLD_STYLE[e.menu || e.cine ? 0 : worldOf(e.name)];
@@ -2461,8 +2471,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             const gr = g.createLinearGradient(0, 0, 0, 128); gr.addColorStop(0, 'rgba(255,255,255,0.25)'); gr.addColorStop(0.5, 'rgba(255,255,255,0)'); gr.addColorStop(1, 'rgba(80,20,40,0.25)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 128);
             const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; return t; };
           MAT.coralFaces = [['#d9573f', '#8f2d22', '#ff9d82'], ['#8c5cc9', '#4e2d86', '#c8a8f2'], ['#e07a2c', '#8e4210', '#ffbe7a']].map(([b, p, h]) => {
-            const tx = mk(b, p, h); return [causticify(new THREE.MeshPhysicalMaterial({ map: tx, roughness: 0.7, sheen: 0.15, sheenColor: new THREE.Color(h), envMapIntensity: 0.2 }), 0.08),
-              new THREE.MeshPhysicalMaterial({ color: new THREE.Color(b).lerp(new THREE.Color(h), 0.25), roughness: 0.6, sheen: 0.25, sheenColor: new THREE.Color(h), envMapIntensity: 0.25 })]; });
+            const tx = mk(b, p, h); return [causticify(surfMat({ map: tx, roughness: 0.7, sheen: 0.15, sheenColor: new THREE.Color(h), envMapIntensity: 0.2 }), 0.08),
+              surfMat({ color: new THREE.Color(b).lerp(new THREE.Color(h), 0.25), roughness: 0.6, sheen: 0.25, sheenColor: new THREE.Color(h), envMapIntensity: 0.25 })]; });
           MAT.coralFace = true; GEO.polyp = new THREE.SphereGeometry(1, 10, 8); GEO.branch = new THREE.CapsuleGeometry(0.035, 0.16, 3, 6);
         }
         // one shelf per horizontal run of wall cells
@@ -2500,8 +2510,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             for (let i = 0; i < 26; i++) { const y = Math.random() * 128; g.strokeStyle = `rgba(${Math.random() < 0.5 ? '60,34,14' : '230,190,140'},${0.15 + Math.random() * 0.2})`; g.lineWidth = 1 + Math.random() * 2; g.beginPath(); g.moveTo(0, y); for (let x = 0; x <= 256; x += 16) g.lineTo(x, y + Math.sin(x * 0.03 + i) * 3); g.stroke(); }
             for (let i = 0; i < 3; i++) { const x = 30 + Math.random() * 200, y = 30 + Math.random() * 70; g.fillStyle = 'rgba(50,28,10,0.5)'; g.beginPath(); g.ellipse(x, y, 9, 6, 0, 0, 7); g.fill(); g.strokeStyle = 'rgba(50,28,10,0.35)'; g.beginPath(); g.ellipse(x, y, 16, 10, 0, 0, 7); g.stroke(); }
             g.fillStyle = '#3c2a1a'; for (const x of [10, 246]) for (const y of [30, 98]) { g.beginPath(); g.arc(x, y, 5, 0, 7); g.fill(); } });
-          MAT.shelfStone = [causticify(new THREE.MeshPhysicalMaterial({ map: stone, roughness: 0.75, envMapIntensity: 0.4, emissive: 0xffffff, emissiveMap: stone, emissiveIntensity: 0.12 }), 0.1), new THREE.MeshPhysicalMaterial({ color: 0x5a6078, roughness: 0.7, envMapIntensity: 0.5 })];
-          MAT.shelfWood = [causticify(new THREE.MeshPhysicalMaterial({ map: wood, roughness: 0.6, clearcoat: 0.3, envMapIntensity: 0.4, emissive: 0xffffff, emissiveMap: wood, emissiveIntensity: 0.12 }), 0.1), new THREE.MeshPhysicalMaterial({ color: 0x6b4426, roughness: 0.6, envMapIntensity: 0.4 })]; }
+          MAT.shelfStone = [causticify(surfMat({ map: stone, roughness: 0.75, envMapIntensity: 0.4, emissive: 0xffffff, emissiveMap: stone, emissiveIntensity: 0.12 }), 0.1), surfMat({ color: 0x5a6078, roughness: 0.7, envMapIntensity: 0.5 })];
+          MAT.shelfWood = [causticify(surfMat({ map: wood, roughness: 0.6, clearcoat: 0.3, envMapIntensity: 0.4, emissive: 0xffffff, emissiveMap: wood, emissiveIntensity: 0.12 }), 0.1), surfMat({ color: 0x6b4426, roughness: 0.6, envMapIntensity: 0.4 })]; }
         // which shelf looks this world uses: shallows = sheet plank + pink/orange reef rock; violet caves = purple coral + slate; the deep = slate + driftwood
         const wld = e.menu || e.cine ? 0 : worldOf(e.name), STY = [['plank', 'coral0', 'plank', 'coral2'], ['coral1', 'stone', 'coral1', 'plank'], ['stone', 'wood', 'stone', 'coral1']][wld];
         const lump = this.newArt ? new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.12, 1), new THREE.MeshStandardMaterial({ color: 0x6d7390, roughness: 0.8 }), runs.reduce((a, r) => a + (r[1] - r[0] + 1) * 2, 0)) : null; let li = 0;
@@ -2512,7 +2522,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             const m = new THREE.Mesh(geo, mm); m.position.set(cx, -y - 0.02, -0.02); m.castShadow = m.receiveShadow = true; this.levelGroup.add(m);
             if (sty === 'stone') for (let i = 0; i < len; i++) { const hh = variant(x0r + i, y + 13); if (hh % 3) continue; dummy.position.set(x0r + i + ((hh >> 3) % 5 - 2) * 0.1, -y + 0.3, 0.1 - (hh % 4) * 0.1); dummy.rotation.set(hh % 7, hh % 5, 0); dummy.scale.set(1.3, 0.7, 1); dummy.updateMatrix(); lump.setMatrixAt(li++, dummy.matrix); }
             dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1); }
-          else { const m = new THREE.Mesh(geo, face ? [new THREE.MeshStandardMaterial({ map: face, roughness: 0.75, emissive: 0xffffff, emissiveMap: face, emissiveIntensity: 0.25 }), (this.newArt ? (MAT.shelfSideN || (MAT.shelfSideN = new THREE.MeshPhysicalMaterial({ color: 0x8a5a2b, metalness: 0.45, roughness: 0.35, clearcoat: 0.6, envMapIntensity: 0.9 }))) : new THREE.MeshStandardMaterial({ color: 0xd9913f, roughness: 0.8 }))] : [mats[0], mats[1]]); mats[0].map.repeat.set(len * 0.6, 1);
+          else { const m = new THREE.Mesh(geo, face ? [new THREE.MeshStandardMaterial({ map: face, roughness: 0.75, emissive: 0xffffff, emissiveMap: face, emissiveIntensity: 0.25 }), (this.newArt ? (MAT.shelfSideN || (MAT.shelfSideN = surfMat({ color: 0x8a5a2b, metalness: 0.45, roughness: 0.35, clearcoat: 0.6, envMapIntensity: 0.9 }))) : new THREE.MeshStandardMaterial({ color: 0xd9913f, roughness: 0.8 }))] : [mats[0], mats[1]]); mats[0].map.repeat.set(len * 0.6, 1);
           m.position.set(cx, -y - 0.02, -0.02); m.castShadow = m.receiveShadow = true; this.levelGroup.add(m); }
           const dens = [0.15, 0.45, 0.8][vh % 3]; // some shelves bare, some lush
           if (this.newArt) for (let i = 0; i < len; i++) { const hh = variant(x0r + i, y + 5); if ((hh % 100) / 100 > dens) continue; // sea-plant tufts growing on the shelf top
@@ -2688,7 +2698,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.positionReef();
       { const usePhoto = PHOTO_LEVELS.has(e.name) || !!e.menu; this.photoMode = usePhoto; if (usePhoto) this.buildPhotoBg(); this.bgTint = new THREE.Color(e.menu ? 0xffffff : WORLD_TINT[worldOf(e.name)]); if (this.photo) this.photo.bg.material.color.copy(this.bgTint); if (this.photo) this.photo.group.visible = usePhoto;
         if (this.reef) this.reef.group.visible = !usePhoto; this.backdrop.visible = !usePhoto; this.rays.visible = !usePhoto; }
-      this.bakeStatic();
+      this.bakeStatic(); this.aqHold = performance.now() + 3000;
       this.fitCamera(true, !e.menu);
     }
     // ---- static batching: after a level is built, every static decoration (sheet sprites, their baked shadows, contact patches)
@@ -3259,9 +3269,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     }
     warm(e) { this.loadLevel(e); this.onTick(e, performance.now()); this.fitCamera(true, true); for (let i = 0; i < 2; i++) { this.update(0.016, performance.now()); this.render(); } }
     benchmark() { const gl = this.renderer.getContext(), px = new Uint8Array(4), ms = [];
-      for (let i = 0; i < 4; i++) { const t0 = performance.now(); this.update(0.016, performance.now()); this.render(); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); ms.push(performance.now() - t0); }
-      ms.sort((a, b) => a - b); const m = ms[1]; // a typical frame at the current tier
-      const q = m < 9 ? (isMobile ? 'high' : 'ultra') : m < 18 ? 'high' : m < 34 ? 'medium' : 'low'; if (q !== this.quality) this.setQuality(q); return { ms: m, q }; }
+      for (let i = 0; i < 6; i++) { this.update(0.016, performance.now()); this.render(); } gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); // warm-up: first frames compile shaders and would make any phone look slow
+      for (let i = 0; i < 9; i++) { const t0 = performance.now(); this.update(0.016, performance.now()); this.render(); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); ms.push(performance.now() - t0); }
+      ms.sort((a, b) => a - b); const m = ms[4]; // median frame at the current tier
+      let q = m < 9 ? (isMobile ? 'high' : 'ultra') : m < 18 ? 'high' : m < 34 ? 'medium' : 'low'; if (strongPhone) q = 'high'; else if (isMobile && q === 'low' && m < 60) q = 'medium';
+      if (q !== this.quality) this.setQuality(q); this.aqHold = performance.now() + 4000; return { ms: m, q }; }
     render() {
       // phones: refresh the shadow map every other frame (the key light and tank never move; bobbing at 30 Hz is indistinguishable)
       const sm = this.renderer.shadowMap; if (isMobile && sm.enabled) { sm.autoUpdate = false; this.frameN = (this.frameN || 0) + 1; if (this.frameN % 2 === 0 || this.shadowDirty) { sm.needsUpdate = true; this.shadowDirty = false; } }
@@ -3782,12 +3794,14 @@ window.__T = T;
   // settings
   function applyAudio() { Audio.setMusic(save.settings.music); Audio.setVolumes(Audio.settings.music, save.settings.sfx ? 0.9 : 0); }
   function syncSound() { const on = save.settings.music || save.settings.sfx; $('#sndLbl').textContent = on ? 'Sound on' : 'Muted'; $('#sndWave').style.display = on ? '' : 'none'; }
-  function syncSettings() { $('#setMusic').checked = save.settings.music; $('#setSfx').checked = save.settings.sfx; $('#setVibe').checked = save.settings.vibe;
+  function syncSettings() { $('#setMusic').checked = save.settings.music; $('#setSfx').checked = save.settings.sfx; $('#setVibe').checked = save.settings.vibe; $('#setFps').checked = !!save.settings.fps; $('#fpsMeter').hidden = !save.settings.fps;
     document.querySelectorAll('#setQuality button').forEach(b => b.classList.toggle('on', b.dataset.q === gfxMode()));
     const gn = $('#gfxNow'); if (gn) gn.textContent = gfxMode() === 'auto' ? `Now: ${world.quality[0].toUpperCase()}${world.quality.slice(1)}` : ''; }
   $('#setMusic').onchange = e => { save.settings.music = e.target.checked; applyAudio(); persist(); };
   $('#setSfx').onchange = e => { save.settings.sfx = e.target.checked; applyAudio(); persist(); };
   $('#setVibe').onchange = e => { save.settings.vibe = e.target.checked; persist(); buzz(15); };
+  $('#setFps').onchange = e => { save.settings.fps = e.target.checked; persist(); $('#fpsMeter').hidden = !e.target.checked; };
+  $('#fpsMeter').hidden = !save.settings.fps; const FPSM = { n: 0, t: 0 }; // optional on-screen meter (Settings → Show FPS) so real-device speed can be read off a phone
   document.querySelectorAll('#setQuality button').forEach(b => b.onclick = () => { click(); save.settings.gfx = b.dataset.q; persist(); if (b.dataset.q !== 'auto') world.setQuality(b.dataset.q); syncSettings(); });
   world.onQuality = () => syncSettings();
   $('#btnSound').onclick = () => { const on = !(save.settings.music || save.settings.sfx); save.settings.music = on; save.settings.sfx = on; applyAudio(); persist(); syncSound(); click(); };
@@ -3802,6 +3816,7 @@ window.__T = T;
   function frame(now) {
     requestAnimationFrame(frame);
     const realDt = Math.max(0, (now - lastFrame) / 1000); const dt = Math.min(0.05, realDt); lastFrame = now;
+    if (save.settings.fps) { FPSM.n++; FPSM.t += realDt; if (FPSM.t >= 0.5) { $('#fpsMeter').textContent = `${Math.round(FPSM.n / FPSM.t)} fps · ${world.quality} · ${Math.round((world.resScale || 1) * 100)}%`; FPSM.n = 0; FPSM.t = 0; } }
     if (engine && (state === 'playing' || state === 'over')) {
       if (state === 'playing') {
         stickTick(realDt * 1000);

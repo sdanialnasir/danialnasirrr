@@ -652,6 +652,7 @@ body[data-state="cine"]::before, body[data-state="cine"]::after { height: 10vh !
 @keyframes titleSub { from { opacity: 0; letter-spacing: 0.4em; } to { opacity: 1; } }
 #skipIntro { z-index: 27 !important; }
 #cineDark { position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at 50% 45%, rgba(2,10,40,0.75), rgba(0,4,20,0.98)); }
+#fpsMeter { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 6px); transform: translateX(-50%); z-index: 40; padding: 2px 10px; border-radius: 8px; background: rgba(0,0,0,0.55); color: #9dffcf; font: 700 12px ui-monospace, monospace; pointer-events: none; }
 </style>
 </head>
 <body data-state="splash">
@@ -685,6 +686,7 @@ body[data-state="cine"]::before, body[data-state="cine"]::after { height: 10vh !
 
 <div id="stick"><div class="ring"></div><div class="knob"></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
+<div id="fpsMeter" hidden></div>
 <div id="coachHand" aria-hidden="true"><div class="ch-in"><svg class="ch-finger" viewBox="0 0 64 64"><path d="M26 6c3 0 5 2 5 5v17l2-1c3-1 6 1 6 4v1l2-1c3-1 6 1 6 4v1l1-.5c3-1 6 1 6 4V48c0 7-6 12-13 12H32c-5 0-9-2-12-6L9 40c-2-2-1-5 1-6 2-2 5-2 7 0l4 4V11c0-3 2-5 5-5z" fill="#fff" stroke="#1b2a4a" stroke-width="3" stroke-linejoin="round"/></svg><span class="ch-key"></span></div><span class="ch-arrow"></span></div>
 
 <div id="lvlBanner" aria-live="polite"><small id="lbNum">Level 1</small><b id="lbName">First Light</b><em id="lbTip"></em></div>
@@ -762,6 +764,7 @@ body[data-state="cine"]::before, body[data-state="cine"]::after { height: 10vh !
       <label class="row"><span>Ambience</span><input type="checkbox" class="toggle" id="setMusic"></label>
       <label class="row"><span>Sound effects</span><input type="checkbox" class="toggle" id="setSfx"></label>
       <label class="row"><span>Vibration</span><input type="checkbox" class="toggle" id="setVibe"></label>
+      <label class="row"><span>Show FPS</span><input type="checkbox" class="toggle" id="setFps"></label>
       <div class="row"><span>Graphics<small id="gfxNow" style="display:block;font-size:0.72rem;font-weight:700;opacity:0.65;margin-top:2px"></small></span><div class="seg" id="setQuality"><button data-q="auto">Auto</button><button data-q="ultra">Ultra</button><button data-q="high">High</button><button data-q="low">Low</button></div></div>
       <div class="row"><span>Your name</span><button class="tile" data-go="name" style="min-height:0;flex-direction:row;padding:6px 14px">Change</button></div>
     </div>
