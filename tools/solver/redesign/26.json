@@ -1,15 +1,16 @@
 {
  "level": 26,
- "entry": "{ name: \"Citadel\", time: 110, hint: \"The vault tips left unless that side is sealed. Count every pit before a drop.\", map: [\n'########################',\n'#P                     #',\n'#.WWBWW.WWWWWW.WWWWWWW.#',\n'#.WWRWW.WWWWWW.WWWWWWW.#',\n'#.WW....WWWWWW.WWWWWBW.#',\n'#... ...WRWWWW.W RWWRW.#',\n'#WW W W.WRWWWW.WRRWWRW.#',\n'#WW WWW...WWWW....WW...#',\n'#WWE    F         C   .#',\n'#WWWWWWWW WWWWWW WWW WW#',\n'#WWWWWWWW WWWWWW WWW WW#',\n'########################',\n]},",
- "plan": "7,1 7,5!v 6,5 5,5 6,5 6,4 5,4 4,4 5,4 s 6,4 7,4 7,1!v 1,1 1,5!v 2,5 3,5 2,5 s 1,5 1,1!v 7,1 7,6!v 7,7 8,7 9,7 w:16 8,7 s 7,7 7,1!v 14,1 14,7!v 15,7 16,7 w:3 15,7 s 14,7 14,1!v 22,1 22,7!v 21,7 20,7 21,7 s 22,7 22,8 21,8 L:17 m:L",
- "route": "RRRRRRDDDDLLRULLR....RRUUULLLLLLDDDDRRL...LUUUURRRRRRDDDDDDRR................L....LUUUUUURRRRRRRDDDDDDRR...L.....LUUUUUURRRRRRRRDDDDDDLLR....RDLLLLLLLLLLLLLLLLLLL.",
- "moves": 123,
- "air_used": "24.3/110",
- "aha": "The left vault's contents tip left onto the gate unless that side is still sealed: open the pit side first so the stone drops into the pit and the pearl waits on the wedge, then open the gate side; count every pit before dropping a column and crush both the piranha and the crab with drops.",
+ "entry": "{ name: \"Citadel\", time: 220, hint: \"The vault tips left unless that side is sealed. Count every pit before a drop.\", map: [\n'########################',\n'#P                     #',\n'#.WWBWW.WWWWWW.WWWWWWW.#',\n'#.WWRWW.WWWWWW.WWWWWWW.#',\n'#.WW....WWWWWW.WWWWWBW.#',\n'#... ...WRWWWW.W RWWRW.#',\n'#WW W W.WRWWWW.WRRWWRW.#',\n'#WW WWW...WWWW....WW...#',\n'#WWE   .. F ... C .   .#',\n'#WWWWWWWW WWWWWW WWW WW#',\n'#WWWWWWWW WWWWWW WWW WW#',\n'########################',\n]},",
+ "plan": "7,1 7,5!v 6,5 5,5 6,5 6,4 5,4 4,4 5,4 s 6,4 7,4 7,1!v 1,1 1,5!v 2,5 3,5 2,5 s 1,5 1,1!v 7,1 7,6!v 7,7 8,7 w:4 m:RL s m:DLU 7,1!v 14,1 14,7!v 15,7 16,7 w:1 15,7 s 14,7 14,8 12,8 18,8 14,8 14,1!v 22,1 22,7!v 21,7 20,7 21,7 s 22,7 22,8 21,8 L:17 m:L",
+ "route": "RRRRRRDDDDLLRULLR....RRUUULLLLLLDDDDRRL...LUUUURRRRRRDDDDDDR....RL....DLUUUUUUURRRRRRRDDDDDDRR.L.....LDLLRRRRRRLLLLUUUUUUURRRRRRRRDDDDDDLLR....RDLLLLLLLLLLLLLLLLLLL.",
+ "moves": 139,
+ "air_used": "24.6/220",
+ "aha": "The left vault tips left unless that side is sealed: open the pit side first so the stone drops into the pit and the pearl waits on the wedge, then open the gate side. The trench is split by sand plugs into a piranha pit (x=9..11 + shaft) and a crab den (x=15..17): crush each with its own stone column, count every pit before a drop, then dig the plugs and run the pearl home.",
  "deadlocks": [
   "Opening the gate-side valve of the left vault first: the stone lands on the gate (walled in) and the pearl falls into the pit.",
-  "Pushing the right pearl along the trench before the pits at x=9 and x=16 are filled: it falls in.",
-  "Leaving the piranha or the crab alive: it is squeezed ahead of the pearl and blocks the trench."
+  "Pushing the right pearl along the trench before the pits at x=9 and x=16 are filled or the sand plugs dug: it falls in / jams.",
+  "Leaving the piranha or the crab alive: it blocks the trench (digging its plug lets it rush you)."
  ],
- "macro_solved": false
+ "macro_solved": false,
+ "timing": "double kill split into two independent drops: piranha 1% -> 55% (wait safely at (8,7), step R then L), crab 3% -> 75% (wait safely under the stone at (16,7), step L)"
 }

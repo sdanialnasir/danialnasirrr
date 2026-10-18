@@ -1,10 +1,10 @@
 {
   "level": 29,
-  "entry": "{ name: \"The Energizer\", time: 155, hint: \"Everything you have learned. Ready the deep road before a single pearl drops.\", map: [\n'########################',\n'#P.....................#',\n'#......................#',\n'#.B.........R....R...B.#',\n'#.W WWWWWWW WWWWWW W W.#',\n'#C    .         .     F#',\n'#.WWWWWWWWW WWWWWW WWWW#',\n'#.WWWWWWWWWJWWWWWWWWWWW#',\n'#.WWWWWWWWW WWWWWWWWWWW#',\n'#.......... .....A....E#',\n'#WWWWWWWWWW WWWWWWWWWWW#',\n'########################',\n]},",
-  "plan": "3,1 3,3!v w:6 m:U s 11,1 11,3!v m:U s 18,1 18,2!v w:6 m:D m:U s 20,2 m:D m:U s 11,3 11,5!v 6,5 16,5 11,5 11,9!v 21,9 1,9 1,5!v 2,5 R:8 s 1,5 1,9!v 10,9 R:11 s 11,9 11,3!v 22,3 22,5!v 21,5 L:9 s 1,5 1,9!v 10,9 R:11 s 22,9",
-  "route": "RRDD......U...RRRRRRRRUDDU........RRRRRRRUD......DU....RRDU...LLLLLLLLLDDDLLLLLRRRRRRRRRRLLLLLDDDDRRRRRRRRRRLLLLLLLLLLLLLLLLLLLLUUUURRRRRRRRRLLLLLLLLLDDDDRRRRRRRRRRRRRRRRRRRRLLLLLLLLLLUUUUUURRRRRRRRRRRDDLLLLLLLLLLRLLLLLLLLLLLLDDDDRRRRRRRRRRRRRRRRRRRRR.",
-  "moves": 221,
-  "air_used": "22/155",
+  "entry": "{ name: \"The Energizer\", time: 270, hint: \"Everything you have learned. Ready the deep road before a single pearl drops.\", map: [\n'########################',\n'#P.....................#',\n'#......................#',\n'#.B.........R....R...B.#',\n'#.W WWWWWWW WWWWWW W W.#',\n'#. C ..         .     F#',\n'#.WWWWWWWWW WWWWWW WWWW#',\n'#.WWWWWWWWWJWWWWWWWWWWW#',\n'#.WWWWWWWWW WWWWWWWWWWW#',\n'#.......... .....A....E#',\n'#WWWWWWWWWW WWWWWWWWWWW#',\n'########################',\n]},",
+  "plan": "3,1 3,3!v w:6 m:U s 11,1 11,3!v m:U s 18,1 18,2!v w:6 m:D m:U s 20,2 m:D m:U s 11,3 11,5!v 5,5 16,5 11,5 11,9!v 21,9 1,9 1,5!v 2,5 R:8 s 1,5 1,9!v 10,9 R:11 s 11,9 11,3!v 22,3 22,5!v 21,5 L:9 s 1,5 1,9!v 10,9 R:11 s 22,9",
+  "route": "RRDD......U...RRRRRRRRUDDU........RRRRRRRUD......DU....RRDU...LLLLLLLLLDDDLLLLLLRRRRRRRRRRRLLLLLDDDDRRRRRRRRRRLLLLLLLLLLLLLLLLLLLLUUUURRRRRRRRRLLLLLLLLLDDDDRRRRRRRRRRRRRRRRRRRRLLLLLLLLLLUUUUUURRRRRRRRRRRDDLLLLLLLLLLRLLLLLLLLLLLLDDDDRRRRRRRRRRRRRRRRRRRRR.",
+  "moves": 223,
+  "air_used": "22/270",
   "aha": "Every monster has a weapon waiting above it: step out of a notch to drop the pearl on the crab and a stone on the piranha (plugging its pit), and a stone down the jellyfish shaft (plugging its bottom). Then dig the deep road and collect the air before any pearl goes down the shaft.",
   "deadlocks": [
     "Pushing a pearl into the jellyfish shaft before the stone: it falls into the bottom pit and is lost.",
@@ -12,5 +12,6 @@
     "Missing the crab or the piranha with the drop: the monster stays alive in the pearl lane, or the piranha room loses its pit plug.",
     "Dropping the right pearl while the piranha lives on the gate side: the diver cannot get in behind it."
   ],
-  "macro_solved": false
+  "macro_solved": false,
+  "timing": "crab crush from the notch 23% -> 47% (crab den shortened to x=2..4, sand at x=1 and x=5..6); jelly 83%, piranha 48% unchanged"
 }
