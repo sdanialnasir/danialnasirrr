@@ -3632,7 +3632,7 @@ window.__T = T;
 
   // ---- star map: one winding path diving from the Sunlit Shallows down to the Deep. Woken gates glow, the reef around them
   // lights up (gate collection), and the diver travels to the newly unlocked level.
-  const SM = { step: 96, head: 92, top: 40 };
+  const SM = { step: 96, head: 120, top: 24 };
   const smX = i => 50 + 31 * Math.sin(i * 0.95 + 0.4); // % across
   function smY(i) { const w = WORLDS.findIndex(w => i >= w.from && i < w.to); return SM.top + (w + 1) * SM.head + i * SM.step; }
   function smPt(i, t) { const x0 = smX(i), y0 = smY(i), x1 = smX(i + 1), y1 = smY(i + 1), u = 1 - t; // the same cubic as the drawn path
