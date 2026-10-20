@@ -4831,8 +4831,11 @@ window.__T = T;
     txt(`in ${L.secs} s · can you beat it?`, W / 2, H - 70, 56, '#ffffff');
     const blob = await new Promise(r => c.toBlob(r, 'image/png')); if (!blob) return; const name = L.daily ? `aqua-energizer-daily-${dayKey()}.png` : `aqua-energizer-level-${L.n}.png`, text = L.daily ? `I cleared today's Aqua Energizer Daily Dive (${L.name}) in ${L.secs} s 🌊 Can you beat it?` : `I cleared Level ${L.n} (${L.name}) in Aqua Energizer with ${'★'.repeat(L.stars)} in ${L.secs} s 🌊 Can you beat it?`;
     try { const file = new File([blob], name, { type: 'image/png' }); if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text }); return; } } catch (er) { if (er && er.name === 'AbortError') return; }
-    const url = URL.createObjectURL(blob); $('#shareImg').src = url; $('#shareDl').href = url; $('#shareDl').download = name; $('#shareTxt').textContent = text; $('#shareBox').classList.add('on'); }
+    const url = URL.createObjectURL(blob); $('#shareImg').src = url; $('#shareDl').href = url; $('#shareDl').download = name; shareCard.file = { name, blob }; $('#shareTxt').textContent = text; $('#shareBox').classList.add('on'); }
   $('#btnShare').onclick = shareCard;
+  // inside the claude.ai viewer a plain download link does nothing: save through the viewer's downloads permission when it's there
+  $('#shareDl').onclick = async ev => { const f = shareCard.file, C = window.claude; if (!f || !C || !C.use) return; let dl = null; try { dl = await C.use('downloads'); } catch (er) {} if (!dl) return;
+    ev.preventDefault(); try { await dl.save({ filename: f.name, data: f.blob }); } catch (er) { if (er && er.code !== 'declined') toast('Long-press the picture to save it'); } };
   $('#shareClose').onclick = () => { click(); $('#shareBox').classList.remove('on'); };
   $('#shareCopy').onclick = async () => { try { await navigator.clipboard.writeText($('#shareTxt').textContent); toast('Copied!'); } catch (er) { toast('Long-press the text to copy it'); } };
   // ---- Daily Dive: one puzzle a day (the same for everyone, picked from the date), raced against the clock with its own leaderboard
