@@ -116,8 +116,8 @@ class Engine {
     this.tick++;
     if (this.state !== 'playing') { this.physics(); this.monsters(); return; }
 
-    // oxygen
-    this.oxygen -= this.tickMs / 1000;
+    // oxygen (relaxed mode, an accessibility option, never runs out)
+    if (!this.relaxed) this.oxygen -= this.tickMs / 1000;
     if (this.oxygen <= 0) { this.oxygen = 0; this.die('oxygen'); return; }
 
     // player
@@ -687,7 +687,7 @@ const LEVELS = [
 const Audio = (() => {
   let ctx = null, master, musicBus, sfxBus, ambBus;
   let started = false, muted = false, musicOn = true;
-  let musicTimer = null, musicStep = 0, sandBuf = null;
+  let musicTimer = null, musicStep = 0, sandBuf = null, padBus = null, padF = null, tension = 0;
   const settings = { music: 0.6, sfx: 0.9 };
   try { Object.assign(settings, JSON.parse(localStorage.getItem('dc-audio') || '{}')); } catch {}
 
@@ -745,7 +745,8 @@ const Audio = (() => {
     const humG = ctx.createGain(); humG.gain.value = 0; humG.gain.linearRampToValueAtTime(0.06, t0 + 4);
     hum.connect(humG); hum2.connect(humG); humG.connect(musicBus); hum.start(); hum2.start();
     // soft pad: pure sines through a dark filter, one chord fading into the next every ~14s
-    const padLp = ctx.createBiquadFilter(); padLp.type = 'lowpass'; padLp.frequency.value = 700; padLp.Q.value = 0.3; padLp.connect(musicBus);
+    padBus = ctx.createGain(); padBus.gain.value = 1; padBus.connect(musicBus); padF = ctx.createBiquadFilter(); padF.type = 'lowpass'; padF.frequency.value = 12000; padF.connect(padBus); // mood layer: swells / thins with the game
+    const padLp = ctx.createBiquadFilter(); padLp.type = 'lowpass'; padLp.frequency.value = 700; padLp.Q.value = 0.3; padLp.connect(padF);
     const CH = [[0, 7, 15, 19], [-2, 5, 14, 17], [-4, 3, 12, 19], [-5, 7, 14, 17]], ROOT = 110;
     let ci = 0, nextPad = t0 + 0.5;
     const padChord = (t) => { const ch = CH[ci++ % CH.length]; const dur = 18;
@@ -760,7 +761,7 @@ const Audio = (() => {
     // now and then one soft, far-away chime from the current chord (single notes with long tails: colour, not a tune)
     const chime = (t) => { const st = lastChord[1 + (Math.random() * 3 | 0)] + 24, f = ROOT * Math.pow(2, st / 12);
       for (const [mul, a] of [[1, 0.02], [2.76, 0.005]]) { const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = f * mul; const g = ctx.createGain();
-        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0003, t + 4.5); o.connect(g); g.connect(musicBus); o.start(t); o.stop(t + 4.6); } };
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0003, t + 4.5); o.connect(g); g.connect(padF || musicBus); o.start(t); o.stop(t + 4.6); } };
     let nextChime = t0 + 6;
     // distant bubble trail: a few soft rising blips, panned
     const bubbleTrail = (t) => { const n = 3 + (Math.random() * 6 | 0); const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null; if (pan) { pan.pan.value = Math.random() * 1.6 - 0.8; pan.connect(musicBus); }
@@ -774,7 +775,7 @@ const Audio = (() => {
       const now = ctx.currentTime;
       if (now + 1 > nextPad) { padChord(nextPad); nextPad += 14; }
       if (now + 1 > nextBub) { bubbleTrail(nextBub); nextBub += 4 + Math.random() * 7; }
-      if (now + 1 > nextChime) { chime(nextChime); nextChime += 7 + Math.random() * 9; }
+      if (now + 1 > nextChime && tension < 0.3) { chime(nextChime); nextChime += 7 + Math.random() * 9; } else if (now + 1 > nextChime) nextChime += 4;
       musicTimer = setTimeout(tick, 400);
     };
     tick();
@@ -855,6 +856,12 @@ const Audio = (() => {
     lowAir() { thump(880, 0.12, 0.12); },
     bite() { burst(0.1, 1500, 2, 0.3); thump(200, 0.1, 0.3); },
   };
+  // the soundscape reacts (still no tune): a warm swell with an open filter when the gate wakes; the pad thins and darkens as air runs out
+  function swell() { if (!ctx || !padBus) return; const t = ctx.currentTime, g = padBus.gain, f = padF.frequency;
+    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(2.3, t + 1.4); g.linearRampToValueAtTime(1.5, t + 5); g.linearRampToValueAtTime(1 - tension * 0.65, t + 10);
+    f.cancelScheduledValues(t); f.setValueAtTime(f.value, t); f.linearRampToValueAtTime(12000, t + 1); [0, 7, 12, 19].forEach((st, i) => note(110 * 2 * Math.pow(2, st / 12), t + 0.2 + i * 0.25, 7, 'sine', 0.035, padBus)); }
+  function setTension(k) { k = Math.max(0, Math.min(1, k)); if (!ctx || !padBus || Math.abs(k - tension) < 0.02) return; tension = k; const t = ctx.currentTime;
+    padBus.gain.cancelScheduledValues(t); padBus.gain.setTargetAtTime(1 - k * 0.65, t, 0.8); padF.frequency.cancelScheduledValues(t); padF.frequency.setTargetAtTime(12000 * Math.pow(0.04, k), t, 0.8); }
   function play(name) { if (!ctx || muted) return; try { SFX[name] && SFX[name](); } catch {} }
   // voice-over: plays an embedded clip (src/assets/vo/<id>.mp3, baked in by build_assets.py) and ducks the ambience under it.
   // Returns the clip length in seconds (0 when no clip exists yet, so the captions keep their own timing).
@@ -867,7 +874,7 @@ const Audio = (() => {
   function setMuted(m) { muted = m; if (master) master.gain.value = m ? 0 : 1; }
   function setMusic(on) { musicOn = on; if (musicBus && ctx) musicBus.gain.setTargetAtTime(on ? settings.music : 0, ctx.currentTime, 0.6); }
   function setVolumes(music, sfx) { settings.music = music; settings.sfx = sfx; if (musicBus) musicBus.gain.value = musicOn ? music : 0; if (sfxBus) sfxBus.gain.value = sfx; try { localStorage.setItem('dc-audio', JSON.stringify(settings)); } catch {} }
-  return { init, resume, play, vo, stopVo, setMuted, setMusic, setVolumes, settings, get ctx() { return ctx; } };
+  return { init, resume, play, vo, stopVo, swell, setTension, setMuted, setMusic, setVolumes, settings, get ctx() { return ctx; } };
 })();
 
 // Deep Current — renderer v3: clean, bright, front-on puzzle board built from premium primitives.
@@ -1343,13 +1350,20 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const cap = new THREE.Mesh(new THREE.SphereGeometry(0.15, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), MAT.boulder); cap.rotation.x = Math.PI / 2; cap.scale.y = 0.35; cap.position.z = 0.4; cap.userData.noOutline = true; spin.add(cap);
     g.userData.spin = spin; return withShadow(g);
   }
+  // colour-blind markers: one shared material, so the Settings switch shows/hides every marker at once
+  function cbMark() { if (!MAT.cbMark) { const [c, g] = canvas(128); g.translate(64, 64); g.lineJoin = 'round';
+      g.beginPath(); g.moveTo(0, -44); g.lineTo(38, 0); g.lineTo(0, 44); g.lineTo(-38, 0); g.closePath(); g.lineWidth = 16; g.strokeStyle = '#10213f'; g.stroke(); g.fillStyle = '#ffffff'; g.fill();
+      g.beginPath(); g.arc(0, 0, 9, 0, Math.PI * 2); g.fillStyle = '#10213f'; g.fill();
+      MAT.cbMark = new THREE.SpriteMaterial({ map: tex(c, false), transparent: true, depthWrite: false }); MAT.cbMark.visible = !!CB.on; }
+    const sp = new THREE.Sprite(MAT.cbMark); sp.renderOrder = 5; return sp; }
+  const CB = { on: false };
   function makeBall(newArt) {
     // new look: a deep ruby glass pearl (the sheet's energy pearl) rather than an orange plastic ball
     if (newArt && !MAT.pearl) MAT.pearl = new THREE.MeshPhysicalMaterial({ color: 0xb00410, roughness: 0.1, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.03, emissive: 0x9a0010, emissiveIntensity: 0.7, envMapIntensity: 1.2 });
     const g = new THREE.Group(); const m = new THREE.Mesh(GEO.ball, newArt ? MAT.pearl : MAT.ball); g.add(m);
     const glow = new THREE.Sprite(MAT.ballGlow); glow.scale.set(1.75, 1.75, 1); glow.position.z = -0.1; g.add(glow);
     const core = new THREE.Sprite(MAT.ballCore); core.scale.set(0.55, 0.55, 1); core.position.set(-0.04, 0.02, 0.3); g.add(core); g.userData = { core };
-    Object.assign(g.userData, { spin: m, glow }); return withShadow(g);
+    Object.assign(g.userData, { spin: m, glow }); const mk = cbMark(); mk.scale.set(0.36, 0.36, 1); mk.position.set(0, 0, 0.55); g.add(mk); return withShadow(g);
   }
   function makeGate() {
     const g = new THREE.Group();
@@ -1358,6 +1372,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.065, 16, 12), MAT.lampRed); lamp.position.set(0, 0.33, 0.45); g.add(lamp);
     const glow = new THREE.Sprite(MAT.cyanGlow.clone()); glow.scale.set(1.4, 1.4, 1); glow.position.z = 0.5; glow.material.opacity = 0.25; g.add(glow);
     const lampGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.dot, color: 0xff3a2a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.8 })); lampGlow.scale.set(0.35, 0.35, 1); lampGlow.position.set(0, 0.33, 0.5); g.add(lampGlow);
+    const mk = cbMark(); mk.scale.set(0.42, 0.42, 1); mk.position.set(0, -0.06, 0.62); g.add(mk);
     g.userData = { screen, lamp, glow, lampGlow }; return g;
   }
   function makeDiver() {
@@ -2133,6 +2148,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   }
 
   const PHOTO_BG_URI = window.AQ_DATA.PHOTO_BG_URI; const PHOTO_IMG = new Image(); PHOTO_IMG.src = PHOTO_BG_URI;
+  // per-world paintings (optional: bg_photo_w2 / bg_photo_w3 in assets/images/background); a world without one uses the main painting
+  const PHOTO_W = [PHOTO_IMG, ...[2, 3].map(w => { const u = window.AQ_DATA['PHOTO_BG_W' + w]; if (!u) return PHOTO_IMG; const im = new Image(); im.src = u; return im; })];
+  const photoTexCache = new Map();
+  function photoTex(im) { if (photoTexCache.has(im)) return photoTexCache.get(im); const tex = new THREE.Texture(im); if (im.complete && im.naturalWidth) tex.needsUpdate = true; else im.addEventListener('load', () => { tex.needsUpdate = true; }, { once: true });
+    tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4; tex.minFilter = THREE.LinearMipmapLinearFilter; photoTexCache.set(im, tex); return tex; }
   const PHOTO_LEVELS = new Set(LEVELS.map(l => l.name)); // painted background on every level
   // which asset sheet dresses a level: 'new' (images/sheet2, the owner's new sheet) is on trial on the first 4 levels
   const NEW_ART_LEVELS = new Set(LEVELS.map(l => l.name)); // the new sheet / premium tank look on every level
@@ -2263,7 +2283,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     // ---- photo background (test on the first level): your painting + bubbles, surface shimmer and a distant school
     buildPhotoBg() {
       if (this.photo) return; const g = new THREE.Group(); this.scene.add(g);
-      const tex = new THREE.Texture(PHOTO_IMG); if (PHOTO_IMG.complete && PHOTO_IMG.naturalWidth) tex.needsUpdate = true; else PHOTO_IMG.addEventListener('load', () => { tex.needsUpdate = true; }, { once: true }); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4; tex.minFilter = THREE.LinearMipmapLinearFilter;
+      const tex = photoTex(PHOTO_IMG);
       const AR = 1435 / 2560; const bg = new THREE.Mesh(new THREE.PlaneGeometry(1, AR), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, depthWrite: false, fog: false })); bg.renderOrder = -10; g.add(bg);
       const shimmer = new THREE.Mesh(new THREE.PlaneGeometry(1, AR), new THREE.ShaderMaterial({ uniforms: { uT: MAT.causticT }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, fog: false,
         vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
@@ -2647,7 +2667,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         this.fg = { group: fg, mat, fishes, update: (t, dt, cx, top, bot, span) => {
           for (const F of this.fg.fishes) { if (!F.on) { F.t -= dt; if (F.t <= 0) { F.on = true; F.dir = Math.random() < 0.5 ? 1 : -1; F.x = cx - F.dir * (span / 2 + 3); F.y = Math.random() < 0.5 ? top + 0.9 + Math.random() * 0.6 : bot - 0.6 - Math.random() * 0.4; F.z = 2.2 + Math.random() * 1.2; F.f.visible = true; } continue; }
             F.x += F.dir * dt * 1.6; F.f.position.set(F.x, F.y + Math.sin(t * 2 + F.z) * 0.08, F.z); F.f.rotation.y = F.dir > 0 ? 0 : Math.PI; F.tl.rotation.y = Math.sin(t * 12) * 0.4; F.f.scale.setScalar(1.2);
-            if (Math.abs(F.x - cx) > span / 2 + 3.5) { F.on = false; F.f.visible = false; F.t = 6 + Math.random() * 10; } } } }; }
+            if (Math.abs(F.x - cx) > span / 2 + 3.5) { F.on = false; F.f.visible = false; F.t = (6 + Math.random() * 10) * (this.menuMode ? 1 - 0.75 * (this.reefK || 0) : 1); } } } }; } // fish return to the menu tank as the reef wakes
       for (const F of this.fg.fishes) { F.sp.visible = this.newArt; F.parts.forEach(o => { o.visible = !this.newArt; }); }
       this.fg.group.position.set((W - 1) / 2, -(H - 1), 0); this.fg.box = { top: 0.5 + (H - 1), bot: -0.4, span: W }; // group-local: origin sits at the bottom row centre
 
@@ -2696,7 +2716,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       { const S = Math.max(W, H) * 0.62 + 2, c = this.key.shadow.camera; c.left = -S; c.right = S; c.top = S; c.bottom = -S; c.near = 1; c.far = 40; c.updateProjectionMatrix(); }
       this.rim.target.position.copy(this.key.target.position); this.rim.position.set((W - 1) / 2 + 4, -(H - 1) / 2 + 10, -6);
       this.positionReef();
-      { const usePhoto = PHOTO_LEVELS.has(e.name) || !!e.menu; this.photoMode = usePhoto; if (usePhoto) this.buildPhotoBg(); this.bgTint = new THREE.Color(e.menu ? 0xffffff : WORLD_TINT[worldOf(e.name)]); if (this.photo) this.photo.bg.material.color.copy(this.bgTint); if (this.photo) this.photo.group.visible = usePhoto;
+      { const usePhoto = PHOTO_LEVELS.has(e.name) || !!e.menu; this.photoMode = usePhoto; if (usePhoto) this.buildPhotoBg(); this.bgTint = new THREE.Color(e.menu ? 0xffffff : WORLD_TINT[worldOf(e.name)]); if (this.photo) { this.photo.bg.material.color.copy(this.bgTint); const im = PHOTO_W[e.menu ? 0 : worldOf(e.name)] || PHOTO_IMG; this.photo.bg.material.map = photoTex(im); if (im !== PHOTO_IMG) this.photo.bg.material.color.lerp(new THREE.Color(1, 1, 1), 0.7); } // an own painting needs little tint if (this.photo) this.photo.group.visible = usePhoto;
         if (this.reef) this.reef.group.visible = !usePhoto; this.backdrop.visible = !usePhoto; this.rays.visible = !usePhoto; }
       this.bakeStatic(); this.aqHold = performance.now() + 3000;
       this.fitCamera(true, !e.menu);
@@ -2894,7 +2914,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         this.lampGlow = new THREE.Sprite(lm); this.lampBeam = new THREE.Sprite(lm.clone()); for (const l of [this.lampGlow, this.lampBeam]) { l.visible = false; l.renderOrder = 7; this.scene.add(l); }
         this.wakeRing = new THREE.Mesh(new THREE.RingGeometry(0.8, 1, 64), new THREE.MeshBasicMaterial({ color: 0xbfffe8, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); this.wakeRing.visible = false; this.wakeRing.renderOrder = 7; this.scene.add(this.wakeRing); }
       const e = this.e, W = e ? e.w : 12, H = e ? e.h : 7;
-      this.cineGlow.forEach((g, i) => { if (!on || F.glow < 0.01) { g.sp.visible = false; g.init = false; return; }
+      // menu: every gate the player has woken sends one more pearl-light drifting through the tank (gate collection)
+      const ml = !on && this.menuMode ? Math.min(this.cineGlow.length, this.reefLights || 0) : 0, FF = on ? F : { glow: 0.8, storm: 0 };
+      this.cineGlow.forEach((g, i) => { if (on ? FF.glow < 0.01 : i >= ml) { g.sp.visible = false; g.init = false; return; } const F = FF;
         if (!g.init) { g.init = true; g.x = -1.5 + Math.random() * (W + 2); g.y = -(H + 0.5) + Math.random() * (H + 4); }
         g.y += dt * g.sp0 * (1 - F.storm); g.x += dt * (F.storm * (4 + g.sp0 * 8) + Math.sin(t * 0.7 + g.ph) * 0.12); if (g.y > 3.5) g.y = -(H + 0.5); if (g.x > W + 2) { g.x = -2; g.y = -(H + 0.5) + Math.random() * (H + 4); }
         const tw = 0.55 + 0.45 * Math.sin(t * 2.2 + g.ph); g.sp.visible = true; g.sp.position.set(g.x, g.y, -0.2 + (i % 3) * 0.5); const sz = g.sz * (1 + F.storm * 0.6); g.sp.scale.set(sz * (1 + F.storm * 2.5), sz, 1); g.sp.material.opacity = Math.min(1, F.glow * tw * 1.3); });
@@ -3280,9 +3302,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.post.render(this.scene, this.camera, this.time); }
   }
   // resolves once every image the scenes use is decoded (the loading screen waits on it), reporting progress 0..1
-  function ready(onProgress) { const ims = [...Object.values(SPR.img), PHOTO_IMG]; let done = 0;
+  function ready(onProgress) { const ims = [...Object.values(SPR.img), ...new Set(PHOTO_W)]; let done = 0;
     return Promise.all(ims.map(im => (im.decode ? im.decode() : Promise.resolve()).catch(() => {}).then(() => { done++; if (onProgress) onProgress(done / ims.length); }))); }
-  return { create: c => new WorldImpl(c), isMobile, ready, SKINS, SKIN, applySkin, preview: (cv, thumb) => new SkinPreview(cv, thumb), trailColor, rarityOf };
+  return { create: c => new WorldImpl(c), isMobile, isIOS, setColorMarks: on => { CB.on = !!on; if (MAT.cbMark) MAT.cbMark.visible = CB.on; }, ready, SKINS, SKIN, applySkin, preview: (cv, thumb) => new SkinPreview(cv, thumb), trailColor, rarityOf };
 })();
 
 window.__T = T;
@@ -3294,7 +3316,7 @@ window.__T = T;
   const world = World.create(canvas); window.__dc = { world, get engine() { return engine; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), World, intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
   world.onSfx = n => Audio.play(n); world.onToast = m => toast(m);
   let gateOpenAt = 0, gateNudged = true;
-  world.onGateOpen = () => { gateOpenAt = performance.now(); gateNudged = false; banner('The gate is awake!', 'Swim in!', 'Swim into the glowing gate to carry the light home.', 3200); };
+  world.onGateOpen = () => { if (state === 'replay') return; gateOpenAt = performance.now(); gateNudged = false; banner('The gate is awake!', 'Swim in!', 'Swim into the glowing gate to carry the light home.', 3200); };
   const isTouch = World.isMobile || navigator.maxTouchPoints > 0;
   document.body.classList.toggle('touch', isTouch);
 
@@ -3308,7 +3330,11 @@ window.__T = T;
   if ((save.v || 1) < 2) { const s1 = save.stars[1], b1 = save.best[1]; save.stars = s1 ? { 1: s1 } : {}; save.best = b1 ? { 1: b1 } : {}; save.tipsSeen = {}; save.v = 2; }
   const persist = () => { try { localStorage.setItem('dc-save', JSON.stringify(save)); } catch {} };
   const totalStars = () => Object.values(save.stars).reduce((a, b) => a + b, 0);
-  const buzz = ms => { if (save.settings.vibe && navigator.vibrate) navigator.vibrate(ms); };
+  let hapEl = null, hapLast = 0;
+  function iosTap() { try { if (!hapEl) { hapEl = document.createElement('label'); hapEl.setAttribute('aria-hidden', 'true'); hapEl.style.cssText = 'position:fixed;left:-300px;top:0;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none';
+      const i = document.createElement('input'); i.type = 'checkbox'; i.setAttribute('switch', ''); i.tabIndex = -1; hapEl.appendChild(i); document.body.appendChild(hapEl); } hapEl.click(); } catch (er) {} }
+  const buzz = ms => { if (!save.settings.vibe) return; if (navigator.vibrate) { try { navigator.vibrate(ms); } catch (er) {} return; }
+    if (World.isIOS) { const now = performance.now(); if (now - hapLast < 70) return; hapLast = now; const n = Array.isArray(ms) ? Math.min(3, Math.ceil(ms.length / 2)) : 1; for (let k = 0; k < n; k++) setTimeout(iosTap, k * 120); } };
   const click = () => Audio.play('click');
 
   // ================= economy: coins, skins, daily treasure, achievements =================
@@ -3320,12 +3346,19 @@ window.__T = T;
   function syncCoins() { coinEls().forEach(el => { el.textContent = save.coins.toLocaleString(); }); }
   function addCoins(n, why) { if (!n) return; save.coins += n; persist(); syncCoins(); Audio.play('treasure');
     const t = document.createElement('div'); t.className = 'toast-coin'; t.innerHTML = '<i class="coin"></i>'; const b = document.createElement('b'); b.textContent = `+${n}` + (why ? `  ${why}` : ''); t.appendChild(b); document.body.appendChild(t); setTimeout(() => t.remove(), 1700); }
-  world.onStat = (k, id) => { if (k === 'treasure') { if (id && runTreasureSet.has(id)) return; if (id) runTreasureSet.add(id); runTreasures++; save.stats.treasures++; } else if (k === 'pearl') save.stats.pearls++; };
+  world.onStat = (k, id) => { if (replay) return; if (k === 'treasure') { if (id && runTreasureSet.has(id)) return; if (id) runTreasureSet.add(id); runTreasures++; save.stats.treasures++; weekBump('treasure'); } else if (k === 'pearl') { save.stats.pearls++; weekBump('pearls'); } };
   let runTreasures = 0; const runTreasureSet = new Set(); // a treasure re-dug after an undo doesn't count twice
   const dayKey = (d = new Date()) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-  const DAILY = [50, 80, 120, 160, 220, 300, 500];
+  // login streak: it keeps growing (coins rise each week of the streak) and every 7th day holds a guaranteed rare item
+  const DAILY = [50, 80, 120, 160, 220, 300, 400];
+  const dailyCoins = d => Math.round(DAILY[d % 7] * (1 + 0.25 * Math.min(4, Math.floor(d / 7))) / 5) * 5; // d = 0-based day of the streak
   function dailyState() { const today = dayKey(), y = new Date(); y.setDate(y.getDate() - 1); const D = save.daily;
-    const can = D.last !== today, streak = D.last === today ? D.streak : D.last === dayKey(y) ? D.streak % 7 : 0; return { can, day: can ? streak : (D.streak - 1) % 7 }; } // day = index of today's box
+    const can = D.last !== today, streak = D.last === today ? D.streak : D.last === dayKey(y) ? D.streak : 0; return { can, streak, day: can ? streak : Math.max(0, streak - 1) }; } // day = today's 0-based streak day
+  // a random item of the given rarity band the player doesn't own yet (null if they own them all)
+  function giftItem(minR, maxR) { const pool = []; for (const cat of Object.keys(World.SKINS)) for (const it of World.SKINS[cat]) if (it.price >= minR && it.price < maxR && !owns(cat, it.id)) pool.push([cat, it]);
+    return pool.length ? pool[Math.random() * pool.length | 0] : null; }
+  function grantItem(g, why) { const [cat, it] = g; save.owned[cat + ':' + it.id] = true; persist(); Audio.play('absorb'); buzz([20, 40, 20, 40, 60]);
+    const nm = { suit: 'suit', hat: 'hat', scarf: 'scarf', trail: 'trail', pearl: 'pearl skin' }[cat] || cat; toast(`🎁 ${why}: ${it.name} (${World.rarityOf(it)} ${nm})!`); }
   const ACH = [
     { id: 'first', ic: '🏁', name: 'First dive', desc: 'Clear your first level', goal: 1, v: () => Math.max(save.stats.wins, Object.keys(save.stars).length), r: 50 },
     { id: 'wins10', ic: '🌊', name: 'Deep diver', desc: 'Clear 10 levels', goal: 10, v: () => Object.keys(save.stars).length, r: 200 },
@@ -3339,12 +3372,14 @@ window.__T = T;
     { id: 'world1', ic: '🏝️', name: 'Sunlit Shallows', desc: 'Clear all of world 1', goal: 10, v: () => [...Array(10).keys()].filter(i => save.stars[i + 1]).length, r: 500 },
     { id: 'shopper', ic: '🛍️', name: 'Fresh look', desc: 'Buy something in the shop', goal: 1, v: () => Object.keys(save.owned).length, r: 60 },
   ];
-  const claimableCount = () => ACH.filter(a => !save.ach[a.id] && a.v() >= a.goal).length + (dailyState().can ? 1 : 0);
+  const claimableCount = () => ACH.filter(a => !save.ach[a.id] && a.v() >= a.goal).length + (dailyState().can ? 1 : 0) + weekly().filter(c => !save.weekly.c[c.id] && (save.weekly.p[c.id] || 0) >= c.goal).length;
   function buildRewards() {
-    const ds = dailyState(), el = $('#daily'); el.innerHTML = '';
-    DAILY.forEach((n, i) => { const d = document.createElement('div'); d.className = 'day' + (i === 6 ? ' big' : '') + (i < ds.day || (!ds.can && i === ds.day) ? ' done' : '') + (ds.can && i === ds.day ? ' today' : '');
-      d.innerHTML = `<span>Day ${i + 1}</span><i class="coin"></i><b>${n}</b>`; el.appendChild(d); });
-    const btn = $('#dailyClaim'); btn.disabled = !ds.can; btn.textContent = ds.can ? `Claim ${DAILY[ds.day]} coins` : 'Come back tomorrow';
+    const ds = dailyState(), el = $('#daily'); el.innerHTML = ''; const w0 = Math.floor(ds.day / 7) * 7;
+    $('#streakN').textContent = ds.streak ? `🔥 ${ds.streak}-day streak` + (ds.can ? ': keep it going!' : '') : 'Start a streak today';
+    for (let i = w0; i < w0 + 7; i++) { const d = document.createElement('div'); d.className = 'day' + (i % 7 === 6 ? ' big gift' : '') + (i < ds.day || (!ds.can && i === ds.day) ? ' done' : '') + (ds.can && i === ds.day ? ' today' : '');
+      d.innerHTML = i % 7 === 6 ? `<span>Day ${i + 1}</span><i class="gift-ic">🎁</i><b>Rare</b>` : `<span>Day ${i + 1}</span><i class="coin"></i><b>${dailyCoins(i)}</b>`; el.appendChild(d); }
+    const btn = $('#dailyClaim'); btn.disabled = !ds.can; btn.textContent = ds.can ? (ds.day % 7 === 6 ? 'Open the chest 🎁' : `Claim ${dailyCoins(ds.day)} coins`) : 'Come back tomorrow';
+    buildWeekly();
     const ul = $('#achList'); ul.innerHTML = '';
     ACH.slice().sort((a, b) => (!!save.ach[a.id] - !!save.ach[b.id]) || ((b.v() >= b.goal) - (a.v() >= a.goal))).forEach(a => { const v = Math.min(a.goal, a.v()), done = !!save.ach[a.id], ready = !done && v >= a.goal;
       const li = document.createElement('li'); li.className = done ? 'done' : '';
@@ -3354,7 +3389,38 @@ window.__T = T;
       ul.appendChild(li); });
     syncCoins();
   }
-  $('#dailyClaim').onclick = () => { const ds = dailyState(); if (!ds.can) return; save.daily = { last: dayKey(), streak: ds.day + 1 }; addCoins(DAILY[ds.day], `Day ${ds.day + 1}`); buzz(25); buildRewards(); refreshHome(); };
+  $('#dailyClaim').onclick = () => { const ds = dailyState(); if (!ds.can) return; save.daily = { last: dayKey(), streak: ds.day + 1 }; addCoins(dailyCoins(ds.day), `Day ${ds.day + 1}`); buzz(25);
+    if (ds.day % 7 === 6) { const g = giftItem(300, 600) || giftItem(600, 1200) || giftItem(0, 1e9); if (g) grantItem(g, `Day ${ds.day + 1} chest`); else addCoins(500, 'Chest'); }
+    buildRewards(); refreshHome(); };
+  // ---- weekly challenges: three goals a week (same for everyone, picked from the week number); all three = a guaranteed epic item
+  const WEEK_POOL = [
+    { id: 'noundo', ic: '🎯', name: 'Clean dives', desc: 'Finish 3 levels without undo', goal: 3, r: 150 },
+    { id: 'treasure', ic: '🐚', name: 'Beachcomber', desc: 'Dig out 20 treasures', goal: 20, r: 120 },
+    { id: 'pearls', ic: '🔴', name: 'Pearl courier', desc: 'Deliver 15 energy pearls', goal: 15, r: 120 },
+    { id: 'stars', ic: '⭐', name: 'Starry week', desc: 'Earn 9 stars (replays count)', goal: 9, r: 150 },
+    { id: 'perfect', ic: '💎', name: 'Flawless twice', desc: 'Get ★★★ on 2 levels', goal: 2, r: 180 },
+    { id: 'nohint', ic: '🧠', name: 'Own wits', desc: 'Win 3 levels without a hint', goal: 3, r: 120 },
+    { id: 'dig', ic: '⛏️', name: 'Sand mover', desc: 'Dig 250 sand', goal: 250, r: 100 },
+    { id: 'wins', ic: '🌊', name: 'Busy week', desc: 'Finish 5 levels', goal: 5, r: 120 },
+    { id: 'bonk', ic: '💥', name: 'Bonk!', desc: 'Drop stones on 2 monsters', goal: 2, r: 150, need: 4 },
+    { id: 'daily', ic: '📅', name: 'Daily diver', desc: 'Play 3 Daily Dives', goal: 3, r: 150 },
+  ];
+  const weekNo = (d = new Date()) => Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - Date.UTC(2024, 0, 1)) / 864e5 / 7); // weeks start on Monday
+  function weekly() { const wk = weekNo(); if (!save.weekly || save.weekly.wk !== wk) save.weekly = { wk, p: {}, c: {}, bonus: 0 };
+    const pool = WEEK_POOL.filter(c => !c.need || save.unlocked >= c.need), pick = []; let x = (wk * 2654435761) >>> 0; // seeded so everyone gets the same three
+    while (pick.length < 3 && pool.length) { x = (x * 1103515245 + 12345) >>> 0; pick.push(pool.splice(x % pool.length, 1)[0]); } return pick; }
+  function weekBump(id, n = 1) { const W = weekly(); if (!W.some(c => c.id === id)) return; const P = save.weekly.p, c = W.find(c => c.id === id), was = P[id] || 0; P[id] = Math.min(c.goal, was + n); persist();
+    if (was < c.goal && P[id] >= c.goal && state !== 'menu') setTimeout(() => toast(`Weekly challenge done: ${c.name} ✓`), 1600); }
+  function buildWeekly() { const W = weekly(), ul = $('#weekList'); ul.innerHTML = ''; const P = save.weekly.p, C = save.weekly.c;
+    const days = 7 - ((new Date().getDay() + 6) % 7); $('#weekLeft').textContent = days === 1 ? 'Ends tonight' : `${days} days left`;
+    W.forEach(c => { const v = Math.min(c.goal, P[c.id] || 0), done = !!C[c.id], ready = !done && v >= c.goal; const li = document.createElement('li'); li.className = done ? 'done' : '';
+      li.innerHTML = `<span class="ai">${c.ic}</span><span class="at"><b></b><small></small><div class="bar"><i style="width:${(v / c.goal * 100).toFixed(0)}%"></i></div></span><button class="claim" ${ready ? '' : 'disabled'}><i class="coin"></i>${done ? '✓' : c.r}</button>`;
+      li.querySelector('b').textContent = c.name; li.querySelector('small').textContent = `${c.desc} · ${v}/${c.goal}`;
+      li.querySelector('.claim').onclick = () => { if (!ready) return; C[c.id] = 1; addCoins(c.r, c.name); buzz(20);
+        if (!save.weekly.bonus && W.every(w => C[w.id])) { save.weekly.bonus = 1; persist(); const g = giftItem(600, 1200) || giftItem(300, 1e9); if (g) grantItem(g, 'Weekly prize'); else addCoins(800, 'Weekly prize'); }
+        buildRewards(); refreshHome(); };
+      ul.appendChild(li); });
+    const all = W.every(w => C[w.id]); $('#weekBonus').textContent = save.weekly.bonus ? 'Weekly prize claimed ✓ New challenges on Monday.' : all ? '' : 'Finish all three for a guaranteed 🎁 epic item'; }
 
   // ---- shop
   const SHOP_TABS = [['suit', 'Suits'], ['hat', 'Hats'], ['scarf', 'Scarves'], ['trail', 'Trails'], ['pearl', 'Pearls']];
@@ -3410,25 +3476,39 @@ window.__T = T;
   let lbWriting = Promise.resolve(), lbLast = '';
   function pushScore() { lbWriting = lbWriting.then(async () => { await LB.ready; if (!LB.db || !LB.uid) return; const e = myEntry(), k = [e.nick, e.stars, e.levels, e.score, e.suit].join('|'); if (k === lbLast) return;
       try { await LB.db.doc('board/' + LB.uid).set(e); lbLast = k; } catch (er) { if (er && er.code === 'invalid_argument') LB.readOnly = true; } }); }
-  async function openRanks() {
+  let lbTab = 'stars';
+  document.querySelectorAll('#lbTabs button').forEach(b => b.onclick = () => { click(); openRanks(b.dataset.t); });
+  let lbTok = 0;
+  async function openRanks(tab) { if (tab) lbTab = tab; const tok = ++lbTok; document.querySelectorAll('#lbTabs button').forEach(b => b.classList.toggle('on', b.dataset.t === lbTab));
     const st = $('#lbStatus'), list = $('#lbList'), me = $('#lbMe'); st.textContent = 'Loading…'; list.innerHTML = ''; me.innerHTML = '';
-    await LB.ready;
+    if (lbTab !== 'stars') return openDailyRanks(tok);
+    await LB.ready; if (tok !== lbTok) return;
     if (!LB.db) { st.textContent = 'Global ranks appear when you play on claude.ai. Your own best so far:'; renderRows([Object.assign(myEntry(), { id: 'me', isMe: true })]); return; }
     pushScore(); if (LB.unsub) LB.unsub();
-    LB.unsub = LB.db.collection('board').orderBy('stars', 'desc').limit(100).onSnapshot(async snap => {
+    LB.unsub = LB.db.collection('board').orderBy('stars', 'desc').limit(100).onSnapshot(async snap => { if (tok !== lbTok) return;
       const rows = snap.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => (b.stars - a.stars) || (b.levels - a.levels) || (b.score - a.score));
       st.textContent = (rows.length ? `${rows.length} diver${rows.length === 1 ? '' : 's'} · live` : 'No scores yet: clear a level to be first!') + (LB.readOnly ? ' (Viewing only: open your own copy of the game to post your score.)' : ''); await renderRows(rows); },
       er => { st.textContent = 'Leaderboard is offline right now. Your own best:'; renderRows([Object.assign(myEntry(), { id: 'me', isMe: true })]); });
   }
-  async function renderRows(rows) {
+  async function openDailyRanks(tok) { const st = $('#lbStatus'), D = ddSave(), L = todayDive(), by = lbTab === 'air' ? 'air' : 't';
+    const mine = () => D.best ? [{ id: 'me', isMe: true, nick: save.name || 'Diver', t: D.best.t, air: D.best.air }] : [];
+    await LB.ready; if (tok !== lbTok) return; if (LB.unsub) { LB.unsub(); LB.unsub = null; }
+    const head = L ? `${L.name} · ` : '';
+    if (!LB.db) { st.textContent = head + (D.best ? 'Global ranks appear when you play on claude.ai. Your best today:' : 'Play today\'s Daily Dive to post a time.'); renderRows(mine(), by); return; }
+    pushDaily();
+    LB.unsub = LB.db.collection('daily').where('day', '==', D.key).limit(300).onSnapshot(async snap => { if (tok !== lbTok) return;
+      const rows = snap.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(r => typeof r.t === 'number').sort((a, b) => (a[by] - b[by]) || (a.t - b.t));
+      st.textContent = head + (rows.length ? `${rows.length} diver${rows.length === 1 ? '' : 's'} today · ${by === 'air' ? 'least air used' : 'fastest'}` : 'No times yet today: be the first!'); await renderRows(rows, by); },
+      er => { st.textContent = 'Leaderboard is offline right now. Your best today:'; renderRows(mine(), by); }); }
+  async function renderRows(rows, by) {
     const list = $('#lbList'), me = $('#lbMe'); let ps = {};
     try { if (LB.user && rows.length) ps = await LB.user.profiles(rows.map(r => r.id).filter(id => id !== 'me')); } catch (er) {}
     const row = (r, i) => { const li = document.createElement('li'); const mine = r.isMe || (LB.uid && r.id === LB.uid); li.className = 'lb-row' + (mine ? ' me' : '');
       const rk = document.createElement('span'); rk.className = 'rk' + (i === 0 ? ' g' : i === 1 ? ' s' : i === 2 ? ' b' : ''); rk.textContent = i < 3 ? ['🥇', '🥈', '🥉'][i] : `${i + 1}`; li.appendChild(rk);
       const p = ps[r.id]; if (p && p.avatarUrl) { const im = document.createElement('img'); im.src = p.avatarUrl; im.alt = ''; li.appendChild(im); } else { const av = document.createElement('span'); av.className = 'av'; av.textContent = (r.nick || 'D')[0].toUpperCase(); li.appendChild(av); }
-      const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = (r.nick || (p && p.name) || 'Diver') + (mine ? ' (you)' : ''); const sm = document.createElement('small'); sm.textContent = `${r.levels || 0} levels cleared`; nm.appendChild(sm); li.appendChild(nm);
-      const sv = document.createElement('span'); sv.className = 'sv'; sv.innerHTML = '<i class="st">★</i>'; sv.appendChild(document.createTextNode(r.stars || 0)); li.appendChild(sv);
-      const sc = document.createElement('span'); sc.className = 'sc'; sc.textContent = (r.score || 0).toLocaleString(); li.appendChild(sc); return li; };
+      const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = (r.nick || (p && p.name) || 'Diver') + (mine ? ' (you)' : ''); const sm = document.createElement('small'); sm.textContent = by ? `${(+r.air).toFixed(1)} s of air used` : `${r.levels || 0} levels cleared`; nm.appendChild(sm); li.appendChild(nm);
+      const sv = document.createElement('span'); sv.className = 'sv'; if (by) sv.textContent = `${(+(by === 'air' ? r.air : r.t)).toFixed(1)}s`; else { sv.innerHTML = '<i class="st">★</i>'; sv.appendChild(document.createTextNode(r.stars || 0)); } li.appendChild(sv);
+      const sc = document.createElement('span'); sc.className = 'sc'; sc.textContent = by ? (by === 'air' ? `${(+r.t).toFixed(1)}s` : '') : (r.score || 0).toLocaleString(); li.appendChild(sc); return li; };
     list.innerHTML = ''; me.innerHTML = '';
     if (!rows.length) { const e = document.createElement('li'); e.className = 'lb-empty'; e.textContent = 'Be the first diver on the board!'; list.appendChild(e); return; }
     rows.forEach((r, i) => list.appendChild(row(r, i)));
@@ -3444,7 +3524,7 @@ window.__T = T;
   function go(id) {
     if (id === 'home' && state !== 'menu' && state !== 'splash' && !go.inHome) { go.inHome = true; try { openHome(); } finally { go.inHome = false; } return; }
     if (id === 'back') { id = screenStack.pop() || 'home'; } else { const cur = document.querySelector('.screen.on'); if (cur && cur.id !== id && id !== 'home') screenStack.push(cur.id); if (id === 'home') screenStack = []; }
-    if (id === 'shop') openShop(); if (id === 'rewards') buildRewards(); if (id === 'ranks') openRanks(); else if (LB.unsub) { LB.unsub(); LB.unsub = null; }
+    if (id === 'shop') openShop(); if (id === 'rewards') buildRewards(); if (id === 'ranks') openRanks(lbTab); else if (LB.unsub) { LB.unsub(); LB.unsub = null; }
     if (id === 'levels') buildLevels(); if (id === 'profile') buildProfile(); if (id === 'settings') syncSettings(); if (id === 'home') refreshHome();
     if (id === 'name') { $('#nameInput').value = save.name || ''; setTimeout(() => $('#nameInput').focus(), 50); }
     show(id);
@@ -3457,15 +3537,29 @@ window.__T = T;
     const next = Math.min(save.unlocked, LEVELS.length);
     $('#playSub').textContent = save.unlocked > 1 ? `Continue · Level ${next}` : `Level 1 · ${LEVELS[0].name}`;
     $('#hmName').textContent = save.name || 'Diver'; $('#hmAva').textContent = (save.name || 'D')[0].toUpperCase(); $('#hmStars').textContent = totalStars(); $('#hmLvl').textContent = next;
-    $('#hmDot').hidden = claimableCount() === 0; syncCoins();
+    $('#hmDot').hidden = claimableCount() === 0; syncCoins(); syncDiveBtn();
   }
 
   let menuEngine = null;
-  function showMenuScene() { if (menuKeep) { menuKeep = false; return; } if (menuEngine && world.e === menuEngine) return; /* already on screen: never rebuild the same scene */ menuEngine = new Engine(LEVELS[0]); menuEngine.time = 1e9; menuEngine.oxygen = 1e9; menuEngine.menu = true; world.loadLevel(menuEngine); world.onTick(menuEngine, performance.now()); }
-  function openHome() { setPeekSafe(); setState('menu'); go('home'); showMenuScene(); idleThumbs(); }
+  function showMenuScene() { if (menuKeep) { menuKeep = false; return; } if (menuEngine && world.e === menuEngine) return; /* already on screen: never rebuild the same scene */ menuEngine = new Engine(LEVELS[0]); menuEngine.time = 1e9; menuEngine.oxygen = 1e9; menuEngine.menu = true; world.loadLevel(menuEngine); world.onTick(menuEngine, performance.now()); reefProgress(); }
+  function reefProgress() { const c = cleared(); world.reefLights = c * 3; world.reefK = c / LEVELS.length; }
+  function openHome() { setPeekSafe(); Audio.setTension(0); setState('menu'); go('home'); showMenuScene(); reefProgress(); idleThumbs(); }
   function setPeekSafe() { try { world.peek = false; } catch {} }
   // ---- intro cinematic: plays once (first launch) or on request; skippable; can't double-start
-  function tickWorld(e, t) { if (e === engine && e.events && e.events.some(v => v.type === 'dig')) buzz(5); world.onTick(e, t); }
+  function tickWorld(e, t) { if (e === engine && e.events && e.events.length) feel(e); world.onTick(e, t); }
+  // haptics + music cues for what just happened in the tank
+  function feel(e) { const pl = e.player; let best = 0, pat = null; const want = (p, w) => { if (w > best) { best = w; pat = p; } };
+    for (const v of e.events) switch (v.type) {
+      case 'dig': want(5, 1); break;
+      case 'push': want(8, 2); break;
+      case 'gateLocked': want(14, 3); break;
+      case 'land': if (pl) { const d = Math.max(Math.abs(pl.x - v.x), Math.abs(pl.y - v.y)); if (d <= 1) want([26, 40, 16], 6); else if (d <= 3) want(12, 3); } break;
+      case 'monsterDeath': want([20, 30, 20], 5); weekBump('bonk'); break;
+      case 'teeter': want([22, 50, 22], 7); break;
+      case 'absorb': want([18, 50, 30], 8); break;
+      case 'gateOpen': want([30, 60, 30, 60, 90], 9); Audio.swell(); break;
+    }
+    if (pat) buzz(pat); }
   let cineRunning = false;
   // ---- opening cinematic: the real game, played by itself (route verified to win Level 1)
   let cine = null, cineEngine = null;
@@ -3536,24 +3630,53 @@ window.__T = T;
   $('#skipIntro').addEventListener('click', () => { click(); endCine(); });
   $('#btnReplayIntro').addEventListener('click', () => { click(); startCine(); });
 
+  // ---- star map: one winding path diving from the Sunlit Shallows down to the Deep. Woken gates glow, the reef around them
+  // lights up (gate collection), and the diver travels to the newly unlocked level.
+  const SM = { step: 96, head: 92, top: 40 };
+  const smX = i => 50 + 31 * Math.sin(i * 0.95 + 0.4); // % across
+  function smY(i) { const w = WORLDS.findIndex(w => i >= w.from && i < w.to); return SM.top + (w + 1) * SM.head + i * SM.step; }
+  function smPt(i, t) { const x0 = smX(i), y0 = smY(i), x1 = smX(i + 1), y1 = smY(i + 1), u = 1 - t; // the same cubic as the drawn path
+    const cy0 = y0 + (y1 - y0) / 2, cy1 = y1 - (y1 - y0) / 2; return [u * u * u * x0 + 3 * u * u * t * x0 + 3 * u * t * t * x1 + t * t * t * x1, u * u * u * y0 + 3 * u * u * t * cy0 + 3 * u * t * t * cy1 + t * t * t * y1]; }
+  const DECOR = [['🪸', '🐚', '🐠', '🌿', '⭐', '🐡'], ['🪸', '💜', '🦑', '🐚', '🔮', '🐠'], ['🐙', '✨', '🦐', '💎', '🪼', '🐟']];
+  const cleared = () => Object.keys(save.stars).filter(k => +k <= LEVELS.length).length;
   function buildLevels() {
-    const box = $('#worlds'); box.innerHTML = '';
-    WORLDS.forEach((w, wi) => {
-      const sec = document.createElement('div'); sec.className = 'world w' + wi;
-      let st = 0; for (let i = w.from; i < w.to; i++) st += save.stars[i + 1] || 0;
-      sec.innerHTML = `<h3><em>World ${wi + 1}</em>${w.name}<span>★ ${st} / ${(w.to - w.from) * 3}</span></h3>`;
-      const grid = document.createElement('div'); grid.className = 'lgrid';
-      for (let i = w.from; i < w.to; i++) {
-        const n = i + 1, locked = n > save.unlocked, stars = save.stars[n] || 0;
-        const b = document.createElement('button'); b.className = 'lvl' + (locked ? ' locked' : '') + (n === save.unlocked ? ' cur' : '') + (stars === 3 ? ' perfect' : '');
-        b.setAttribute('aria-label', locked ? `Level ${n}, locked` : `Level ${n}, ${LEVELS[i].name}, ${stars} stars`);
-        b.innerHTML = locked ? `<span class="n">${n}</span><svg class="i" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`
-          : `<span class="n">${n}</span><span class="st">${'★'.repeat(stars)}<i>${'★'.repeat(3 - stars)}</i></span>`;
-        if (!locked) b.onclick = () => { click(); startLevel(i); };
-        grid.appendChild(b);
-      }
-      sec.appendChild(grid); box.appendChild(sec);
-    });
+    const box = $('#worlds'); box.innerHTML = ''; box.className = 'smap-scroll';
+    const N = LEVELS.length, H = smY(N - 1) + 110, map = document.createElement('div'); map.className = 'smap'; map.style.height = H + 'px';
+    // world bands + headers + decor that lights up as that world's gates wake
+    WORLDS.forEach((w, wi) => { const y0 = wi ? smY(w.from) - SM.head - SM.step / 2 + 20 : 0, y1 = wi < WORLDS.length - 1 ? smY(w.to) - SM.head - SM.step / 2 + 20 : H;
+      const band = document.createElement('div'); band.className = 'sm-band w' + wi; band.style.top = y0 + 'px'; band.style.height = (y1 - y0) + 'px'; map.appendChild(band);
+      let st = 0, awake = 0; for (let i = w.from; i < w.to; i++) { st += save.stars[i + 1] || 0; if (save.stars[i + 1]) awake++; }
+      const hd = document.createElement('div'); hd.className = 'sm-world'; hd.style.top = (smY(w.from) - SM.head + 6) + 'px';
+      hd.innerHTML = `<em>World ${wi + 1}</em><b></b><span><i class="g">✦ ${awake}/${w.to - w.from} gates awake</i><i>★ ${st}/${(w.to - w.from) * 3}</i></span>`; hd.querySelector('b').textContent = w.name; map.appendChild(hd);
+      const lit = awake / (w.to - w.from); DECOR[wi].forEach((d, k) => { const el = document.createElement('span'); const i = w.from + Math.min(w.to - w.from - 1, Math.round(k * 1.7 + 0.5)); const side = smX(i) > 50 ? -1 : 1;
+        el.className = 'sm-deco' + (k / DECOR[wi].length < lit ? ' on' : ''); el.textContent = d; el.style.left = Math.max(4, Math.min(92, smX(i) + side * (22 + (k % 2) * 9))) + '%'; el.style.top = (smY(i) + (k % 3 - 1) * 26) + 'px'; map.appendChild(el); }); });
+    // the path: dashed all the way, glowing up to the furthest unlocked level
+    const reach = Math.min(save.unlocked, N) - 1; let d = '', dl = '';
+    for (let i = 0; i < N - 1; i++) { const seg = `${i ? '' : `M${smX(0)} ${smY(0)}`} C${smX(i)} ${(smY(i) + smY(i + 1)) / 2} ${smX(i + 1)} ${(smY(i) + smY(i + 1)) / 2} ${smX(i + 1)} ${smY(i + 1)}`; d += seg; if (i < reach) dl += seg; }
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'sm-path'); svg.setAttribute('viewBox', `0 0 100 ${H}`); svg.setAttribute('preserveAspectRatio', 'none'); svg.style.height = H + 'px';
+    svg.innerHTML = `<path class="sm-trail" d="${d}"/>` + (dl ? `<path class="sm-lit" d="${dl}"/>` : ''); map.appendChild(svg);
+    for (let i = 0; i < N; i++) { const n = i + 1, locked = n > save.unlocked, stars = save.stars[n] || 0, wi = WORLDS.findIndex(w => i >= w.from && i < w.to);
+      const b = document.createElement('button'); b.className = `sm-node w${wi}` + (locked ? ' locked' : stars ? ' awake' : '') + (n === save.unlocked ? ' cur' : '') + (stars === 3 ? ' perfect' : '');
+      b.style.left = smX(i) + '%'; b.style.top = smY(i) + 'px'; b.setAttribute('aria-label', locked ? `Level ${n}, locked` : `Level ${n}, ${LEVELS[i].name}, ${stars} stars`);
+      b.innerHTML = locked ? `<span class="n">${n}</span><svg class="i" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`
+        : `<span class="n">${n}</span><span class="st">${'★'.repeat(stars)}<i>${'★'.repeat(3 - stars)}</i></span>`;
+      if (!locked) b.onclick = () => { click(); startLevel(i); };
+      if (!locked && save.runs && save.runs[n]) { const wb = document.createElement('span'); wb.className = 'sm-watch'; wb.setAttribute('role', 'button'); wb.setAttribute('aria-label', `Watch your best run of level ${n}`); wb.textContent = '▶';
+        wb.onclick = ev => { ev.stopPropagation(); startReplay(n, 'levels'); }; b.appendChild(wb); }
+      if (!locked) { const nm = document.createElement('small'); nm.className = 'sm-name'; nm.textContent = LEVELS[i].name; nm.classList.toggle('left', smX(i) > 50); b.appendChild(nm); }
+      map.appendChild(b); }
+    // the diver: travels from where the map last showed it to the newest level
+    const dv = document.createElement('div'); dv.className = 'sm-diver'; const th = thumbs['suit:' + save.equip.suit];
+    dv.innerHTML = th ? `<img alt="" src="${th}">` : '<span>🤿</span>'; map.appendChild(dv);
+    const from = Math.max(0, Math.min(reach, (save.mapAt || save.unlocked) - 1)), place = (x, y) => { dv.style.left = x + '%'; dv.style.top = y + 'px'; };
+    place(smX(from), smY(from)); box.appendChild(map);
+    setTimeout(() => { const cur = map.querySelector('.sm-node.cur') || map.querySelectorAll('.sm-node')[from]; if (cur) box.scrollTop = Math.max(0, smY(from) - box.clientHeight * 0.45); }, 30);
+    if (from < reach) { const t0 = performance.now() + 450, per = 700; dv.classList.add('travel');
+      const run = now => { const k = (now - t0) / per; if (k < 0) { requestAnimationFrame(run); return; } const seg = Math.min(reach - from - 1, Math.floor(k)), t = Math.min(1, k - seg), e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        const [x, y] = smPt(from + seg, e); place(x, y); box.scrollTop += ((y - box.clientHeight * 0.45) - box.scrollTop) * 0.12;
+        if (k < reach - from) requestAnimationFrame(run); else { place(smX(reach), smY(reach)); dv.classList.remove('travel'); dv.classList.add('arrive'); buzz(15); Audio.play('click'); } };
+      requestAnimationFrame(run); }
+    save.mapAt = reach + 1; persist();
     $('#lvStars').textContent = `${totalStars()} / ${LEVELS.length * 3}`;
   }
   function buildProfile() {
@@ -3570,15 +3693,15 @@ window.__T = T;
   // ---- levels ----
   function startLevel(i, custom) {
     if (typeof booting !== 'undefined' && booting) dropLoader();
-    runTreasures = 0; runTreasureSet.clear();
-    levelIdx = i; const lv = custom || LEVELS[i];
-    engine = new Engine(lv); world.loadLevel(engine);
+    runTreasures = 0; runTreasureSet.clear(); runLog = ''; runUndo = false; runHint = false;
+    levelIdx = i; const lv = custom || LEVELS[i]; dive = custom && custom.daily ? custom : null;
+    engine = new Engine(lv); engine.relaxed = !!save.settings.relaxed && !dive; // the Daily Dive is a race: always on the clock world.loadLevel(engine); hideStuck(); stuckKey = ''; Audio.setTension(0); document.body.classList.toggle('relaxed', engine.relaxed);
     window.__LEVELSCENE = (custom || LEVELS[i]).scene || null; history = []; stuckTimer = 0; stuckShown = false; gateNudged = true; coachStart(i, custom);
     { const ph = $('#pauseHint'); if (ph) ph.textContent = lv.hint || ''; }
     tickWorld(engine, performance.now());
     held.clear(); heldOrder = []; acc = 0; overTimer = 0; lowAirBeep = 0; resultShown = false; endTouch();
-    $('#introNum').textContent = `Level ${i + 1} of ${LEVELS.length}`; $('#introName').textContent = lv.name; $('#introHint').textContent = lv.hint;
-    $('#introBalls').textContent = engine.ballsTotal === 1 ? '1 energy pearl' : `${engine.ballsTotal} energy pearls`; $('#introAir').textContent = `${lv.time}s of air`;
+    $('#introNum').textContent = dive ? `Daily Dive · ${new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}` : `Level ${i + 1} of ${LEVELS.length}`; $('#introName').textContent = lv.name; $('#introHint').textContent = lv.hint;
+    $('#introBalls').textContent = engine.ballsTotal === 1 ? '1 energy pearl' : `${engine.ballsTotal} energy pearls`; $('#introAir').textContent = engine.relaxed ? 'Relaxed: no air timer' : `${lv.time}s of air`;
     screenStack = []; setState('intro'); show('intro'); hudKey = ''; updateHud();
     Audio.setMusic(save.settings.music);
   }
@@ -3587,13 +3710,18 @@ window.__T = T;
   // ---- level-1 coach: follows the verified winning route. When the player hesitates it shows a glowing trail to where the
   // diver should go next and, once there, an animated hand (key cap on computers) showing which way to swipe.
   // If the pearl ends up somewhere the route can't recover from, it points at Undo instead.
-  const COACH_ROUTE = 'DDDRRRL..DRRRRRRL..UULLLLDLDR..R..R..R..R..R..R';
-  const COACH = { on: false, refs: null, idle: 0, lastP: '', undoShown: false };
+  // verified winning route of every level (synced from tests/routes.json by tools/build.py): drives the level-1 coach and "Show me" hints
+  // Daily Dive puzzles (verified with tools/solver; see tools/solver/daily/), one per day in a fixed shuffle
+  const DAILY_LEVELS = /*daily*/[]/*end*/;
+  const ROUTES = /*routes*/{"1":"DDDRRRL..DRRRRRRL..UULLLLDLDR..R..R..R..R..R..R","2":"RRRRDDDRRRRL...LLLLDDRRRRR.","3":"RRRRRRRRDLLULLLLDRR..RDDRDD.","4":"DDDRRRRRRRRRRLLLLUDL.RRRRRR.","5":"LLLLULLLLLLDD...LRURRRDDDLLUDL.RRRRRRRRRR.","6":"RRRRDR........RDRRRRRDDDLLLLLLLLLLL.","7":"RRRRDDRRUDL...RRLLLUULLLLDDRRRRRRRRRRRRR.","8":"LLULLLLLLLLLDRRRRRLLLLLLDDDDRRRRRRRRRRRR.","9":"LLLLLLLLLLDLLLLLD.......DRRRRRR.....R.RRDDRDLLLLLLLLLL.","10":"RRRDDDDRRRRLUUUDDDL.RRLRRRRRRUULLULLDDRDR...LLLLLLLLULLDRRRRRRRRRRRRRR.","11":"LLLLLLLLLLLLLDDRRRRRRRR.....LLLLLLLLDDRRRRRRLLLLLLUULLDDRRRRRRRRRRRRR.","12":"URRRDRRRRRRRRRRRRRLLLLLLLLLLLLLULLDRRRRRRRRRRRRRRRLLLLLLLLDURRRRRRRRRRRDDDDLLLLLLLLLLLLLLLLULLDDDRRRRRRRRRRRRRRRRRLLLLLLLLLLLLLLLLUURRRRRRRRRRRRRRUURUURRDDDDLLLLLLLUDLLLLLLLLLULLDDDRRRRRRRRRRRRRRRRRR.","13":"RRDDUU....RRRRRRRRRRRRRRDDDDDLLLLLLLLLLLLUUUDDDRR......LLUUUUURRRRRRRRRRRRDDDDDLLLLLLLLLLL.LD.","14":"RRRDDR....RRRRURRDLLLLRRRRRRRRUD...LRURRDLLLUDLLLLLLLLLLLULLDRRRRRRRRRRR.....RDDDDD.","15":"RRDDDDDLRRRLLUUUUURRRRRDDDDDLLL..LLUUUURRRRRDDDDUUUUULLLLLDDDDDRRRR..LLLLRRRRRUUUUURRRRDDDDDLRRRRRLLLLUUUUULLLLDDDDDRRRRUUUUULLLLDDDDDRRRRRRRLLLUUUUULLLLDDDDDRRRRRRLLLLLLLLLLL.LD.","16":"DDDDDDDRURRRDRRRLLLLULLDRRRRRRRLLLLUUUUUUURRRRRRRR....RDDDDDDLLUULLLRUULLLDDRRRRLDUUULLLDDRR....RDDDD.","17":"DDDRRRRRRRL.RRRRRR.RRRRRUUULLLLLLLRRRRRRRDDDLLLLLLLLLLLLLLLLLUUURRRRRRRRRRRRRRRLRRRDDDLLLLLLLLLLLLLLLRLLLDDDRRRRRRRRRRRRRRRRR.","18":"UUUUURRRRRRRRRRRRRRRRDDDDR..RL....DRLLLLLLLLLLLLUDL.RRRRRLLLLLLLUUDDL.RRRRRRRRRRRRRRRRRR.","19":"RRRRRRRRRRRRDLULLDRLLLLULLDRRLLULLDRRRRLLLLULLDRRRRRRURRRRRRRRDLURRRDLLLLLLU..........LLDDDDRDDRDDD.","20":"RRRRRDDDDLRRLUUUURRRRRRRRRRRDDDDLLLLLLLLLLLRRRR.RRRRRRRUUUU..LL...LLLLLLLLLDDDDRRRRRRRRRRRUUUULLLLLLLLLLLDDDDRRRRRRRRRRRUUUULLLLLLLLLLLLLLLDDDDRRRRRRRRRRRRRRRR.","21":"DDDDDLLLLLLLLLLLLLUUUULLULRRRR..........LDDDDDLLLLLLLRRRRRRRRRRRRRRRRRRRRUUUUULLLLLLRRRRRRDDDDDLLLLLLLLLLLLLLLLLLLLL.","22":"RRRRRRRRRRRRRRRRRDLRDDLDLDLDLLLLRRRRURURURUULULLLLLLLLLLLLDRR....RR...RURRLLDDDDDDLRUUUUUULLLLLLLLDRRRRRRURRRRRDL.........RURRDLLLULLDURDLDDDDDRDD.","23":"RUUURRRRRRRRRRRRRRRRRRRRDDDLLLLLLLLLLLLUDR..RRRRRRRRRRRUUULLLLLLLLLLLLLLLLLLLLDDDRRUDRRRRUDRRRRRUDRRRRRUDRRR.RUUULLLLLLLLLLLLLLLLLLLLLRDDDLDDDDRRRRRUDRRRRRRUDRRRRRUDRRRRR.","24":"RRRRDU......RRRRRRRR..DU.....RRRR...DU....RRDDDDLLLLLLLLLLLLL.LRRRRRRRRRRRRRRUUUULLLLLLLLLLLLLLLLLLDDDDRRRRR..RRRRRRRRRRRRRR.","25":"RRRRRDDD....DLLR......RUUUURRRRDDDDRRL......LUUUULLLLDDDDRRL....DRRRRRRRRRRRRLLLLLLLLLLLLULUUUULLLLLDDDDDRRRRRRRRRRRRRRRRRRR.","26":"RRRRRRDDDDLLRULLR....RRUUULLLLLLDDDDRRL...LUUUURRRRRRDDDDDDR....RL....DLUUUUUUURRRRRRRDDDDDDRR.L.....LDLLRRRRRRLLLLUUUUUUURRRRRRRRDDDDDDLLR....RDLLLLLLLLLLLLLLLLLLL.","27":"RRDD..U...RRRRRRRRRURRRRRRD....DU....LLLLULLLLDDU....DDDLLLLLRRRRRRRRRRLLLLLLLUUUULLLLLLLDDDDRRRRRRRRRRRRRRRRRRRRLLLLLLLLUDL.RRRRRRRRRR.","28":"RRRRRDRRURRDLLRRURRDLLLLRRRRURRRDRRRRURRDLLLL.....LLLLRLULLLLLLDLDDDDRRRRRRRRRRRRRRRDULLLLLLLLLLLLLLLUUUURRRRRRRRLLLLLLLLDDDDRRRRRRRRRRRRRRLLLLLLLLLLLLLLUUUULLRLULLDRRRLLLLLDDDDRRRRRRRRRRRRRRRRRRRR..RDD.","29":"RRDD......U...RRRRRRRRUDDU........RRRRRRRUD......DU....RRDU...LLLLLLLLLDDDLLLLLLRRRRRRRRRRRLLLLLDDDDRRRRRRRRRRLLLLLLLLLLLLLLLLLLLLUUUURRRRRRRRRLLLLLLLLLDDDDRRRRRRRRRRRRRRRRRRRRLLLLLLLLLLUUUUUURRRRRRRRRRRDDLLLLLLLLLLRLLLLLLLLLLLLDDDDRRRRRRRRRRRRRRRRRRRRR.","30":"RRRRDU....RRRRRRRDU..........RRDURRDLLLLLLLDDDDDRRRRRRRRRLLLLLLLLLLLUUULRDDDLRRRRRUUUUUULLLLLLLLLLDDDRRRRRLLLLLUUURRRRRRRRDDDDDDUUUUUULLLLLDDDRRRDDLDRRRRRRRRRRRRLLLLLLLUUUUUULLLDULLDRRLLLLLLLUDDDRRRRRRDDDRRRRRRRRRRRLLLLLLLUUUUUURRRRRRDLLLLLULLLDDDDDDRRRRRRRRRR."}/*end*/;
+  const COACH = { on: false, auto: false, hint: 0, route: '', lvl: null, refs: null, idle: 0, lastP: '', ck: '', undoShown: false };
   const objKey = (e) => { const a = []; for (const o of e.objects.values()) if (o.t === T.ROCK || o.t === T.BALL) a.push(o.x + ',' + o.y); return a.sort().join(';') + '|' + e.ballsIn; };
-  function coachStart(i, custom) { COACH.on = i === 0 && !custom; COACH.idle = 0; COACH.undoShown = false; world.setCoachTrail(null); coachHand(null);
-    if (!COACH.on) return;
-    if (!COACH.refs) { const e = new Engine(LEVELS[0]); e.time = e.oxygen = 999; const M = { U: 'up', D: 'down', L: 'left', R: 'right' }; COACH.refs = [{ key: objKey(e), p: [e.player.x, e.player.y] }];
-      for (const c of COACH_ROUTE) { if (c !== '.') e.press(M[c]); e.step(); COACH.refs.push({ key: objKey(e), p: e.player ? [e.player.x, e.player.y] : null }); } } }
+  function coachStart(i, custom) { COACH.auto = i === 0 && !custom; COACH.hint = 0; COACH.on = COACH.auto; COACH.idle = 0; COACH.ck = ''; COACH.undoShown = false; world.setCoachTrail(null); coachHand(null);
+    const lv = custom || LEVELS[i], route = custom ? custom.route || '' : ROUTES[i + 1] || ''; if (COACH.lvl !== lv) { COACH.lvl = lv; COACH.route = route; COACH.refs = null; } }
+  function coachRefs() { if (COACH.refs || !COACH.route) return COACH.refs;
+    const e = new Engine(COACH.lvl); e.time = e.oxygen = 9999; const M = { U: 'up', D: 'down', L: 'left', R: 'right' }; const R = COACH.refs = [{ key: objKey(e), p: [e.player.x, e.player.y] }];
+    for (const c of COACH.route) { if (c !== '.') e.press(M[c]); e.step(); R.push({ key: objKey(e), p: e.player ? [e.player.x, e.player.y] : null }); }
+    R.keys = new Set(R.map(r => r.key)); return R; }
   function coachHand(pos, dir) { const h = $('#coachHand'); if (!pos) { h.classList.remove('on'); return; }
     h.style.left = pos[0] + 'px'; h.style.top = pos[1] + 'px'; h.dataset.dir = dir; h.classList.add('on'); h.classList.toggle('keys', !document.body.classList.contains('touch')); }
   function coachPath(e, from, to) { const W = e.w, H = e.h, prev = new Int32Array(W * H).fill(-1), q = [from[1] * W + from[0]]; prev[q[0]] = q[0]; const goal = to[1] * W + to[0];
@@ -3602,30 +3730,65 @@ window.__T = T;
       for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = cx + dx, ny = cy + dy, n = ny * W + nx; if (nx < 0 || ny < 0 || nx >= W || ny >= H || prev[n] >= 0 || !ok(nx, ny)) continue; prev[n] = c; q.push(n); } }
     if (prev[goal] < 0) return null; const out = []; for (let c = goal; c !== prev[c]; c = prev[c]) out.push([c % W, (c / W) | 0]); return out.reverse(); }
   function coachTick(realDt) {
-    if (!COACH.on || state !== 'playing' || !engine || !engine.player || engine.state !== 'playing') { if (COACH.on) { world.setCoachTrail(null); coachHand(null); } return; }
-    const pk = engine.player.x + ',' + engine.player.y; if (pk !== COACH.lastP) { COACH.lastP = pk; COACH.idle = 0; world.setCoachTrail(null); coachHand(null); } else COACH.idle += realDt;
-    const wait = save.stars[1] ? 6 : COACH.firstDone ? 3.5 : 1.2; if (COACH.idle < wait) return;
-    const pl = [engine.player.x, engine.player.y]; let target = null, dir = null;
+    COACH.on = COACH.auto || COACH.hint > 0;
+    if (!COACH.on || state !== 'playing' || !engine || !engine.player || engine.state !== 'playing') { if (COACH.trail) { COACH.trail = false; world.setCoachTrail(null); coachHand(null); } return; }
+    const pk = engine.player.x + ',' + engine.player.y; if (pk !== COACH.lastP) { if (COACH.lastP && COACH.hint > 0) { COACH.hint--; if (!COACH.hint) { COACH.trail = false; world.setCoachTrail(null); coachHand(null); hintSync(); return; } } COACH.lastP = pk; COACH.idle = 0; if (!COACH.hint) { COACH.trail = false; world.setCoachTrail(null); coachHand(null); } } else COACH.idle += realDt;
+    const wait = COACH.hint > 0 ? 0 : save.stars[1] ? 6 : COACH.firstDone ? 3.5 : 1.2; if (COACH.idle < wait) return;
+    const cur = objKey(engine), ck = pk + '|' + cur + '|' + engine.gate.open; if (ck === COACH.ck && COACH.trail) return; COACH.ck = ck; // nothing changed since the last hint drawn
+    const pl = [engine.player.x, engine.player.y]; let target = null, dir = null; const R = coachRefs(); if (!R) return; const RT = COACH.route;
     if (engine.gate.open) target = [engine.gate.x, engine.gate.y];
-    else { const R = COACH.refs, cur = objKey(engine); let j = -1; for (let k = R.length - 1; k >= 0; k--) if (R[k].key === cur) { j = k; break; }
-      if (j < 0) { world.setCoachTrail(null); coachHand(null); if (!COACH.undoShown) { COACH.undoShown = true; toast(document.body.classList.contains('touch') ? 'Oops! Tap ↶ to undo' : 'Oops! Press Z to undo'); $('#btnUndo').classList.add('nudge'); setTimeout(() => $('#btnUndo').classList.remove('nudge'), 4000); } return; }
+    else { let j = -1; for (let k = R.length - 1; k >= 0; k--) if (R[k].key === cur) { j = k; break; }
+      if (j < 0) { world.setCoachTrail(null); coachHand(null); COACH.trail = false; if (COACH.hint > 0) { COACH.hint = 0; hintSync(); offRoute(); return; }
+        if (!COACH.undoShown) { COACH.undoShown = true; toast(document.body.classList.contains('touch') ? 'Oops! Tap ↶ to undo' : 'Oops! Press Z to undo'); $('#btnUndo').classList.add('nudge'); setTimeout(() => $('#btnUndo').classList.remove('nudge'), 4000); } return; }
       let k = j + 1; while (k < R.length && R[k].key === cur) k++; if (k >= R.length) target = [engine.gate.x, engine.gate.y];
-      else { let m = k; while (m > 0 && COACH_ROUTE[m - 1] === '.') m--; target = R[m - 1].p; dir = COACH_ROUTE[m - 1]; } }
-    if (!target) return; COACH.firstDone = true;
+      else { let m = k; while (m > 0 && RT[m - 1] === '.') m--; target = R[m - 1].p; dir = RT[m - 1]; } }
+    if (!target) return; COACH.firstDone = true; COACH.trail = true;
     if (pl[0] === target[0] && pl[1] === target[1] && dir) { world.setCoachTrail(null); const sp = world.toScreen(pl[0], pl[1]); coachHand(sp, dir); }
     else { const path = coachPath(engine, pl, target); world.setCoachTrail(path); coachHand(null);
       if (path && path.length) { const first = path[0], d = first[0] > pl[0] ? 'R' : first[0] < pl[0] ? 'L' : first[1] > pl[1] ? 'D' : 'U'; coachHand(world.toScreen(pl[0], pl[1]), d); } } }
-  function banner(small, big, line, ms) { const lv = LEVELS[levelIdx], b = $('#lvlBanner'); if (!lv) return;
-    let tip = line || '';
+  function banner(small, big, line, ms) { const lv = dive || LEVELS[levelIdx], b = $('#lvlBanner'); if (!lv) return;
+    let tip = line || ''; if (small === undefined && dive) { small = 'Daily Dive'; big = dive.name; tip = 'Same puzzle for every diver today. Go fast!'; ms = 2600; }
     if (small === undefined) { small = `Level ${levelIdx + 1}`; big = lv.name; tip = (lv.tip && !(save.tipsSeen || {})[levelIdx]) ? lv.tip : ''; if (tip) { save.tipsSeen = save.tipsSeen || {}; save.tipsSeen[levelIdx] = 1; persist(); } ms = tip ? 3600 : 1900; }
     $('#lbNum').textContent = small; $('#lbName').textContent = big; $('#lbTip').textContent = tip; b.classList.toggle('go', big === 'Swim in!');
     b.classList.add('on'); clearTimeout(bannerTimer); bannerTimer = setTimeout(() => b.classList.remove('on'), ms || 1900); }
   let toastTimer = null;
   function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 2200); }
+  // ---- "Show me" hints: the coach walks the next 5 moves of the level's verified route. One free hint every 90 s, or pay coins now.
+  const HINT = { cost: 25, every: 90, readyAt: 0 };
+  const hintFree = () => performance.now() >= HINT.readyAt;
+  function hintSync() { const b = $('#btnHint'); if (!b) return; const free = hintFree(), left = Math.ceil((HINT.readyAt - performance.now()) / 1000);
+    b.classList.toggle('on', COACH.hint > 0); const tg = b.querySelector('em'); const txt = COACH.hint > 0 ? COACH.hint : free ? 'free' : HINT.cost; if (tg.textContent !== String(txt)) tg.textContent = txt; b.classList.toggle('free', free && !COACH.hint);
+    b.setAttribute('aria-label', free ? 'Show me the next moves (free)' : `Show me the next moves (${HINT.cost} coins, free again in ${left}s)`); }
+  function showMe() { if (state !== 'playing' || !engine || engine.state !== 'playing') return; click();
+    if (!COACH.route) { toast('No hint for this dive'); return; }
+    if (COACH.hint > 0) { COACH.hint = 0; hintSync(); return; } // tap again to hide it
+    if (!coachRefs()) return;
+    if (!engine.gate.open && !COACH.refs.keys.has(objKey(engine))) { offRoute(); return; } // nothing spent: the board has left every known path
+    if (!hintFree()) { if (save.coins < HINT.cost) { toast(`Free hint in ${Math.ceil((HINT.readyAt - performance.now()) / 1000)} s (or ${HINT.cost} coins)`); return; } save.coins -= HINT.cost; persist(); syncCoins(); toast(`Hint · −${HINT.cost} coins`); }
+    else HINT.readyAt = performance.now() + HINT.every * 1000;
+    runHint = true; COACH.hint = 5; COACH.lastP = engine.player.x + ',' + engine.player.y; COACH.ck = ''; COACH.idle = 0; buzz(12); hintSync(); }
+  $('#btnHint').onclick = showMe;
+  // the board left the verified route: find the newest undo snapshot that's back on it and offer to rewind there
+  function offRoute() { const R = coachRefs(); let k = -1; if (R) for (let i = history.length - 1; i >= 0; i--) if (R.keys.has(objKey(history[i]))) { k = i; break; }
+    if (k >= 0) stuckCard('This board has left the known path.', `Rewind ${history.length - k} move${history.length - k === 1 ? '' : 's'}`, () => { history.length = k + 1; undo(); setTimeout(showMe, 50); });
+    else stuckCard('This board has left the known path.', 'Restart', () => { restart(); }); }
+  // ---- "Stuck? Undo": a pearl that can never reach the gate (below it, or boxed in on a solid floor) gets an immediate prompt
+  function deadPearl(e) { if (!e.gate || e.gate.open) return null; const solid = (x, y) => { const t = e.get(x, y); return t === T.STEEL || t === T.WALL; };
+    for (const o of e.objects.values()) { if (o.t !== T.BALL) continue; if (o.y > e.gate.y) return o; if (!o.falling && solid(o.x, o.y + 1) && solid(o.x - 1, o.y) && solid(o.x + 1, o.y)) return o; }
+    return null; }
+  let stuckKey = '';
+  function checkStuck() { const o = deadPearl(engine); if (!o) { stuckKey = ''; return; } const k = o.id + '@' + o.x + ',' + o.y; if (k === stuckKey) return; stuckKey = k;
+    stuckCard(o.y > engine.gate.y ? 'That pearl fell below the gate: it can never get back up.' : 'That pearl is boxed in: it can\'t reach the gate now.', history.length ? 'Undo' : 'Restart', () => { if (history.length) undo(); else restart(); }); buzz([20, 40, 20]); }
+  let stuckCb = null;
+  function stuckCard(msg, act, fn) { const c = $('#stuckCard'); $('#stuckMsg').textContent = msg; $('#stuckAct').textContent = act; stuckCb = fn; c.classList.add('on'); clearTimeout(stuckCard.tm); stuckCard.tm = setTimeout(() => c.classList.remove('on'), 9000); }
+  const hideStuck = () => { $('#stuckCard').classList.remove('on'); stuckCb = null; };
+  $('#stuckAct').onclick = () => { const f = stuckCb; hideStuck(); if (f) f(); };
+  $('#stuckX').onclick = () => { click(); hideStuck(); };
   function pause() { if (state !== 'playing') return; endTouch(); setPeek(false); setState('paused'); syncSound(); show('pause'); }
-  function restart() { click(); startLevel(levelIdx); beginPlay(); }
+  function restart() { click(); startLevel(levelIdx, dive || undefined); beginPlay(); }
   // ---- undo: a snapshot of the whole puzzle before every move the diver makes
   let history = [], stuckTimer = 0, stuckShown = false;
+  let runLog = '', runUndo = false, runHint = false; // this attempt's moves, one char per tick (same format as the verified routes), for "Watch best run"
   function cloneEngine(e) { const n = Object.create(Engine.prototype); Object.assign(n, e);
     n.grid = e.grid.slice(); n.water = e.water.slice(); const map = new Map(); n.objects = new Map();
     for (const [id, o] of e.objects) { const c = { ...o }; map.set(o, c); n.objects.set(id, c); }
@@ -3633,15 +3796,75 @@ window.__T = T;
     n.events = []; n.moveQueue = []; n.held = null; return n; }
   function undo() {
     if (!history.length || !engine || (state !== 'playing' && state !== 'over') || engine.state === 'won' || $('#ending').classList.contains('on')) { if (state === 'playing') toast('Nothing to undo yet'); return; }
-    click(); buzz(10); const snap = history.pop(); const cp = world.camPos.clone(), ct = world.camTarget.clone();
+    click(); buzz(10); hideStuck(); stuckKey = ''; const snap = history.pop(); runUndo = true; if (snap.__log !== undefined) runLog = runLog.slice(0, snap.__log); const cp = world.camPos.clone(), ct = world.camTarget.clone();
     engine = cloneEngine(snap); world.keepTreasures(); world.loadLevel(engine); world.onTick(engine, performance.now()); world.startPlay(); world.camPos.copy(cp); world.camTarget.copy(ct);
     held.clear(); heldOrder = []; endTouch(); acc = 0; overTimer = 0; resultShown = false; hudKey = ''; lastScore = -1;
     if (state !== 'playing') { setState('playing'); show(null); } updateHud(); }
   $('#btnUndo').onclick = undo;
 
+  // ---- watch your best run: the fastest winning attempt is stored as a tick route and played back at 2x
+  let replay = null, lastWin = null; const MV = { U: 'up', D: 'down', L: 'left', R: 'right' };
+  function checkRun(lv, m, relaxed) { try { const e = new Engine(lv); e.relaxed = relaxed; for (const c of m) { if (c !== '.') e.press(MV[c]); e.step(); if (e.state !== 'playing') break; } for (let k = 0; k < 10 && e.state === 'playing'; k++) e.step(); return e.state === 'won'; } catch (er) { return false; } }
+  function startReplay(n, back) { const run = save.runs && save.runs[n]; if (!run) return; click(); hideStuck(); coachHand(null); world.setCoachTrail(null);
+    const e = new Engine(LEVELS[n - 1]); e.relaxed = !!run.rx; e.tickMs = 75; // 2x
+    replay = { e, m: run.m, i: 0, back, n, end: 0 }; world.loadLevel(e); world.onTick(e, performance.now()); world.startPlay(); world.lastTick = performance.now();
+    setState('replay'); show(null); $('#rpName').textContent = `Level ${n} · your best run`; $('#replayTag').hidden = false; acc = 0; }
+  function endReplay() { if (!replay) return; const r = replay; replay = null; $('#replayTag').hidden = true; acc = 0;
+    if (r.back === 'result' && engine && engine.state === 'won') { world.loadLevel(engine); world.onTick(engine, performance.now()); world.startPlay(); setState('over'); show('result'); }
+    else { openHome(); go('levels'); } }
+  function replayTick(realDt, now) { const R = replay; acc = Math.min(acc + realDt * 1000, 300);
+    while (acc >= R.e.tickMs) { acc -= R.e.tickMs; if (R.e.state === 'playing' && R.i < R.m.length) { const c = R.m[R.i++]; if (c !== '.') R.e.press(MV[c]); } R.e.step(); world.onTick(R.e, now - acc); }
+    if (R.e.state !== 'playing' || R.i >= R.m.length) { R.end += realDt; if (R.end > 2.2) endReplay(); } }
+  $('#btnWatch').onclick = () => { if (lastWin) startReplay(lastWin.n, 'result'); };
+  $('#rpSkip').onclick = () => { click(); endReplay(); };
+  // ---- share card: the tank as it looks right now + the result, as a 1080x1350 picture
+  async function shareCard() { if (!lastWin) return; click(); const W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+    try { world.render(); const src = canvas, k = Math.max(W / src.width, H / src.height); g.drawImage(src, (W - src.width * k) / 2, (H - src.height * k) / 2, src.width * k, src.height * k); } catch (er) { g.fillStyle = '#0d63c2'; g.fillRect(0, 0, W, H); }
+    let gr = g.createLinearGradient(0, 0, 0, 420); gr.addColorStop(0, 'rgba(4,20,60,0.9)'); gr.addColorStop(1, 'rgba(4,20,60,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, 420);
+    gr = g.createLinearGradient(0, H - 560, 0, H); gr.addColorStop(0, 'rgba(4,20,60,0)'); gr.addColorStop(0.45, 'rgba(4,20,60,0.85)'); gr.addColorStop(1, 'rgba(4,20,60,0.97)'); g.fillStyle = gr; g.fillRect(0, H - 560, W, 560);
+    try { await document.fonts.load('80px "Lilita One"'); } catch (er) {}
+    const D = '"Lilita One", "Baloo 2", sans-serif', txt = (t, x, y, size, col, al = 'center') => { g.font = `${size}px ${D}`; g.textAlign = al; g.lineJoin = 'round'; g.lineWidth = size * 0.16; g.strokeStyle = 'rgba(3,14,44,0.9)'; g.strokeText(t, x, y); g.fillStyle = col; g.fillText(t, x, y); };
+    txt('AQUA ENERGIZER', W / 2, 130, 92, '#ffd23f'); g.font = `800 34px "Baloo 2", sans-serif`; g.textAlign = 'center'; g.fillStyle = 'rgba(234,247,255,0.9)'; g.fillText('DIG · PUSH · BREATHE · ESCAPE', W / 2, 190);
+    const L = lastWin; txt(L.daily ? "Today's Daily Dive" : `I cleared Level ${L.n}`, W / 2, H - 360, L.daily ? 90 : 104, '#ffffff'); txt(L.name, W / 2, H - 270, 62, '#9ff0ff');
+    if (L.daily) txt('☀ DAILY DIVE ☀', W / 2, H - 160, 84, '#ffd23f'); else txt('★★★'.slice(0, L.stars), W / 2 - (3 - L.stars) * 45, H - 160, 120, '#ffd23f'); if (!L.daily && L.stars < 3) txt('★'.repeat(3 - L.stars), W / 2 + L.stars * 45, H - 160, 120, 'rgba(255,255,255,0.25)');
+    txt(`in ${L.secs} s · can you beat it?`, W / 2, H - 70, 56, '#ffffff');
+    const blob = await new Promise(r => c.toBlob(r, 'image/png')); if (!blob) return; const name = L.daily ? `aqua-energizer-daily-${dayKey()}.png` : `aqua-energizer-level-${L.n}.png`, text = L.daily ? `I cleared today's Aqua Energizer Daily Dive (${L.name}) in ${L.secs} s 🌊 Can you beat it?` : `I cleared Level ${L.n} (${L.name}) in Aqua Energizer with ${'★'.repeat(L.stars)} in ${L.secs} s 🌊 Can you beat it?`;
+    try { const file = new File([blob], name, { type: 'image/png' }); if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text }); return; } } catch (er) { if (er && er.name === 'AbortError') return; }
+    const url = URL.createObjectURL(blob); $('#shareImg').src = url; $('#shareDl').href = url; $('#shareDl').download = name; $('#shareTxt').textContent = text; $('#shareBox').classList.add('on'); }
+  $('#btnShare').onclick = shareCard;
+  $('#shareClose').onclick = () => { click(); $('#shareBox').classList.remove('on'); };
+  $('#shareCopy').onclick = async () => { try { await navigator.clipboard.writeText($('#shareTxt').textContent); toast('Copied!'); } catch (er) { toast('Long-press the text to copy it'); } };
+  // ---- Daily Dive: one puzzle a day (the same for everyone, picked from the date), raced against the clock with its own leaderboard
+  let dive = null;
+  const DIVE_FROM = 6; // unlocks once level 5 is cleared
+  const dayNum = (d = new Date()) => Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - Date.UTC(2024, 0, 1)) / 864e5);
+  function todayDive() { if (!DAILY_LEVELS.length) return null; const k = dayNum(), L = DAILY_LEVELS[((k * 7) % DAILY_LEVELS.length + DAILY_LEVELS.length) % DAILY_LEVELS.length]; return Object.assign({}, L, { daily: true, key: dayKey() }); }
+  function ddSave() { const D = save.dd = save.dd || {}; if (D.key !== dayKey()) { save.dd = { key: dayKey(), tries: 0, best: null, played: D.played, streak: D.streak, lastWin: D.lastWin }; } return save.dd; }
+  function syncDiveBtn() { const b = $('#btnDaily'); if (!b) return; const L = todayDive(), D = ddSave(), locked = save.unlocked < DIVE_FROM || !L; b.classList.toggle('locked', locked); b.classList.toggle('done', !!D.best);
+    $('#ddSub').textContent = locked ? (L ? `Unlocks after level ${DIVE_FROM - 1}` : 'Coming soon') : D.best ? `Today: ${D.best.t.toFixed(1)} s · beat it?` : `${L.name} · new today`; }
+  function startDaily() { const L = todayDive(); if (!L) return; if (save.unlocked < DIVE_FROM) { toast(`Clear level ${DIVE_FROM - 1} to unlock the Daily Dive`); return; } click(); buzz(10); ddSave().tries++; persist(); startLevel(-1, L); }
+  function finishDaily(won) { const D = ddSave(), L = dive; setState('over'); show('result'); const r = $('#result'); r.classList.toggle('win', won); r.classList.toggle('lose', !won);
+    $('#resKicker').textContent = `Daily Dive · ${L.name}`; $('#resStars').hidden = true; $('#resBest').hidden = true; $('#resExtra').hidden = !won; $('#btnWatch').hidden = true;
+    $('#resScore').textContent = engine.score.toLocaleString(); save.stats.dug += engine.dug || 0; weekBump('dig', engine.dug || 0);
+    if (D.played !== D.key) { D.played = D.key; weekBump('daily'); }
+    if (won) { const t = Math.round(engine.wonAt * engine.tickMs / 100) / 10, air = Math.round((engine.time - engine.oxygen) * 10) / 10, prev = D.best, first = !prev;
+      const better = !prev || t < prev.t; if (better) D.best = { t, air: prev ? Math.min(prev.air, air) : air }; else D.best.air = Math.min(D.best.air, air);
+      $('#resBest').hidden = !(prev && t < prev.t); $('#resTitle').textContent = first ? 'Daily Dive cleared!' : better ? 'Faster!' : 'Cleared!';
+      $('#resStats').innerHTML = `<div class="stat"><b>${t.toFixed(1)}s</b><span>dive time</span></div><div class="stat"><b>${air.toFixed(1)}s</b><span>air used</span></div><div class="stat"><b>${D.best.t.toFixed(1)}s</b><span>today's best</span></div>`;
+      if (first) { const y = new Date(); y.setDate(y.getDate() - 1); D.streak = D.lastWin === dayKey(y) ? (D.streak || 0) + 1 : 1; D.lastWin = D.key; const c = 60 + Math.min(6, D.streak - 1) * 10; save.coins += c; $('#resCoins').hidden = false; $('#resCoinN').textContent = `+${c}`; $('#resCoinWhy').textContent = D.streak > 1 ? `daily dive · ${D.streak}-day dive streak` : 'daily dive'; Audio.play('treasure'); } else $('#resCoins').hidden = true;
+      $('#btnNext').textContent = "Today's leaderboard"; $('#btnNext').hidden = false; $('#btnNext').classList.add('green'); $('#btnRetry').lastChild.textContent = 'Race again';
+      lastWin = { n: 0, daily: true, stars: 3, secs: t, name: L.name }; pushDaily(); persist();
+      setTimeout(() => { if (state === 'over') Audio.vo(['win1', 'win2', 'win3'][Math.random() * 3 | 0]); }, 700); }
+    else { const cause = { crushed: 'Crushed!', monster: 'Gobbled!', oxygen: 'Out of air!', self: 'Restarted' }[engine.deathCause] || 'Dive over'; $('#resTitle').textContent = cause; $('#resCoins').hidden = true; lastWin = null;
+      $('#resStats').innerHTML = `<div class="stat"><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>energy</span></div><div class="stat"><b>${D.best ? D.best.t.toFixed(1) + 's' : '–'}</b><span>today's best</span></div>`;
+      $('#btnNext').textContent = history.length ? 'Undo last move' : 'Try again'; $('#btnNext').hidden = false; $('#btnNext').classList.add('green'); $('#btnRetry').lastChild.textContent = 'Restart'; persist(); } }
+  let ddWriting = Promise.resolve();
+  function pushDaily() { const D = ddSave(); if (!D.best) return; ddWriting = ddWriting.then(async () => { await LB.ready; if (!LB.db || !LB.uid) return;
+    try { await LB.db.doc('daily/' + LB.uid).set({ day: D.key, t: D.best.t, air: D.best.air, nick: (save.name || 'Diver').slice(0, 16), suit: save.equip.suit, updatedAt: Date.now() }); } catch (er) { if (er && er.code === 'invalid_argument') LB.readOnly = true; } }); }
+  $('#btnDaily').onclick = startDaily;
   function finishLevel() {
     resultShown = true;
-    const won = engine.state === 'won'; const n = levelIdx + 1;
+    const won = engine.state === 'won'; const n = levelIdx + 1; if (dive) return finishDaily(won);
     setState('over'); show('result');
     const r = $('#result'); r.classList.toggle('win', won); r.classList.toggle('lose', !won);
     const prevBest = save.best[n] || 0;
@@ -3649,24 +3872,30 @@ window.__T = T;
     $('#resScore').textContent = engine.score.toLocaleString();
     const starEls = [...document.querySelectorAll('#resStars i')]; starEls.forEach(s => s.className = '');
     if (won) {
-      const frac = engine.oxygen / engine.time; const stars = frac >= 0.6 ? 3 : frac >= 0.3 ? 2 : 1;
+      const frac = engine.oxygen / engine.time; const stars = engine.relaxed ? 1 : frac >= 0.6 ? 3 : frac >= 0.3 ? 2 : 1;
       const prevStars = save.stars[n] || 0, firstClear = !prevStars;
-      save.stars[n] = Math.max(prevStars, stars); save.best[n] = Math.max(prevBest, engine.score);
+      save.stars[n] = Math.max(prevStars, stars); if (!engine.relaxed) save.best[n] = Math.max(prevBest, engine.score);
       save.stats.wins++; save.stats.dug += engine.dug || 0;
+      weekBump('wins'); weekBump('stars', stars); if (stars === 3) weekBump('perfect'); if (!runUndo) weekBump('noundo'); if (!runHint) weekBump('nohint'); weekBump('dig', engine.dug || 0);
+      { const m = runLog.replace(/\.+$/, '') + '.', old = (save.runs || {})[n]; if ((!old || m.length < old.m.length) && checkRun(LEVELS[levelIdx], m, engine.relaxed)) { save.runs = save.runs || {}; save.runs[n] = { m, rx: engine.relaxed ? 1 : 0 }; } } // keep the fastest verified run
+      lastWin = { n, stars, secs: Math.round(engine.wonAt * engine.tickMs / 1000), name: LEVELS[levelIdx].name, relaxed: engine.relaxed };
+      setTimeout(() => { if (state === 'over') Audio.vo(['win1', 'win2', 'win3'][Math.random() * 3 | 0]); }, 700);
       { const parts = [['clear', 20], ['stars', stars * 10], ['first clear', firstClear ? 30 : 0], ['new stars', Math.max(0, stars - prevStars) * 15 * (firstClear ? 0 : 1)], ['treasures', runTreasures * 2]].filter(p => p[1] > 0), total = parts.reduce((a, p) => a + p[1], 0);
         save.coins += total; $('#resCoins').hidden = false; $('#resCoinWhy').textContent = parts.map(p => `${p[0]} +${p[1]}`).join(' · ');
         const el = $('#resCoinN'); let shown = 0; const t0 = performance.now(); const tick = (now) => { const k = Math.min(1, (now - t0) / 900); shown = Math.round(total * k * (2 - k)); el.textContent = `+${shown}`; if (k < 1) requestAnimationFrame(tick); else Audio.play('treasure'); }; setTimeout(() => requestAnimationFrame(tick), 900); }
       pushScore();
       if (n >= save.unlocked && n < LEVELS.length) save.unlocked = n + 1; persist();
-      $('#resTitle').textContent = n === LEVELS.length ? 'Last gate open!' : ['Energized!', 'Great dive!', 'Brilliant!'][stars - 1];
+      $('#resTitle').textContent = n === LEVELS.length ? 'Last gate open!' : engine.relaxed ? 'Relaxed clear!' : ['Energized!', 'Great dive!', 'Brilliant!'][stars - 1];
       $('#resStars').hidden = false;
       starEls.forEach((s, i) => setTimeout(() => { s.classList.add('show'); if (i < stars) { s.classList.add('on'); Audio.play('click'); buzz(12); } }, 250 + i * 260));
       $('#resBest').hidden = !(engine.score > prevBest && prevBest > 0);
-      $('#resStats').innerHTML = `<div class="stat"><b>${Math.ceil(engine.oxygen)}s</b><span>air left</span></div><div class="stat"><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>energy</span></div>`;
+      $('#resStats').innerHTML = engine.relaxed ? `<div class="stat"><b>${Math.round(engine.wonAt * engine.tickMs / 1000)}s</b><span>dive time</span></div><div class="stat"><b>★</b><span>air timer off for ★★★</span></div>` : `<div class="stat"><b>${Math.ceil(engine.oxygen)}s</b><span>air left</span></div><div class="stat"><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>energy</span></div>`;
       $('#btnNext').textContent = n >= LEVELS.length ? 'The reef awakens ✨' : 'Next level'; $('#btnNext').hidden = false; $('#btnNext').classList.toggle('green', n >= LEVELS.length);
       $('#btnRetry').lastChild.textContent = 'Replay';
-    } else {
-      $('#resCoins').hidden = true; save.stats.dug += engine.dug || 0; persist();
+      $('#resExtra').hidden = false; $('#btnWatch').hidden = !(save.runs && save.runs[n]);
+    } else { $('#resExtra').hidden = true;
+      $('#resCoins').hidden = true; save.stats.dug += engine.dug || 0; weekBump('dig', engine.dug || 0); persist(); lastWin = null;
+      setTimeout(() => { if (state === 'over') Audio.vo(['lose1', 'lose2'][Math.random() * 2 | 0]); }, 600);
       const cause = { crushed: 'Crushed!', monster: 'Gobbled!', oxygen: 'Out of air!', self: 'Restarted', spiked: 'Spiked!' }[engine.deathCause] || 'Dive over';
       $('#resTitle').textContent = cause; $('#resStars').hidden = true; $('#resBest').hidden = true;
       $('#resStats').innerHTML = `<div class="stat"><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>energy</span></div><div class="stat"><b>${Math.max(0, Math.ceil(engine.oxygen))}s</b><span>air left</span></div>`;
@@ -3680,10 +3909,10 @@ window.__T = T;
   let hudKey = '', lastScore = -1;
   function updateHud() {
     if (!engine) return;
-    hud.airTxt.textContent = Math.max(0, Math.ceil(engine.oxygen));
+    hud.airTxt.textContent = engine.relaxed ? '∞' : Math.max(0, Math.ceil(engine.oxygen));
     hud.airFill.style.width = (Math.max(0, Math.min(1, engine.oxygen / engine.time)) * 100).toFixed(1) + '%';
     { const fr = engine.oxygen / engine.time, st = fr >= 0.6 ? 3 : fr >= 0.3 ? 2 : 1; const el = $('#airStars'); if (el && el.dataset.st !== String(st)) { el.dataset.st = st; [...el.children].forEach((c, k) => c.classList.toggle('off', k >= st)); } }
-    hud.air.classList.toggle('low', engine.oxygen < 15 && engine.state === 'playing');
+    hud.air.classList.toggle('low', engine.oxygen < 15 && engine.state === 'playing' && !engine.relaxed);
     const key = engine.ballsIn + '/' + engine.ballsTotal + (engine.gate.open ? 'o' : '');
     if (key !== hudKey) { hudKey = key;
       hud.fill.style.width = (engine.ballsTotal ? engine.ballsIn / engine.ballsTotal * 100 : 100) + '%';
@@ -3693,7 +3922,7 @@ window.__T = T;
         else pe.innerHTML = `<i class="${engine.ballsIn ? 'on' : ''}"></i>${engine.ballsIn}/${n}`; }
       hud.gate.innerHTML = engine.gate.open ? '<svg class="i" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>' : '<svg class="i" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
     }
-    hud.lvl.textContent = levelIdx + 1;
+    hud.lvl.textContent = dive ? '☀' : levelIdx + 1;
     if (engine.score !== lastScore) { if (lastScore >= 0 && engine.score > lastScore) { hud.score.classList.remove('bump'); void hud.score.offsetWidth; hud.score.classList.add('bump'); } lastScore = engine.score; hud.score.textContent = engine.score.toLocaleString(); }
   }
 
@@ -3707,6 +3936,7 @@ window.__T = T;
   addEventListener('keydown', ev => {
     if (ev.repeat) return;
     if (state === 'splash') { unlock(); return; }
+    if (state === 'replay') { if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); endReplay(); } return; }
     if (state === 'cine') { if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); $('#skipIntro').click(); return; } return; }
     const dir = KEYS[ev.key];
     if (dir) { ev.preventDefault(); if (state === 'intro') beginPlay(); if (state === 'playing') setHeld(dir, true); return; }
@@ -3778,7 +4008,7 @@ window.__T = T;
   $('#btnQuit').onclick = () => { click(); openHome(); };
   $('#btnResHome').onclick = () => { click(); openHome(); };
   function nextLevel() { click(); startLevel(levelIdx + 1); }
-  $('#btnNext').onclick = () => { if (engine.state === 'won' && levelIdx + 1 < LEVELS.length) nextLevel(); else if (engine.state === 'won') openEnding(); else if (engine.state !== 'won' && history.length) undo(); else restart(); };
+  $('#btnNext').onclick = () => { if (dive && engine.state === 'won') { click(); lbTab = 'fast'; openHome(); go('ranks'); return; } if (engine.state === 'won' && levelIdx + 1 < LEVELS.length) nextLevel(); else if (engine.state === 'won') openEnding(); else if (engine.state !== 'won' && history.length) undo(); else restart(); };
   // the finale: all 30 gates awake. A one-time coin bonus, the story's payoff, and a nudge to go back for every star.
   function openEnding() { click(); Audio.play('win'); setState('ending'); show('ending'); const first = !save.finished;
     if (first) { save.finished = 1; save.coins += 200; persist(); } $('#endCoins').hidden = !first;
@@ -3795,11 +4025,17 @@ window.__T = T;
   function applyAudio() { Audio.setMusic(save.settings.music); Audio.setVolumes(Audio.settings.music, save.settings.sfx ? 0.9 : 0); }
   function syncSound() { const on = save.settings.music || save.settings.sfx; $('#sndLbl').textContent = on ? 'Sound on' : 'Muted'; $('#sndWave').style.display = on ? '' : 'none'; }
   function syncSettings() { $('#setMusic').checked = save.settings.music; $('#setSfx').checked = save.settings.sfx; $('#setVibe').checked = save.settings.vibe; $('#setFps').checked = !!save.settings.fps; $('#fpsMeter').hidden = !save.settings.fps;
+    $('#setRelax').checked = !!save.settings.relaxed; $('#setCb').checked = !!save.settings.cb; $('#setBig').checked = !!save.settings.bighud;
     document.querySelectorAll('#setQuality button').forEach(b => b.classList.toggle('on', b.dataset.q === gfxMode()));
     const gn = $('#gfxNow'); if (gn) gn.textContent = gfxMode() === 'auto' ? `Now: ${world.quality[0].toUpperCase()}${world.quality.slice(1)}` : ''; }
   $('#setMusic').onchange = e => { save.settings.music = e.target.checked; applyAudio(); persist(); };
   $('#setSfx').onchange = e => { save.settings.sfx = e.target.checked; applyAudio(); persist(); };
   $('#setVibe').onchange = e => { save.settings.vibe = e.target.checked; persist(); buzz(15); };
+  function applyAccess() { World.setColorMarks(save.settings.cb); document.body.classList.toggle('cb', !!save.settings.cb); document.body.classList.toggle('bighud', !!save.settings.bighud); }
+  $('#setRelax').onchange = e => { save.settings.relaxed = e.target.checked; persist(); toast(e.target.checked ? 'Relaxed mode: no air timer (1 star per level)' : 'Air timer back on'); };
+  $('#setCb').onchange = e => { save.settings.cb = e.target.checked; persist(); applyAccess(); };
+  $('#setBig').onchange = e => { save.settings.bighud = e.target.checked; persist(); applyAccess(); };
+  applyAccess();
   $('#setFps').onchange = e => { save.settings.fps = e.target.checked; persist(); $('#fpsMeter').hidden = !e.target.checked; };
   $('#fpsMeter').hidden = !save.settings.fps; const FPSM = { n: 0, t: 0 }; // optional on-screen meter (Settings → Show FPS) so real-device speed can be read off a phone
   document.querySelectorAll('#setQuality button').forEach(b => b.onclick = () => { click(); save.settings.gfx = b.dataset.q; persist(); if (b.dataset.q !== 'auto') world.setQuality(b.dataset.q); syncSettings(); });
@@ -3824,15 +4060,18 @@ window.__T = T;
         while (acc >= engine.tickMs) {
           acc -= engine.tickMs;
           const pre = (engine.moveQueue.length || engine.held) && engine.player ? cloneEngine(engine) : null, px0 = engine.player && engine.player.x, py0 = engine.player && engine.player.y;
+          if (pre) pre.__log = runLog.length;
           engine.step(); tickWorld(engine, now - acc);
+          { const p = engine.player; runLog += p && p.x !== px0 ? (p.x > px0 ? 'R' : 'L') : p && p.y !== py0 ? (p.y > py0 ? 'D' : 'U') : '.'; }
           if (pre && engine.player && (engine.player.x !== px0 || engine.player.y !== py0)) { history.push(pre); if (history.length > 200) history.shift(); stuckTimer = 0; }
-          if (engine.state !== 'playing') { overTimer = 0; setState('over'); held.clear(); heldOrder = []; endTouch(); buzz(engine.state === 'won' ? 30 : [40, 40, 60]); break; }
+          if (engine.state !== 'playing') { overTimer = 0; setState('over'); hideStuck(); Audio.setTension(0); held.clear(); heldOrder = []; endTouch(); buzz(engine.state === 'won' ? 30 : [40, 40, 60]); break; }
         }
         if (engine.state === 'playing') {
-          coachTick(realDt);
+          coachTick(realDt); checkStuck(); hintSync();
+          Audio.setTension(engine.relaxed ? 0 : (15 - engine.oxygen) / 15);
           if (engine.gate && engine.gate.open && !gateNudged && performance.now() - gateOpenAt > 8000) { gateNudged = true; toast('Swim into the glowing gate to finish ✨'); }
-          stuckTimer += realDt; if (!stuckShown && stuckTimer > 22 && engine.ballsIn < engine.ballsTotal) { stuckShown = true; toast(isTouch ? 'Stuck? Tap ↶ to undo, or ⟲ to restart' : 'Stuck? Press Z to undo, R to restart'); }
-          if (engine.oxygen < 15) { lowAirBeep -= dt; if (lowAirBeep <= 0) { lowAirBeep = engine.oxygen < 6 ? 0.5 : 1; Audio.play('lowAir'); } }
+          stuckTimer += realDt; if (!stuckShown && stuckTimer > 22 && engine.ballsIn < engine.ballsTotal) { stuckShown = true; toast(isTouch ? 'Stuck? Tap 💡 for a hint, or ↶ to undo' : 'Stuck? Tap 💡 for a hint, Z to undo'); $('#btnHint').classList.add('nudge'); setTimeout(() => $('#btnHint').classList.remove('nudge'), 4000); }
+          if (engine.oxygen < 15 && !engine.relaxed) { lowAirBeep -= dt; if (lowAirBeep <= 0) { lowAirBeep = engine.oxygen < 6 ? 0.5 : 1; Audio.play('lowAir'); } }
         }
         updateHud();
       } else { // over: keep physics animating briefly, then show result
@@ -3844,6 +4083,7 @@ window.__T = T;
     } else {
       frame.last = now;
       if (state === 'cine' && cine) cineTick(realDt, now);
+      else if (state === 'replay' && replay) replayTick(realDt, now);
       else if (state === 'menu' && menuEngine) { acc += dt * 1000; while (acc >= menuEngine.tickMs) { acc -= menuEngine.tickMs; menuEngine.step(); world.onTick(menuEngine, now - acc); } }
     }
     // the 3D world sleeps while the paper menu / intro covers the screen

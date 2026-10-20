@@ -113,8 +113,8 @@ class Engine {
     this.tick++;
     if (this.state !== 'playing') { this.physics(); this.monsters(); return; }
 
-    // oxygen
-    this.oxygen -= this.tickMs / 1000;
+    // oxygen (relaxed mode, an accessibility option, never runs out)
+    if (!this.relaxed) this.oxygen -= this.tickMs / 1000;
     if (this.oxygen <= 0) { this.oxygen = 0; this.die('oxygen'); return; }
 
     // player

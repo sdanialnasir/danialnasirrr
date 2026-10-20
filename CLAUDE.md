@@ -211,3 +211,30 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   Dynamic resolution never goes below 85%. Phones: no MSAA on the screen buffer (post anti-aliases), light rays at 1/8 res,
   standard instead of physical shading on big matte surfaces (`surfMat`), shimmer skips the bottom of the backdrop.
   Settings → Show FPS (`#fpsMeter`) shows fps · tier · resolution on the device.
+
+## Retention + feel pass (daily dive, star map, hints, accessibility)
+- **Haptics:** `feel(e)` maps engine events to vibration patterns (dig, push, near landing, teeter, pearl, gate open, bonk).
+  iPhone Safari has no Vibration API: `iosTap()` clicks a hidden iOS 18 `<input type=checkbox switch>` label, which plays the
+  system haptic (works on iOS 18+, silently nothing on older iOS). Unverified on a real device.
+- **Reactive music:** `Audio.swell()` (gate opens: pad swells, filter opens, slow chord) and `Audio.setTension(k)` (air < 15 s:
+  pad thins and darkens, chimes stop). Still no melody.
+- **Accessibility (Settings):** Relaxed mode (`engine.relaxed`: no air countdown, max 1 star, no best score, not in Daily Dive),
+  colour-blind markers (`World.setColorMarks`: ◆ sprite on pearls + gate via shared `MAT.cbMark`, ◆ in HUD pearls), Larger HUD (`zoom`).
+- **"Show me" hint (💡 in `#hudB`):** `ROUTES` (synced from tests/routes.json by build.py) drive the coach on any level for 5 moves.
+  Free every 90 s, otherwise 25 coins. Off the known route → `offRoute()` offers to rewind to the newest undo snapshot on it.
+- **Stuck detector:** `deadPearl()` (pearl below the gate row, or boxed in on a solid floor) → `#stuckCard` with Undo. 0 false
+  positives along all 30 verified routes.
+- **Streak:** grows past 7; coins rise each week (`dailyCoins`), every 7th day = guaranteed rare item (`giftItem/grantItem`).
+- **Weekly challenges:** 3 per week from `WEEK_POOL` (seeded by week number), `weekBump(id, n)` hooks; all 3 → epic item.
+- **Best-run replay:** each attempt is logged as a tick route (`runLog`, truncated on undo); the fastest win that re-simulates
+  (`checkRun`) is saved in `save.runs[n]` and played back at 2× (`startReplay`, state 'replay'); ▶ on result screen + star map.
+- **Share card:** `shareCard()` renders the live tank + result into a 1080×1350 PNG → Web Share (files) or `#shareBox` fallback.
+- **Star map:** `buildLevels()` draws a winding path through three world bands; woken gates glow, world decor lights up with the
+  number of gates awake, the diver avatar travels to newly unlocked levels (`save.mapAt`).
+- **Gate collection in the menu tank:** `world.reefLights` (3 drifting pearl-lights per cleared level) + `world.reefK` (fish pass more often).
+- **Daily Dive:** `DAILY_LEVELS` (synced by build.py from tools/solver/daily/*.json, each with a verified route), one per day by
+  `dayNum()`, unlocks after level 5. Results: time + air used, coins on the first clear per day (+ dive streak). Leaderboard tabs
+  "Today: fastest / least air" read `daily/<uid>` docs (`{day,t,air,nick}`). Publish capabilities now also need
+  `{path:"daily",read:"view",write:"owner"},{path:"daily/{self}",write:"interact"}`.
+- **Voice lines:** `win1–3`, `lose1–2` play on the result screen if `src/assets/vo/<id>.mp3` exist (script: docs/voiceover-script.md).
+- **Per-world paintings:** drop `src/assets/images/background/bg_photo_w2.jpg` / `bg_photo_w3.jpg` (2560×1435) and rebuild.

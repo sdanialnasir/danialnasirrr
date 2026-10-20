@@ -11,6 +11,11 @@ def main():
     sheet = {k: [uri(v['file']), v['w'], v['h']] for k, v in man['SHEET_SPR'].items()}
     art = {k: ([uri(x) for x in v] if isinstance(v, list) else uri(v)) for k, v in man['ART_SRC'].items()}
     data = {'SHEET_SPR': sheet, 'ART_SRC': art, 'PHOTO_BG_URI': uri(man['PHOTO_BG_URI'])}
+    # optional per-world paintings: src/assets/images/background/bg_photo_w2.jpg (Coral Caves) / bg_photo_w3.jpg (The Deep), same 2560x1435 framing
+    for w in (2, 3):
+        for ext in ('jpg', 'png'):
+            rel = f'assets/images/background/bg_photo_w{w}.{ext}'
+            if os.path.exists(os.path.join(SRC, rel)): data[f'PHOTO_BG_W{w}'] = uri(rel); break
     # optional voice-over clips for the intro: src/assets/vo/<line id>.mp3 (e.g. vo1.mp3 ... vo7.mp3) -> AQ_DATA.VO
     vo_dir = os.path.join(SRC, 'assets', 'vo')
     if os.path.isdir(vo_dir):

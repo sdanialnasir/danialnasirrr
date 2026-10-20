@@ -20,3 +20,17 @@ Suggested ElevenLabs settings: Stability ~45, Similarity ~75, Style ~30. Keep ea
 | vo7 | 0.5 s after the diver swims in | 3.4 s | Wide shot, then fade to the title | Twenty-nine gates still sleep. The reef is counting on you. |
 
 The lines live in `CINE_LINES` in `src/game.js`; change the text there if you re-record with different words.
+
+## Diver voice lines (result screen)
+
+Short, playful lines in the **diver's** voice (a different, younger/cheerful ElevenLabs voice from the narrator). One of
+them plays at random about 0.7 s after the result screen opens. Save each as `src/assets/vo/<id>.mp3` and rebuild; any
+clip that is missing is simply skipped (the diver's little synth "yay"/"oof" sounds still play).
+
+| id | when | max length | line |
+|---|---|---|---|
+| win1 | level cleared | 1.8 s | Woohoo! The light's back! |
+| win2 | level cleared | 1.8 s | Gate's awake. Onward! |
+| win3 | level cleared | 1.8 s | Easy as bubbles! |
+| lose1 | dive failed | 1.8 s | Oof… let's try that again. |
+| lose2 | dive failed | 1.8 s | Hold on, I've got this! |
