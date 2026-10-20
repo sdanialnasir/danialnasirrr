@@ -1,0 +1,12 @@
+[
+  {"name":"Crab Crossing","plan":"4,1 R:1 s 11,1 R:1 s 13,1 13,4 8,4 18,4 13,4 13,1 1,1 1,4 R:16 s 18,4 m:D"},
+  {"name":"Twin Claws","plan":"8,1 w:7 R:1 s 10,3 11,3 R:8 s 10,3 10,5 11,5 R:8 s 20,7"},
+  {"name":"Jelly Bridge","plan":"1,2 R:7 w:4 m:R.RL w:0 9,1 21,1 21,2 L:7 w:4 m:LLR w:0 m:LLDD"},
+  {"name":"Rolling Plug","plan":"11,5 8,5 8,6 8,5 11,5 11,1 9,1 L:1 w:2 s 7,1 7,6!v m:LR 7,1!v 11,1 11,6 L:4 s 6,8"},
+  {"name":"Crab Fence","plan":"4,1 w:4 R:1 w:4 11,1 11,4 R:4 s 11,1 9,1 9,4 R:10 s 20,4"},
+  {"name":"Fish Hook","plan":"16,1 w:13 R:1 w:1 m:RR 19,5 L:18"},
+  {"name":"Pit Count","plan":"6,1 R:3 w:3 10,1 10,4!v 18,4 18,1!v L:2 s 13,1 L:2 s 1,1 1,4!v R:17 s 19,4"},
+  {"name":"Crab Bait","plan":"13,1 13,5 8,5 w:1 m:L m:RRRRRRU m:L m:R 13,1 1,1 1,5 R:12 s 14,5"},
+  {"name":"Crab Herding","plan":"13,5!v L:1 L:1 w:2 L:1 w:1 L:1 w:1 L:1 w:1 L:1 w:1 L:1 w:1 L:1 w:1 L:1 s 4,1!v L:1 w:4 4,5!v L:2 s 4,1!v 19,1 19,5!v L:17 s 1,5"},
+  {"name":"Fish Elevator","plan":"12,1 w:5 L:1 w:3 18,1 18,5 L:16 s 1,5"}
+]

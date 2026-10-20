@@ -1,0 +1,181 @@
+[
+ {
+  "name": "Two Pockets",
+  "time": 135,
+  "hint": "The gate swallows pearls dropped from above, but there is room beside it for only two stones.",
+  "map": [
+   "###################",
+   "#P................#",
+   "#.B.R.R....R....B.#",
+   "#WWWWWWWW WWWW WWW#",
+   "#WWWWWWWW WWWWWWWW#",
+   "#WWWWWWWW WWWWWWWW#",
+   "#WWWWWWWW WWWWWWWW#",
+   "#WWWWWWWW WWWWWWWW#",
+   "#WWWWWWW   WWWWWWW#",
+   "#WWWWWWW E WWWWWWW#",
+   "###################"
+  ],
+  "route": "RRRRRRRDRLLULLDRRR.........LLLULLDRRRRR.........LLLLLULLDRRRRRRR.......RRURRDRRLLULLDRRR..RRURRDLLLLLLL.......LDDDDDDD."
+ },
+ {
+  "name": "Left First",
+  "time": 85,
+  "hint": "Falling pearls roll left first. Be the wall on the left when they land.",
+  "map": [
+   "################",
+   "#.............P#",
+   "#WWWW.WBWWWW.WW#",
+   "#WWWW.WBWWWW.WW#",
+   "#WWWW. . WWW.WW#",
+   "#WWWWW W WWW.WW#",
+   "#WWWWW       EW#",
+   "################"
+  ],
+  "route": "LLLLLLLLLDDDRRL....DDRRRRRRUUUUULLLLLLLDDDRDDRRRRRRR."
+ },
+ {
+  "name": "Siding",
+  "time": 130,
+  "hint": "A pearl drops first. Park it out of the way and let the stone through to fill the gap.",
+  "map": [
+   "#################",
+   "#P.........WWWWW#",
+   "#    B R B.WWWWW#",
+   "#WWWWWWWWW WWWWW#",
+   "#WWWWW.... .....#",
+   "#WWWWW          #",
+   "#WWWWWWWWWWW WW #",
+   "#WWWWWWWWWWWWWW #",
+   "#WWWWWWWWWWWWWWE#",
+   "#################"
+  ],
+  "route": "RRRRRRRRRDU....DDDRDLLLRRUUUULLLLDRRR....RDDLDRR..LLLULLDRRRRRRRR...LLLLUUUULLLLLLDRRRRR....RDDLDRRRRR...RDDD."
+ },
+ {
+  "name": "Stone Clock",
+  "time": 120,
+  "hint": "Pearls crush crabs too. Drop the right-hand pearl just as the crab walks under it.",
+  "map": [
+   "##################",
+   "#P...............#",
+   "#..W.BW.WBWWWWWWW#",
+   "#W.W..W...WWWWWWW#",
+   "#W.WW WWW WWWWWWW#",
+   "#W.WW WWW WWWWWWW#",
+   "#W.WW WWW WWWWWWW#",
+   "#W.         C   E#",
+   "#WWWWWWWWWWWWWWWW#",
+   "##################"
+  ],
+  "route": "RRRRRRDDR....RL.....LUULLLLLDDDDDDRRRRRRRRRRRRRLLLLLLLLLLLLLUUUUUURRDDRL....UULLDDDDDDRRRRRRRRRRRRRR."
+ },
+ {
+  "name": "Pedestal",
+  "time": 90,
+  "hint": "The pearl rides on a stone. Work it loose from the gate side, and keep its left side packed.",
+  "map": [
+   "##################",
+   "#P...............#",
+   "#................#",
+   "#................#",
+   "#.......B........#",
+   "#...B.. R       E#",
+   "#WWWWWW .WWWWWWWW#",
+   "##################"
+  ],
+  "route": "RRRRRRRRRDDDDLLR.UULLDDRRRRRRRRLLLLLLLLLLULLDRRRRRRRRRRRRR."
+ },
+ {
+  "name": "Glancing Blow",
+  "time": 90,
+  "hint": "Stones roll off pearls. Put a pearl under the drop before the stone comes down.",
+  "map": [
+   "###############",
+   "#P............#",
+   "#........R....#",
+   "#.............#",
+   "#.WWWWWWW   B.#",
+   "#.WWWWWW  WWWW#",
+   "#..B      EWWW#",
+   "#WWWWWWW .WWWW#",
+   "###############"
+  ],
+  "route": "RRRRRRRRRRRRDDDLL....LULR......DLDLDRUUULLLLLLLLDDDRRRRRRRRR."
+ },
+ {
+  "name": "Jelly Lift",
+  "time": 115,
+  "hint": "Whatever goes down the jelly shaft first clears the way. Make it the stone.",
+  "map": [
+   "##################",
+   "#P...............#",
+   "#  B     .   R   #",
+   "#WWWWWWWW WWWWWWW#",
+   "#WWWWWWWW WWWWWWW#",
+   "#WWWWWWWWJWWWWWWW#",
+   "#WWWWWWWW WWWWWWW#",
+   "#WWWWWW.  WWWWWWW#",
+   "#WWWWWW.        E#",
+   "#WWWWWWWWWWW WWWW#",
+   "##################"
+  ],
+  "route": "RRRRRRRRDURRRRRDLLLL.......LDDDDDLDRRR..LLUUUUUULLLLLULLDRRRRRR...........RDDDDDLDRRRRRRRR."
+ },
+ {
+  "name": "Stair Roll",
+  "time": 110,
+  "hint": "The stairs carry anything to the gate, but the pit halfway down keeps the first thing that rolls in.",
+  "map": [
+   "################",
+   "#P.............#",
+   "# B B  .R..R...#",
+   "#WWWWW  .......#",
+   "#WWWWWW  WW WWW#",
+   "#WWWWWWW  W WWW#",
+   "#WWWWWWW    WWW#",
+   "#WWWWWWWWW  WWW#",
+   "#WWWWWWWWWW WWW#",
+   "#WWWWWWWWWWEWWW#",
+   "################"
+  ],
+  "route": "RRRRRRDDRL.....LUULLLDRR....................LLULLDRRRR....................RRDDRDRDRDRDD."
+ },
+ {
+  "name": "Fish Trap",
+  "time": 105,
+  "hint": "Stones and pearls both crush piranhas. Fill the dip first, and catch the fish on the way.",
+  "map": [
+   "#################",
+   "#...B.R.P.......#",
+   "#...............#",
+   "#.WW.W WWWWWWWWW#",
+   "#.WW.W WWWWWWWWW#",
+   "#.WW.W WWWWWWWWW#",
+   "#.B        F   E#",
+   "#WWWWW WWWWWWWWW#",
+   "#################"
+  ],
+  "route": "LDLR......LLLLUDRR.........LDDDDRRRRRRRRRRLLLLLLLLLLUUUULLLDDDDRRRRRRRRRRRRRR."
+ },
+ {
+  "name": "Lead Weight",
+  "time": 100,
+  "hint": "Lead each stone down the chimney and step out on the side you will push from.",
+  "map": [
+   "################",
+   "#WWWWWWWBWWWWWW#",
+   "#WWWWWWW.WWWWWW#",
+   "#WWWWWWWRWWWWWW#",
+   "#WWWWWWW.WWWWWW#",
+   "#WWWWWWWBWWWWWW#",
+   "#WWWWWWW.WWWWWW#",
+   "#WWWWWWWRWWWWWW#",
+   "#P.......    EW#",
+   "#WW W WW.WWWWWW#",
+   "#WWWWWWWWWWWWWW#",
+   "################"
+  ],
+  "route": "RRRRRRRR.LLL..RRUUDDL.RRRRRLLLLUUUUDDDDR.LLLLL..RRRRUUUUUUDDDDDDL.RRRRRR."
+ }
+]

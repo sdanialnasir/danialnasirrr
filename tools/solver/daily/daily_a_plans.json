@@ -1,0 +1,222 @@
+[
+ {
+  "name": "Two Pockets",
+  "hint": "The gate swallows pearls dropped from above, but there is room beside it for only two stones.",
+  "map": [
+   "###################",
+   "#P................#",
+   "#.B.R.R....R....B.#",
+   "#WWWWWWWW WWWW WWW#",
+   "#WWWWWWWW WWWWWWWW#",
+   "#WWWWWWWW WWWWWWWW#",
+   "#WWWWWWWW WWWWWWWW#",
+   "#WWWWWWWW WWWWWWWW#",
+   "#WWWWWWW   WWWWWWW#",
+   "#WWWWWWW E WWWWWWW#",
+   "###################"
+  ],
+  "plan": "8,1 8,2!v 9,2 5,1 5,2!v R:3 w:1 s 3,1 3,2!v R:5 w:1 s 1,1 1,2!v R:7 w:1 s 12,1 12,2!v 14,2 10,2 R:3 w:1 s 17,1 17,2!v L:7 w:1 s 9,8 9,9",
+  "aha": "The gate eats pearls dropped from above, but stones that fall on it roll into the two side pockets; the third stone plugs the chute. Both left stones must go down the chute, so the right stone has to fill the hole on the right road instead.",
+  "deadlocks": [
+   "Pushing the right stone into the chute (third stone plugs the gate).",
+   "Pushing a left stone left against the pearl (pearl can never reach the chute).",
+   "Pushing the right pearl over the unfilled hole."
+  ]
+ },
+ {
+  "name": "Left First",
+  "hint": "Falling pearls roll left first. Be the wall on the left when they land.",
+  "map": [
+   "################",
+   "#.............P#",
+   "#WWWW.WBWWWW.WW#",
+   "#WWWW.WBWWWW.WW#",
+   "#WWWW. . WWW.WW#",
+   "#WWWWW W WWW.WW#",
+   "#WWWWW       EW#",
+   "################"
+  ],
+  "plan": "5,1 5,4!v 6,4 7,4 6,4 w:4 6,6!v 7,6 R:5 12,5 12,1!v 5,1 5,4!v 6,4 6,6!v 7,6 R:5 m:R",
+  "aha": "Falling pearls roll left first, into the pit. Dig the plug from the LEFT side and stay there: your body blocks the left, so both pearls roll right onto the road.",
+  "deadlocks": [
+   "Digging the plug from the right (the obvious way in): both pearls roll left into the pit."
+  ]
+ },
+ {
+  "name": "Siding",
+  "hint": "A pearl drops first. Park it out of the way and let the stone through to fill the gap.",
+  "map": [
+   "#################",
+   "#P.........WWWWW#",
+   "#    B R B.WWWWW#",
+   "#WWWWWWWWW WWWWW#",
+   "#WWWWW.... .....#",
+   "#WWWWW          #",
+   "#WWWWWWWWWWW WW #",
+   "#WWWWWWWWWWWWWW #",
+   "#WWWWWWWWWWWWWWE#",
+   "#################"
+  ],
+  "plan": "10,1 10,2!v 10,1 w:2 s 10,4!v 11,4 11,5 L:3 10,4 10,1!v 6,1 6,2!v R:3 w:1 s 10,4!v 9,4 9,5 R:2 w:1 s 6,4 6,5!v R:8 w:1 s 10,4 10,1!v 4,1 4,2!v R:5 w:1 s 10,4!v 9,4 9,5 R:5 w:1 s 15,8",
+  "aha": "The pearl next to the cap drops first, but the road below has a gap that only the stone can fill. Push that pearl LEFT onto the siding (at least two cells), drop the stone, fill the gap, then fetch the pearl.",
+  "deadlocks": [
+   "Pushing the first pearl right: it falls into the gap.",
+   "Parking it only one cell left: you can no longer get behind the stone.",
+   "Dropping the second pearl onto one still waiting on the landing."
+  ]
+ },
+ {
+  "name": "Stone Clock",
+  "hint": "Pearls crush crabs too. Drop the right-hand pearl just as the crab walks under it.",
+  "map": [
+   "##################",
+   "#P...............#",
+   "#..W.BW.WBWWWWWWW#",
+   "#W.W..W...WWWWWWW#",
+   "#W.WW WWW WWWWWWW#",
+   "#W.WW WWW WWWWWWW#",
+   "#W.WW WWW WWWWWWW#",
+   "#W.         C   E#",
+   "#WWWWWWWWWWWWWWWW#",
+   "##################"
+  ],
+  "plan": "7,1 7,3!v 8,3 w:4 9,3 8,3 w:3 s 2,1 2,7!v 8,7 R:7 2,7 2,1!v 4,1 4,3!v 5,3 4,3 w:4 4,1 2,1 2,7!v 4,7 R:11 m:R",
+  "aha": "A falling pearl crushes the crab. Pull the right-hand plug as the crab is two cells from the shaft (2-tick window, every 3.6 s), push that pearl in, then the left pearl.",
+  "deadlocks": [
+   "Missing the crab: it is trapped between pearl and gate (or guards your entrance).",
+   "Dropping the left pearl first: it lands in the corridor and blocks your way behind the right one."
+  ]
+ },
+ {
+  "name": "Pedestal",
+  "hint": "The pearl rides on a stone. Work it loose from the gate side, and keep its left side packed.",
+  "map": [
+   "##################",
+   "#P...............#",
+   "#................#",
+   "#................#",
+   "#.......B........#",
+   "#...B.. R       E#",
+   "#WWWWWW .WWWWWWWW#",
+   "##################"
+  ],
+  "plan": "10,1 10,5!v 9,5 L:1 m:R s 9,4 9,3 7,3 7,5!v R:8 3,5 R:12 m:R",
+  "aha": "The pearl sits on a stone beside a hole. Come in from the gate side, push the stone left into the hole, step away so the pearl drops onto the road, then go over it and push it home; the second pearl crosses the filled hole.",
+  "deadlocks": [
+   "Approaching from the left and pushing the stone right: it ends up between pearl and gate.",
+   "Digging the sand left of the pearl: it rolls into the hole."
+  ]
+ },
+ {
+  "name": "Glancing Blow",
+  "hint": "Stones roll off pearls. Put a pearl under the drop before the stone comes down.",
+  "map": [
+   "###############",
+   "#P............#",
+   "#........R....#",
+   "#.............#",
+   "#.WWWWWWW   B.#",
+   "#.WWWWWW  WWWW#",
+   "#..B      EWWW#",
+   "#WWWWWWW .WWWW#",
+   "###############"
+  ],
+  "plan": "13,1 13,4!v L:2 w:1 s 10,3 9,3 10,3 w:2 s 9,5!v 8,5 8,6 R:1 1,3 1,6!v 2,6 R:7 m:R",
+  "aha": "The only stone falls straight onto the road in front of the gate unless something round is under it. Push the near pearl down the chute first; the stone then glances off it into the hole, and both pearls can go.",
+  "deadlocks": [
+   "Pulling the stone plug first: it blocks the gate entrance.",
+   "Delivering the near pearl first, or pushing the far pearl over the hole."
+  ]
+ },
+ {
+  "name": "Jelly Lift",
+  "hint": "Whatever goes down the jelly shaft first clears the way. Make it the stone.",
+  "map": [
+   "##################",
+   "#P...............#",
+   "#  B     .   R   #",
+   "#WWWWWWWW WWWWWWW#",
+   "#WWWWWWWW WWWWWWW#",
+   "#WWWWWWWWJWWWWWWW#",
+   "#WWWWWWWW WWWWWWW#",
+   "#WWWWWW.  WWWWWWW#",
+   "#WWWWWW.        E#",
+   "#WWWWWWWWWWW WWWW#",
+   "##################"
+  ],
+  "plan": "9,1 9,2!v 9,1 14,1 14,2!v L:4 w:1 s w:6 9,7!v 8,7 8,8 R:3 w:1 s 9,8 9,2!v 2,2 R:6 w:1 s w:4 9,7!v 8,7 8,8 R:7 m:R",
+  "aha": "The first thing down the jelly shaft crushes the jellyfish and lands on the lower road. It must be the stone (pushed on into the hole), not the pearl.",
+  "deadlocks": [
+   "Pushing the pearl (nearest the start) in first: it gets pushed into the hole, or the stone lands behind it and blocks.",
+   "Swimming down the shaft while the jellyfish lives."
+  ]
+ },
+ {
+  "name": "Stair Roll",
+  "hint": "The stairs carry anything to the gate, but the pit halfway down keeps the first thing that rolls in.",
+  "map": [
+   "################",
+   "#P.............#",
+   "# B B  .R..R...#",
+   "#WWWWW  .......#",
+   "#WWWWWW  WW WWW#",
+   "#WWWWWWW  W WWW#",
+   "#WWWWWWW    WWW#",
+   "#WWWWWWWWW  WWW#",
+   "#WWWWWWWWWW WWW#",
+   "#WWWWWWWWWWEWWW#",
+   "################"
+  ],
+  "plan": "7,1 7,3!v 8,3 7,3 w:5 3,2 R:2 w:1 s w:8 1,2 R:4 w:1 s w:8 7,3 7,4 8,4 8,5 9,5 9,6 10,6 10,7 11,7 11,8 11,9",
+  "aha": "The staircase delivers anything onto the gate, but the pit halfway down catches the first item. Drop the hanging stone over the pit first; then both pearls roll all the way. The other hanging stone falls straight onto the gate.",
+  "deadlocks": [
+   "Pushing a pearl first: it is caught in the pit.",
+   "Pulling the right-hand stone: it sits on the gate."
+  ]
+ },
+ {
+  "name": "Fish Trap",
+  "hint": "Stones and pearls both crush piranhas. Fill the dip first, and catch the fish on the way.",
+  "map": [
+   "#################",
+   "#...B.R.P.......#",
+   "#...............#",
+   "#.WW.W WWWWWWWWW#",
+   "#.WW.W WWWWWWWWW#",
+   "#.WW.W WWWWWWWWW#",
+   "#.B        F   E#",
+   "#WWWWW WWWWWWWWW#",
+   "#################"
+  ],
+  "plan": "7,1 7,2!v 6,2 7,2 w:6 3,1 3,2 R:2 w:1 s w:4 4,2 4,6!v 5,6 R:9 1,5 1,6 R:13 m:R",
+  "aha": "A dip in the corridor must be filled and the piranha must die before the corridor pearl can pass. Drop the stone down the nook (it fills the dip and may crush the fish), then drop the top pearl the same way (it crushes the fish if the stone missed), deliver it, then the corridor pearl.",
+  "deadlocks": [
+   "Dropping the pearl first: it falls into the dip.",
+   "Leaving the fish alive: it is trapped between pearl and gate."
+  ]
+ },
+ {
+  "name": "Lead Weight",
+  "hint": "Lead each stone down the chimney and step out on the side you will push from.",
+  "map": [
+   "################",
+   "#WWWWWWWBWWWWWW#",
+   "#WWWWWWW.WWWWWW#",
+   "#WWWWWWWRWWWWWW#",
+   "#WWWWWWW.WWWWWW#",
+   "#WWWWWWWBWWWWWW#",
+   "#WWWWWWW.WWWWWW#",
+   "#WWWWWWWRWWWWWW#",
+   "#P.......    EW#",
+   "#WW W WW.WWWWWW#",
+   "#WWWWWWWWWWWWWW#",
+   "################"
+  ],
+  "plan": "9,8 w:1 s L:3 w:1 s 8,8 8,6!v m:DDL w:1 s R:5 8,8 8,4!v m:DDDDR w:1 s L:5 w:1 s 8,8 8,2!v m:DDDDDDL w:1 s R:5 m:R",
+  "aha": "Four items are stacked in a chimney. Each one follows you down when you dig its sand; step out on the side you will push from: right for stones (pushed left into the two holes), left for pearls (pushed right to the gate).",
+  "deadlocks": [
+   "Stepping out on the wrong side: a stone you can only push toward the gate, or a pearl you can only push into a hole.",
+   "Stopping under a falling item, or digging the sand under the doorway (items fall below the road)."
+  ]
+ }
+]

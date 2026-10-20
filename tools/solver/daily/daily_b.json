@@ -1,0 +1,165 @@
+[
+ {
+  "name": "Crab Crossing",
+  "time": 105,
+  "hint": "Only the right-hand shaft reaches the crab. Drop that stone as it walks underneath; the left one just fills a hole.",
+  "map": [
+   "####################",
+   "#P...R .....R .....#",
+   "#.WWW. WWWWW. WWWW.#",
+   "#.WWWW WWWWWW WWWW.#",
+   "#.B     .   C    ..#",
+   "#WWWWW WWWWWW WWWWE#",
+   "####################"
+  ],
+  "route": "RRRR.RRRRRRRRRRLDDDLLLLLRRRRRRRRRRLLLLLUUULLLLLLLLLLLLDDDRRRRRRRRRRRRRRRRRRD."
+ },
+ {
+  "name": "Twin Claws",
+  "time": 85,
+  "hint": "One stone, two crabs. Wait until both claws line up under the shaft.",
+  "map": [
+   "######################",
+   "#P.......R ..........#",
+   "#WWWWWWWW. WWWWWWWWW.#",
+   "#WC         B        #",
+   "#WWWWWWWWW WWWWWWWWW #",
+   "#W C        B        #",
+   "#WWWWWWWWW WWWWWWWWW #",
+   "#WWWWWWWWWWWWWWWWWWWE#",
+   "######################"
+  ],
+  "route": "RRRRRRR.......RDDRRRRRRRRRRRLLLLLLLLLDDRRRRRRRRR..RDD."
+ },
+ {
+  "name": "Jelly Bridge",
+  "time": 80,
+  "hint": "The shafts are too deep to fill. Push the pearl across as the jellyfish rises under the road, then step back.",
+  "map": [
+   "#######################",
+   "#P....................#",
+   "#.B                 B.#",
+   "#WWWWWWWW.   .WWWWWWWW#",
+   "#WWWWWWWWW EJWWWWWWWWW#",
+   "#WWWWWWWWWJW WWWWWWWWW#",
+   "#WWWWWWWWWWWWWWWWWWWWW#",
+   "#WWWWWWWWWWWWWWWWWWWWW#",
+   "#######################"
+  ],
+  "route": "DRRRRRRR....R.RLURRRRRRRRRRRRDLLLLLLL....LLRLLDD."
+ },
+ {
+  "name": "Rolling Plug",
+  "time": 90,
+  "hint": "A falling stone rolls left first. Dig the right pocket before the drop, and the left one only after.",
+  "map": [
+   "#############",
+   "#WWWWWW R..P#",
+   "#WWWWWW .WW.#",
+   "#WWWWWWJWWW.#",
+   "#WWWWWW WWW.#",
+   "#WWWWWW ....#",
+   "#WWWWW. . B.#",
+   "#WWWWW W WWW#",
+   "#WWWWWEWWWWW#",
+   "#############"
+  ],
+  "route": "DDDDLLLDURRRUUUULLL........LDDDDDLRUUUUURRRRDDDDDLLLL..LDD."
+ },
+ {
+  "name": "Crab Fence",
+  "time": 80,
+  "hint": "You don't have to crush the crab. Drop the stone when it's on the far side and fence it in.",
+  "map": [
+   "######################",
+   "#P...R ..............#",
+   "#WWW. WWW.W.WWWWWWWWW#",
+   "#WWWW WWW.W.WWWWWWWWW#",
+   "#WW  C    B R       E#",
+   "#WWWWWWWWWWWWWWW WWWW#",
+   "#WWWWWWWWWWWWWWWWWWWW#",
+   "######################"
+  ],
+  "route": "RRR....R....RRRRRRDDDRRRRLLLLUUULLDDDRRRRRRRRRRR."
+ },
+ {
+  "name": "Fish Hook",
+  "time": 85,
+  "hint": "A stone in the pond would block the road. Drop the pearl on the piranha when it swims up the chute.",
+  "map": [
+   "#####################",
+   "#P...............B .#",
+   "#.WWWWWWWWWWRWWWW. .#",
+   "#............WWWWW .#",
+   "#WWWWWWWWWWW WWWWW .#",
+   "#EF                .#",
+   "#WWWWWWWWWWWWWWWWWWW#",
+   "#####################"
+  ],
+  "route": "RRRRRRRRRRRRRRR.............R.RRDDDDLLLLLLLLLLLLLLLLLL."
+ },
+ {
+  "name": "Pit Count",
+  "time": 95,
+  "hint": "The deep pit takes two stones, the shallow one only one. The middle stone belongs to the deep pit.",
+  "map": [
+   "#####################",
+   "#P     R    R    R  #",
+   "#.WWWWWWWW WWWW WW.W#",
+   "#.WWWWWWWW WWWW WW.W#",
+   "#.B                E#",
+   "#WWWWWWWWW WWWW WWWW#",
+   "#WWWWWWWWWJWWWWWWWWW#",
+   "#####################"
+  ],
+  "route": "RRRRRRRR...RDDDRRRRRRRRUUULL.LLLLL.LLLLLLLLLLDDDRRRRRRRRRRRRRRRRRR."
+ },
+ {
+  "name": "Crab Bait",
+  "time": 95,
+  "hint": "The crab never leaves its den by itself. Dig through, let it chase you under the stone, then pull the plug.",
+  "map": [
+   "################",
+   "#P............W#",
+   "#.WWWWWWWWWWW.W#",
+   "#.WWWWWWWWWWR.W#",
+   "#.WWWWWWWWWW..W#",
+   "#.B C  .......E#",
+   "#WWWWWWWWWWW WW#",
+   "################"
+  ],
+  "route": "RRRRRRRRRRRRDDDDLLLLL.LRRRRRRULRUUULLLLLLLLLLLLDDDDRRRRRRRRRRRRR."
+ },
+ {
+  "name": "Crab Herding",
+  "time": 105,
+  "hint": "Push the pearl to herd the crab into the corner under the shaft, then drop the stone on it.",
+  "map": [
+   "#####################",
+   "#W R.........P......#",
+   "#W ..WWWWWWWW.WWWWW.#",
+   "#W W.WWWWWWWW.WWWWW.#",
+   "#W W.WWWWWWWW.WWWWW.#",
+   "#E    C     B     B.#",
+   "#W WWWWWWWWWWWWWWWWW#",
+   "#####################"
+  ],
+  "route": "DDDDLL..L.L.L.L.L.L.LUUUUL....DRDDDLLUUUURRRRRRRRRRRRRRRRRDDDDLLLLLLLLLLLLLLLLLL."
+ },
+ {
+  "name": "Fish Elevator",
+  "time": 80,
+  "hint": "The piranha rides up the shaft now and then. Drop the stone while it is inside.",
+  "map": [
+   "######################",
+   "#WWWWWWWWW R.......PW#",
+   "#WWW WWWWW .WWWWWW.WW#",
+   "#WWW WWWWW WWWWWWW.WW#",
+   "#WWW WWWWW WWWWWWW.WW#",
+   "#EF              B WW#",
+   "#WWWWWWWWW WWWWWWWWWW#",
+   "######################"
+  ],
+  "route": "LLLLLLL.....L...RRRRRRRDDDDLLLLLLLLLLLLLLLLL."
+ }
+]

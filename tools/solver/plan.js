@@ -1,5 +1,6 @@
 // Waypoint plan executor: turns a short human/solver plan into an exact-tick route, running the REAL engine tick by tick.
 // Usage: node plan.js <level> "<plan>" [-v]      (-v prints the board after every command)
+//        node plan.js --file <levels.json> --index <k 1-based> "<plan>" [-v]   (level object from a file)
 // Plan commands (space separated):
 //   X,Y      walk/dig to cell (X,Y) (shortest path, recomputed every tick; prefers to keep its direction, horizontal first)
 //   X,Y!v    same but prefers vertical moves first
@@ -39,7 +40,7 @@ function run(level, plan, verbose) {
     best = dfs(toks, []) || best;
     if (verbose) { const t2 = toks.slice(); let j = 0; for (let i = 0; i < t2.length; i++) if (/^w:\?/.test(t2[i])) t2[i] = 'w:' + best.picks[j++]; console.log('picked waits', best.picks.join(','), '->', t2.join(' ')); return Object.assign(run(level, t2.join(' '), true), { picks: best.picks }); }
     return best; }
-  const e = new Engine(levels[level - 1]); let route = ''; const tick = c => { if (c !== '.') e.press(NAME[c]); e.step(); route += c; return e.state; };
+  const e = new Engine(typeof level === 'object' ? level : levels[level - 1]); let route = ''; const tick = c => { if (c !== '.') e.press(NAME[c]); e.step(); route += c; return e.state; };
   let done = 0; const fail = (msg) => ({ ok: false, msg, route, e, done });
   for (const cmd of toks) {
     if (e.state !== 'playing') break;
@@ -63,6 +64,8 @@ function run(level, plan, verbose) {
 function score(r) { let mon = 0; for (const o of r.e.objects.values()) if (MONSTERS.has(o.t)) mon++; return (r.ok ? 1e9 : 0) + r.done * 1e5 + r.e.ballsIn * 1e3 - mon * 10 - r.route.length * 1e-3; }
 module.exports = { run, show };
 if (require.main === module) {
-  const [, , lv, plan, flag] = process.argv; const r = run(+lv, plan, flag === '-v');
+  let [, , lv, plan, flag] = process.argv;
+  if (lv === '--file') { const [, , , file, , k, p2, f2] = process.argv; lv = JSON.parse(require('fs').readFileSync(file, 'utf8'))[+k - 1]; plan = p2; flag = f2; } else lv = +lv;
+  const r = run(lv, plan, flag === '-v');
   console.log(show(r.e)); console.log(r.ok ? 'WON' : 'FAIL: ' + r.msg); if (r.picks) { let j = 0; console.log('waits', r.picks.join(','), '\nresolved plan:', plan.trim().split(/\s+/).map(t => /^w:\?/.test(t) ? 'w:' + r.picks[j++] : t).join(' ')); } console.log('route(' + (r.route + '.').length + '): ' + r.route + '.');
 }
