@@ -248,3 +248,15 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   (bag/trophy/gift/scroll/bulb/hand) on the home tiles and hint button. All styling lives in the `.ui-art` block at the end of
   the `<style>` in index.html. Pills use 9-slice `border-image` (slice 14%) so caps never stretch.
 - Not used yet: panel, panel_row, chip, air_frame, bar_frame, danger, sparkle (CSS versions look cleaner at those sizes).
+
+## UI redesign (one design system, phone + computer)
+- The whole `<style>` in index.html was rewritten from scratch (~600 lines, no layered overrides). Tokens on `:root`
+  (`--surface`, `--card`, `--line`, `--glass`, radii `--r-*`, `--shadow`); every size is in rem and `html` font-size steps up on
+  big windows (16 → 17 → 18.5 → 21 px) so the UI scales with the screen; 14 px on short landscape phones.
+- **Sheets** (levels, shop, rewards, ranks, settings, records, how to): full-screen on phones; a centred window with sticky
+  header and its own scroll on ≥760×560 (`.win-tall` levels, `.win-wide` shop). **Modals** (`.sheet.modal`: intro, pause,
+  result, ending, name): one card style; win/lose tint the card.
+- **Home:** phone portrait = logo · live tank · Daily Dive + PLAY · bottom tab bar (`.hm-nav`, 6 items). Landscape/computer =
+  menu column on the left (logo, PLAY, Daily Dive, 3×2 tiles) and the tank moved right: `homeLayout()` sets
+  `world.menuShift` from the column width, World shifts the menu camera by that fraction of the view width.
+- The `.ui-art` block at the end layers the owner's art on top of this system (unchanged keys).

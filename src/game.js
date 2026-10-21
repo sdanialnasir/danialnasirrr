@@ -2997,7 +2997,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.follow = this.camDist < dFull - 0.01;
       if (!isMobile) { this.camDist = dFull; this.follow = false; } // computers: always the whole level, no follow/zoom
       // on the home screen, pull back so the menu has room and the reef shows around the board
-      if (this.menuMode) { this.camDist = dFull * (aspect > 1 ? 1.75 : 0.98); this.follow = false; }
+      if (this.menuMode) { this.camDist = dFull * (aspect > 1 ? (this.menuShift ? 1.4 : 1.75) : 0.98); this.follow = false; }
       if (snap) { this.updateCameraTarget(); this.camPos.copy(this.camGoal); this.camTarget.copy(this.lookGoal); }
     }
     updateCameraTarget(overview = false) {
@@ -3251,7 +3251,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.peekK = (this.peekK || 0) + ((this.peek && !this.menuMode ? 1 : 0) - (this.peekK || 0)) * (1 - Math.exp(-dt * (this.peek ? 3.2 : 4)));
       if (this.peekK > 0.002) { const g0 = this.camGoal.clone(), l0 = this.lookGoal.clone(); this.updateCameraTarget(true); const k = this.peekK * this.peekK * (3 - 2 * this.peekK);
         this.camGoal.lerpVectors(g0, this.camGoal.clone(), k); this.lookGoal.lerpVectors(l0, this.lookGoal.clone(), k); }
-      if (this.menuMode) { this.camGoal.x += Math.sin(t * 0.15) * 1.2; this.lookGoal.x = this.camGoal.x; const lift = this.camGoal.z * (innerHeight > innerWidth ? 0.052 : -0.045); this.camGoal.y -= lift; this.lookGoal.y -= lift; } // menu: board sits between the logo and PLAY
+      if (this.menuMode) { this.camGoal.x += Math.sin(t * 0.15) * (this.menuShift ? 0.6 : 1.2); this.lookGoal.x = this.camGoal.x; const lift = this.camGoal.z * (innerHeight > innerWidth ? 0.026 : this.menuShift ? 0 : -0.045); this.camGoal.y -= lift; this.lookGoal.y -= lift;
+        if (this.menuShift) { const vw = 2 * Math.abs(this.camGoal.z) * Math.tan(this.camera.fov * Math.PI / 360) * this.camera.aspect; this.camGoal.x -= this.menuShift * vw; this.lookGoal.x -= this.menuShift * vw; } } // computer home: the tank sits right of the menu column // menu: board sits between the logo and PLAY
       let cl = 1 - Math.pow(0.012, dt);
       { const dim = this.cineCam ? (this.storyDim || 0) : 0; this.nightK = this.cineCam ? Math.min(1, Math.max(0, (dim - 0.2) / 0.9)) : 0; MAT.sandNight.value = this.nightK; if (this.groundTint) this.groundTint.value.copy(this.groundTint0).lerp(new THREE.Color(0.05, 0.09, 0.22), this.nightK * 0.85); if (this.post && this.post.compMat) this.post.compMat.uniforms.night.value = this.nightK; this.renderer.toneMappingExposure = Math.max(0.12, 1 - 0.62 * dim) + (this.cineCam ? (this.flashK || 0) * 1.4 : 0); if (this.photo) this.photo.bg.material.color.copy(this.bgTint || new THREE.Color(1, 1, 1)).lerp(new THREE.Color(0.08, 0.14, 0.32), Math.min(1, 0.78 * dim)); } // the story's dark reef, lit again when the gate wakes
       { // stage lighting in play: the world outside the tank sinks into cooler shade (deeper worlds more), the diver's lamp warms the
@@ -3544,7 +3545,7 @@ window.__T = T;
     if (id === 'shop') openShop(); if (id === 'rewards') buildRewards(); if (id === 'ranks') openRanks(lbTab); else if (LB.unsub) { LB.unsub(); LB.unsub = null; }
     if (id === 'levels') buildLevels(); if (id === 'profile') buildProfile(); if (id === 'settings') syncSettings(); if (id === 'home') refreshHome();
     if (id === 'name') { $('#nameInput').value = save.name || ''; setTimeout(() => $('#nameInput').focus(), 50); }
-    show(id);
+    show(id); if (id === 'home') homeLayout();
   }
   document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { click(); go(b.dataset.go); }));
 
@@ -3560,7 +3561,10 @@ window.__T = T;
   let menuEngine = null;
   function showMenuScene() { if (menuKeep) { menuKeep = false; return; } if (menuEngine && world.e === menuEngine) return; /* already on screen: never rebuild the same scene */ menuEngine = new Engine(LEVELS[0]); menuEngine.time = 1e9; menuEngine.oxygen = 1e9; menuEngine.menu = true; world.loadLevel(menuEngine); world.onTick(menuEngine, performance.now()); reefProgress(); }
   function reefProgress() { const c = cleared(); world.reefLights = c * 3; world.reefK = c / LEVELS.length; }
-  function openHome() { setPeekSafe(); Audio.setTension(0); setState('menu'); go('home'); showMenuScene(); reefProgress(); idleThumbs(); }
+  function openHome() { setPeekSafe(); Audio.setTension(0); setState('menu'); go('home'); showMenuScene(); reefProgress(); homeLayout(); idleThumbs(); }
+  // wide screens: the menu column sits on the left, so the menu camera moves the tank into the free space on the right
+  function homeLayout() { let sh = 0; if (world.menuMode && innerWidth > innerHeight && $('#home').classList.contains('on')) { const col = $('.hm-col').getBoundingClientRect(); if (col.right < innerWidth * 0.7) sh = Math.min(0.24, col.right / innerWidth / 2); }
+    if (Math.abs((world.menuShift || 0) - sh) > 0.005) { world.menuShift = sh; if (world.menuMode) world.fitCamera(false); } }
   function setPeekSafe() { try { world.peek = false; } catch {} }
   // ---- intro cinematic: plays once (first launch) or on request; skippable; can't double-start
   function tickWorld(e, t) { if (e === engine && e.events && e.events.length) feel(e); world.onTick(e, t); }
@@ -4110,7 +4114,7 @@ window.__T = T;
     // the 3D world sleeps while the paper menu / intro covers the screen
     { world.update(dt, now); world.render(); if (gfxMode() === 'auto' && (state === 'playing' || state === 'menu' || state === 'cine')) world.autoQuality(realDt); }
   }
-  addEventListener('resize', () => world.resize());
+  addEventListener('resize', () => { world.resize(); homeLayout(); });
   canvas.addEventListener('webglcontextlost', ev => { ev.preventDefault(); if (state === 'playing') pause(); }, false);
   canvas.addEventListener('webglcontextrestored', () => { try { const e = state === 'cine' ? cineEngine : state === 'menu' || state === 'splash' ? menuEngine : engine; if (e) { if (state === 'playing' || state === 'paused' || state === 'over') world.keepTreasures(); world.loadLevel(e); world.onTick(e, performance.now()); if (state === 'playing' || state === 'paused' || state === 'over' || state === 'cine') world.startPlay(); if (state === 'cine') world.cineCam = true; } } catch (er) { console.warn('context restore', er); } }, false);
   requestAnimationFrame(frame);
