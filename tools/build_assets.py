@@ -16,6 +16,11 @@ def main():
         for ext in ('jpg', 'png'):
             rel = f'assets/images/background/bg_photo_w{w}.{ext}'
             if os.path.exists(os.path.join(SRC, rel)): data[f'PHOTO_BG_W{w}'] = uri(rel); break
+    # UI elements (compressed WebPs made by tools/compress_ui.py) -> AQ_DATA.UI, exposed to the CSS as --ui-<key>
+    ui_dir = os.path.join(SRC, 'assets', 'images', 'ui')
+    if os.path.isdir(ui_dir):
+        data['UI'] = {os.path.splitext(f)[0]: 'data:image/webp;base64,' + base64.b64encode(open(os.path.join(ui_dir, f), 'rb').read()).decode()
+                      for f in sorted(os.listdir(ui_dir)) if f.endswith('.webp')}
     # optional voice-over clips for the intro: src/assets/vo/<line id>.mp3 (e.g. vo1.mp3 ... vo7.mp3) -> AQ_DATA.VO
     vo_dir = os.path.join(SRC, 'assets', 'vo')
     if os.path.isdir(vo_dir):

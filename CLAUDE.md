@@ -238,3 +238,13 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   `{path:"daily",read:"view",write:"owner"},{path:"daily/{self}",write:"interact"}`.
 - **Voice lines:** `win1–3`, `lose1–2` play on the result screen if `src/assets/vo/<id>.mp3` exist (script: docs/voiceover-script.md).
 - **Per-world paintings:** drop `src/assets/images/background/bg_photo_w2.jpg` / `bg_photo_w3.jpg` (2560×1435) and rebuild.
+
+## Owner's UI art (ChatGPT-made elements)
+- Originals (~1 MB PNG each) are NOT kept in the repo. `python tools/compress_ui.py <folders>` trims each one, resizes it to about
+  2x its on-screen size and writes `src/assets/images/ui/<key>.webp` (67 files, ~730 KB; number prefix → key table in the script).
+  Icons (`i_*`) lose their drop shadow so they work as recolourable masks.
+- `build_assets.py` embeds them as `AQ_DATA.UI`; the controller's `applyUiArt()` sets `--ui-<key>` CSS variables, adds
+  `body.ui-art`, swaps SVG line icons for `.ico` masks (they take the button's text colour) and puts the 3D objects
+  (bag/trophy/gift/scroll/bulb/hand) on the home tiles and hint button. All styling lives in the `.ui-art` block at the end of
+  the `<style>` in index.html. Pills use 9-slice `border-image` (slice 14%) so caps never stretch.
+- Not used yet: panel, panel_row, chip, air_frame, bar_frame, danger, sparkle (CSS versions look cleaner at those sizes).

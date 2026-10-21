@@ -3313,6 +3313,22 @@ window.__T = T;
 /* global Engine, T, LEVELS, World, Audio */
 (() => {
   const $ = s => document.querySelector(s);
+  // ---- the owner's UI art (src/assets/images/ui, compressed WebPs): each image becomes a CSS variable --ui-<key>, line icons
+  // become recolourable masks and the home tiles get their 3D objects. Without the art the old CSS/SVG look stays.
+  const UI = (window.AQ_DATA && AQ_DATA.UI) || null;
+  function uiIcon(el, key) { if (!el || !UI || !UI[key]) return; const i = document.createElement('i'); i.className = 'ico'; i.style.setProperty('--ico', `var(--ui-${key})`); el.replaceWith(i); return i; }
+  function uiImg(el, key, cls) { if (!el || !UI || !UI[key]) return; const im = new Image(); im.src = UI[key]; im.alt = ''; im.className = cls || 'ico3d'; im.draggable = false; el.replaceWith(im); return im; }
+  (function applyUiArt() { if (!UI) return; const R = document.documentElement.style; for (const k in UI) R.setProperty('--ui-' + k, `url("${UI[k]}")`); document.body.classList.add('ui-art');
+    const q = (sel, key) => document.querySelectorAll(sel).forEach(el => uiIcon(el, key));
+    q('#btnPause svg', 'i_pause'); q('#btnUndo svg', 'i_undo'); q('#btnRestartHud svg', 'i_restart'); q('#btnMap svg', 'i_map'); q('.back svg', 'i_back');
+    q('#btnRestart svg', 'i_restart'); q('#btnRetry svg', 'i_restart'); q('#btnResLevels svg', 'i_map'); q('#btnResHome svg', 'i_home'); q('#btnQuit svg', 'i_home'); q('#btnEndHome svg', 'i_home');
+    q('#btnEndIntro svg', 'i_play'); q('#btnWatch svg', 'i_play'); q('#btnShare svg', 'i_share'); q('#btnSound svg', 'i_sound'); q('.hm-sq svg', 'i_settings');
+    uiImg(document.querySelector('#btnHint svg'), 'bulb', 'ico3d hint3d');
+    [['.c-shop', 'bag'], ['.c-rank', 'trophy'], ['.c-gift', 'gift'], ['.c-lvl', 'scroll'], ['.c-how', 'i_question'], ['.c-intro', 'i_play']].forEach(([c, k]) => uiImg(document.querySelector(c + ' .ic svg'), k, 'ico3d' + (k.startsWith('i_') ? ' flat' : '')));
+    const hand = document.querySelector('#coachHand .ch-finger'); if (hand) uiImg(hand, 'hand', 'ch-finger');
+    const dd = document.querySelector('.hm-daily .dd-ic'); if (dd) { dd.textContent = ''; dd.classList.add('art'); }
+    document.querySelectorAll('.ld-title, .gs-title, .hm-title, .cine-title .title').forEach(t => { t.classList.add('logo-art'); t.setAttribute('aria-label', 'Aqua Energizer'); });
+  })();
   const canvas = $('#c');
   const world = World.create(canvas); window.__dc = { world, get engine() { return engine; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), World, intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
   world.onSfx = n => Audio.play(n); world.onToast = m => toast(m);
@@ -3505,7 +3521,7 @@ window.__T = T;
     const list = $('#lbList'), me = $('#lbMe'); let ps = {};
     try { if (LB.user && rows.length) ps = await LB.user.profiles(rows.map(r => r.id).filter(id => id !== 'me')); } catch (er) {}
     const row = (r, i) => { const li = document.createElement('li'); const mine = r.isMe || (LB.uid && r.id === LB.uid); li.className = 'lb-row' + (mine ? ' me' : '');
-      const rk = document.createElement('span'); rk.className = 'rk' + (i === 0 ? ' g' : i === 1 ? ' s' : i === 2 ? ' b' : ''); rk.textContent = i < 3 ? ['🥇', '🥈', '🥉'][i] : `${i + 1}`; li.appendChild(rk);
+      const rk = document.createElement('span'); rk.className = 'rk' + (i === 0 ? ' g' : i === 1 ? ' s' : i === 2 ? ' b' : ''); rk.textContent = i < 3 ? (UI ? '' : ['🥇', '🥈', '🥉'][i]) : `${i + 1}`; li.appendChild(rk);
       const p = ps[r.id]; if (p && p.avatarUrl) { const im = document.createElement('img'); im.src = p.avatarUrl; im.alt = ''; li.appendChild(im); } else { const av = document.createElement('span'); av.className = 'av'; av.textContent = (r.nick || 'D')[0].toUpperCase(); li.appendChild(av); }
       const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = (r.nick || (p && p.name) || 'Diver') + (mine ? ' (you)' : ''); const sm = document.createElement('small'); sm.textContent = by ? `${(+r.air).toFixed(1)} s of air used` : `${r.levels || 0} levels cleared`; nm.appendChild(sm); li.appendChild(nm);
       const sv = document.createElement('span'); sv.className = 'sv'; if (by) sv.textContent = `${(+(by === 'air' ? r.air : r.t)).toFixed(1)}s`; else { sv.innerHTML = '<i class="st">★</i>'; sv.appendChild(document.createTextNode(r.stars || 0)); } li.appendChild(sv);
@@ -3638,6 +3654,7 @@ window.__T = T;
   function smY(i) { const w = WORLDS.findIndex(w => i >= w.from && i < w.to); return SM.top + (w + 1) * SM.head + i * SM.step; }
   function smPt(i, t) { const x0 = smX(i), y0 = smY(i), x1 = smX(i + 1), y1 = smY(i + 1), u = 1 - t; // the same cubic as the drawn path
     const cy0 = y0 + (y1 - y0) / 2, cy1 = y1 - (y1 - y0) / 2; return [u * u * u * x0 + 3 * u * u * t * x0 + 3 * u * t * t * x1 + t * t * t * x1, u * u * u * y0 + 3 * u * u * t * cy0 + 3 * u * t * t * cy1 + t * t * t * y1]; }
+  const DECOR_ART = [['coral', 'shell', 'fish', 'starfish', 'coral', 'shell'], ['coral', 'crystal', 'shell', 'crystal', 'fish', 'coral'], ['jelly', 'crystal', 'fish', 'jelly', 'starfish', 'crystal']];
   const DECOR = [['🪸', '🐚', '🐠', '🌿', '⭐', '🐡'], ['🪸', '💜', '🦑', '🐚', '🔮', '🐠'], ['🐙', '✨', '🦐', '💎', '🪼', '🐟']];
   const cleared = () => Object.keys(save.stars).filter(k => +k <= LEVELS.length).length;
   function buildLevels() {
@@ -3650,7 +3667,7 @@ window.__T = T;
       const hd = document.createElement('div'); hd.className = 'sm-world'; hd.style.top = (smY(w.from) - SM.head + 6) + 'px';
       hd.innerHTML = `<em>World ${wi + 1}</em><b></b><span><i class="g">✦ ${awake}/${w.to - w.from} gates awake</i><i>★ ${st}/${(w.to - w.from) * 3}</i></span>`; hd.querySelector('b').textContent = w.name; map.appendChild(hd);
       const lit = awake / (w.to - w.from); DECOR[wi].forEach((d, k) => { const el = document.createElement('span'); const i = w.from + Math.min(w.to - w.from - 1, Math.round(k * 1.7 + 0.5)); const side = smX(i) > 50 ? -1 : 1;
-        el.className = 'sm-deco' + (k / DECOR[wi].length < lit ? ' on' : ''); el.textContent = d; el.style.left = Math.max(4, Math.min(92, smX(i) + side * (22 + (k % 2) * 9))) + '%'; el.style.top = (smY(i) + (k % 3 - 1) * 26) + 'px'; map.appendChild(el); }); });
+        el.className = 'sm-deco' + (k / DECOR[wi].length < lit ? ' on' : ''); const art = UI && UI[DECOR_ART[wi][k]]; if (art) { el.classList.add('art'); el.style.setProperty('--d', `var(--ui-${DECOR_ART[wi][k]})`); } else el.textContent = d; el.style.left = Math.max(4, Math.min(92, smX(i) + side * (22 + (k % 2) * 9))) + '%'; el.style.top = (smY(i) + (k % 3 - 1) * 26) + 'px'; map.appendChild(el); }); });
     // the path: dashed all the way, glowing up to the furthest unlocked level
     const reach = Math.min(save.unlocked, N) - 1; let d = '', dl = '';
     for (let i = 0; i < N - 1; i++) { const seg = `${i ? '' : `M${smX(0)} ${smY(0)}`} C${smX(i)} ${(smY(i) + smY(i + 1)) / 2} ${smX(i + 1)} ${(smY(i) + smY(i + 1)) / 2} ${smX(i + 1)} ${smY(i + 1)}`; d += seg; if (i < reach) dl += seg; }
@@ -4027,7 +4044,7 @@ window.__T = T;
   function tryFullscreen(force) { const el = document.documentElement; if (!document.fullscreenElement && el.requestFullscreen && (force || !isTouch)) el.requestFullscreen().catch(() => {}); }
   // settings
   function applyAudio() { Audio.setMusic(save.settings.music); Audio.setVolumes(Audio.settings.music, save.settings.sfx ? 0.9 : 0); }
-  function syncSound() { const on = save.settings.music || save.settings.sfx; $('#sndLbl').textContent = on ? 'Sound on' : 'Muted'; $('#sndWave').style.display = on ? '' : 'none'; }
+  function syncSound() { const on = save.settings.music || save.settings.sfx; $('#sndLbl').textContent = on ? 'Sound on' : 'Muted'; const w = $('#sndWave'); if (w) w.style.display = on ? '' : 'none'; const ic = $('#btnSound .ico'); if (ic) ic.style.setProperty('--ico', `var(--ui-${on ? 'i_sound' : 'i_mute'})`); }
   function syncSettings() { $('#setMusic').checked = save.settings.music; $('#setSfx').checked = save.settings.sfx; $('#setVibe').checked = save.settings.vibe; $('#setFps').checked = !!save.settings.fps; $('#fpsMeter').hidden = !save.settings.fps;
     $('#setRelax').checked = !!save.settings.relaxed; $('#setCb').checked = !!save.settings.cb; $('#setBig').checked = !!save.settings.bighud;
     document.querySelectorAll('#setQuality button').forEach(b => b.classList.toggle('on', b.dataset.q === gfxMode()));
