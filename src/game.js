@@ -2176,6 +2176,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.canvas = cv;
       this.renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: !isMobile, powerPreference: 'high-performance', alpha: false }); // phones: the post pass anti-aliases; a multisampled screen buffer on top only cost bandwidth
       this.renderer.outputColorSpace = THREE.SRGBColorSpace; MAIN_R = this.renderer;
+      this.renderer.debug.checkShaderErrors = !!navigator.webdriver || /[?&]debug/.test(location.search); // players: no synchronous shader-log readback (it stalls every compile); tests keep the checks
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.0;
       this.renderer.shadowMap.enabled = true; this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       this.post = new Post(this.renderer, isMobile);
@@ -2368,9 +2369,14 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     disposeLevel() { const shared = new Set(), seen = new Set();
       const scan = (o, d) => { if (!o || typeof o !== 'object' || d > 4 || seen.has(o)) return; seen.add(o);
         if (o.isMaterial || o.isBufferGeometry || o.isTexture) { shared.add(o); if (o.isMaterial) for (const k in o) { const v = o[k]; if (v && v.isTexture) shared.add(v); } return; }
-        if (o.isObject3D) return; if (o instanceof Map) { for (const v of o.values()) scan(v, d + 1); return; } for (const k in o) scan(o[k], d + 1); };
+        if (o.isObject3D) return; if (o instanceof Map) { for (const v of o.values()) scan(v, d + 1); return; }
+        const pr = Object.getPrototypeOf(o); if (pr !== Object.prototype && pr !== Array.prototype && pr !== null) return; // plain containers only: never walk pixel buffers, images or canvases
+        for (const k in o) scan(o[k], d + 1); };
       scan(GEO, 0); scan(MAT, 0); scan(TEX, 0); scan(SPR, 0); scan(sandGeoCache, 0);
-      const freeMat = (m) => { if (!m || shared.has(m)) return; for (const k in m) { const v = m[k]; if (v && v.isTexture && !shared.has(v)) v.dispose(); } m.dispose(); };
+      // a level's materials are not disposed: disposing them deletes their compiled shader programs, and the next level would
+      // compile the very same shaders again (that was most of the pause when a level starts). Programs are few and shared.
+      const keepPrograms = this.renderer.info.programs.length < 260;
+      const freeMat = (m) => { if (!m || shared.has(m)) return; for (const k in m) { const v = m[k]; if (v && v.isTexture && !shared.has(v)) v.dispose(); } if (!keepPrograms) m.dispose(); };
       this.levelGroup.traverse(o => { if (o.geometry && !shared.has(o.geometry)) o.geometry.dispose(); if (o.material) [].concat(o.material).forEach(freeMat); });
       for (const t of [this.maskTex, this.occTex]) if (t) t.dispose(); }
     clearLevel() {
@@ -2636,10 +2642,10 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
                 c = mix(c, vec3(0.588, 0.733, 0.749), smoothstep(-13.0, -23.0, vW.z) * 0.6);                 // the painting's far, hazy sea floor
                 gl_FragColor = vec4(pow(c, vec3(2.2)) * uTint, 1.0 - smoothstep(-14.0, -24.0, vW.z)); }` });
           const gp = new THREE.PlaneGeometry(span + 140, 160); gp.rotateX(-Math.PI / 2); const ground = new THREE.Mesh(gp, gm); ground.position.set((W - 1) / 2, yF + 0.005, 50); ground.renderOrder = -6; ground.frustumCulled = false; this.levelGroup.add(ground); this.groundTint = gm.uniforms.uTint; this.groundTint0 = gm.uniforms.uTint.value.clone();
-          const mk = (draw) => { const c = document.createElement('canvas'); c.width = c.height = 256; draw(c.getContext('2d')); const t = new THREE.CanvasTexture(c); return t; };
-          const blob = mk(g => { const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128); gr.addColorStop(0, 'rgba(18,26,48,0.85)'); gr.addColorStop(0.55, 'rgba(18,26,48,0.35)'); gr.addColorStop(1, 'rgba(18,26,48,0)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256); });
+          const mk = (draw, key) => { if (key && TEX[key]) return TEX[key]; const c = document.createElement('canvas'); c.width = c.height = 256; draw(c.getContext('2d')); const t = new THREE.CanvasTexture(c); if (key) TEX[key] = t; return t; }; // the same for every level: drawn once
+          const blob = mk(g => { const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128); gr.addColorStop(0, 'rgba(18,26,48,0.85)'); gr.addColorStop(0.55, 'rgba(18,26,48,0.35)'); gr.addColorStop(1, 'rgba(18,26,48,0)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256); }, 'shadowBlob');
           // tank shadow: darkest right under the base and along its front edge, fading toward the viewer
-          const tankTex = mk(g => { for (let y = 0; y < 256; y++) { const v = y / 255, a = v < 0.42 ? 0.78 : 0.78 * Math.pow(1 - (v - 0.42) / 0.58, 1.5); for (let x = 0; x < 256; x++) { const u = Math.abs(x / 255 - 0.5) * 2, edge = Math.min(1, (1 - u) / 0.12); g.fillStyle = `rgba(16,24,46,${(a * edge).toFixed(3)})`; g.fillRect(x, y, 1, 1); } } });
+          const tankTex = mk(g => { for (let y = 0; y < 256; y++) { const v = y / 255, a = v < 0.42 ? 0.78 : 0.78 * Math.pow(1 - (v - 0.42) / 0.58, 1.5); for (let x = 0; x < 256; x++) { const u = Math.abs(x / 255 - 0.5) * 2, edge = Math.min(1, (1 - u) / 0.12); g.fillStyle = `rgba(16,24,46,${(a * edge).toFixed(3)})`; g.fillRect(x, y, 1, 1); } } }, 'tankShadow');
           const sm = new THREE.MeshBasicMaterial({ map: tankTex, transparent: true, depthWrite: false, toneMapped: false, fog: false });
           const ts = new THREE.Mesh(new THREE.PlaneGeometry((W - 2) + 2.6, 3.4), sm); ts.rotation.x = -Math.PI / 2; ts.position.set((W - 1) / 2, yF + 0.025, 0.95); ts.renderOrder = -5; this.levelGroup.add(ts);
         }
@@ -3826,7 +3832,7 @@ window.__T = T;
   const hintFree = () => performance.now() >= HINT.readyAt;
   function hintSync() { const b = $('#btnHint'); if (!b) return; const free = hintFree(), left = Math.ceil((HINT.readyAt - performance.now()) / 1000);
     b.classList.toggle('on', COACH.hint > 0); const tg = b.querySelector('em'); const txt = COACH.hint > 0 ? COACH.hint : free ? 'free' : HINT.cost; if (tg.textContent !== String(txt)) tg.textContent = txt; b.classList.toggle('free', free && !COACH.hint);
-    b.setAttribute('aria-label', free ? 'Show me the next moves (free)' : `Show me the next moves (${HINT.cost} coins, free again in ${left}s)`); }
+    const lab = free ? 'Show me the next moves (free)' : `Show me the next moves (${HINT.cost} coins, free again in ${left}s)`; if (hintSync.lab !== lab) { hintSync.lab = lab; b.setAttribute('aria-label', lab); } }
   function showMe() { if (state !== 'playing' || !engine || engine.state !== 'playing') return; click();
     if (!COACH.route) { toast('No hint for this dive'); return; }
     if (COACH.hint > 0) { COACH.hint = 0; hintSync(); return; } // tap again to hide it
@@ -3980,8 +3986,8 @@ window.__T = T;
   let hudKey = '', lastScore = -1;
   function updateHud() {
     if (!engine) return;
-    hud.airTxt.textContent = engine.relaxed ? '∞' : Math.max(0, Math.ceil(engine.oxygen));
-    hud.airFill.style.width = (Math.max(0, Math.min(1, engine.oxygen / engine.time)) * 100).toFixed(1) + '%';
+    { const at = engine.relaxed ? '∞' : String(Math.max(0, Math.ceil(engine.oxygen))); if (hud.airTxt.textContent !== at) hud.airTxt.textContent = at;
+      const aw = (Math.max(0, Math.min(1, engine.oxygen / engine.time)) * 100).toFixed(1) + '%'; if (hud.airFill.style.width !== aw) hud.airFill.style.width = aw; }
     { const fr = engine.oxygen / engine.time, st = fr >= 0.6 ? 3 : fr >= 0.3 ? 2 : 1; const el = $('#airStars'); if (el && el.dataset.st !== String(st)) { el.dataset.st = st; [...el.children].forEach((c, k) => c.classList.toggle('off', k >= st)); } }
     hud.air.classList.toggle('low', engine.oxygen < 15 && engine.state === 'playing' && !engine.relaxed);
     const key = engine.ballsIn + '/' + engine.ballsTotal + (engine.gate.open ? 'o' : '');
@@ -4040,7 +4046,7 @@ window.__T = T;
   const DEAD = 16;
   function stickSpeed(dist, R) { return Math.max(0, Math.min(1, (dist - DEAD) / (R - DEAD))); }
   function stepInterval(t) { // ms between steps for speed t in 0..1
-    const slow = 560, fast = engine ? engine.tickMs : 150; return slow + (fast - slow) * Math.pow(t, 0.8); }
+    const slow = 470, fast = engine ? engine.tickMs : 150; return slow + (fast - slow) * Math.min(1, Math.pow(t / 0.85, 0.65)); }
   const onStickDown = ev => {
     if (state === 'intro') { beginPlay(); }
     if (state !== 'playing' || (ev.pointerType === 'mouse' && ev.button !== 0)) return; // touch, pen, or left-mouse drag
@@ -4121,6 +4127,7 @@ window.__T = T;
   if (!save.settings.sfx) Audio.setVolumes(Audio.settings.music, 0);
 
   // ---- loop ----
+  let heldFrame = false, heldDirty = false, lastHeld = 0;
   function frame(now) {
     requestAnimationFrame(frame);
     const realDt = Math.max(0, (now - lastFrame) / 1000); const dt = Math.min(0.05, realDt); lastFrame = now;
@@ -4129,6 +4136,7 @@ window.__T = T;
       if (state === 'playing') {
         stickTick(realDt * 1000);
         acc = Math.min(acc + (now - (frame.last || now)), 300); frame.last = now; // a long gap (tab throttled, iframe off-screen, GC) must not fast-forward the dive
+        if (engine.moveQueue && engine.moveQueue.length && acc >= engine.tickMs * 0.6 && acc < engine.tickMs) acc = engine.tickMs; // a fresh tap moves now instead of waiting out the tick
         while (acc >= engine.tickMs) {
           acc -= engine.tickMs;
           const pre = (engine.moveQueue.length || engine.held) && engine.player ? cloneEngine(engine) : null, px0 = engine.player && engine.player.x, py0 = engine.player && engine.player.y;
@@ -4158,10 +4166,14 @@ window.__T = T;
       else if (state === 'replay' && replay) replayTick(realDt, now);
       else if (state === 'menu' && menuEngine) { acc += dt * 1000; while (acc >= menuEngine.tickMs) { acc -= menuEngine.tickMs; menuEngine.step(); world.onTick(menuEngine, now - acc); } }
     }
-    // the 3D world sleeps while the paper menu / intro covers the screen
-    { world.update(dt, now); world.render(); if (gfxMode() === 'auto' && (state === 'playing' || state === 'menu' || state === 'cine')) world.autoQuality(realDt); }
+    // the 3D world holds still while a screen covers it (level map, menus, pause, results): draw one fresh frame for the
+    // blurred backdrop, then stop re-rendering until the screen closes. Saves the whole GPU budget on those screens.
+    const covered = state !== 'playing' && state !== 'cine' && state !== 'replay' && !!document.querySelector('.screen.sheet.on, #levels.on');
+    if (covered && heldFrame && !heldDirty) { lastHeld = now; return; }
+    heldFrame = covered; heldDirty = false;
+    { world.update(dt, now); world.render(); if (!covered && gfxMode() === 'auto' && (state === 'playing' || state === 'menu' || state === 'cine')) world.autoQuality(realDt); }
   }
-  addEventListener('resize', () => { world.resize(); homeLayout(); if ($('#levels').classList.contains('on')) renderWorld(); });
+  addEventListener('resize', () => { heldDirty = true; world.resize(); homeLayout(); if ($('#levels').classList.contains('on')) renderWorld(); });
   canvas.addEventListener('webglcontextlost', ev => { ev.preventDefault(); if (state === 'playing') pause(); }, false);
   canvas.addEventListener('webglcontextrestored', () => { try { const e = state === 'cine' ? cineEngine : state === 'menu' || state === 'splash' ? menuEngine : engine; if (e) { if (state === 'playing' || state === 'paused' || state === 'over') world.keepTreasures(); world.loadLevel(e); world.onTick(e, performance.now()); if (state === 'playing' || state === 'paused' || state === 'over' || state === 'cine') world.startPlay(); if (state === 'cine') world.cineCam = true; } } catch (er) { console.warn('context restore', er); } }, false);
   requestAnimationFrame(frame);
@@ -4173,7 +4185,9 @@ window.__T = T;
     try {
       prog(0.04, 'Filling the tank…'); await World.ready(k => prog(0.04 + k * 0.46));
       if (!booting) return; prog(0.52, 'Warming up the lights…'); await pause(); if (!booting) return; const e1 = new Engine(LEVELS[0]); e1.time = e1.oxygen = 999; world.warm(e1);
-      if (!booting) return; prog(0.72, 'Waking up the reef…'); await pause(); if (!booting) return; const e2 = new Engine(LEVELS[Math.min(13, LEVELS.length - 1)]); e2.time = e2.oxygen = 999; world.warm(e2);
+      // pre-compile every shader variant the levels use (piranha, jellyfish, crab, air capsule, deep-world rock): these five levels
+      // between them cover all of them, so no level stutters the first time it opens
+      { const W5 = [1, 5, 8, 11, 20]; for (let k = 0; k < W5.length; k++) { if (!booting) return; prog(0.6 + k * 0.06, k < 2 ? 'Waking up the reef…' : 'Calling the fish home…'); await pause(); if (!booting) return; const e2 = new Engine(LEVELS[W5[k]]); e2.time = e2.oxygen = 999; world.warm(e2); } }
       if (!booting) return; prog(0.9, 'Almost there…'); await pause(); if (!booting) return; showMenuScene(); world.warm(menuEngine);
       if (gfxMode() === 'auto') { try { world.benchmark(); } catch (er) {} } // settle Auto's tier now, behind the loader, not mid-game
     } catch (er) { console.warn('preload', er); try { showMenuScene(); } catch (e2) {} }

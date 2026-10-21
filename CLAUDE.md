@@ -274,3 +274,15 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   card (gift art, progress bar, state) beside them on computers.
 - **Win/lose:** phone = one card; computer = two columns (title/stars/score + diver mascot | stats with icons, coin breakdown
   rows, Next level, Enter hint, Watch best run / Share) and a Replay · Levels · Home row underneath.
+
+## Speed pass (no quality change)
+- **Held frames:** while a screen covers the scene (level map, any sheet/modal: rewards, shop, pause, results…) the frame loop
+  draws one fresh frame for the blurred backdrop and then stops rendering (`heldFrame`/`heldDirty`, re-drawn on resize).
+- **Level start:** `disposeLevel` no longer disposes materials (that deleted their compiled shader programs, so every level
+  recompiled the same shaders), and its shared-resource scan only walks plain objects/arrays/Maps (it used to walk pixel buffers).
+  The tank-shadow textures are drawn once (`TEX.tankShadow`, `TEX.shadowBlob`). Level setup 400–700 ms → 30–60 ms (headless).
+- **Boot warm-up** loads levels 2, 6, 9, 12 and 21 behind the loader: between them they hold every shader variant the 30 levels use,
+  so no level compiles shaders on first visit. `renderer.debug.checkShaderErrors` is off for players (on under webdriver / `?debug`).
+- HUD glass no longer uses backdrop blur over the moving canvas; shine animations use transforms; HUD text/attribute writes only on change.
+- **Input feel:** a fresh tap runs the next tick early when ≥60% of a tick has passed (less wait before the diver moves); the drag
+  stick reaches full speed sooner (`stepInterval`: 470 ms → tick, full at 85% of the ring).
