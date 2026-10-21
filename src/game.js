@@ -1652,12 +1652,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.pglow = new THREE.Sprite(MAT.ballGlow); this.pearl.add(this.pglow); this.pglow.scale.setScalar(1.8); this.pglow.position.z = -0.1;
       this.trail = [...Array(18)].map(() => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.dot, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); this.scene.add(sp); return sp; });
       this.rebuild(); this.mode = 'full'; }
-    frame(mode) { this.mode = mode; const C = { full: [0, 0.55, 6.6, -0.2], trailCard: [-0.6, 0.4, 6.4, 0.05], card: [0, 0.45, 4.9, 0.05], head: [0.2, 1.35, 3.3, 1.1], trail: [-0.3, 0.45, 8.6, -0.05], pearl: [0, 0.2, 3.6, 0] }[mode] || [0, 0.55, 6.6, -0.2];
+    frame(mode) { this.mode = mode; const C = { full: [0, 0.55, 6.6, -0.2], trailCard: [-0.6, 0.4, 6.4, 0.05], card: [0, 0.45, 4.9, 0.05], mascot: [0.35, 0.35, 5.6, 0.05], head: [0.2, 1.35, 3.3, 1.1], trail: [-0.3, 0.45, 8.6, -0.05], pearl: [0, 0.2, 3.6, 0] }[mode] || [0, 0.55, 6.6, -0.2];
       this.cam.position.set(C[0], C[1], C[2]); this.cam.lookAt(C[0] * 0.5, C[3], 0); }
     rebuild() { if (this.d) { this.scene.remove(this.d); this.d.traverse(o => { if (o.geometry) o.geometry.dispose(); }); } this.d = makeDiver(); this.d.scale.setScalar(2.3); this.d.position.y = 0.2; this.scene.add(this.d); this.hatId = SKIN.hat; this.scarfId = SKIN.scarf; }
     render(t) { if (this.hatId !== SKIN.hat || (this.scarfId === 'none') !== (SKIN.scarf === 'none')) this.rebuild(); skinTick(t);
       const u = this.d.userData, pm = this.mode === 'pearl', tm = this.mode === 'trail' || this.mode === 'trailCard';
-      this.d.visible = !pm; this.ped.visible = !pm && !tm && this.mode !== 'head';
+      this.d.visible = !pm; this.ped.visible = !pm && !tm && this.mode !== 'head' && this.mode !== 'mascot';
       this.d.rotation.y = tm ? -0.15 : this.mode === 'head' ? -0.75 : this.thumb ? -0.45 : -0.6 + Math.sin(t * 0.6) * 0.55; this.d.position.set(tm ? 0.9 : 0, (tm ? 0.25 : 0.2) + Math.sin(t * 1.2) * 0.06, 0); this.d.rotation.z = tm ? -0.25 : 0;
       u.armF.rotation.z = (tm ? 1.4 + Math.sin(t * 8) * 0.8 : 0.5 + Math.sin(t * 1.6) * 0.25 + (!this.thumb && Math.sin(t * 0.5) > 0.8 ? 2.2 + Math.sin(t * 14) * 0.3 : 0)); u.armB.rotation.z = tm ? 1.2 - Math.sin(t * 8) * 0.8 : 0.4 + Math.sin(t * 1.6 + 1) * 0.2;
       u.legF.rotation.z = Math.sin(t * (tm ? 10 : 2)) * (tm ? 0.4 : 0.15); u.legB.rotation.z = -u.legF.rotation.z;
@@ -3251,7 +3251,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.peekK = (this.peekK || 0) + ((this.peek && !this.menuMode ? 1 : 0) - (this.peekK || 0)) * (1 - Math.exp(-dt * (this.peek ? 3.2 : 4)));
       if (this.peekK > 0.002) { const g0 = this.camGoal.clone(), l0 = this.lookGoal.clone(); this.updateCameraTarget(true); const k = this.peekK * this.peekK * (3 - 2 * this.peekK);
         this.camGoal.lerpVectors(g0, this.camGoal.clone(), k); this.lookGoal.lerpVectors(l0, this.lookGoal.clone(), k); }
-      if (this.menuMode) { this.camGoal.x += Math.sin(t * 0.15) * (this.menuShift ? 0.6 : 1.2); this.lookGoal.x = this.camGoal.x; const lift = this.camGoal.z * (innerHeight > innerWidth ? 0.026 : this.menuShift ? 0 : -0.045); this.camGoal.y -= lift; this.lookGoal.y -= lift;
+      if (this.menuMode) { this.camGoal.x += Math.sin(t * 0.15) * (this.menuShift ? 0.6 : 1.2); this.lookGoal.x = this.camGoal.x; const lift = this.menuLift !== undefined ? this.menuLift * 2 * Math.abs(this.camGoal.z) * Math.tan(this.camera.fov * Math.PI / 360) : this.camGoal.z * (innerHeight > innerWidth ? 0.026 : -0.045); // centre the tank in the free space the home screen leaves this.camGoal.y -= lift; this.lookGoal.y -= lift;
         if (this.menuShift) { const vw = 2 * Math.abs(this.camGoal.z) * Math.tan(this.camera.fov * Math.PI / 360) * this.camera.aspect; this.camGoal.x -= this.menuShift * vw; this.lookGoal.x -= this.menuShift * vw; } } // computer home: the tank sits right of the menu column // menu: board sits between the logo and PLAY
       let cl = 1 - Math.pow(0.012, dt);
       { const dim = this.cineCam ? (this.storyDim || 0) : 0; this.nightK = this.cineCam ? Math.min(1, Math.max(0, (dim - 0.2) / 0.9)) : 0; MAT.sandNight.value = this.nightK; if (this.groundTint) this.groundTint.value.copy(this.groundTint0).lerp(new THREE.Color(0.05, 0.09, 0.22), this.nightK * 0.85); if (this.post && this.post.compMat) this.post.compMat.uniforms.night.value = this.nightK; this.renderer.toneMappingExposure = Math.max(0.12, 1 - 0.62 * dim) + (this.cineCam ? (this.flashK || 0) * 1.4 : 0); if (this.photo) this.photo.bg.material.color.copy(this.bgTint || new THREE.Color(1, 1, 1)).lerp(new THREE.Color(0.08, 0.14, 0.32), Math.min(1, 0.78 * dim)); } // the story's dark reef, lit again when the gate wakes
@@ -3319,13 +3319,14 @@ window.__T = T;
   const UI = (window.AQ_DATA && AQ_DATA.UI) || null;
   function uiIcon(el, key) { if (!el || !UI || !UI[key]) return; const i = document.createElement('i'); i.className = 'ico'; i.style.setProperty('--ico', `var(--ui-${key})`); el.replaceWith(i); return i; }
   function uiImg(el, key, cls) { if (!el || !UI || !UI[key]) return; const im = new Image(); im.src = UI[key]; im.alt = ''; im.className = cls || 'ico3d'; im.draggable = false; el.replaceWith(im); return im; }
-  (function applyUiArt() { if (!UI) return; const R = document.documentElement.style; for (const k in UI) R.setProperty('--ui-' + k, `url("${UI[k]}")`); document.body.classList.add('ui-art');
+  (function applyUiArt() { if (!UI) return; const R = document.documentElement.style; for (const k in UI) R.setProperty('--ui-' + k, `url("${UI[k]}")`); if (window.AQ_DATA.PHOTO_BG_URI) R.setProperty('--bgphoto', `url("${AQ_DATA.PHOTO_BG_URI}")`); document.body.classList.add('ui-art');
     const q = (sel, key) => document.querySelectorAll(sel).forEach(el => uiIcon(el, key));
     q('#btnPause svg', 'i_pause'); q('#btnUndo svg', 'i_undo'); q('#btnRestartHud svg', 'i_restart'); q('#btnMap svg', 'i_map'); q('.back svg', 'i_back');
     q('#btnRestart svg', 'i_restart'); q('#btnRetry svg', 'i_restart'); q('#btnResLevels svg', 'i_map'); q('#btnResHome svg', 'i_home'); q('#btnQuit svg', 'i_home'); q('#btnEndHome svg', 'i_home');
     q('#btnEndIntro svg', 'i_play'); q('#btnWatch svg', 'i_play'); q('#btnShare svg', 'i_share'); q('#btnSound svg', 'i_sound'); q('.hm-sq svg', 'i_settings');
     uiImg(document.querySelector('#btnHint svg'), 'bulb', 'ico3d hint3d');
-    [['.c-shop', 'bag'], ['.c-rank', 'trophy'], ['.c-gift', 'gift'], ['.c-lvl', 'scroll'], ['.c-how', 'i_question'], ['.c-intro', 'i_play']].forEach(([c, k]) => uiImg(document.querySelector(c + ' .ic svg'), k, 'ico3d' + (k.startsWith('i_') ? ' flat' : '')));
+    [['.c-shop', 'bag'], ['.c-rank', 'trophy'], ['.c-gift', 'gift'], ['.c-lvl', 'scroll'], ['.c-how', 'i_question'], ['.c-intro', 'i_play']].forEach(([c, k]) => document.querySelectorAll(c + ' .ic svg').forEach(el => uiImg(el, k, 'ico3d' + (k.startsWith('i_') ? ' flat' : ''))));
+
     const hand = document.querySelector('#coachHand .ch-finger'); if (hand) uiImg(hand, 'hand', 'ch-finger');
     const dd = document.querySelector('.hm-daily .dd-ic'); if (dd) { dd.textContent = ''; dd.classList.add('art'); }
     document.querySelectorAll('.ld-title, .gs-title, .hm-title, .cine-title .title').forEach(t => { t.classList.add('logo-art'); t.setAttribute('aria-label', 'Aqua Energizer'); });
@@ -3393,7 +3394,7 @@ window.__T = T;
   const claimableCount = () => ACH.filter(a => !save.ach[a.id] && a.v() >= a.goal).length + (dailyState().can ? 1 : 0) + weekly().filter(c => !save.weekly.c[c.id] && (save.weekly.p[c.id] || 0) >= c.goal).length;
   function buildRewards() {
     const ds = dailyState(), el = $('#daily'); el.innerHTML = ''; const w0 = Math.floor(ds.day / 7) * 7;
-    $('#streakN').textContent = ds.streak ? `🔥 ${ds.streak}-day streak` + (ds.can ? ': keep it going!' : '') : 'Start a streak today';
+    { const sn = $('#streakN'); sn.textContent = ds.can ? `Day ${ds.day + 1} ready` : `🔥 ${ds.streak}-day streak`; sn.classList.toggle('ready', ds.can); }
     for (let i = w0; i < w0 + 7; i++) { const d = document.createElement('div'); d.className = 'day' + (i % 7 === 6 ? ' big gift' : '') + (i < ds.day || (!ds.can && i === ds.day) ? ' done' : '') + (ds.can && i === ds.day ? ' today' : '');
       d.innerHTML = i % 7 === 6 ? `<span>Day ${i + 1}</span><i class="gift-ic">🎁</i><b>Rare</b>` : `<span>Day ${i + 1}</span><i class="coin"></i><b>${dailyCoins(i)}</b>`; el.appendChild(d); }
     const btn = $('#dailyClaim'); btn.disabled = !ds.can; btn.textContent = ds.can ? (ds.day % 7 === 6 ? 'Open the chest 🎁' : `Claim ${dailyCoins(ds.day)} coins`) : 'Come back tomorrow';
@@ -3438,7 +3439,8 @@ window.__T = T;
         if (!save.weekly.bonus && W.every(w => C[w.id])) { save.weekly.bonus = 1; persist(); const g = giftItem(600, 1200) || giftItem(300, 1e9); if (g) grantItem(g, 'Weekly prize'); else addCoins(800, 'Weekly prize'); }
         buildRewards(); refreshHome(); };
       ul.appendChild(li); });
-    const all = W.every(w => C[w.id]); $('#weekBonus').textContent = save.weekly.bonus ? 'Weekly prize claimed ✓ New challenges on Monday.' : all ? '' : 'Finish all three for a guaranteed 🎁 epic item'; }
+    const done = W.filter(c => C[c.id] || (P[c.id] || 0) >= c.goal).length; $('#rwBonusN').textContent = `${done}/3`; $('#rwBonusFill').style.width = (done / 3 * 100) + '%';
+    $('#weekBonus').textContent = save.weekly.bonus ? 'Claimed ✓' : done >= 3 ? 'Claim all three' : 'In progress'; $('#rwBonus').classList.toggle('won', !!save.weekly.bonus); }
 
   // ---- shop
   const SHOP_TABS = [['suit', 'Suits'], ['hat', 'Hats'], ['scarf', 'Scarves'], ['trail', 'Trails'], ['pearl', 'Pearls']];
@@ -3543,9 +3545,9 @@ window.__T = T;
     if (id === 'home' && state !== 'menu' && state !== 'splash' && !go.inHome) { go.inHome = true; try { openHome(); } finally { go.inHome = false; } return; }
     if (id === 'back') { id = screenStack.pop() || 'home'; } else { const cur = document.querySelector('.screen.on'); if (cur && cur.id !== id && id !== 'home') screenStack.push(cur.id); if (id === 'home') screenStack = []; }
     if (id === 'shop') openShop(); if (id === 'rewards') buildRewards(); if (id === 'ranks') openRanks(lbTab); else if (LB.unsub) { LB.unsub(); LB.unsub = null; }
-    if (id === 'levels') buildLevels(); if (id === 'profile') buildProfile(); if (id === 'settings') syncSettings(); if (id === 'home') refreshHome();
+    if (id === 'profile') buildProfile(); if (id === 'settings') syncSettings(); if (id === 'home') refreshHome();
     if (id === 'name') { $('#nameInput').value = save.name || ''; setTimeout(() => $('#nameInput').focus(), 50); }
-    show(id); if (id === 'home') homeLayout();
+    show(id); if (id === 'home') homeLayout(); if (id === 'levels') buildLevels();
   }
   document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { click(); go(b.dataset.go); }));
 
@@ -3553,7 +3555,7 @@ window.__T = T;
   const WORLDS = [{ name: 'Sunlit Shallows', from: 0, to: 10 }, { name: 'Coral Caves', from: 10, to: 20 }, { name: 'The Deep', from: 20, to: LEVELS.length }];
   function refreshHome() {
     const next = Math.min(save.unlocked, LEVELS.length);
-    $('#playSub').textContent = save.unlocked > 1 ? `Continue · Level ${next}` : `Level 1 · ${LEVELS[0].name}`;
+    $('#playSub').textContent = save.unlocked > 1 ? `Continue · Level ${next}` : 'Play · Level 1';
     $('#hmName').textContent = save.name || 'Diver'; $('#hmAva').textContent = (save.name || 'D')[0].toUpperCase(); $('#hmStars').textContent = totalStars(); $('#hmLvl').textContent = next;
     $('#hmDot').hidden = claimableCount() === 0; syncCoins(); syncDiveBtn();
   }
@@ -3563,8 +3565,11 @@ window.__T = T;
   function reefProgress() { const c = cleared(); world.reefLights = c * 3; world.reefK = c / LEVELS.length; }
   function openHome() { setPeekSafe(); Audio.setTension(0); setState('menu'); go('home'); showMenuScene(); reefProgress(); homeLayout(); idleThumbs(); }
   // wide screens: the menu column sits on the left, so the menu camera moves the tank into the free space on the right
-  function homeLayout() { let sh = 0; if (world.menuMode && innerWidth > innerHeight && $('#home').classList.contains('on')) { const col = $('.hm-col').getBoundingClientRect(); if (col.right < innerWidth * 0.7) sh = Math.min(0.24, col.right / innerWidth / 2); }
-    if (Math.abs((world.menuShift || 0) - sh) > 0.005) { world.menuShift = sh; if (world.menuMode) world.fitCamera(false); } }
+  function homeLayout() { let sh = 0, lift; const home = $('#home');
+    if (world.menuMode && home.classList.contains('on')) { const col = $('.hm-col').getBoundingClientRect(), nav = $('.hm-nav').getBoundingClientRect(), top = $('.hm-top').getBoundingClientRect();
+      if (innerWidth > innerHeight && col.right < innerWidth * 0.7) { sh = Math.min(0.24, col.right / innerWidth / 2); lift = (innerHeight / 2 - (top.bottom + nav.top) / 2) / innerHeight; }
+      else { const t = $('.hm-logo').getBoundingClientRect().bottom, b = $('.hm-cta').getBoundingClientRect().top; if (b > t) lift = (innerHeight / 2 - (t + b) / 2) / innerHeight; } }
+    if (Math.abs((world.menuShift || 0) - sh) > 0.005 || world.menuLift !== lift) { world.menuShift = sh; world.menuLift = lift; if (world.menuMode) world.fitCamera(false); } }
   function setPeekSafe() { try { world.peek = false; } catch {} }
   // ---- intro cinematic: plays once (first launch) or on request; skippable; can't double-start
   function tickWorld(e, t) { if (e === engine && e.events && e.events.length) feel(e); world.onTick(e, t); }
@@ -3650,57 +3655,98 @@ window.__T = T;
   }
   $('#skipIntro').addEventListener('click', () => { click(); endCine(); });
   $('#btnReplayIntro').addEventListener('click', () => { click(); startCine(); });
+  $('#btnIntro2').addEventListener('click', () => { click(); startCine(); });
 
-  // ---- star map: one winding path diving from the Sunlit Shallows down to the Deep. Woken gates glow, the reef around them
-  // lights up (gate collection), and the diver travels to the newly unlocked level.
-  const SM = { step: 96, head: 120, top: 24 };
-  const smX = i => 50 + 31 * Math.sin(i * 0.95 + 0.4); // % across
-  function smY(i) { const w = WORLDS.findIndex(w => i >= w.from && i < w.to); return SM.top + (w + 1) * SM.head + i * SM.step; }
-  function smPt(i, t) { const x0 = smX(i), y0 = smY(i), x1 = smX(i + 1), y1 = smY(i + 1), u = 1 - t; // the same cubic as the drawn path
-    const cy0 = y0 + (y1 - y0) / 2, cy1 = y1 - (y1 - y0) / 2; return [u * u * u * x0 + 3 * u * u * t * x0 + 3 * u * t * t * x1 + t * t * t * x1, u * u * u * y0 + 3 * u * u * t * cy0 + 3 * u * t * t * cy1 + t * t * t * y1]; }
+  // ---- world map: one world at a time (‹ World › arrows), a winding path over the world's painting, the diver standing on the
+  // current level. Tapping a level selects it (the card shows a preview of its real layout); Play starts it. Woken gates glow and
+  // the reef decor lights up with the number of gates awake; the diver walks to a newly unlocked level.
   const DECOR_ART = [['coral', 'shell', 'fish', 'starfish', 'coral', 'shell'], ['coral', 'crystal', 'shell', 'crystal', 'fish', 'coral'], ['jelly', 'crystal', 'fish', 'jelly', 'starfish', 'crystal']];
   const DECOR = [['🪸', '🐚', '🐠', '🌿', '⭐', '🐡'], ['🪸', '💜', '🦑', '🐚', '🔮', '🐠'], ['🐙', '✨', '🦐', '💎', '🪼', '🐟']];
   const cleared = () => Object.keys(save.stars).filter(k => +k <= LEVELS.length).length;
-  function buildLevels() {
-    const box = $('#worlds'); box.innerHTML = ''; box.className = 'smap-scroll';
-    const N = LEVELS.length, H = smY(N - 1) + 110, map = document.createElement('div'); map.className = 'smap'; map.style.height = H + 'px';
-    // world bands + headers + decor that lights up as that world's gates wake
-    WORLDS.forEach((w, wi) => { const y0 = wi ? smY(w.from) - SM.head - SM.step / 2 + 20 : 0, y1 = wi < WORLDS.length - 1 ? smY(w.to) - SM.head - SM.step / 2 + 20 : H;
-      const band = document.createElement('div'); band.className = 'sm-band w' + wi; band.style.top = y0 + 'px'; band.style.height = (y1 - y0) + 'px'; map.appendChild(band);
-      let st = 0, awake = 0; for (let i = w.from; i < w.to; i++) { st += save.stars[i + 1] || 0; if (save.stars[i + 1]) awake++; }
-      const hd = document.createElement('div'); hd.className = 'sm-world'; hd.style.top = (smY(w.from) - SM.head + 6) + 'px';
-      hd.innerHTML = `<em>World ${wi + 1}</em><b></b><span><i class="g">✦ ${awake}/${w.to - w.from} gates awake</i><i>★ ${st}/${(w.to - w.from) * 3}</i></span>`; hd.querySelector('b').textContent = w.name; map.appendChild(hd);
-      const lit = awake / (w.to - w.from); DECOR[wi].forEach((d, k) => { const el = document.createElement('span'); const i = w.from + Math.min(w.to - w.from - 1, Math.round(k * 1.7 + 0.5)); const side = smX(i) > 50 ? -1 : 1;
-        el.className = 'sm-deco' + (k / DECOR[wi].length < lit ? ' on' : ''); const art = UI && UI[DECOR_ART[wi][k]]; if (art) { el.classList.add('art'); el.style.setProperty('--d', `var(--ui-${DECOR_ART[wi][k]})`); } else el.textContent = d; el.style.left = Math.max(4, Math.min(92, smX(i) + side * (22 + (k % 2) * 9))) + '%'; el.style.top = (smY(i) + (k % 3 - 1) * 26) + 'px'; map.appendChild(el); }); });
-    // the path: dashed all the way, glowing up to the furthest unlocked level
-    const reach = Math.min(save.unlocked, N) - 1; let d = '', dl = '';
-    for (let i = 0; i < N - 1; i++) { const seg = `${i ? '' : `M${smX(0)} ${smY(0)}`} C${smX(i)} ${(smY(i) + smY(i + 1)) / 2} ${smX(i + 1)} ${(smY(i) + smY(i + 1)) / 2} ${smX(i + 1)} ${smY(i + 1)}`; d += seg; if (i < reach) dl += seg; }
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'sm-path'); svg.setAttribute('viewBox', `0 0 100 ${H}`); svg.setAttribute('preserveAspectRatio', 'none'); svg.style.height = H + 'px';
-    svg.innerHTML = `<path class="sm-trail" d="${d}"/>` + (dl ? `<path class="sm-lit" d="${dl}"/>` : ''); map.appendChild(svg);
-    for (let i = 0; i < N; i++) { const n = i + 1, locked = n > save.unlocked, stars = save.stars[n] || 0, wi = WORLDS.findIndex(w => i >= w.from && i < w.to);
-      const b = document.createElement('button'); b.className = `sm-node w${wi}` + (locked ? ' locked' : stars ? ' awake' : '') + (n === save.unlocked ? ' cur' : '') + (stars === 3 ? ' perfect' : '');
-      b.style.left = smX(i) + '%'; b.style.top = smY(i) + 'px'; b.setAttribute('aria-label', locked ? `Level ${n}, locked` : `Level ${n}, ${LEVELS[i].name}, ${stars} stars`);
-      b.innerHTML = locked ? `<span class="n">${n}</span><svg class="i" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`
-        : `<span class="n">${n}</span><span class="st">${'★'.repeat(stars)}<i>${'★'.repeat(3 - stars)}</i></span>`;
-      if (!locked) b.onclick = () => { click(); startLevel(i); };
-      if (!locked && save.runs && save.runs[n]) { const wb = document.createElement('span'); wb.className = 'sm-watch'; wb.setAttribute('role', 'button'); wb.setAttribute('aria-label', `Watch your best run of level ${n}`); wb.textContent = '▶';
-        wb.onclick = ev => { ev.stopPropagation(); startReplay(n, 'levels'); }; b.appendChild(wb); }
-      if (!locked) { const nm = document.createElement('small'); nm.className = 'sm-name'; nm.textContent = LEVELS[i].name; nm.classList.toggle('left', smX(i) > 50); b.appendChild(nm); }
-      map.appendChild(b); }
-    // the diver: travels from where the map last showed it to the newest level
-    const dv = document.createElement('div'); dv.className = 'sm-diver'; const th = thumbs['suit:' + save.equip.suit];
-    dv.innerHTML = th ? `<img alt="" src="${th}">` : '<span>🤿</span>'; map.appendChild(dv);
-    const from = Math.max(0, Math.min(reach, (save.mapAt || save.unlocked) - 1)), place = (x, y) => { dv.style.left = x + '%'; dv.style.top = y + 'px'; };
-    place(smX(from), smY(from)); box.appendChild(map);
-    setTimeout(() => { const cur = map.querySelector('.sm-node.cur') || map.querySelectorAll('.sm-node')[from]; if (cur) box.scrollTop = Math.max(0, smY(from) - box.clientHeight * 0.45); }, 30);
-    if (from < reach) { const t0 = performance.now() + 450, per = 700; dv.classList.add('travel');
-      const run = now => { const k = (now - t0) / per; if (k < 0) { requestAnimationFrame(run); return; } const seg = Math.min(reach - from - 1, Math.floor(k)), t = Math.min(1, k - seg), e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-        const [x, y] = smPt(from + seg, e); place(x, y); box.scrollTop += ((y - box.clientHeight * 0.45) - box.scrollTop) * 0.12;
-        if (k < reach - from) requestAnimationFrame(run); else { place(smX(reach), smY(reach)); dv.classList.remove('travel'); dv.classList.add('arrive'); buzz(15); Audio.play('click'); } };
-      requestAnimationFrame(run); }
-    save.mapAt = reach + 1; persist();
+  const worldOfIdx = i => Math.max(0, WORLDS.findIndex(w => i >= w.from && i < w.to));
+  const LV = { w: 0, sel: 0, pts: null, horiz: false };
+  function worldStats(wi) { const w = WORLDS[wi]; let st = 0, awake = 0; for (let i = w.from; i < w.to; i++) { st += save.stars[i + 1] || 0; if (save.stars[i + 1]) awake++; } return { st, awake, n: w.to - w.from }; }
+  function buildLevels() { const cur = Math.min(save.unlocked, LEVELS.length) - 1; LV.w = worldOfIdx(cur); LV.sel = cur; renderWorld(true); }
+  function renderWorld(travel) {
+    const box = $('#worlds'); if (!box) return; box.innerHTML = ''; const w = WORLDS[LV.w], wi = LV.w, n = w.to - w.from, cur = Math.min(save.unlocked, LEVELS.length) - 1;
+    $('#lvBg').className = 'lv-bg w' + wi; $('#levels').dataset.w = wi;
+    const ws = worldStats(wi); $('#lvWorld').innerHTML = ''; { const b1 = document.createElement('span'); b1.textContent = `World ${wi + 1} · `; const b2 = document.createElement('em'); b2.textContent = w.name; $('#lvWorld').append(b1, b2); }
+    $('#lvWorldSub').innerHTML = `<i class="g">✦</i> ${ws.awake}/${ws.n} gates awake &nbsp;·&nbsp; <i class="s">★</i> ${ws.st}/${ws.n * 3} stars`;
+    $('#lvcWorldN').textContent = `World ${wi + 1}`; $('#lvcWorld').textContent = w.name; $('#lvcGates').innerHTML = `<i class="g">✦</i> ${ws.awake}/${ws.n} gates awake`; $('#lvcStarsW').innerHTML = `<i class="s">★</i> ${ws.st}/${ws.n * 3} stars`;
+    $('#lvPrevW').disabled = wi === 0; $('#lvNextW').disabled = wi === WORLDS.length - 1;
     $('#lvStars').textContent = `${totalStars()} / ${LEVELS.length * 3}`;
-  }
+    // layout: a horizontal path on wide screens, a vertical one on phones
+    const cw = box.clientWidth || innerWidth, ch = box.clientHeight || innerHeight * 0.6, horiz = cw > ch * 1.05; LV.horiz = horiz;
+    const pts = []; let MW, MH;
+    if (horiz) { const sp = Math.max(150, Math.min(240, cw / 5.2)), pad = Math.max(110, sp * 0.7); MW = pad * 2 + sp * (n - 1); MH = ch;
+      for (let k = 0; k < n; k++) pts.push([pad + k * sp, ch * (0.47 + 0.2 * Math.sin(k * 1.2 + 0.4))]); }
+    else { const sp = Math.max(108, Math.min(150, ch / 5.2)), pad = 80; MH = pad * 2 + sp * (n - 1); MW = cw;
+      for (let k = 0; k < n; k++) pts.push([cw * (0.5 + 0.24 * Math.sin(k * 1.05 + 0.5)), pad + k * sp]); }
+    LV.pts = pts;
+    const map = document.createElement('div'); map.className = 'lv-inner'; map.style.width = MW + 'px'; map.style.height = MH + 'px';
+    const seg = (k) => { const [x0, y0] = pts[k], [x1, y1] = pts[k + 1]; return horiz ? `C${(x0 + x1) / 2} ${y0} ${(x0 + x1) / 2} ${y1} ${x1} ${y1}` : `C${x0} ${(y0 + y1) / 2} ${x1} ${(y0 + y1) / 2} ${x1} ${y1}`; };
+    const reach = Math.max(-1, Math.min(n - 1, cur - w.from)); let d = `M${pts[0][0]} ${pts[0][1]}`, dl = d;
+    for (let k = 0; k < n - 1; k++) { d += seg(k); if (k < reach) dl += seg(k); }
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'lv-path'); svg.setAttribute('width', MW); svg.setAttribute('height', MH);
+    svg.innerHTML = `<path class="lv-trail" d="${d}"/>` + (reach > 0 ? `<path class="lv-lit-glow" d="${dl}"/><path class="lv-lit" d="${dl}"/>` : ''); map.appendChild(svg);
+    // reef decor that lights up as this world's gates wake
+    const lit = ws.awake / ws.n; DECOR[wi].forEach((dch, k) => { const el = document.createElement('span'), at = Math.min(n - 1, Math.round(k * 1.7 + 0.6)), [px, py] = pts[at];
+      el.className = 'lv-deco' + (k / DECOR[wi].length < lit ? ' on' : ''); const art = UI && UI[DECOR_ART[wi][k]]; if (art) { el.classList.add('art'); el.style.setProperty('--d', `var(--ui-${DECOR_ART[wi][k]})`); } else el.textContent = dch;
+      const off = (k % 2 ? 1 : -1) * (horiz ? 70 : Math.min(120, cw * 0.3)); el.style.left = (horiz ? px + (k % 3 - 1) * 40 : Math.max(30, Math.min(MW - 30, px + off))) + 'px'; el.style.top = (horiz ? py + off * 1.1 : py + (k % 3 - 1) * 26) + 'px'; map.appendChild(el); });
+    for (let k = 0; k < n; k++) { const i = w.from + k, num = i + 1, locked = num > save.unlocked, stars = save.stars[num] || 0, [px, py] = pts[k];
+      const b = document.createElement('button'); b.className = `lv-node w${wi}` + (locked ? ' locked' : stars ? ' awake' : '') + (i === cur ? ' cur' : '') + (stars === 3 ? ' perfect' : '') + (i === LV.sel ? ' sel' : '');
+      b.style.left = px + 'px'; b.style.top = py + 'px'; b.dataset.i = i; b.setAttribute('aria-label', locked ? `Level ${num}, locked` : `Level ${num}, ${LEVELS[i].name}, ${stars} stars`);
+      b.innerHTML = locked ? `<span class="n">${num}</span>` : `<span class="n">${num}</span><span class="st">${'★'.repeat(stars)}<i>${'★'.repeat(3 - stars)}</i></span>`;
+      const lab = document.createElement('span'); lab.className = 'lv-name' + (horiz ? ' below' : px > MW / 2 ? ' left' : ''); if (!locked) { const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = LEVELS[i].name; lab.append(nm); if (i === cur) { const c = document.createElement('em'); c.textContent = 'Current'; lab.prepend(c); } }
+      if (!locked || horiz) b.appendChild(lab);
+      if (!locked && save.runs && save.runs[num]) { const wb = document.createElement('span'); wb.className = 'lv-watch'; wb.setAttribute('role', 'button'); wb.setAttribute('aria-label', `Watch your best run of level ${num}`); wb.textContent = '▶'; wb.onclick = ev => { ev.stopPropagation(); startReplay(num, 'levels'); }; b.appendChild(wb); }
+      b.onclick = () => { if (LV.dragged) return; click(); if (locked) { toast(`Clear level ${save.unlocked} to unlock level ${num}`); b.classList.remove('nope'); void b.offsetWidth; b.classList.add('nope'); buzz(12); return; } if (LV.sel === i) { startLevel(i); return; } selectLevel(i); };
+      map.appendChild(b); }
+    // the diver stands beside the current level (and walks there from the last level the map showed)
+    if (cur >= w.from && cur < w.to) { const dv = document.createElement('div'); dv.className = 'lv-diver' + (!horiz && pts[cur - w.from][0] > MW / 2 ? ' r' : ''); const th = diverThumb(); dv.innerHTML = th ? `<img alt="" src="${th}">` : '<span>🤿</span>'; map.appendChild(dv);
+      const k1 = cur - w.from, from = Math.max(0, Math.min(k1, (save.mapAt || save.unlocked) - 1 - w.from)), place = (x, y) => { dv.style.left = x + 'px'; dv.style.top = y + 'px'; };
+      place(pts[from][0], pts[from][1]);
+      if (travel && from < k1) { const t0 = performance.now() + 500, per = 650; dv.classList.add('travel');
+        const run = now => { const kk = (now - t0) / per; if (kk < 0) { requestAnimationFrame(run); return; } const sgi = Math.min(k1 - from - 1, Math.floor(kk)), t = Math.min(1, kk - sgi), e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+          const a0 = pts[from + sgi], a1 = pts[from + sgi + 1]; place(a0[0] + (a1[0] - a0[0]) * e, a0[1] + (a1[1] - a0[1]) * e);
+          if (kk < k1 - from) requestAnimationFrame(run); else { place(pts[k1][0], pts[k1][1]); dv.classList.remove('travel'); dv.classList.add('arrive'); buzz(15); Audio.play('click'); } };
+        requestAnimationFrame(run); }
+      save.mapAt = cur + 1; persist(); }
+    box.appendChild(map); selectLevel(LV.sel >= w.from && LV.sel < w.to ? LV.sel : Math.max(w.from, Math.min(cur, w.to - 1)), true);
+    requestAnimationFrame(() => { const p = pts[Math.max(0, Math.min(n - 1, LV.sel - w.from))]; if (horiz) box.scrollLeft = Math.max(0, p[0] - box.clientWidth * 0.45); else box.scrollTop = Math.max(0, p[1] - box.clientHeight * 0.5); }); }
+  function selectLevel(i, quiet) { LV.sel = i; document.querySelectorAll('.lv-node').forEach(b => b.classList.toggle('sel', +b.dataset.i === i)); const num = i + 1, locked = num > save.unlocked, stars = save.stars[num] || 0, lv = LEVELS[i];
+    $('#lvcNum').textContent = `Level ${num}`; $('#lvcName').textContent = locked ? 'Locked' : lv.name;
+    $('#lvcSub').textContent = locked ? `Clear level ${save.unlocked} first` : stars ? `${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}  ·  best ${(save.best[num] || 0).toLocaleString()}` : 'Ready to dive?';
+    const pb = $('#lvPlay'); pb.disabled = locked; pb.innerHTML = locked ? 'Locked' : `<svg class="i" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg>Play<span class="pl-n"> level ${num}</span>`; $('#lvCard').classList.toggle('locked', locked);
+    drawLevelPreview($('#lvPrev'), lv, locked); }
+  $('#lvPlay').onclick = () => { if (LV.sel + 1 > save.unlocked) return; click(); buzz(10); startLevel(LV.sel); };
+  $('#lvPrevW').onclick = () => { if (LV.w > 0) { click(); LV.w--; LV.sel = WORLDS[LV.w].from; const cur = save.unlocked - 1; if (cur >= WORLDS[LV.w].from && cur < WORLDS[LV.w].to) LV.sel = cur; else LV.sel = Math.min(WORLDS[LV.w].to - 1, cur); renderWorld(); } };
+  $('#lvNextW').onclick = () => { if (LV.w < WORLDS.length - 1) { click(); LV.w++; const cur = save.unlocked - 1; LV.sel = cur >= WORLDS[LV.w].from && cur < WORLDS[LV.w].to ? cur : WORLDS[LV.w].from; renderWorld(); } };
+  // drag the map with the mouse on computers (touch scrolls natively)
+  { const box = $('#worlds'); let dr = null;
+    box.addEventListener('pointerdown', ev => { if (ev.pointerType !== 'mouse' || ev.button !== 0) return; dr = { x: ev.clientX, y: ev.clientY, sl: box.scrollLeft, st: box.scrollTop, moved: 0 }; LV.dragged = false; });
+    addEventListener('pointermove', ev => { if (!dr) return; const dx = ev.clientX - dr.x, dy = ev.clientY - dr.y; dr.moved = Math.max(dr.moved, Math.abs(dx) + Math.abs(dy)); if (dr.moved > 6) { LV.dragged = true; box.classList.add('dragging'); } box.scrollLeft = dr.sl - dx; box.scrollTop = dr.st - dy; });
+    addEventListener('pointerup', () => { if (!dr) return; dr = null; box.classList.remove('dragging'); setTimeout(() => { LV.dragged = false; }, 0); });
+    box.addEventListener('wheel', ev => { if (LV.horiz && Math.abs(ev.deltaY) > Math.abs(ev.deltaX)) { box.scrollLeft += ev.deltaY; ev.preventDefault(); } }, { passive: false }); }
+  // a little top-down picture of the level's real layout for the level card
+  function drawLevelPreview(cv, lv, locked) { if (!cv || !lv) return; const g = cv.getContext('2d'), W = cv.width, H = cv.height, rows = lv.map, R = rows.length, C = Math.max(...rows.map(r => r.length));
+    g.clearRect(0, 0, W, H); const cs = Math.min((W - 16) / C, (H - 16) / R), ox = (W - cs * C) / 2, oy = (H - cs * R) / 2;
+    const bg = g.createLinearGradient(0, oy, 0, oy + cs * R); bg.addColorStop(0, '#2a8fe0'); bg.addColorStop(1, '#0b3c8a'); g.fillStyle = bg; g.beginPath(); g.roundRect(ox - 4, oy - 4, cs * C + 8, cs * R + 8, 10); g.fill();
+    const wi = worldOfIdx(LEVELS.indexOf(lv)), wall = ['#5b78b8', '#7a5ac8', '#3c4f8a'][wi] || '#5b78b8';
+    const circ = (x, y, r, c) => { g.beginPath(); g.arc(ox + (x + 0.5) * cs, oy + (y + 0.5) * cs, r * cs, 0, Math.PI * 2); g.fillStyle = c; g.fill(); };
+    for (let y = 0; y < R; y++) for (let x = 0; x < C; x++) { const ch = rows[y][x] || ' ', px = ox + x * cs, py = oy + y * cs;
+      if (ch === '#') { g.fillStyle = '#1d2d5c'; g.fillRect(px, py, cs + 0.5, cs + 0.5); }
+      else if (ch === 'W') { g.fillStyle = wall; g.beginPath(); g.roundRect(px + 0.5, py + 0.5, cs - 1, cs - 1, cs * 0.25); g.fill(); }
+      else if (ch === '.') { g.fillStyle = '#f0b64c'; g.fillRect(px, py, cs + 0.5, cs + 0.5); g.fillStyle = 'rgba(255,240,190,0.35)'; g.fillRect(px, py, cs + 0.5, cs * 0.18); } }
+    for (let y = 0; y < R; y++) for (let x = 0; x < C; x++) { const ch = rows[y][x];
+      if (ch === 'R' || ch === 'X') circ(x, y, 0.42, '#a3adc4'); else if (ch === 'B') { circ(x, y, 0.62, 'rgba(255,90,60,0.35)'); circ(x, y, 0.42, '#ff3d2a'); circ(x - 0.12, y - 0.12, 0.12, '#ffd0c0'); }
+      else if (ch === 'E') { g.fillStyle = '#5fe8ff'; g.beginPath(); g.roundRect(ox + x * cs + cs * 0.1, oy + y * cs + cs * 0.1, cs * 0.8, cs * 0.8, cs * 0.18); g.fill(); g.fillStyle = '#0b3c8a'; g.fillRect(ox + x * cs + cs * 0.32, oy + y * cs + cs * 0.3, cs * 0.36, cs * 0.5); }
+      else if (ch === 'P') { circ(x, y, 0.44, '#ffd23f'); circ(x, y - 0.05, 0.24, '#7a45e8'); } else if (ch === 'A') circ(x, y, 0.32, '#c9f2ff');
+      else if (ch === 'F') circ(x, y, 0.38, '#ff9a2a'); else if (ch === 'J') circ(x, y, 0.38, '#ff7ad8'); else if (ch === 'C') circ(x, y, 0.38, '#ff5a3a'); }
+    cv.classList.toggle('locked', !!locked); }
+  // the equipped diver as a little picture (the shop's card render), for the map and the win card
+  function diverThumb() { const k = 'mascot:' + save.equip.suit + ':' + save.equip.hat + ':' + save.equip.scarf; if (thumbs[k]) return thumbs[k];
+    try { if (!thumbR) { const c2 = document.createElement('canvas'); c2.width = c2.height = 220; thumbR = World.preview(c2, true); } World.applySkin(save.equip); thumbs[k] = thumbR.shot('mascot'); return thumbs[k]; } catch (er) { return null; } }
   function buildProfile() {
     $('#profName').textContent = save.name || 'Diver';
     $('#profAva').textContent = (save.name || 'D')[0].toUpperCase();
@@ -3888,7 +3934,7 @@ window.__T = T;
     try { await LB.db.doc('daily/' + LB.uid).set({ day: D.key, t: D.best.t, air: D.best.air, nick: (save.name || 'Diver').slice(0, 16), suit: save.equip.suit, updatedAt: Date.now() }); } catch (er) { if (er && er.code === 'invalid_argument') LB.readOnly = true; } }); }
   $('#btnDaily').onclick = startDaily;
   function finishLevel() {
-    resultShown = true;
+    resultShown = true; { const m = $('#resMascot'), th = diverThumb(); if (th) { m.src = th; m.hidden = false; } }
     const won = engine.state === 'won'; const n = levelIdx + 1; if (dive) return finishDaily(won);
     setState('over'); show('result');
     const r = $('#result'); r.classList.toggle('win', won); r.classList.toggle('lose', !won);
@@ -3906,7 +3952,7 @@ window.__T = T;
       lastWin = { n, stars, secs: Math.round(engine.wonAt * engine.tickMs / 1000), name: LEVELS[levelIdx].name, relaxed: engine.relaxed };
       setTimeout(() => { if (state === 'over') Audio.vo(['win1', 'win2', 'win3'][Math.random() * 3 | 0]); }, 700);
       { const parts = [['clear', 20], ['stars', stars * 10], ['first clear', firstClear ? 30 : 0], ['new stars', Math.max(0, stars - prevStars) * 15 * (firstClear ? 0 : 1)], ['treasures', runTreasures * 2]].filter(p => p[1] > 0), total = parts.reduce((a, p) => a + p[1], 0);
-        save.coins += total; $('#resCoins').hidden = false; $('#resCoinWhy').textContent = parts.map(p => `${p[0]} +${p[1]}`).join(' · ');
+        save.coins += total; $('#resCoins').hidden = false; $('#resCoinWhy').innerHTML = parts.map(p => `<span><i>${p[0][0].toUpperCase() + p[0].slice(1)}</i><b>+${p[1]}</b></span>`).join('');
         const el = $('#resCoinN'); let shown = 0; const t0 = performance.now(); const tick = (now) => { const k = Math.min(1, (now - t0) / 900); shown = Math.round(total * k * (2 - k)); el.textContent = `+${shown}`; if (k < 1) requestAnimationFrame(tick); else Audio.play('treasure'); }; setTimeout(() => requestAnimationFrame(tick), 900); }
       pushScore();
       if (n >= save.unlocked && n < LEVELS.length) save.unlocked = n + 1; persist();
@@ -3914,7 +3960,7 @@ window.__T = T;
       $('#resStars').hidden = false;
       starEls.forEach((s, i) => setTimeout(() => { s.classList.add('show'); if (i < stars) { s.classList.add('on'); Audio.play('click'); buzz(12); } }, 250 + i * 260));
       $('#resBest').hidden = !(engine.score > prevBest && prevBest > 0);
-      $('#resStats').innerHTML = engine.relaxed ? `<div class="stat"><b>${Math.round(engine.wonAt * engine.tickMs / 1000)}s</b><span>dive time</span></div><div class="stat"><b>★</b><span>air timer off for ★★★</span></div>` : `<div class="stat"><b>${Math.ceil(engine.oxygen)}s</b><span>air left</span></div><div class="stat"><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>energy</span></div>`;
+      $('#resStats').innerHTML = engine.relaxed ? `<div class="stat"><i class="si t"></i><b>${Math.round(engine.wonAt * engine.tickMs / 1000)}s</b><span>dive time</span></div><div class="stat"><i class="si s"></i><b>★</b><span>air timer off for ★★★</span></div>` : `<div class="stat"><i class="si a"></i><b>${Math.ceil(engine.oxygen)}s</b><span>air left</span></div><div class="stat"><i class="si e"></i><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>energy</span></div>`;
       $('#btnNext').textContent = n >= LEVELS.length ? 'The reef awakens ✨' : 'Next level'; $('#btnNext').hidden = false; $('#btnNext').classList.toggle('green', n >= LEVELS.length);
       $('#btnRetry').lastChild.textContent = 'Replay';
       $('#resExtra').hidden = false; $('#btnWatch').hidden = !(save.runs && save.runs[n]);
@@ -3923,7 +3969,7 @@ window.__T = T;
       setTimeout(() => { if (state === 'over') Audio.vo(['lose1', 'lose2'][Math.random() * 2 | 0]); }, 600);
       const cause = { crushed: 'Crushed!', monster: 'Gobbled!', oxygen: 'Out of air!', self: 'Restarted', spiked: 'Spiked!' }[engine.deathCause] || 'Dive over';
       $('#resTitle').textContent = cause; $('#resStars').hidden = true; $('#resBest').hidden = true;
-      $('#resStats').innerHTML = `<div class="stat"><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>energy</span></div><div class="stat"><b>${Math.max(0, Math.ceil(engine.oxygen))}s</b><span>air left</span></div>`;
+      $('#resStats').innerHTML = `<div class="stat"><i class="si e"></i><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>energy</span></div><div class="stat"><i class="si a"></i><b>${Math.max(0, Math.ceil(engine.oxygen))}s</b><span>air left</span></div>`;
       $('#btnNext').textContent = history.length ? 'Undo last move' : 'Try again'; $('#btnNext').hidden = false; $('#btnNext').classList.add('green');
       $('#btnRetry').lastChild.textContent = 'Restart';
     }
@@ -3968,6 +4014,7 @@ window.__T = T;
     if (ev.key === 'Escape' || ev.key === 'p' || ev.key === 'P') { if (state === 'playing') pause(); else if (state === 'paused') beginPlay(); }
     if (ev.key === 'z' || ev.key === 'Z' || ev.key === 'u' || ev.key === 'U' || ev.key === 'Backspace') { ev.preventDefault(); undo(); return; }
     if (ev.key === 'r' || ev.key === 'R') { if (state === 'playing') { restart(); return; } else if (state === 'over' || state === 'paused') restart(); }
+    if (ev.key === 'Enter' && state === 'menu' && !ev.target.closest('input')) { if ($('#home').classList.contains('on')) { $('#btnPlay').click(); return; } if ($('#levels').classList.contains('on')) { $('#lvPlay').click(); return; } }
     if (ev.key === 'Enter' || ev.key === ' ') { if (state === 'intro') beginPlay(); else if (state === 'over' && resultShown) $('#btnNext').hidden ? restart() : $('#btnNext').click(); }
   });
   addEventListener('keyup', ev => { const dir = KEYS[ev.key]; if (dir) setHeld(dir, false); });
@@ -4114,7 +4161,7 @@ window.__T = T;
     // the 3D world sleeps while the paper menu / intro covers the screen
     { world.update(dt, now); world.render(); if (gfxMode() === 'auto' && (state === 'playing' || state === 'menu' || state === 'cine')) world.autoQuality(realDt); }
   }
-  addEventListener('resize', () => { world.resize(); homeLayout(); });
+  addEventListener('resize', () => { world.resize(); homeLayout(); if ($('#levels').classList.contains('on')) renderWorld(); });
   canvas.addEventListener('webglcontextlost', ev => { ev.preventDefault(); if (state === 'playing') pause(); }, false);
   canvas.addEventListener('webglcontextrestored', () => { try { const e = state === 'cine' ? cineEngine : state === 'menu' || state === 'splash' ? menuEngine : engine; if (e) { if (state === 'playing' || state === 'paused' || state === 'over') world.keepTreasures(); world.loadLevel(e); world.onTick(e, performance.now()); if (state === 'playing' || state === 'paused' || state === 'over' || state === 'cine') world.startPlay(); if (state === 'cine') world.cineCam = true; } } catch (er) { console.warn('context restore', er); } }, false);
   requestAnimationFrame(frame);

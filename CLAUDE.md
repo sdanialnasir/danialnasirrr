@@ -260,3 +260,17 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   menu column on the left (logo, PLAY, Daily Dive, 3×2 tiles) and the tank moved right: `homeLayout()` sets
   `world.menuShift` from the column width, World shifts the menu camera by that fraction of the view width.
 - The `.ui-art` block at the end layers the owner's art on top of this system (unchanged keys).
+
+## Mockup pass (owner's 8 reference screens: home, levels, rewards, win — phone + computer)
+- **Home:** phone = logo · tank (camera centred in the free space via `world.menuLift`) · Continue pill · Daily Dive ·
+  How to / Intro buttons · floating 4-tab bar (Levels/Shop/Rewards/Ranks). Computer = left column (logo, kicker, Continue ▶,
+  Enter hint, Daily Dive) + tank on the right + a 6-item dock across the bottom.
+- **Levels** (`#levels.lv`, no longer a sheet): one world at a time over the painted backdrop (`--bgphoto`, world tint), ‹ World ›
+  arrows, path + nodes (`renderWorld`, horizontal on wide screens, vertical on phones), diver standing on the current level
+  (`diverThumb()` = 3D render without the pedestal, mode 'mascot'), level card with a drawn preview of the real map
+  (`drawLevelPreview`): bottom bar on phones, side panel on computers. Tap a level to select, tap again or Play to start;
+  mouse drag / wheel scroll the map; Enter plays.
+- **Rewards:** 4+3 day grid with the chest spanning two cells on phones, 7 across on computers; weekly challenges + a Weekly bonus
+  card (gift art, progress bar, state) beside them on computers.
+- **Win/lose:** phone = one card; computer = two columns (title/stars/score + diver mascot | stats with icons, coin breakdown
+  rows, Next level, Enter hint, Watch best run / Share) and a Replay · Levels · Home row underneath.
