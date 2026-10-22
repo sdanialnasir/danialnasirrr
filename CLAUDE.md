@@ -312,3 +312,15 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   ratio, the budget and `resScale` are applied on every resize). Big/retina monitors used to draw 8–19 MP per frame. Auto lowers
   resolution on computers too (down to 70%) before dropping a tier, and in play reacts below 50 fps (phones 38). The FPS meter
   also shows the canvas size.
+
+## Resolution setting + visual polish (launch polish)
+- **Settings → Resolution:** Auto / 100% / 75% / 50% (`save.settings.res`, `applyRes()` → `world.resLock`). A fixed value overrides
+  Auto's `resScale` (Auto then only changes the tier). `#resNow` shows the current % and canvas size. Graphics now also offers Med.
+  On phones (≤520 px) setting rows with a `.seg` put the buttons on their own line.
+- **One wall look:** every inner wall (`W`), including single-row shelves, is now the world-coloured reef rock (`massMat`) — the random
+  plank / purple sponge / slate / driftwood box mix is gone (the shelf code still exists for the old art set only).
+  Rock tops/sides sample the cobble texture in their own plane (no more stretched dashes) and tops are a calm sunlit ledge.
+- **Sand:** less candy saturation (1.3 instead of 1.5), more of the sheet texture's grain plus fine noise; ledge undersides get a soft
+  shade instead of the dotted pebble band.
+- Flat placeholder kelp strips / primitive coral fans behind the play plane → the sheet's painted weeds (baked, shader sway).
+- In-tank sun shafts halved and softer; the deep's seabed dims under stage lighting but never below 62%.
