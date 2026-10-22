@@ -335,7 +335,7 @@ Engine.prototype.fullKey = function () {
 //         P diver  F piranha (hunts)  J jellyfish (vertical)  C crab (horizontal)  A air capsule
 // `time` is oxygen in seconds. Every level is verified winnable by tools/verify.js.
 const LEVELS = [
-{ name: "First Light", time: 60, hint: "Push the energy pearl into the gate, then swim in. Pearls only roll into open water, so dig the road first.", map: [
+{ name: "First Light", time: 60, hint: "Dig a tunnel to the gate first. Then push the red pearl along it, into the gate, and swim in.", map: [
 '############',
 '#P.........#',
 '#..........#',
@@ -880,6 +880,7 @@ const Audio = (() => {
 // Deep Current — renderer v3: clean, bright, front-on puzzle board built from premium primitives.
 // Expects global THREE and T (tile enum).
 /* global THREE, T */
+const REDUCED_MOTION = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (er) { return false; } })(); // players who ask for less motion: no shake, no lightning
 const World = (() => {
   const V3 = THREE.Vector3;
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && innerWidth < 1100);
@@ -2523,7 +2524,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
               if (!mM(x, y + 1)) quad([X0, Y0, zB], [X1, Y0, zB], [X1, Y0, zF], [X0, Y0, zF], [0, -1, 0]); }
             const mg = new THREE.BufferGeometry(); mg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); mg.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
             const im = new THREE.Mesh(mg, mm); im.castShadow = im.receiveShadow = true; this.levelGroup.add(im);
-            for (const [x, y] of mass) { if (isW(x, y - 1) || y < 1 || e.get(x, y - 1) === T.STEEL) continue; const hh = variant(x, y + 3); if (hh % 100 > 55) continue; // a few plants on exposed tops
+            for (const [x, y] of mass) { if (y < 1 || e.get(x, y - 1) !== T.EMPTY) continue; const hh = variant(x, y + 3); if (hh % 100 > 55) continue; // a few plants on exposed tops
               const nm = ART.ledge[hh % ART.ledge.length], sp = sprPlane(nm, 0.3 + (hh % 4) * 0.05, true, { dz: 0.25, op: 0.5 }); sp.position.set(x + ((hh >> 4) % 5 - 2) * 0.08, -y + 0.5, -0.2); if (hh & 1) sp.scale.x = -1; this.levelGroup.add(sp); } } }
         const pol = new THREE.InstancedMesh(GEO.polyp, new THREE.MeshPhysicalMaterial({ roughness: 0.4, clearcoat: 0.6, sheen: 0.5, envMapIntensity: 0.5 }), runs.reduce((a, r) => a + (r[1] - r[0] + 1) * 8, 0));
         const br = new THREE.InstancedMesh(GEO.branch, new THREE.MeshPhysicalMaterial({ roughness: 0.4, clearcoat: 0.6, emissive: 0x220a10, emissiveIntensity: 1 }), runs.reduce((a, r) => a + (r[1] - r[0] + 1) * 3, 0));
@@ -2598,7 +2599,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       // ---- sea plants on the sand ledges inside the tank (from your sheet); removed with their sand
       this.edgePlants = [];
       { const names = ART.ledge;
-        for (const [x, y] of sand) { if (y < 1) continue; const above = e.get(x, y - 1); if (above === T.SAND || above === T.WALL || above === T.STEEL) continue;
+        for (const [x, y] of sand) { if (y < 1) continue; const above = e.get(x, y - 1); if (above !== T.EMPTY) continue; // only into open water: never inside an air bubble, stone or pearl's cell
           const h = variant(x, y + 77); if (h % 100 > (this.newArt ? 72 : 34)) continue; const nm = names[h % names.length], hgt = isPlantSpr(nm) ? 0.55 + (h % 5) * 0.06 : 0.38 + (h % 3) * 0.05;
           const sp = sprPlane(nm, hgt, true, { dz: 0.3, op: 0.55, lean: 0.45 }); sp.position.set(x + (((h >> 3) % 7) - 3) * 0.08, -y + 0.47, -0.12); const ph = (h % 17) * 0.4; sp.onBeforeRender = () => { sp.rotation.z = Math.sin(performance.now() / 1000 * 1.1 + ph) * 0.05; };
           this.levelGroup.add(sp); this.edgePlants.push({ m: sp, x, y }); } }
@@ -2915,7 +2916,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, depthTest: false, toneMapped: false }));
       sp.position.set(x, y + 0.3, 0.9); sp.renderOrder = 9; sp.scale.set(0.01, 0.01, 1); this.levelGroup.add(sp); this.pops.push({ sp, t: 0, y: y + 0.3 }); }
     // ---- intro cinematic effects, driven by the controller through this.cineFx = { glow, storm, lamp } (0..1 each)
-    cineFlash(k = 1) { this.flashK = Math.max(this.flashK || 0, k); }
+    cineFlash(k = 1) { if (REDUCED_MOTION) k *= 0.15; this.flashK = Math.max(this.flashK || 0, k); }
     cineWake() { this.wakeT = this.time; }
     tickCine(dt) { const F = this.cineFx, on = !!(this.cineCam && F && this.e); const t = this.time;
       if (!this.cineGlow) { this.cineGlow = []; const mk = (c) => new THREE.SpriteMaterial({ map: TEX.dot, color: c, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
@@ -2977,7 +2978,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           this.shake = Math.max(this.shake, ev.t === T.ROCK ? 0.12 : 0.07); P.emit(x, y - 0.42, 0.4, 10, { color: SAND, speed: 1.2, life: 0.5, size: 0.1, kind: 1, spread: 0.7 }); this.sfx('land'); break; }
         case 'roll': this.sfx('roll'); break;
         case 'teeter': { const ent = this.entities.get(ev.id); if (ent) ent.teeter = 1; this.sfx('eep'); this.playerMood('surprise', 0.5); this.shake = Math.max(this.shake, 0.06); break; } // grace tick: the stone wobbles, the diver yelps
-        case 'absorb': { P.emit(x, y, 0.5, 40, { color: new THREE.Color(1, 0.55, 0.25), speed: 2.6, life: 0.8, size: 0.14 }); P.emit(x, y, 0.5, 30, { color: new THREE.Color(0.5, 0.9, 1), speed: 2, life: 1, size: 0.12 }); this.sfx('absorb'); this.popText(x, y + 0.2, e.ballsIn >= e.ballsTotal ? 'All energy!' : `${e.ballsIn}/${e.ballsTotal}`, '#ffb36a'); if (this.onStat && !this.menuMode) this.onStat('pearl'); this.playerMood('joy', 1.25); setTimeout(() => this.sfx('yay'), 260);
+        case 'absorb': { P.emit(x, y, 0.5, 40, { color: new THREE.Color(1, 0.55, 0.25), speed: 2.6, life: 0.8, size: 0.14 }); P.emit(x, y, 0.5, 30, { color: new THREE.Color(0.5, 0.9, 1), speed: 2, life: 1, size: 0.12 }); this.sfx('absorb'); this.popText(x, y + 0.2, e.ballsIn >= e.ballsTotal ? 'All pearls in!' : `${e.ballsIn}/${e.ballsTotal}`, '#ffb36a'); if (this.onStat && !this.menuMode) this.onStat('pearl'); this.playerMood('joy', 1.25); setTimeout(() => this.sfx('yay'), 260);
           const ent = this.entities.get(ev.id); if (ent) { ent.absorbing = { t: 0, from: new V3(ev.fromX, -ev.fromY, 0.05), to: new V3(x, y, 0.3) }; this.entities.delete(ev.id); this.absorbing.push(ent); } break; }
         case 'gateOpen': { if (this.onGateOpen && !this.menuMode && !e.cine) this.onGateOpen(); this.playerMood('joy', 1.25); this.flashFx('flash'); P.emit(x, y, 0.5, 70, { color: new THREE.Color(0.55, 0.95, 1), speed: 3.5, life: 1.3, size: 0.16 }); P.bubbles(x, y, 0.2, 18, 0.12, 0.8); this.sfx('gateOpen'); this.shake = 0.18; break; }
         case 'gateLocked': if (this.onToast && this.time - (this.lastLockToast ?? -9) > 2.5) { this.lastLockToast = this.time; this.onToast(`Deliver all energy first (${e.ballsIn}/${e.ballsTotal})`); } this.sfx('gateLocked'); this.playerMood('bonk', 0.55); this.sfx('hmm'); break;
@@ -2995,7 +2996,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     fitCamera(snap, wholeLevel = false) {
       if (!this.e) return;
       const W = this.e.w, H = this.e.h, aspect = this.camera.aspect, fov = this.camera.fov * Math.PI / 180;
-      const padTop = innerWidth < 560 ? 66 : 76, padBottom = (document.body.classList.contains('touch') ? 76 : 12) + (this.photoMode ? Math.round(innerHeight * (isMobile ? 0.03 : 0.08)) : 0);
+      const padTop = innerWidth < 560 ? 66 : 76, padBottom = (document.body.classList.contains('touch') ? (innerHeight < 500 && innerWidth > innerHeight ? 96 : 76) : 12) + (this.photoMode ? Math.round(innerHeight * (isMobile ? 0.03 : 0.08)) : 0);
       const freeFrac = Math.max(0.3, 1 - (padTop + padBottom) / innerHeight);
       const dH = (H / 2 + (isMobile ? 0.3 : 0.15)) / Math.tan(fov / 2) / freeFrac, dW = (W / 2 + (isMobile ? 0.4 : 0.1)) / Math.tan(fov / 2) / aspect; // computers: frame the playfield tighter
       const dFull = Math.max(dH, dW); this.dFull = dFull;
@@ -3015,12 +3016,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const fov = this.camera.fov * Math.PI / 180, halfH = Math.tan(fov / 2) * dist, halfW = halfH * this.camera.aspect;
       // centre the board in the free area between the HUD (top) and the D-pad (bottom, phones)
       const ppc = innerHeight / (2 * halfH);
-      const padTop = innerWidth < 560 ? 66 : 76, padBottom = (document.body.classList.contains('touch') ? 76 : 12) + (this.photoMode ? Math.round(innerHeight * (isMobile ? 0.03 : 0.08)) : 0);
+      const padTop = innerWidth < 560 ? 66 : 76, padBottom = (document.body.classList.contains('touch') ? (innerHeight < 500 && innerWidth > innerHeight ? 96 : 76) : 12) + (this.photoMode ? Math.round(innerHeight * (isMobile ? 0.03 : 0.08)) : 0);
       const shift = (padTop - padBottom) / 2 / ppc;
       const visH = halfH - (padTop + padBottom) / 2 / ppc; // half-height of the free area in world units
-      if (!overview && (this.follow || (this.playing && isMobile)) && this.playerPos && !this.menuMode) {
-        // follow the diver, leading a little in the swim direction; never show past the board edges
-        const lx = this.playerPos.x + (this.lead ? this.lead.x : 0), ly = this.playerPos.y + (this.lead ? this.lead.y : 0);
+      if (!overview && (this.follow || (this.playing && isMobile)) && (this.focus || this.playerPos) && !this.menuMode) {
+        // follow the diver (or the tutorial's focus), leading a little in the swim direction; never show past the board edges
+        const fp = this.focus || this.playerPos, ld = this.focus ? null : this.lead, lx = fp.x + (ld ? ld.x : 0), ly = fp.y + (ld ? ld.y : 0);
         cx = halfW * 2 >= W ? (W - 1) / 2 : Math.max(halfW - 0.6, Math.min(W - 0.4 - halfW, lx));
         cy = visH * 2 >= H ? -(H - 1) / 2 : Math.min(-visH + 0.5, Math.max(-(H - 0.5) + visH, ly));
       }
@@ -3289,7 +3290,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         this.camGoal.set(fx, fy + lift, d); this.lookGoal.set(fx, fy, 0); cl = 1 - Math.pow(S === 'descent' ? 0.25 : 0.1, dt); // slower, filmic easing
       }
       this.camPos.lerp(this.camGoal, cl); this.camTarget.lerp(this.lookGoal, cl);
-      this.shake = Math.max(0, this.shake - dt * 1.4); const sh = this.shake * this.shake * 0.5;
+      this.shake = Math.max(0, this.shake - dt * 1.4); const sh = REDUCED_MOTION ? 0 : this.shake * this.shake * 0.5;
       const sx = (Math.random() - 0.5) * sh, sy = (Math.random() - 0.5) * sh;
       { // look down at the board from slightly above so blocks, sand walls and shadows read as real 3D
         const tl = this.menuMode ? this.tilt * 0.8 : this.tilt, d = this.camPos.z;
@@ -3356,7 +3357,7 @@ window.__T = T;
     document.querySelectorAll('.ld-title, .gs-title, .hm-title, .cine-title .title').forEach(t => { t.classList.add('logo-art'); t.setAttribute('aria-label', 'Aqua Energizer'); });
   })();
   const canvas = $('#c');
-  const world = World.create(canvas); window.__dc = { world, get engine() { return engine; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), World, intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
+  const world = World.create(canvas); window.__dc = { world, get engine() { return engine; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { skipTut = true; try { startLevel(i); beginPlay(); } finally { skipTut = false; } }, tut: (i) => { if (save.tutSeen) delete save.tutSeen[i]; startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), World, intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
   world.onSfx = n => Audio.play(n); world.onToast = m => toast(m);
   let gateOpenAt = 0, gateNudged = true;
   world.onGateOpen = () => { if (state === 'replay') return; gateOpenAt = performance.now(); gateNudged = false; banner('The gate is awake!', 'Swim in!', 'Swim into the glowing gate to carry the light home.', 3200); };
@@ -3409,9 +3410,9 @@ window.__T = T;
     { id: 'stars45', ic: '🌟', name: 'Star hoarder', desc: 'Collect 45 stars', goal: 45, v: () => totalStars(), r: 400 },
     { id: 'perfect', ic: '💎', name: 'Flawless', desc: 'Get 3 stars on a level', goal: 1, v: () => Object.values(save.stars).filter(x => x >= 3).length, r: 80 },
     { id: 'perfect5', ic: '👑', name: 'Perfectionist', desc: 'Get 3 stars on 5 levels', goal: 5, v: () => Object.values(save.stars).filter(x => x >= 3).length, r: 250 },
-    { id: 'dig', ic: '⛏️', name: 'Sand shoveler', desc: 'Dig 300 sand', goal: 300, v: () => save.stats.dug, r: 120 },
+    { id: 'dig', ic: '⛏️', name: 'Sand shoveler', desc: 'Dig through 300 sand blocks', goal: 300, v: () => save.stats.dug, r: 120 },
     { id: 'treasure', ic: '🐚', name: 'Treasure hunter', desc: 'Dig out 40 treasures', goal: 40, v: () => save.stats.treasures, r: 150 },
-    { id: 'pearls', ic: '🔴', name: 'Pearl pusher', desc: 'Deliver 30 energy pearls', goal: 30, v: () => save.stats.pearls, r: 150 },
+    { id: 'pearls', ic: '🔴', name: 'Pearl pusher', desc: 'Deliver 30 pearls', goal: 30, v: () => save.stats.pearls, r: 150 },
     { id: 'world1', ic: '🏝️', name: 'Sunlit Shallows', desc: 'Clear all of world 1', goal: 10, v: () => [...Array(10).keys()].filter(i => save.stars[i + 1]).length, r: 500 },
     { id: 'shopper', ic: '🛍️', name: 'Fresh look', desc: 'Buy something in the shop', goal: 1, v: () => Object.keys(save.owned).length, r: 60 },
   ];
@@ -3439,11 +3440,11 @@ window.__T = T;
   const WEEK_POOL = [
     { id: 'noundo', ic: '🎯', name: 'Clean dives', desc: 'Finish 3 levels without undo', goal: 3, r: 150 },
     { id: 'treasure', ic: '🐚', name: 'Beachcomber', desc: 'Dig out 20 treasures', goal: 20, r: 120 },
-    { id: 'pearls', ic: '🔴', name: 'Pearl courier', desc: 'Deliver 15 energy pearls', goal: 15, r: 120 },
+    { id: 'pearls', ic: '🔴', name: 'Pearl courier', desc: 'Deliver 15 pearls', goal: 15, r: 120 },
     { id: 'stars', ic: '⭐', name: 'Starry week', desc: 'Earn 9 stars (replays count)', goal: 9, r: 150 },
     { id: 'perfect', ic: '💎', name: 'Flawless twice', desc: 'Get ★★★ on 2 levels', goal: 2, r: 180 },
     { id: 'nohint', ic: '🧠', name: 'Own wits', desc: 'Win 3 levels without a hint', goal: 3, r: 120 },
-    { id: 'dig', ic: '⛏️', name: 'Sand mover', desc: 'Dig 250 sand', goal: 250, r: 100 },
+    { id: 'dig', ic: '⛏️', name: 'Sand mover', desc: 'Dig through 250 sand blocks', goal: 250, r: 100 },
     { id: 'wins', ic: '🌊', name: 'Busy week', desc: 'Finish 5 levels', goal: 5, r: 120 },
     { id: 'bonk', ic: '💥', name: 'Bonk!', desc: 'Drop stones on 2 monsters', goal: 2, r: 150, need: 4 },
     { id: 'daily', ic: '📅', name: 'Daily diver', desc: 'Play 3 Daily Dives', goal: 3, r: 150 },
@@ -3527,7 +3528,7 @@ window.__T = T;
     const st = $('#lbStatus'), list = $('#lbList'), me = $('#lbMe'); st.textContent = 'Loading…'; list.innerHTML = ''; me.innerHTML = '';
     if (lbTab !== 'stars') return openDailyRanks(tok);
     await LB.ready; if (tok !== lbTok) return;
-    if (!LB.db) { st.textContent = 'Global ranks appear when you play on claude.ai. Your own best so far:'; renderRows([Object.assign(myEntry(), { id: 'me', isMe: true })]); return; }
+    if (!LB.db) { st.textContent = 'Online ranks aren\'t available here. Your best so far:'; renderRows([Object.assign(myEntry(), { id: 'me', isMe: true })]); return; }
     pushScore(); if (LB.unsub) LB.unsub();
     LB.unsub = LB.db.collection('board').orderBy('stars', 'desc').limit(100).onSnapshot(async snap => { if (tok !== lbTok) return;
       const rows = snap.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => (b.stars - a.stars) || (b.levels - a.levels) || (b.score - a.score));
@@ -3538,7 +3539,7 @@ window.__T = T;
     const mine = () => D.best ? [{ id: 'me', isMe: true, nick: save.name || 'Diver', t: D.best.t, air: D.best.air }] : [];
     await LB.ready; if (tok !== lbTok) return; if (LB.unsub) { LB.unsub(); LB.unsub = null; }
     const head = L ? `${L.name} · ` : '';
-    if (!LB.db) { st.textContent = head + (D.best ? 'Global ranks appear when you play on claude.ai. Your best today:' : 'Play today\'s Daily Dive to post a time.'); renderRows(mine(), by); return; }
+    if (!LB.db) { st.textContent = head + (D.best ? 'Online ranks aren\'t available here. Your best today:' : 'Play today\'s Daily Dive to post a time.'); renderRows(mine(), by); return; }
     pushDaily();
     LB.unsub = LB.db.collection('daily').where('day', '==', D.key).limit(300).onSnapshot(async snap => { if (tok !== lbTok) return;
       const rows = snap.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(r => typeof r.t === 'number').sort((a, b) => (a[by] - b[by]) || (a.t - b.t));
@@ -3615,17 +3616,22 @@ window.__T = T;
   let cine = null, cineEngine = null;
   let menuKeep = false; // after the intro, its finished tank stays on as the menu backdrop (no reload, no jump)
   const CINE_ROUTE = 'RRRRDDRRRRRDULLLLLULLDRRRRRRRDD';
+  const T_BALL = T.BALL; // cineTick uses T for its clock
   function cap(text) { const el = $('#cineCap'); el.classList.remove('on'); clearTimeout(cap.tm); cap.tm = setTimeout(() => { el.textContent = text; el.classList.toggle('on', !!text); }, text ? 260 : 0); }
   // ---- the intro: a short in-engine film in seven beats. Every spoken line has an id (vo1…vo7) so ElevenLabs clips dropped in
   // src/assets/vo/<id>.mp3 play automatically (see docs/voiceover-script.md); without clips the subtitles carry the story.
+  // every line is spoken at the moment the picture shows it: lines 1-4 on the film's clock, 5-9 on real events in the tank
+  // (first dig, reaching the gate, first push, gate opening, swimming in). Keep the words short and plain: kids should follow it.
   const CINE_LINES = {
-    vo1: 'Long ago, the Glow Reef shone with the light of a thousand energy pearls.',
-    vo2: 'Then one night, a great storm tore through the deep…',
-    vo3: '…scattering the pearls, until every gate went dark.',
-    vo4: 'But one little diver refused to let the light fade.',
-    vo5: 'Dig through the sand… and roll the pearl home.',
-    vo6: 'One gate awakens, and light returns to the reef.',
-    vo7: 'Twenty-nine gates still sleep. The reef is counting on you.' };
+    vo1: 'Deep in the sea, the reef glows with magic pearls.',             // night reef, glowing pearl-lights drifting
+    vo2: 'One night, a huge storm hits the reef…',                         // thunder, flashes, grit
+    vo3: '…and sweeps all the pearls away. The reef goes dark.',          // the lights are blown away, darkness
+    vo4: 'But one little diver turns on a light.',                         // helmet lamp clicks on during the line
+    vo5: 'Swim into the sand to dig a tunnel.',                            // the first dig
+    vo6: 'The tunnel reaches the gate. Now get behind the red pearl…',     // the diver arrives above the gate, turns back
+    vo7: '…and push it to the gate!',                                      // the first push
+    vo8: 'The gate wakes up, and the light comes back!',                   // gate opens: shockwave, light pours back
+    vo9: 'Twenty-nine gates are still dark. Can you wake them all?' };     // wide shot + the row of 30 gates, one lit
   function say(id) { cap(CINE_LINES[id] || ''); Audio.vo(id); }
   const ramp = (from, to, t0, dur, T) => from + (to - from) * Math.min(1, Math.max(0, (T - t0) / dur));
   function startCine() {
@@ -3650,29 +3656,33 @@ window.__T = T;
     if (T > 7.9) once('th2', () => { Audio.play('thunder'); world.cineFlash(0.8); world.shake = 0.45; flash(); });
     if (T > 9.0) once('v3', () => say('vo3'));
     // 3. the hero: darkness, then a helmet lamp clicks on
-    if (T > 11.6) once('hero', () => { shot('hero'); F.storm = 0; cap(''); });
-    if (T > 12.4) { once('lamp', () => { Audio.play('lampOn'); world.playerMood('surprise', 0.8); }); if (c.gateAt === null) F.lamp = ramp(0, 1, 12.4, 0.35, T); }
-    if (T > 13.1) once('v4', () => { say('vo4'); setTimeout(() => { if (cineRunning) { Audio.play('hi'); world.playerMood('joy', 1.3); } }, 900); });
+    if (T > 11.6) once('hero', () => { shot('hero'); F.storm = 0; });
+    if (T > 12.5) once('capClr', () => cap(''));
+    if (T > 14.3) { once('lamp', () => { Audio.play('lampOn'); world.playerMood('surprise', 0.8); }); if (c.gateAt === null) F.lamp = ramp(0, 1, 14.3, 0.35, T); }
+    if (T > 12.9) once('v4', () => { say('vo4'); setTimeout(() => { if (cineRunning) { Audio.play('hi'); world.playerMood('joy', 1.3); } }, 2300); });
     // 4. the first dive, lit by the lamp
-    if (T > 16.8) once('play', () => { shot('play'); say('vo5'); });
-    if (T > 17.2 && c.i < CINE_ROUTE.length) { c.wait -= realDt * 1000; if (c.wait <= 0 && (!E.moveQueue || E.moveQueue.length === 0)) { E.press({ U: 'up', D: 'down', L: 'left', R: 'right' }[CINE_ROUTE[c.i++]]); c.wait = 300; } }
+    if (T > 16.8) once('play', () => { shot('play'); cap(''); });
+    if (T > 17.2 && c.i < CINE_ROUTE.length && !(c.gateAt !== null && T - c.gateAt < 3.3)) { c.wait -= realDt * 1000; if (c.wait <= 0 && (!E.moveQueue || E.moveQueue.length === 0)) { E.press({ U: 'up', D: 'down', L: 'left', R: 'right' }[CINE_ROUTE[c.i++]]); c.wait = 300; } }
     // 5. the gate wakes: a ring of light, the pearl-lights pour back, the reef relights
-    if (E.gate && E.gate.open && c.gateAt === null) { c.gateAt = T; shot('gate'); Audio.play('wake'); world.cineWake(); world.cineFlash(0.7); say('vo6'); }
+    if (E.gate && E.gate.open && c.gateAt === null) { c.gateAt = T; shot('gate'); Audio.play('wake'); world.cineWake(); world.cineFlash(0.7); say('vo8'); }
     if (c.gateAt !== null) { const k = T - c.gateAt; world.storyDim = ramp(1.3, 0, 0.2, 2.2, k); F.glow = ramp(0, 1, 0.3, 2.4, k); F.lamp = ramp(1, 0, 0.6, 1.6, k); }
     $('#cineDark').style.opacity = world.post && world.post.enabled ? 0 : (world.nightK || 0) * 0.72; // low tier: no post pass, darken with an overlay
     acc += Math.min(250, realDt * 1000);
-    while (acc >= E.tickMs) { acc -= E.tickMs; E.step(); world.onTick(E, now - acc); }
+    while (acc >= E.tickMs) { acc -= E.tickMs; E.step();
+      for (const v of E.events) { if (v.type === 'dig') once('v5', () => say('vo5')); if (v.type === 'push' && v.t === T_BALL) once('v7', () => say('vo7')); }
+      world.onTick(E, now - acc);
+      const p = E.player; if (p && E.gate && p.x === E.gate.x && p.y === E.gate.y - 1 && c.said.v5) once('v6', () => say('vo6')); }
     // 6. pull back wide, then the title on black, then fade into the menu
-    if (E.state === 'won' && c.wonAt === null) { c.wonAt = T; shot('wide'); setTimeout(() => { if (cineRunning) say('vo7'); }, 500); }
+    if (E.state === 'won' && c.wonAt === null) { c.wonAt = T; shot('wide'); setTimeout(() => { if (cineRunning) { say('vo9'); $('#cineGates').classList.add('on'); } }, 600); }
     if (c.wonAt !== null) { const k = T - c.wonAt;
-      if (k > 3.2) once('riser', () => Audio.play('riser'));
-      if (k > 4.0) once('fadeout', () => { cap(''); $('#cineFade').classList.add('on'); });
-      if (k > 5.4) once('title', () => $('#cineTitle').classList.add('on'));
-      if (k > 9.2) endCine(); }
+      if (k > 4.2) once('riser', () => Audio.play('riser'));
+      if (k > 5.0) once('fadeout', () => { cap(''); $('#cineGates').classList.remove('on'); $('#cineFade').classList.add('on'); });
+      if (k > 6.4) once('title', () => $('#cineTitle').classList.add('on'));
+      if (k > 10.2) endCine(); }
   }
-  function flash() { const f = $('#cineFlash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); }
+  function flash() { if (REDUCED_MOTION) return; const f = $('#cineFlash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); }
   function endCine() {
-    if (!cineRunning) return; cineRunning = false; cine = null; world.cineCam = false; world.storyDim = 0; world.cineFx = null; world.flashK = 0; $('#cineDark').style.opacity = 0; cap(''); Audio.stopVo(); $('#cineTitle').classList.remove('on');
+    if (!cineRunning) return; cineRunning = false; cine = null; world.cineCam = false; world.storyDim = 0; world.cineFx = null; world.flashK = 0; $('#cineDark').style.opacity = 0; cap(''); Audio.stopVo(); $('#cineTitle').classList.remove('on'); $('#cineGates').classList.remove('on');
     $('#cineFade').classList.add('on'); setTimeout(() => $('#cineFade').classList.remove('on'), 60); // the menu fades up out of black
     menuEngine = cineEngine; cineEngine.menu = true; world.menuMode = true; world.playing = false; world.fitCamera(false); menuKeep = true; // the intro's tank becomes the menu backdrop as-is
     $('#skipIntro').hidden = true; save.introSeen = true; persist(); openHome();
@@ -3799,18 +3809,61 @@ window.__T = T;
     { const g = $('#introGoals'), t = lv.time; if (engine.relaxed || dive) { g.innerHTML = dive ? '<span class="goal dd">☀ Race the clock: fastest time wins today</span>' : '<span class="goal">Relaxed mode: no air timer</span>'; }
       else g.innerHTML = `<span class="goal g3"><b>★★★</b>${Math.ceil(t * 0.6)}s+ air left</span><span class="goal g2"><b>★★<i>★</i></b>${Math.ceil(t * 0.3)}s+</span><span class="goal g1"><b>★<i>★★</i></b>finish</span>`;
       const st = !dive && save.stars[i + 1], bb = $('#introBest'); bb.hidden = !st; if (st) bb.textContent = `Your best ${'★'.repeat(st)}${'☆'.repeat(3 - st)}`; }
-    $('#introBalls').textContent = engine.ballsTotal === 1 ? '1 energy pearl' : `${engine.ballsTotal} energy pearls`; $('#introAir').textContent = engine.relaxed ? 'Relaxed: no air timer' : `${lv.time}s of air`;
+    $('#introBalls').textContent = engine.ballsTotal === 1 ? '1 pearl' : `${engine.ballsTotal} pearls`; $('#introAir').textContent = engine.relaxed ? 'Relaxed: no air timer' : `${Math.round(lv.time || engine.time)}s of air`;
     screenStack = []; setState('intro'); show('intro'); hudKey = ''; updateHud();
     Audio.setMusic(save.settings.music);
   }
-  function beginPlay() { if (state !== 'intro' && state !== 'paused') return; const fromIntro = state === 'intro'; setState('playing'); show(null); lastFrame = performance.now(); acc = 0; world.lastTick = performance.now(); if (fromIntro) { world.startPlay(); banner(); } }
+  // ---- spotlight tutorial: the first time a level brings something new, the game waits, the screen dims and a ring of light
+  // circles exactly the thing the words talk about (so a voice-over line always matches the picture). One short, plain line per
+  // step; tap (or Enter/Space) for the next. Each step has a voice id: drop src/assets/vo/<id>.mp3 in and it plays with the step.
+  const touchUI = () => document.body.classList.contains('touch');
+  const TUT_STEPS = {
+    0: [{ at: 'player', id: 't1a', text: 'This is you, the diver!' },
+        { at: 'ball', id: 't1b', text: 'This red pearl is full of light.' },
+        { at: 'gate', id: 't1c', text: 'Push the pearl into the gate to wake it up.' },
+        { at: '#hud .air', id: 't1d', text: 'This is your air. Finish before it runs out!' },
+        { at: 'player', id: 't1e', text: () => touchUI() ? 'Swipe to swim. Swim into sand to dig through it.' : 'Use the arrow keys to swim. Swim into sand to dig through it.' }],
+    1: [{ at: 'rock', id: 't2a', text: 'This is a stone. Take away the sand under it, and it falls.' },
+        { at: 'player', id: 't2b', text: 'Never stand right under a stone!' }],
+    2: [{ at: 'rock', id: 't3a', text: 'Falling stones and pearls roll off round things. They roll left first.' }],
+    4: [{ at: 'fish', id: 't5a', text: 'A piranha! If it touches you, the dive is over.' },
+        { at: 'rock', id: 't5b', text: 'Drop a stone on it to stop it.' }],
+    5: [{ at: 'jelly', id: 't6a', text: 'A jellyfish swims up and down. Cross when it is far away.' }],
+    8: [{ at: 'crab', id: 't9a', text: 'A crab walks back and forth. Stay out of its way!' }],
+    11: [{ at: 'airc', id: 't12a', text: 'An air bubble! Grab it for 30 more seconds of air.' }] };
+  const TUT = { on: false, steps: null, i: 0, t0: 0, raf: 0 }; let skipTut = false; // tests start levels directly, without the tutorial
+  function tutTarget(st) { const e = engine; if (!e) return null; if (st.at[0] === '#') return { el: document.querySelector(st.at) };
+    const want = { player: T.PLAYER, ball: T.BALL, rock: T.ROCK, fish: T.FISH, jelly: T.JELLY, crab: T.CRAB }[st.at], pl = e.player || { x: 0, y: 0 };
+    if (st.at === 'gate') return { x: e.gate.x, y: e.gate.y };
+    if (st.at === 'player') return pl ? { x: pl.x, y: pl.y } : null;
+    let best = null, bd = 1e9; const near = (x, y) => { const d = Math.abs(x - pl.x) + Math.abs(y - pl.y); if (d < bd) { bd = d; best = { x, y }; } };
+    if (st.at === 'airc') { for (let y = 0; y < e.h; y++) for (let x = 0; x < e.w; x++) if (e.get(x, y) === T.AIR) near(x, y); return best; }
+    for (const o of e.objects.values()) if (o.t === want) near(o.x, o.y); return best; }
+  function tutPlace() { if (!TUT.on) return; const st = TUT.steps[TUT.i], tg = TUT.tg, ring = $('#tut .tut-ring'), bub = $('#tut .tut-bub'); if (!tg) return;
+    let cx, cy, w, h; if (tg.el) { const r = tg.el.getBoundingClientRect(); cx = r.left + r.width / 2; cy = r.top + r.height / 2; w = r.width + 18; h = r.height + 18; ring.classList.add('rect'); }
+    else { const [ax, ay] = world.toScreen(tg.x, tg.y), [bx] = world.toScreen(tg.x + 1, tg.y), cell = Math.abs(bx - ax); cx = ax; cy = ay; w = h = Math.max(64, cell * 1.55); ring.classList.remove('rect'); }
+    ring.style.left = (cx - w / 2) + 'px'; ring.style.top = (cy - h / 2) + 'px'; ring.style.width = w + 'px'; ring.style.height = h + 'px';
+    const bh = bub.offsetHeight || 120, below = cy < innerHeight * 0.5; let top = below ? cy + h / 2 + 22 : cy - h / 2 - 22 - bh; top = Math.max(12, Math.min(innerHeight - bh - 12, top)); bub.style.top = top + 'px'; }
+  function tutShow() { const st = TUT.steps[TUT.i]; TUT.tg = tutTarget(st); if (TUT.tg && !TUT.tg.el) world.focus = { x: TUT.tg.x, y: -TUT.tg.y }; /* phones: the camera glides to what the line is about */ TUT.t0 = performance.now(); const txt = typeof st.text === 'function' ? st.text() : st.text;
+    $('#tut .tut-txt').textContent = txt; $('#tut .tut-step').textContent = TUT.steps.length > 1 ? `${TUT.i + 1} / ${TUT.steps.length}` : 'New!';
+    $('#tut .tut-next').textContent = TUT.i < TUT.steps.length - 1 ? (touchUI() ? 'Tap to continue' : 'Click or press Enter') : (touchUI() ? "Tap to play" : 'Click or press Enter to play');
+    const b = $('#tut .tut-bub'); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); Audio.stopVo(); Audio.vo(st.id); Audio.play('click'); }
+  function startTut(idx) { const steps = TUT_STEPS[idx]; if (!steps || dive || skipTut) return false; save.tutSeen = save.tutSeen || {}; if (save.tutSeen[idx]) return false;
+    TUT.on = true; TUT.idx = idx; TUT.steps = steps.filter(st => tutTarget(st)); if (!TUT.steps.length) { TUT.on = false; return false; } TUT.i = 0; setState('tut');
+    $('#tut').classList.add('on'); tutShow(); tutPlace(); return true; }
+  function tutNext() { if (!TUT.on || performance.now() - TUT.t0 < 350) return; TUT.i++; if (TUT.i < TUT.steps.length) { tutShow(); return; } endTut(); }
+  function endTut() { if (!TUT.on) return; TUT.on = false; Audio.stopVo(); $('#tut').classList.remove('on'); world.focus = null;
+    save.tutSeen = save.tutSeen || {}; save.tutSeen[TUT.idx] = 1; save.tipsSeen = save.tipsSeen || {}; save.tipsSeen[TUT.idx] = 1; persist();
+    setState('playing'); lastFrame = performance.now(); acc = 0; world.lastTick = performance.now(); banner(); } // like beginPlay: the frame loop keeps its own clock (frame.last)
+  $('#tut').addEventListener('click', ev => { if (ev.target.closest('.tut-skip')) { click(); TUT.t0 = 0; endTut(); return; } tutNext(); });
+  function beginPlay() { if (state !== 'intro' && state !== 'paused') return; const fromIntro = state === 'intro'; setState('playing'); show(null); lastFrame = performance.now(); acc = 0; world.lastTick = performance.now(); if (fromIntro) { world.startPlay(); if (!startTut(levelIdx)) banner(); } }
   let bannerTimer = null;
   // ---- level-1 coach: follows the verified winning route. When the player hesitates it shows a glowing trail to where the
   // diver should go next and, once there, an animated hand (key cap on computers) showing which way to swipe.
   // If the pearl ends up somewhere the route can't recover from, it points at Undo instead.
   // verified winning route of every level (synced from tests/routes.json by tools/build.py): drives the level-1 coach and "Show me" hints
   // Daily Dive puzzles (verified with tools/solver; see tools/solver/daily/), one per day in a fixed shuffle
-  const DAILY_LEVELS = /*daily*/[{"name":"Two Pockets","time":135,"hint":"The gate swallows pearls dropped from above, but there is room beside it for only two stones.","map":["###################","#P................#","#.B.R.R....R....B.#","#WWWWWWWW WWWW WWW#","#WWWWWWWW WWWWWWWW#","#WWWWWWWW WWWWWWWW#","#WWWWWWWW WWWWWWWW#","#WWWWWWWW WWWWWWWW#","#WWWWWWW   WWWWWWW#","#WWWWWWW E WWWWWWW#","###################"],"route":"RRRRRRRDRLLULLDRRR.........LLLULLDRRRRR.........LLLLLULLDRRRRRRR.......RRURRDRRLLULLDRRR..RRURRDLLLLLLL.......LDDDDDDD."},{"name":"Left First","time":85,"hint":"Falling pearls roll left first. Be the wall on the left when they land.","map":["################","#.............P#","#WWWW.WBWWWW.WW#","#WWWW.WBWWWW.WW#","#WWWW. . WWW.WW#","#WWWWW W WWW.WW#","#WWWWW       EW#","################"],"route":"LLLLLLLLLDDDRRL....DDRRRRRRUUUUULLLLLLLDDDRDDRRRRRRR."},{"name":"Siding","time":130,"hint":"A pearl drops first. Park it out of the way and let the stone through to fill the gap.","map":["#################","#P.........WWWWW#","#    B R B.WWWWW#","#WWWWWWWWW WWWWW#","#WWWWW.... .....#","#WWWWW          #","#WWWWWWWWWWW WW #","#WWWWWWWWWWWWWW #","#WWWWWWWWWWWWWWE#","#################"],"route":"RRRRRRRRRDU....DDDRDLLLRRUUUULLLLDRRR....RDDLDRR..LLLULLDRRRRRRRR...LLLLUUUULLLLLLDRRRRR....RDDLDRRRRR...RDDD."},{"name":"Stone Clock","time":120,"hint":"Pearls crush crabs too. Drop the right-hand pearl just as the crab walks under it.","map":["##################","#P...............#","#..W.BW.WBWWWWWWW#","#W.W..W...WWWWWWW#","#W.WW WWW WWWWWWW#","#W.WW WWW WWWWWWW#","#W.WW WWW WWWWWWW#","#W.         C   E#","#WWWWWWWWWWWWWWWW#","##################"],"route":"RRRRRRDDR....RL.....LUULLLLLDDDDDDRRRRRRRRRRRRRLLLLLLLLLLLLLUUUUUURRDDRL....UULLDDDDDDRRRRRRRRRRRRRR."},{"name":"Pedestal","time":90,"hint":"The pearl rides on a stone. Work it loose from the gate side, and keep its left side packed.","map":["##################","#P...............#","#................#","#................#","#.......B........#","#...B.. R       E#","#WWWWWW .WWWWWWWW#","##################"],"route":"RRRRRRRRRDDDDLLR.UULLDDRRRRRRRRLLLLLLLLLLULLDRRRRRRRRRRRRR."},{"name":"Glancing Blow","time":90,"hint":"Stones roll off pearls. Put a pearl under the drop before the stone comes down.","map":["###############","#P............#","#........R....#","#.............#","#.WWWWWWW   B.#","#.WWWWWW  WWWW#","#..B      EWWW#","#WWWWWWW .WWWW#","###############"],"route":"RRRRRRRRRRRRDDDLL....LULR......DLDLDRUUULLLLLLLLDDDRRRRRRRRR."},{"name":"Jelly Lift","time":115,"hint":"Whatever goes down the jelly shaft first clears the way. Make it the stone.","map":["##################","#P...............#","#  B     .   R   #","#WWWWWWWW WWWWWWW#","#WWWWWWWW WWWWWWW#","#WWWWWWWWJWWWWWWW#","#WWWWWWWW WWWWWWW#","#WWWWWW.  WWWWWWW#","#WWWWWW.        E#","#WWWWWWWWWWW WWWW#","##################"],"route":"RRRRRRRRDURRRRRDLLLL.......LDDDDDLDRRR..LLUUUUUULLLLLULLDRRRRRR...........RDDDDDLDRRRRRRRR."},{"name":"Stair Roll","time":110,"hint":"The stairs carry anything to the gate, but the pit halfway down keeps the first thing that rolls in.","map":["################","#P.............#","# B B  .R..R...#","#WWWWW  .......#","#WWWWWW  WW WWW#","#WWWWWWW  W WWW#","#WWWWWWW    WWW#","#WWWWWWWWW  WWW#","#WWWWWWWWWW WWW#","#WWWWWWWWWWEWWW#","################"],"route":"RRRRRRDDRL.....LUULLLDRR....................LLULLDRRRR....................RRDDRDRDRDRDD."},{"name":"Fish Trap","time":105,"hint":"Stones and pearls both crush piranhas. Fill the dip first, and catch the fish on the way.","map":["#################","#...B.R.P.......#","#...............#","#.WW.W WWWWWWWWW#","#.WW.W WWWWWWWWW#","#.WW.W WWWWWWWWW#","#.B        F   E#","#WWWWW WWWWWWWWW#","#################"],"route":"LDLR......LLLLUDRR.........LDDDDRRRRRRRRRRLLLLLLLLLLUUUULLLDDDDRRRRRRRRRRRRRR."},{"name":"Lead Weight","time":100,"hint":"Lead each stone down the chimney and step out on the side you will push from.","map":["################","#WWWWWWWBWWWWWW#","#WWWWWWW.WWWWWW#","#WWWWWWWRWWWWWW#","#WWWWWWW.WWWWWW#","#WWWWWWWBWWWWWW#","#WWWWWWW.WWWWWW#","#WWWWWWWRWWWWWW#","#P.......    EW#","#WW W WW.WWWWWW#","#WWWWWWWWWWWWWW#","################"],"route":"RRRRRRRR.LLL..RRUUDDL.RRRRRLLLLUUUUDDDDR.LLLLL..RRRRUUUUUUDDDDDDL.RRRRRR."},{"name":"Two Pockets","hint":"The gate swallows pearls dropped from above, but there is room beside it for only two stones.","map":["###################","#P................#","#.B.R.R....R....B.#","#WWWWWWWW WWWW WWW#","#WWWWWWWW WWWWWWWW#","#WWWWWWWW WWWWWWWW#","#WWWWWWWW WWWWWWWW#","#WWWWWWWW WWWWWWWW#","#WWWWWWW   WWWWWWW#","#WWWWWWW E WWWWWWW#","###################"]},{"name":"Left First","hint":"Falling pearls roll left first. Be the wall on the left when they land.","map":["################","#.............P#","#WWWW.WBWWWW.WW#","#WWWW.WBWWWW.WW#","#WWWW. . WWW.WW#","#WWWWW W WWW.WW#","#WWWWW       EW#","################"]},{"name":"Siding","hint":"A pearl drops first. Park it out of the way and let the stone through to fill the gap.","map":["#################","#P.........WWWWW#","#    B R B.WWWWW#","#WWWWWWWWW WWWWW#","#WWWWW.... .....#","#WWWWW          #","#WWWWWWWWWWW WW #","#WWWWWWWWWWWWWW #","#WWWWWWWWWWWWWWE#","#################"]},{"name":"Stone Clock","hint":"Pearls crush crabs too. Drop the right-hand pearl just as the crab walks under it.","map":["##################","#P...............#","#..W.BW.WBWWWWWWW#","#W.W..W...WWWWWWW#","#W.WW WWW WWWWWWW#","#W.WW WWW WWWWWWW#","#W.WW WWW WWWWWWW#","#W.         C   E#","#WWWWWWWWWWWWWWWW#","##################"]},{"name":"Pedestal","hint":"The pearl rides on a stone. Work it loose from the gate side, and keep its left side packed.","map":["##################","#P...............#","#................#","#................#","#.......B........#","#...B.. R       E#","#WWWWWW .WWWWWWWW#","##################"]},{"name":"Glancing Blow","hint":"Stones roll off pearls. Put a pearl under the drop before the stone comes down.","map":["###############","#P............#","#........R....#","#.............#","#.WWWWWWW   B.#","#.WWWWWW  WWWW#","#..B      EWWW#","#WWWWWWW .WWWW#","###############"]},{"name":"Jelly Lift","hint":"Whatever goes down the jelly shaft first clears the way. Make it the stone.","map":["##################","#P...............#","#  B     .   R   #","#WWWWWWWW WWWWWWW#","#WWWWWWWW WWWWWWW#","#WWWWWWWWJWWWWWWW#","#WWWWWWWW WWWWWWW#","#WWWWWW.  WWWWWWW#","#WWWWWW.        E#","#WWWWWWWWWWW WWWW#","##################"]},{"name":"Stair Roll","hint":"The stairs carry anything to the gate, but the pit halfway down keeps the first thing that rolls in.","map":["################","#P.............#","# B B  .R..R...#","#WWWWW  .......#","#WWWWWW  WW WWW#","#WWWWWWW  W WWW#","#WWWWWWW    WWW#","#WWWWWWWWW  WWW#","#WWWWWWWWWW WWW#","#WWWWWWWWWWEWWW#","################"]},{"name":"Fish Trap","hint":"Stones and pearls both crush piranhas. Fill the dip first, and catch the fish on the way.","map":["#################","#...B.R.P.......#","#...............#","#.WW.W WWWWWWWWW#","#.WW.W WWWWWWWWW#","#.WW.W WWWWWWWWW#","#.B        F   E#","#WWWWW WWWWWWWWW#","#################"]},{"name":"Lead Weight","hint":"Lead each stone down the chimney and step out on the side you will push from.","map":["################","#WWWWWWWBWWWWWW#","#WWWWWWW.WWWWWW#","#WWWWWWWRWWWWWW#","#WWWWWWW.WWWWWW#","#WWWWWWWBWWWWWW#","#WWWWWWW.WWWWWW#","#WWWWWWWRWWWWWW#","#P.......    EW#","#WW W WW.WWWWWW#","#WWWWWWWWWWWWWW#","################"]},{"name":"Crab Crossing","time":105,"hint":"Only the right-hand shaft reaches the crab. Drop that stone as it walks underneath; the left one just fills a hole.","map":["####################","#P...R .....R .....#","#.WWW. WWWWW. WWWW.#","#.WWWW WWWWWW WWWW.#","#.B     .   C    ..#","#WWWWW WWWWWW WWWWE#","####################"],"route":"RRRR.RRRRRRRRRRLDDDLLLLLRRRRRRRRRRLLLLLUUULLLLLLLLLLLLDDDRRRRRRRRRRRRRRRRRRD."},{"name":"Twin Claws","time":85,"hint":"One stone, two crabs. Wait until both claws line up under the shaft.","map":["######################","#P.......R ..........#","#WWWWWWWW. WWWWWWWWW.#","#WC         B        #","#WWWWWWWWW WWWWWWWWW #","#W C        B        #","#WWWWWWWWW WWWWWWWWW #","#WWWWWWWWWWWWWWWWWWWE#","######################"],"route":"RRRRRRR.......RDDRRRRRRRRRRRLLLLLLLLLDDRRRRRRRRR..RDD."},{"name":"Jelly Bridge","time":80,"hint":"The shafts are too deep to fill. Push the pearl across as the jellyfish rises under the road, then step back.","map":["#######################","#P....................#","#.B                 B.#","#WWWWWWWW.   .WWWWWWWW#","#WWWWWWWWW EJWWWWWWWWW#","#WWWWWWWWWJW WWWWWWWWW#","#WWWWWWWWWWWWWWWWWWWWW#","#WWWWWWWWWWWWWWWWWWWWW#","#######################"],"route":"DRRRRRRR....R.RLURRRRRRRRRRRRDLLLLLLL....LLRLLDD."},{"name":"Rolling Plug","time":90,"hint":"A falling stone rolls left first. Dig the right pocket before the drop, and the left one only after.","map":["#############","#WWWWWW R..P#","#WWWWWW .WW.#","#WWWWWWJWWW.#","#WWWWWW WWW.#","#WWWWWW ....#","#WWWWW. . B.#","#WWWWW W WWW#","#WWWWWEWWWWW#","#############"],"route":"DDDDLLLDURRRUUUULLL........LDDDDDLRUUUUURRRRDDDDDLLLL..LDD."},{"name":"Crab Fence","time":80,"hint":"You don't have to crush the crab. Drop the stone when it's on the far side and fence it in.","map":["######################","#P...R ..............#","#WWW. WWW.W.WWWWWWWWW#","#WWWW WWW.W.WWWWWWWWW#","#WW  C    B R       E#","#WWWWWWWWWWWWWWW WWWW#","#WWWWWWWWWWWWWWWWWWWW#","######################"],"route":"RRR....R....RRRRRRDDDRRRRLLLLUUULLDDDRRRRRRRRRRR."},{"name":"Fish Hook","time":85,"hint":"A stone in the pond would block the road. Drop the pearl on the piranha when it swims up the chute.","map":["#####################","#P...............B .#","#.WWWWWWWWWWRWWWW. .#","#............WWWWW .#","#WWWWWWWWWWW WWWWW .#","#EF                .#","#WWWWWWWWWWWWWWWWWWW#","#####################"],"route":"RRRRRRRRRRRRRRR.............R.RRDDDDLLLLLLLLLLLLLLLLLL."},{"name":"Pit Count","time":95,"hint":"The deep pit takes two stones, the shallow one only one. The middle stone belongs to the deep pit.","map":["#####################","#P     R    R    R  #","#.WWWWWWWW WWWW WW.W#","#.WWWWWWWW WWWW WW.W#","#.B                E#","#WWWWWWWWW WWWW WWWW#","#WWWWWWWWWJWWWWWWWWW#","#####################"],"route":"RRRRRRRR...RDDDRRRRRRRRUUULL.LLLLL.LLLLLLLLLLDDDRRRRRRRRRRRRRRRRRR."},{"name":"Crab Bait","time":95,"hint":"The crab never leaves its den by itself. Dig through, let it chase you under the stone, then pull the plug.","map":["################","#P............W#","#.WWWWWWWWWWW.W#","#.WWWWWWWWWWR.W#","#.WWWWWWWWWW..W#","#.B C  .......E#","#WWWWWWWWWWW WW#","################"],"route":"RRRRRRRRRRRRDDDDLLLLL.LRRRRRRULRUUULLLLLLLLLLLLDDDDRRRRRRRRRRRRR."},{"name":"Crab Herding","time":105,"hint":"Push the pearl to herd the crab into the corner under the shaft, then drop the stone on it.","map":["#####################","#W R.........P......#","#W ..WWWWWWWW.WWWWW.#","#W W.WWWWWWWW.WWWWW.#","#W W.WWWWWWWW.WWWWW.#","#E    C     B     B.#","#W WWWWWWWWWWWWWWWWW#","#####################"],"route":"DDDDLL..L.L.L.L.L.L.LUUUUL....DRDDDLLUUUURRRRRRRRRRRRRRRRRDDDDLLLLLLLLLLLLLLLLLL."},{"name":"Fish Elevator","time":80,"hint":"The piranha rides up the shaft now and then. Drop the stone while it is inside.","map":["######################","#WWWWWWWWW R.......PW#","#WWW WWWWW .WWWWWW.WW#","#WWW WWWWW WWWWWWW.WW#","#WWW WWWWW WWWWWWW.WW#","#EF              B WW#","#WWWWWWWWW WWWWWWWWWW#","######################"],"route":"LLLLLLL.....L...RRRRRRRDDDDLLLLLLLLLLLLLLLLL."},{"name":"Crab Crossing"},{"name":"Twin Claws"},{"name":"Jelly Bridge"},{"name":"Rolling Plug"},{"name":"Crab Fence"},{"name":"Fish Hook"},{"name":"Pit Count"},{"name":"Crab Bait"},{"name":"Crab Herding"},{"name":"Fish Elevator"}]/*end*/;
+  const DAILY_LEVELS = /*daily*/[{"name":"Two Pockets","time":135,"hint":"The gate swallows pearls dropped from above, but there is room beside it for only two stones.","map":["###################","#P................#","#.B.R.R....R....B.#","#WWWWWWWW WWWW WWW#","#WWWWWWWW WWWWWWWW#","#WWWWWWWW WWWWWWWW#","#WWWWWWWW WWWWWWWW#","#WWWWWWWW WWWWWWWW#","#WWWWWWW   WWWWWWW#","#WWWWWWW E WWWWWWW#","###################"],"route":"RRRRRRRDRLLULLDRRR.........LLLULLDRRRRR.........LLLLLULLDRRRRRRR.......RRURRDRRLLULLDRRR..RRURRDLLLLLLL.......LDDDDDDD."},{"name":"Left First","time":85,"hint":"Falling pearls roll left first. Be the wall on the left when they land.","map":["################","#.............P#","#WWWW.WBWWWW.WW#","#WWWW.WBWWWW.WW#","#WWWW. . WWW.WW#","#WWWWW W WWW.WW#","#WWWWW       EW#","################"],"route":"LLLLLLLLLDDDRRL....DDRRRRRRUUUUULLLLLLLDDDRDDRRRRRRR."},{"name":"Siding","time":130,"hint":"A pearl drops first. Park it out of the way and let the stone through to fill the gap.","map":["#################","#P.........WWWWW#","#    B R B.WWWWW#","#WWWWWWWWW WWWWW#","#WWWWW.... .....#","#WWWWW          #","#WWWWWWWWWWW WW #","#WWWWWWWWWWWWWW #","#WWWWWWWWWWWWWWE#","#################"],"route":"RRRRRRRRRDU....DDDRDLLLRRUUUULLLLDRRR....RDDLDRR..LLLULLDRRRRRRRR...LLLLUUUULLLLLLDRRRRR....RDDLDRRRRR...RDDD."},{"name":"Stone Clock","time":120,"hint":"Pearls crush crabs too. Drop the right-hand pearl just as the crab walks under it.","map":["##################","#P...............#","#..W.BW.WBWWWWWWW#","#W.W..W...WWWWWWW#","#W.WW WWW WWWWWWW#","#W.WW WWW WWWWWWW#","#W.WW WWW WWWWWWW#","#W.         C   E#","#WWWWWWWWWWWWWWWW#","##################"],"route":"RRRRRRDDR....RL.....LUULLLLLDDDDDDRRRRRRRRRRRRRLLLLLLLLLLLLLUUUUUURRDDRL....UULLDDDDDDRRRRRRRRRRRRRR."},{"name":"Pedestal","time":90,"hint":"The pearl rides on a stone. Work it loose from the gate side, and keep its left side packed.","map":["##################","#P...............#","#................#","#................#","#.......B........#","#...B.. R       E#","#WWWWWW .WWWWWWWW#","##################"],"route":"RRRRRRRRRDDDDLLR.UULLDDRRRRRRRRLLLLLLLLLLULLDRRRRRRRRRRRRR."},{"name":"Glancing Blow","time":90,"hint":"Stones roll off pearls. Put a pearl under the drop before the stone comes down.","map":["###############","#P............#","#........R....#","#.............#","#.WWWWWWW   B.#","#.WWWWWW  WWWW#","#..B      EWWW#","#WWWWWWW .WWWW#","###############"],"route":"RRRRRRRRRRRRDDDLL....LULR......DLDLDRUUULLLLLLLLDDDRRRRRRRRR."},{"name":"Jelly Lift","time":115,"hint":"Whatever goes down the jelly shaft first clears the way. Make it the stone.","map":["##################","#P...............#","#  B     .   R   #","#WWWWWWWW WWWWWWW#","#WWWWWWWW WWWWWWW#","#WWWWWWWWJWWWWWWW#","#WWWWWWWW WWWWWWW#","#WWWWWW.  WWWWWWW#","#WWWWWW.        E#","#WWWWWWWWWWW WWWW#","##################"],"route":"RRRRRRRRDURRRRRDLLLL.......LDDDDDLDRRR..LLUUUUUULLLLLULLDRRRRRR...........RDDDDDLDRRRRRRRR."},{"name":"Stair Roll","time":110,"hint":"The stairs carry anything to the gate, but the pit halfway down keeps the first thing that rolls in.","map":["################","#P.............#","# B B  .R..R...#","#WWWWW  .......#","#WWWWWW  WW WWW#","#WWWWWWW  W WWW#","#WWWWWWW    WWW#","#WWWWWWWWW  WWW#","#WWWWWWWWWW WWW#","#WWWWWWWWWWEWWW#","################"],"route":"RRRRRRDDRL.....LUULLLDRR....................LLULLDRRRR....................RRDDRDRDRDRDD."},{"name":"Fish Trap","time":105,"hint":"Stones and pearls both crush piranhas. Fill the dip first, and catch the fish on the way.","map":["#################","#...B.R.P.......#","#...............#","#.WW.W WWWWWWWWW#","#.WW.W WWWWWWWWW#","#.WW.W WWWWWWWWW#","#.B        F   E#","#WWWWW WWWWWWWWW#","#################"],"route":"LDLR......LLLLUDRR.........LDDDDRRRRRRRRRRLLLLLLLLLLUUUULLLDDDDRRRRRRRRRRRRRR."},{"name":"Lead Weight","time":100,"hint":"Lead each stone down the chimney and step out on the side you will push from.","map":["################","#WWWWWWWBWWWWWW#","#WWWWWWW.WWWWWW#","#WWWWWWWRWWWWWW#","#WWWWWWW.WWWWWW#","#WWWWWWWBWWWWWW#","#WWWWWWW.WWWWWW#","#WWWWWWWRWWWWWW#","#P.......    EW#","#WW W WW.WWWWWW#","#WWWWWWWWWWWWWW#","################"],"route":"RRRRRRRR.LLL..RRUUDDL.RRRRRLLLLUUUUDDDDR.LLLLL..RRRRUUUUUUDDDDDDL.RRRRRR."},{"name":"Crab Crossing","time":105,"hint":"Only the right-hand shaft reaches the crab. Drop that stone as it walks underneath; the left one just fills a hole.","map":["####################","#P...R .....R .....#","#.WWW. WWWWW. WWWW.#","#.WWWW WWWWWW WWWW.#","#.B     .   C    ..#","#WWWWW WWWWWW WWWWE#","####################"],"route":"RRRR.RRRRRRRRRRLDDDLLLLLRRRRRRRRRRLLLLLUUULLLLLLLLLLLLDDDRRRRRRRRRRRRRRRRRRD."},{"name":"Twin Claws","time":85,"hint":"One stone, two crabs. Wait until both claws line up under the shaft.","map":["######################","#P.......R ..........#","#WWWWWWWW. WWWWWWWWW.#","#WC         B        #","#WWWWWWWWW WWWWWWWWW #","#W C        B        #","#WWWWWWWWW WWWWWWWWW #","#WWWWWWWWWWWWWWWWWWWE#","######################"],"route":"RRRRRRR.......RDDRRRRRRRRRRRLLLLLLLLLDDRRRRRRRRR..RDD."},{"name":"Jelly Bridge","time":80,"hint":"The shafts are too deep to fill. Push the pearl across as the jellyfish rises under the road, then step back.","map":["#######################","#P....................#","#.B                 B.#","#WWWWWWWW.   .WWWWWWWW#","#WWWWWWWWW EJWWWWWWWWW#","#WWWWWWWWWJW WWWWWWWWW#","#WWWWWWWWWWWWWWWWWWWWW#","#WWWWWWWWWWWWWWWWWWWWW#","#######################"],"route":"DRRRRRRR....R.RLURRRRRRRRRRRRDLLLLLLL....LLRLLDD."},{"name":"Rolling Plug","time":90,"hint":"A falling stone rolls left first. Dig the right pocket before the drop, and the left one only after.","map":["#############","#WWWWWW R..P#","#WWWWWW .WW.#","#WWWWWWJWWW.#","#WWWWWW WWW.#","#WWWWWW ....#","#WWWWW. . B.#","#WWWWW W WWW#","#WWWWWEWWWWW#","#############"],"route":"DDDDLLLDURRRUUUULLL........LDDDDDLRUUUUURRRRDDDDDLLLL..LDD."},{"name":"Crab Fence","time":80,"hint":"You don't have to crush the crab. Drop the stone when it's on the far side and fence it in.","map":["######################","#P...R ..............#","#WWW. WWW.W.WWWWWWWWW#","#WWWW WWW.W.WWWWWWWWW#","#WW  C    B R       E#","#WWWWWWWWWWWWWWW WWWW#","#WWWWWWWWWWWWWWWWWWWW#","######################"],"route":"RRR....R....RRRRRRDDDRRRRLLLLUUULLDDDRRRRRRRRRRR."},{"name":"Fish Hook","time":85,"hint":"A stone in the pond would block the road. Drop the pearl on the piranha when it swims up the chute.","map":["#####################","#P...............B .#","#.WWWWWWWWWWRWWWW. .#","#............WWWWW .#","#WWWWWWWWWWW WWWWW .#","#EF                .#","#WWWWWWWWWWWWWWWWWWW#","#####################"],"route":"RRRRRRRRRRRRRRR.............R.RRDDDDLLLLLLLLLLLLLLLLLL."},{"name":"Pit Count","time":95,"hint":"The deep pit takes two stones, the shallow one only one. The middle stone belongs to the deep pit.","map":["#####################","#P     R    R    R  #","#.WWWWWWWW WWWW WW.W#","#.WWWWWWWW WWWW WW.W#","#.B                E#","#WWWWWWWWW WWWW WWWW#","#WWWWWWWWWJWWWWWWWWW#","#####################"],"route":"RRRRRRRR...RDDDRRRRRRRRUUULL.LLLLL.LLLLLLLLLLDDDRRRRRRRRRRRRRRRRRR."},{"name":"Crab Bait","time":95,"hint":"The crab never leaves its den by itself. Dig through, let it chase you under the stone, then pull the plug.","map":["################","#P............W#","#.WWWWWWWWWWW.W#","#.WWWWWWWWWWR.W#","#.WWWWWWWWWW..W#","#.B C  .......E#","#WWWWWWWWWWW WW#","################"],"route":"RRRRRRRRRRRRDDDDLLLLL.LRRRRRRULRUUULLLLLLLLLLLLDDDDRRRRRRRRRRRRR."},{"name":"Crab Herding","time":105,"hint":"Push the pearl to herd the crab into the corner under the shaft, then drop the stone on it.","map":["#####################","#W R.........P......#","#W ..WWWWWWWW.WWWWW.#","#W W.WWWWWWWW.WWWWW.#","#W W.WWWWWWWW.WWWWW.#","#E    C     B     B.#","#W WWWWWWWWWWWWWWWWW#","#####################"],"route":"DDDDLL..L.L.L.L.L.L.LUUUUL....DRDDDLLUUUURRRRRRRRRRRRRRRRRDDDDLLLLLLLLLLLLLLLLLL."},{"name":"Fish Elevator","time":80,"hint":"The piranha rides up the shaft now and then. Drop the stone while it is inside.","map":["######################","#WWWWWWWWW R.......PW#","#WWW WWWWW .WWWWWW.WW#","#WWW WWWWW WWWWWWW.WW#","#WWW WWWWW WWWWWWW.WW#","#EF              B WW#","#WWWWWWWWW WWWWWWWWWW#","######################"],"route":"LLLLLLL.....L...RRRRRRRDDDDLLLLLLLLLLLLLLLLL."}]/*end*/;
   const ROUTES = /*routes*/{"1":"DDDRRRL..DRRRRRRL..UULLLLDLDR..R..R..R..R..R..R","2":"RRRRDDDRRRRL...LLLLDDRRRRR.","3":"RRRRRRRRDLLULLLLDRR..RDDRDD.","4":"DDDRRRRRRRRRRLLLLUDL.RRRRRR.","5":"LLLLULLLLLLDD...LRURRRDDDLLUDL.RRRRRRRRRR.","6":"RRRRDR........RDRRRRRDDDLLLLLLLLLLL.","7":"RRRRDDRRUDL...RRLLLUULLLLDDRRRRRRRRRRRRR.","8":"LLULLLLLLLLLDRRRRRLLLLLLDDDDRRRRRRRRRRRR.","9":"LLLLLLLLLLDLLLLLD.......DRRRRRR.....R.RRDDRDLLLLLLLLLL.","10":"RRRDDDDRRRRLUUUDDDL.RRLRRRRRRUULLULLDDRDR...LLLLLLLLULLDRRRRRRRRRRRRRR.","11":"LLLLLLLLLLLLLDDRRRRRRRR.....LLLLLLLLDDRRRRRRLLLLLLUULLDDRRRRRRRRRRRRR.","12":"URRRDRRRRRRRRRRRRRLLLLLLLLLLLLLULLDRRRRRRRRRRRRRRRLLLLLLLLDURRRRRRRRRRRDDDDLLLLLLLLLLLLLLLLULLDDDRRRRRRRRRRRRRRRRRLLLLLLLLLLLLLLLLUURRRRRRRRRRRRRRUURUURRDDDDLLLLLLLUDLLLLLLLLLULLDDDRRRRRRRRRRRRRRRRRR.","13":"RRDDUU....RRRRRRRRRRRRRRDDDDDLLLLLLLLLLLLUUUDDDRR......LLUUUUURRRRRRRRRRRRDDDDDLLLLLLLLLLL.LD.","14":"RRRDDR....RRRRURRDLLLLRRRRRRRRUD...LRURRDLLLUDLLLLLLLLLLLULLDRRRRRRRRRRR.....RDDDDD.","15":"RRDDDDDLRRRLLUUUUURRRRRDDDDDLLL..LLUUUURRRRRDDDDUUUUULLLLLDDDDDRRRR..LLLLRRRRRUUUUURRRRDDDDDLRRRRRLLLLUUUUULLLLDDDDDRRRRUUUUULLLLDDDDDRRRRRRRLLLUUUUULLLLDDDDDRRRRRRLLLLLLLLLLL.LD.","16":"DDDDDDDRURRRDRRRLLLLULLDRRRRRRRLLLLUUUUUUURRRRRRRR....RDDDDDDLLUULLLRUULLLDDRRRRLDUUULLLDDRR....RDDDD.","17":"DDDRRRRRRRL.RRRRRR.RRRRRUUULLLLLLLRRRRRRRDDDLLLLLLLLLLLLLLLLLUUURRRRRRRRRRRRRRRLRRRDDDLLLLLLLLLLLLLLLRLLLDDDRRRRRRRRRRRRRRRRR.","18":"UUUUURRRRRRRRRRRRRRRRDDDDR..RL....DRLLLLLLLLLLLLUDL.RRRRRLLLLLLLUUDDL.RRRRRRRRRRRRRRRRRR.","19":"RRRRRRRRRRRRDLULLDRLLLLULLDRRLLULLDRRRRLLLLULLDRRRRRRURRRRRRRRDLURRRDLLLLLLU..........LLDDDDRDDRDDD.","20":"RRRRRDDDDLRRLUUUURRRRRRRRRRRDDDDLLLLLLLLLLLRRRR.RRRRRRRUUUU..LL...LLLLLLLLLDDDDRRRRRRRRRRRUUUULLLLLLLLLLLDDDDRRRRRRRRRRRUUUULLLLLLLLLLLLLLLDDDDRRRRRRRRRRRRRRRR.","21":"DDDDDLLLLLLLLLLLLLUUUULLULRRRR..........LDDDDDLLLLLLLRRRRRRRRRRRRRRRRRRRRUUUUULLLLLLRRRRRRDDDDDLLLLLLLLLLLLLLLLLLLLL.","22":"RRRRRRRRRRRRRRRRRDLRDDLDLDLDLLLLRRRRURURURUULULLLLLLLLLLLLDRR....RR...RURRLLDDDDDDLRUUUUUULLLLLLLLDRRRRRRURRRRRDL.........RURRDLLLULLDURDLDDDDDRDD.","23":"RUUURRRRRRRRRRRRRRRRRRRRDDDLLLLLLLLLLLLUDR..RRRRRRRRRRRUUULLLLLLLLLLLLLLLLLLLLDDDRRUDRRRRUDRRRRRUDRRRRRUDRRR.RUUULLLLLLLLLLLLLLLLLLLLLRDDDLDDDDRRRRRUDRRRRRRUDRRRRRUDRRRRR.","24":"RRRRDU......RRRRRRRR..DU.....RRRR...DU....RRDDDDLLLLLLLLLLLLL.LRRRRRRRRRRRRRRUUUULLLLLLLLLLLLLLLLLLDDDDRRRRR..RRRRRRRRRRRRRR.","25":"RRRRRDDD....DLLR......RUUUURRRRDDDDRRL......LUUUULLLLDDDDRRL....DRRRRRRRRRRRRLLLLLLLLLLLLULUUUULLLLLDDDDDRRRRRRRRRRRRRRRRRRR.","26":"RRRRRRDDDDLLRULLR....RRUUULLLLLLDDDDRRL...LUUUURRRRRRDDDDDDR....RL....DLUUUUUUURRRRRRRDDDDDDRR.L.....LDLLRRRRRRLLLLUUUUUUURRRRRRRRDDDDDDLLR....RDLLLLLLLLLLLLLLLLLLL.","27":"RRDD..U...RRRRRRRRRURRRRRRD....DU....LLLLULLLLDDU....DDDLLLLLRRRRRRRRRRLLLLLLLUUUULLLLLLLDDDDRRRRRRRRRRRRRRRRRRRRLLLLLLLLUDL.RRRRRRRRRR.","28":"RRRRRDRRURRDLLRRURRDLLLLRRRRURRRDRRRRURRDLLLL.....LLLLRLULLLLLLDLDDDDRRRRRRRRRRRRRRRDULLLLLLLLLLLLLLLUUUURRRRRRRRLLLLLLLLDDDDRRRRRRRRRRRRRRLLLLLLLLLLLLLLUUUULLRLULLDRRRLLLLLDDDDRRRRRRRRRRRRRRRRRRRR..RDD.","29":"RRDD......U...RRRRRRRRUDDU........RRRRRRRUD......DU....RRDU...LLLLLLLLLDDDLLLLLLRRRRRRRRRRRLLLLLDDDDRRRRRRRRRRLLLLLLLLLLLLLLLLLLLLUUUURRRRRRRRRLLLLLLLLLDDDDRRRRRRRRRRRRRRRRRRRRLLLLLLLLLLUUUUUURRRRRRRRRRRDDLLLLLLLLLLRLLLLLLLLLLLLDDDDRRRRRRRRRRRRRRRRRRRRR.","30":"RRRRDU....RRRRRRRDU..........RRDURRDLLLLLLLDDDDDRRRRRRRRRLLLLLLLLLLLUUULRDDDLRRRRRUUUUUULLLLLLLLLLDDDRRRRRLLLLLUUURRRRRRRRDDDDDDUUUUUULLLLLDDDRRRDDLDRRRRRRRRRRRRLLLLLLLUUUUUULLLDULLDRRLLLLLLLUDDDRRRRRRDDDRRRRRRRRRRRLLLLLLLUUUUUURRRRRRDLLLLLULLLDDDDDDRRRRRRRRRR."}/*end*/;
   const COACH = { on: false, auto: false, hint: 0, route: '', lvl: null, refs: null, idle: 0, lastP: '', ck: '', undoShown: false };
   const objKey = (e) => { const a = []; for (const o of e.objects.values()) if (o.t === T.ROCK || o.t === T.BALL) a.push(o.x + ',' + o.y); return a.sort().join(';') + '|' + e.ballsIn; };
@@ -3820,7 +3873,10 @@ window.__T = T;
     const e = new Engine(COACH.lvl); e.time = e.oxygen = 9999; const M = { U: 'up', D: 'down', L: 'left', R: 'right' }; const R = COACH.refs = [{ key: objKey(e), p: [e.player.x, e.player.y] }];
     for (const c of COACH.route) { if (c !== '.') e.press(M[c]); e.step(); R.push({ key: objKey(e), p: e.player ? [e.player.x, e.player.y] : null }); }
     R.keys = new Set(R.map(r => r.key)); return R; }
-  function coachHand(pos, dir) { const h = $('#coachHand'); if (!pos) { h.classList.remove('on'); return; }
+  // what the next move does, in two or three words, shown beside the hand
+  function coachSay(pl, dir) { const e = engine, d = { U: [0, -1], D: [0, 1], L: [-1, 0], R: [1, 0] }[dir]; if (!e || !d || !pl) return '';
+    const t = e.get(pl[0] + d[0], pl[1] + d[1]); return t === T.SAND ? 'Dig!' : t === T.BALL ? 'Push the pearl!' : t === T.ROCK ? 'Push the stone!' : t === T.GATE ? 'Swim in!' : t === T.AIR ? 'Grab the air!' : 'Swim this way'; }
+  function coachHand(pos, dir) { const h = $('#coachHand'); if (!pos) { h.classList.remove('on'); return; } { const sy = h.querySelector('.ch-say'); if (sy) sy.textContent = coachSay(engine && engine.player ? [engine.player.x, engine.player.y] : null, dir); }
     h.style.left = pos[0] + 'px'; h.style.top = pos[1] + 'px'; h.dataset.dir = dir; h.classList.add('on'); h.classList.toggle('keys', !document.body.classList.contains('touch')); }
   function coachPath(e, from, to) { const W = e.w, H = e.h, prev = new Int32Array(W * H).fill(-1), q = [from[1] * W + from[0]]; prev[q[0]] = q[0]; const goal = to[1] * W + to[0];
     const ok = (x, y) => { const t = e.get(x, y); return t === T.EMPTY || t === T.SAND || t === T.AIR || (t === T.GATE && e.gate.open && x === to[0] && y === to[1]); };
@@ -3961,7 +4017,7 @@ window.__T = T;
       lastWin = { n: 0, daily: true, stars: 3, secs: t, name: L.name }; pushDaily(); persist();
       setTimeout(() => { if (state === 'over') Audio.vo(['win1', 'win2', 'win3'][Math.random() * 3 | 0]); }, 700); }
     else { const cause = { crushed: 'Crushed!', monster: 'Gobbled!', oxygen: 'Out of air!', self: 'Restarted' }[engine.deathCause] || 'Dive over'; $('#resTitle').textContent = cause; $('#resCoins').hidden = true; lastWin = null;
-      $('#resStats').innerHTML = `<div class="stat"><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>energy</span></div><div class="stat"><b>${D.best ? D.best.t.toFixed(1) + 's' : '–'}</b><span>today's best</span></div>`;
+      $('#resStats').innerHTML = `<div class="stat"><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>pearls</span></div><div class="stat"><b>${D.best ? D.best.t.toFixed(1) + 's' : '–'}</b><span>today's best</span></div>`;
       $('#btnNext').textContent = history.length ? 'Undo last move' : 'Try again'; $('#btnNext').hidden = false; $('#btnNext').classList.add('green'); $('#btnRetry').lastChild.textContent = 'Restart'; persist(); } }
   let ddWriting = Promise.resolve();
   function pushDaily() { const D = ddSave(); if (!D.best) return; ddWriting = ddWriting.then(async () => { await LB.ready; if (!LB.db || !LB.uid) return;
@@ -3994,7 +4050,7 @@ window.__T = T;
       $('#resStars').hidden = false;
       starEls.forEach((s, i) => setTimeout(() => { s.classList.add('show'); if (i < stars) { s.classList.add('on'); Audio.play('click'); buzz(12); } }, 250 + i * 260));
       $('#resBest').hidden = !(engine.score > prevBest && prevBest > 0);
-      $('#resStats').innerHTML = engine.relaxed ? `<div class="stat"><i class="si t"></i><b>${Math.round(engine.wonAt * engine.tickMs / 1000)}s</b><span>dive time</span></div><div class="stat"><i class="si s"></i><b>★</b><span>air timer off for ★★★</span></div>` : `<div class="stat"><i class="si a"></i><b>${Math.ceil(engine.oxygen)}s</b><span>air left</span></div><div class="stat"><i class="si e"></i><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>energy</span></div>`;
+      $('#resStats').innerHTML = engine.relaxed ? `<div class="stat"><i class="si t"></i><b>${Math.round(engine.wonAt * engine.tickMs / 1000)}s</b><span>dive time</span></div><div class="stat"><i class="si s"></i><b>★</b><span>air timer off for ★★★</span></div>` : `<div class="stat"><i class="si a"></i><b>${Math.ceil(engine.oxygen)}s</b><span>air left</span></div><div class="stat"><i class="si e"></i><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>pearls</span></div>`;
       $('#btnNext').textContent = n >= LEVELS.length ? 'The reef awakens ✨' : 'Next level'; $('#btnNext').hidden = false; $('#btnNext').classList.toggle('green', n >= LEVELS.length);
       $('#btnRetry').lastChild.textContent = 'Replay';
       $('#resExtra').hidden = false; $('#btnWatch').hidden = !(save.runs && save.runs[n]);
@@ -4003,7 +4059,7 @@ window.__T = T;
       setTimeout(() => { if (state === 'over') Audio.vo(['lose1', 'lose2'][Math.random() * 2 | 0]); }, 600);
       const cause = { crushed: 'Crushed!', monster: 'Gobbled!', oxygen: 'Out of air!', self: 'Restarted', spiked: 'Spiked!' }[engine.deathCause] || 'Dive over';
       $('#resTitle').textContent = cause; $('#resStars').hidden = true; $('#resBest').hidden = true;
-      $('#resStats').innerHTML = `<div class="stat"><i class="si e"></i><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>energy</span></div><div class="stat"><i class="si a"></i><b>${Math.max(0, Math.ceil(engine.oxygen))}s</b><span>air left</span></div>`;
+      $('#resStats').innerHTML = `<div class="stat"><i class="si e"></i><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>pearls</span></div><div class="stat"><i class="si a"></i><b>${Math.max(0, Math.ceil(engine.oxygen))}s</b><span>air left</span></div>`;
       $('#btnNext').textContent = history.length ? 'Undo last move' : 'Try again'; $('#btnNext').hidden = false; $('#btnNext').classList.add('green');
       $('#btnRetry').lastChild.textContent = 'Restart';
     }
@@ -4021,7 +4077,7 @@ window.__T = T;
     const key = engine.ballsIn + '/' + engine.ballsTotal + (engine.gate.open ? 'o' : '');
     if (key !== hudKey) { hudKey = key;
       hud.fill.style.width = (engine.ballsTotal ? engine.ballsIn / engine.ballsTotal * 100 : 100) + '%';
-      hud.etxt.textContent = engine.gate.open ? 'Gate open! Swim in' : `${engine.ballsIn} / ${engine.ballsTotal} energy`;
+      hud.etxt.textContent = engine.gate.open ? 'Gate open! Swim in' : `${engine.ballsIn} / ${engine.ballsTotal} pearls`;
       hud.gate.classList.toggle('open', !!engine.gate.open); $('#hudProg').classList.toggle('open', !!engine.gate.open);
       { const pe = $('#hudPearls'), n = engine.ballsTotal; if (n <= 6) { if (pe.children.length !== n || pe.firstChild && pe.firstChild.nodeType !== 1) pe.innerHTML = '<i></i>'.repeat(n); [...pe.children].forEach((c, k) => c.classList.toggle('on', k < engine.ballsIn)); }
         else pe.innerHTML = `<i class="${engine.ballsIn ? 'on' : ''}"></i>${engine.ballsIn}/${n}`; }
@@ -4045,10 +4101,12 @@ window.__T = T;
     if (state === 'cine') { if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); $('#skipIntro').click(); return; } return; }
     const dir = KEYS[ev.key];
     if (dir) { ev.preventDefault(); if (state === 'intro') beginPlay(); if (state === 'playing') setHeld(dir, true); return; }
+    if (ev.key === 'Escape' && state !== 'playing' && state !== 'paused') { const sh = document.querySelector('.screen.sheet.on:not(.modal), #levels.on'); if (sh) { ev.preventDefault(); go('back'); return; } }
     if (ev.key === 'Escape' || ev.key === 'p' || ev.key === 'P') { if (state === 'playing') pause(); else if (state === 'paused') beginPlay(); }
     if (ev.key === 'z' || ev.key === 'Z' || ev.key === 'u' || ev.key === 'U' || ev.key === 'Backspace') { ev.preventDefault(); undo(); return; }
     if (ev.key === 'r' || ev.key === 'R') { if (state === 'playing') { restart(); return; } else if (state === 'over' || state === 'paused') restart(); }
     if (ev.key === 'Enter' && state === 'menu' && !ev.target.closest('input')) { if ($('#home').classList.contains('on')) { $('#btnPlay').click(); return; } if ($('#levels').classList.contains('on')) { $('#lvPlay').click(); return; } }
+    if (state === 'tut') { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); tutNext(); } else if (ev.key === 'Escape') endTut(); return; }
     if (ev.key === 'Enter' || ev.key === ' ') { if (state === 'intro') beginPlay(); else if (state === 'over' && resultShown) $('#btnNext').hidden ? restart() : $('#btnNext').click(); }
   });
   addEventListener('keyup', ev => { const dir = KEYS[ev.key]; if (dir) setHeld(dir, false); });
@@ -4126,7 +4184,7 @@ window.__T = T;
   $('#btnEndIntro').onclick = () => { click(); openHome(); setTimeout(() => { if (typeof startCine === 'function') startCine(); }, 50); };
   $('#btnRetry').onclick = () => { restart(); };
   $('#btnResLevels').onclick = () => { click(); openHome(); go('levels'); };
-  function tryFullscreen(force) { const el = document.documentElement; if (!document.fullscreenElement && el.requestFullscreen && (force || !isTouch)) el.requestFullscreen().catch(() => {}); }
+  function tryFullscreen(force) { const el = document.documentElement; if (!document.fullscreenElement && el.requestFullscreen && force) el.requestFullscreen().catch(() => {}); }
   // settings
   function applyAudio() { Audio.setMusic(save.settings.music); Audio.setVolumes(Audio.settings.music, save.settings.sfx ? 0.9 : 0); }
   function syncSound() { const on = save.settings.music || save.settings.sfx; $('#sndLbl').textContent = on ? 'Sound on' : 'Muted'; const w = $('#sndWave'); if (w) w.style.display = on ? '' : 'none'; const ic = $('#btnSound .ico'); if (ic) ic.style.setProperty('--ico', `var(--ui-${on ? 'i_sound' : 'i_mute'})`); }
@@ -4154,7 +4212,9 @@ window.__T = T;
   applyRes();
   world.onAutoTier = q => { if (gfxMode() === 'auto' && save.settings.aqTier !== q) { save.settings.aqTier = q; persist(); } }; // the next launch starts its tuning near here
   $('#btnSound').onclick = () => { const on = !(save.settings.music || save.settings.sfx); save.settings.music = on; save.settings.sfx = on; applyAudio(); persist(); syncSound(); click(); };
-  $('#btnReset').onclick = () => { if (confirm('Erase all progress? This can\'t be undone.')) { save.unlocked = 1; save.stars = {}; save.best = {}; persist(); refreshHome(); toast('Progress erased'); } };
+  $('#btnReset').onclick = () => { const b = $('#btnReset'); click();
+    if (!b.classList.contains('sure')) { b.classList.add('sure'); b.dataset.t = b.textContent; b.textContent = document.body.classList.contains('touch') ? 'Sure? Tap again' : 'Sure? Click again'; buzz(20); clearTimeout(b.tm); b.tm = setTimeout(() => { b.classList.remove('sure'); b.textContent = b.dataset.t; }, 3500); return; }
+    clearTimeout(b.tm); b.classList.remove('sure'); b.textContent = b.dataset.t; save.unlocked = 1; save.stars = {}; save.best = {}; persist(); refreshHome(); toast('Progress erased'); };
   syncSettings();
   // graphics: 'auto' (default) adapts to the frame rate; an older 'Battery saver' choice carries over as low
   function gfxMode() { if (!save.settings.gfx) save.settings.gfx = save.settings.quality === 'low' ? 'low' : 'auto'; return save.settings.gfx; }
@@ -4185,7 +4245,7 @@ window.__T = T;
           coachTick(realDt); checkStuck(); hintSync();
           Audio.setTension(engine.relaxed ? 0 : (15 - engine.oxygen) / 15);
           if (engine.gate && engine.gate.open && !gateNudged && performance.now() - gateOpenAt > 8000) { gateNudged = true; toast('Swim into the glowing gate to finish ✨'); }
-          stuckTimer += realDt; if (!stuckShown && stuckTimer > 22 && engine.ballsIn < engine.ballsTotal) { stuckShown = true; toast(isTouch ? 'Stuck? Tap 💡 for a hint, or ↶ to undo' : 'Stuck? Tap 💡 for a hint, Z to undo'); $('#btnHint').classList.add('nudge'); setTimeout(() => $('#btnHint').classList.remove('nudge'), 4000); }
+          stuckTimer += realDt; if (!stuckShown && stuckTimer > 22 && engine.ballsIn < engine.ballsTotal) { stuckShown = true; toast(isTouch ? 'Stuck? Tap 💡 for a hint, or ↶ to undo' : 'Stuck? Click 💡 for a hint, or press Z to undo'); $('#btnHint').classList.add('nudge'); setTimeout(() => $('#btnHint').classList.remove('nudge'), 4000); }
           if (engine.oxygen < 15 && !engine.relaxed) { lowAirBeep -= dt; if (lowAirBeep <= 0) { lowAirBeep = engine.oxygen < 6 ? 0.5 : 1; Audio.play('lowAir'); } }
         }
         updateHud();
@@ -4206,6 +4266,7 @@ window.__T = T;
     const covered = state !== 'playing' && state !== 'cine' && state !== 'replay' && !!document.querySelector('.screen.sheet.on, #levels.on');
     if (covered && heldFrame && !heldDirty) { lastHeld = now; return; }
     heldFrame = covered; heldDirty = false;
+    if (TUT.on) tutPlace();
     { world.update(dt, now); world.render(); if (!covered && gfxMode() === 'auto' && (state === 'playing' || state === 'menu' || state === 'cine')) world.autoQuality(realDt); }
   }
   addEventListener('resize', () => { heldDirty = true; world.resize(); homeLayout(); if ($('#levels').classList.contains('on')) renderWorld(); });

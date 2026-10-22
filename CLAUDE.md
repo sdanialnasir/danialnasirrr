@@ -110,7 +110,7 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 
 ## Known gaps / backlog
 1. ~~Levels 12–30 unverified~~ — done: every level has a verified route in `tests/routes.json`.
-2. Desktop: mouse drag does not move the diver (keyboard only). Add mouse-drag support.
+2. ~~Desktop mouse drag~~ — done (left-drag on the canvas moves the diver; How to play says so).
 3. ~~Closed-gate feedback~~ — done (toast).
 4. ~~Undo resets fallen treasures~~ — done (`keepTreasures`).
 5. Roll the painted background out to all levels (or per-world paintings) once the owner approves.
@@ -324,3 +324,20 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   shade instead of the dotted pebble band.
 - Flat placeholder kelp strips / primitive coral fans behind the play plane → the sheet's painted weeds (baked, shader sway).
 - In-tank sun shafts halved and softer; the deep's seabed dims under stage lighting but never below 62%.
+
+## Intro film sync + spotlight tutorial + release fixes
+- **Intro film lines** (`CINE_LINES` vo1–vo9) are short and plain, and each is said when the picture shows it: 1–4 on the film clock
+  (lamp clicks on during "turns on a light"), 5–9 on real events in the tank (first dig, diver above the gate, first pearl push, gate
+  opens — the diver then waits 3.3 s at the gate — and the win, with `#cineGates`: 30 gate dots, one lit). In `cineTick`, `T` is the
+  clock, so tile types use `T_BALL`. Events must be read before `world.onTick` (it consumes them). Script table: docs/voiceover-script.md.
+- **Spotlight tutorial** (`TUT_STEPS`, `startTut` from `beginPlay`, state `'tut'`): the first time levels 1, 2, 3, 5, 6, 9, 12 start, the
+  game waits, dims, and a ring circles the thing each line talks about (diver, pearl, gate, air meter, stone, piranha, jellyfish, crab,
+  air bubble); phones glide the camera there (`world.focus`). Tap / Enter = next, Skip / Escape = end. `save.tutSeen[idx]`. Voice ids
+  t1a… play from `src/assets/vo/<id>.mp3` if present. `__dc.startIndex` skips it (tests); `__dc.tut(i)` forces it.
+- **Level-1 coach** shows words beside the hand (`coachSay`: Dig! / Push the pearl! / Swim in! / Swim this way).
+- **Release fixes:** Daily Dive build skipped `*_plans.json` (half the days showed "undefineds of air"); favicon/apple icon inlined as data
+  URIs by build.py; one name "pearls" everywhere (HUD, results, pop-ups); Click/Press wording on computers; leaderboard text off claude.ai;
+  Erase progress = tap twice (no `confirm()`); no auto-fullscreen on computers; `REDUCED_MOTION` disables shake and lightning; Escape goes
+  back from menus; ledge/rock plants only grow into empty cells; short laptop screens compact the home column and dock; landscape
+  phones keep the bottom buttons off the tank; `--ink-3` contrast raised. Ledge plants no longer grow inside air bubbles/stones/pearls.
+- Publish the artifact with `files` for manifest.json and icons/ so the PWA manifest resolves.

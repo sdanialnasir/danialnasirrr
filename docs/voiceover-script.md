@@ -9,15 +9,20 @@ ducked underneath. Missing clips are fine: the subtitles still carry the story.
 Suggested ElevenLabs settings: Stability ~45, Similarity ~75, Style ~30. Keep each clip within the window below
 (the picture keeps moving on its own timing).
 
-| id | starts at | max length | beat on screen | line |
+Every line is said **at the moment the picture shows it**. Lines 1–4 run on the film's clock; lines 5–9 are triggered by
+what the diver actually does in the tank (they can shift by a fraction of a second, so leave a little air at the end).
+
+| id | starts | max length | what is on screen at that moment | line |
 |---|---|---|---|---|
-| vo1 | 1.0 s | 4.5 s | The reef at night, drifting pearl-lights | Long ago, the Glow Reef shone with the light of a thousand energy pearls. |
-| vo2 | 5.6 s | 3.2 s | Thunder, the storm hits | Then one night, a great storm tore through the deep… |
-| vo3 | 9.0 s | 3.0 s | The lights are swept away, darkness | …scattering the pearls, until every gate went dark. |
-| vo4 | 13.1 s | 3.4 s | Close on the diver, helmet lamp clicks on | But one little diver refused to let the light fade. |
-| vo5 | 16.8 s | 3.5 s | The diver digs toward the pearl | Dig through the sand… and roll the pearl home. |
-| vo6 | when the gate opens (~27 s) | 3.5 s | Shockwave, light pours back | One gate awakens, and light returns to the reef. |
-| vo7 | 0.5 s after the diver swims in | 3.4 s | Wide shot, then fade to the title | Twenty-nine gates still sleep. The reef is counting on you. |
+| vo1 | 1.0 s | 4.3 s | The reef at night, glowing pearl-lights drifting | Deep in the sea, the reef glows with magic pearls. |
+| vo2 | 5.6 s | 3.2 s | Thunder, flashes, the storm hits | One night, a huge storm hits the reef… |
+| vo3 | 9.0 s | 3.4 s | The lights are blown away, the reef goes dark | …and sweeps all the pearls away. The reef goes dark. |
+| vo4 | 12.9 s | 3.8 s | Close on the diver; the helmet lamp clicks on at "turns on a light" (14.3 s) | But one little diver turns on a light. |
+| vo5 | first dig (~17.4 s) | 3.3 s | The diver digs through the sand | Swim into the sand to dig a tunnel. |
+| vo6 | diver reaches the gate (~20.8 s) | 3.3 s | The diver stands above the gate, then turns back toward the pearl | The tunnel reaches the gate. Now get behind the red pearl… |
+| vo7 | first push (~24.3 s) | 1.9 s | The diver pushes the pearl along the tunnel | …and push it to the gate! |
+| vo8 | gate opens (~26.2 s) | 3.2 s | Shockwave, light pours back (the diver waits until the line ends) | The gate wakes up, and the light comes back! |
+| vo9 | 0.6 s after the diver swims in | 4.0 s | Wide shot + a row of 30 gates, the first one glowing | Twenty-nine gates are still dark. Can you wake them all? |
 
 The lines live in `CINE_LINES` in `src/game.js`; change the text there if you re-record with different words.
 
