@@ -3330,7 +3330,7 @@ window.__T = T;
     q('#btnPause svg', 'i_pause'); q('#btnUndo svg', 'i_undo'); q('#btnRestartHud svg', 'i_restart'); q('#btnMap svg', 'i_map'); q('.back svg', 'i_back');
     q('#btnRestart svg', 'i_restart'); q('#btnRetry svg', 'i_restart'); q('#btnResLevels svg', 'i_map'); q('#btnResHome svg', 'i_home'); q('#btnQuit svg', 'i_home'); q('#btnEndHome svg', 'i_home');
     q('#btnEndIntro svg', 'i_play'); q('#btnWatch svg', 'i_play'); q('#btnShare svg', 'i_share'); q('#btnSound svg', 'i_sound'); q('.hm-sq svg', 'i_settings');
-    uiImg(document.querySelector('#btnHint svg'), 'bulb', 'ico3d hint3d');
+    uiImg(document.querySelector('#btnHint svg'), 'bulb', 'ico3d hint3d'); uiImg(document.querySelector('#btnPauseHint svg'), 'bulb', 'ico3d tile3d');
     [['.c-shop', 'bag'], ['.c-rank', 'trophy'], ['.c-gift', 'gift'], ['.c-lvl', 'scroll'], ['.c-how', 'i_question'], ['.c-intro', 'i_play']].forEach(([c, k]) => document.querySelectorAll(c + ' .ic svg').forEach(el => uiImg(el, k, 'ico3d' + (k.startsWith('i_') ? ' flat' : ''))));
 
     const hand = document.querySelector('#coachHand .ch-finger'); if (hand) uiImg(hand, 'hand', 'ch-finger');
@@ -3530,7 +3530,7 @@ window.__T = T;
     const list = $('#lbList'), me = $('#lbMe'); let ps = {};
     try { if (LB.user && rows.length) ps = await LB.user.profiles(rows.map(r => r.id).filter(id => id !== 'me')); } catch (er) {}
     const row = (r, i) => { const li = document.createElement('li'); const mine = r.isMe || (LB.uid && r.id === LB.uid); li.className = 'lb-row' + (mine ? ' me' : '');
-      const rk = document.createElement('span'); rk.className = 'rk' + (i === 0 ? ' g' : i === 1 ? ' s' : i === 2 ? ' b' : ''); rk.textContent = i < 3 ? (UI ? '' : ['🥇', '🥈', '🥉'][i]) : `${i + 1}`; li.appendChild(rk);
+      li.classList.toggle('top', i < 3); li.dataset.rank = i + 1; const rk = document.createElement('span'); rk.className = 'rk' + (i === 0 ? ' g' : i === 1 ? ' s' : i === 2 ? ' b' : ''); rk.textContent = i < 3 ? (UI ? '' : ['🥇', '🥈', '🥉'][i]) : `${i + 1}`; li.appendChild(rk);
       const p = ps[r.id]; if (p && p.avatarUrl) { const im = document.createElement('img'); im.src = p.avatarUrl; im.alt = ''; li.appendChild(im); } else { const av = document.createElement('span'); av.className = 'av'; av.textContent = (r.nick || 'D')[0].toUpperCase(); li.appendChild(av); }
       const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = (r.nick || (p && p.name) || 'Diver') + (mine ? ' (you)' : ''); const sm = document.createElement('small'); sm.textContent = by ? `${(+r.air).toFixed(1)} s of air used` : `${r.levels || 0} levels cleared`; nm.appendChild(sm); li.appendChild(nm);
       const sv = document.createElement('span'); sv.className = 'sv'; if (by) sv.textContent = `${(+(by === 'air' ? r.air : r.t)).toFixed(1)}s`; else { sv.innerHTML = '<i class="st">★</i>'; sv.appendChild(document.createTextNode(r.stars || 0)); } li.appendChild(sv);
@@ -3758,9 +3758,11 @@ window.__T = T;
     $('#profAva').textContent = (save.name || 'D')[0].toUpperCase();
     const cleared = Object.keys(save.stars).length, best = Object.values(save.best).reduce((a, b) => a + b, 0), three = Object.values(save.stars).filter(s => s === 3).length;
     $('#profSub').textContent = `Reached level ${Math.min(save.unlocked, LEVELS.length)} of ${LEVELS.length}`;
-    $('#profStats').innerHTML = `<div class="stat"><b>${totalStars()}</b><span>stars</span></div><div class="stat"><b>${cleared}</b><span>levels cleared</span></div><div class="stat"><b>${three}</b><span>perfect levels</span></div>
-      <div class="stat" style="grid-column:span 3"><b>${best.toLocaleString()}</b><span>total best score</span></div>`;
-  }
+    $('#profStats').innerHTML = `<div class="stat"><i class="si s"></i><b>${totalStars()}</b><span>stars</span></div><div class="stat"><i class="si l"></i><b>${cleared}</b><span>levels cleared</span></div><div class="stat"><i class="si p"></i><b>${three}</b><span>perfect levels</span></div>
+      <div class="stat"><i class="si c"></i><b>${best.toLocaleString()}</b><span>total best score</span></div>`;
+    const pw = $('#profWorlds'); pw.innerHTML = ''; WORLDS.forEach((w, wi) => { const ws = worldStats(wi), d = document.createElement('div'); d.className = 'pw w' + wi;
+      d.innerHTML = `<span class="pw-n">${wi + 1}</span><span class="pw-t"><b></b><small>${ws.awake}/${ws.n} gates awake · ★ ${ws.st}/${ws.n * 3}</small><span class="pw-bar"><i style="width:${(ws.st / (ws.n * 3) * 100).toFixed(0)}%"></i></span></span>`;
+      d.querySelector('b').textContent = w.name; pw.appendChild(d); }); }
   $('#nameSave').onclick = () => { const v = $('#nameInput').value.trim().slice(0, 14); save.name = v; persist(); click(); go('back'); refreshHome(); };
   $('#nameInput').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') $('#nameSave').click(); });
 
@@ -3775,6 +3777,10 @@ window.__T = T;
     tickWorld(engine, performance.now());
     held.clear(); heldOrder = []; acc = 0; overTimer = 0; lowAirBeep = 0; resultShown = false; endTouch();
     $('#introNum').textContent = dive ? `Daily Dive · ${new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}` : `Level ${i + 1} of ${LEVELS.length}`; $('#introName').textContent = lv.name; $('#introHint').textContent = lv.hint;
+    drawLevelPreview($('#introPrev'), lv, false);
+    { const g = $('#introGoals'), t = lv.time; if (engine.relaxed || dive) { g.innerHTML = dive ? '<span class="goal dd">☀ Race the clock: fastest time wins today</span>' : '<span class="goal">Relaxed mode: no air timer</span>'; }
+      else g.innerHTML = `<span class="goal g3"><b>★★★</b>${Math.ceil(t * 0.6)}s+ air left</span><span class="goal g2"><b>★★<i>★</i></b>${Math.ceil(t * 0.3)}s+</span><span class="goal g1"><b>★<i>★★</i></b>finish</span>`;
+      const st = !dive && save.stars[i + 1], bb = $('#introBest'); bb.hidden = !st; if (st) bb.textContent = `Your best ${'★'.repeat(st)}${'☆'.repeat(3 - st)}`; }
     $('#introBalls').textContent = engine.ballsTotal === 1 ? '1 energy pearl' : `${engine.ballsTotal} energy pearls`; $('#introAir').textContent = engine.relaxed ? 'Relaxed: no air timer' : `${lv.time}s of air`;
     screenStack = []; setState('intro'); show('intro'); hudKey = ''; updateHud();
     Audio.setMusic(save.settings.music);
@@ -3858,7 +3864,11 @@ window.__T = T;
   const hideStuck = () => { $('#stuckCard').classList.remove('on'); stuckCb = null; };
   $('#stuckAct').onclick = () => { const f = stuckCb; hideStuck(); if (f) f(); };
   $('#stuckX').onclick = () => { click(); hideStuck(); };
-  function pause() { if (state !== 'playing') return; endTouch(); setPeek(false); setState('paused'); syncSound(); show('pause'); }
+  function pause() { if (state !== 'playing') return; endTouch(); setPeek(false); setState('paused'); syncSound();
+    $('#pauseLvl').textContent = dive ? `Daily Dive · ${dive.name}` : `Level ${levelIdx + 1} · ${LEVELS[levelIdx].name}`;
+    $('#pauseStats').innerHTML = `<span><i class="si e"></i>${engine.ballsIn}/${engine.ballsTotal} pearls</span><span><i class="si a"></i>${engine.relaxed ? 'No timer' : Math.ceil(engine.oxygen) + 's air'}</span><span><i class="si m"></i>${history.length} moves</span>`;
+    $('#btnPauseHint').classList.toggle('dim', !COACH.route); show('pause'); }
+  $('#btnPauseHint').onclick = () => { if (!COACH.route) { toast('No hint for this dive'); return; } click(); beginPlay(); setTimeout(showMe, 30); };
   function restart() { click(); startLevel(levelIdx, dive || undefined); beginPlay(); }
   // ---- undo: a snapshot of the whole puzzle before every move the diver makes
   let history = [], stuckTimer = 0, stuckShown = false;
@@ -3941,7 +3951,7 @@ window.__T = T;
   $('#btnDaily').onclick = startDaily;
   function finishLevel() {
     resultShown = true; { const m = $('#resMascot'), th = diverThumb(); if (th) { m.src = th; m.hidden = false; } }
-    const won = engine.state === 'won'; const n = levelIdx + 1; if (dive) return finishDaily(won);
+    const won = engine.state === 'won'; const n = levelIdx + 1; { const rc = $('#resCause'); rc.textContent = won ? '' : { crushed: 'A stone landed on your head. Undo and step aside sooner.', monster: 'A sea creature caught you. Watch its path, or drop a stone on it.', oxygen: 'Your air ran out. Look for air capsules, or plan a shorter route.', self: 'You restarted the dive.', spiked: 'Ouch, spikes!' }[engine.deathCause] || ''; rc.hidden = won || !rc.textContent; } if (dive) return finishDaily(won);
     setState('over'); show('result');
     const r = $('#result'); r.classList.toggle('win', won); r.classList.toggle('lose', !won);
     const prevBest = save.best[n] || 0;

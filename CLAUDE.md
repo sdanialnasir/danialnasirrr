@@ -286,3 +286,16 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - HUD glass no longer uses backdrop blur over the moving canvas; shine animations use transforms; HUD text/attribute writes only on change.
 - **Input feel:** a fresh tap runs the next tick early when ≥60% of a tick has passed (less wait before the diver moves); the drag
   stick reaches full speed sooner (`stepInterval`: 470 ms → tick, full at 85% of the ring).
+
+## UI pass 2 (HUD, cards, lose screen, menus, motion)
+- All styles are in the "UI pass 2" block at the end of the `<style>` in index.html.
+- **HUD:** gold "LV" badge (`.node.lvn`), "AIR" label, bigger round buttons with labels (`.hb-l`: Undo/Restart/Hint/Map). `#btnMap` must
+  stay `position: fixed` (a shared rule once made it relative and it jumped to the top-left).
+- **Level start (`#intro.lvl-card`):** drawn map preview (`#introPrev` via `drawLevelPreview`), hint, pearls/air chips, star goals
+  (`#introGoals`: ★★★ at 60% air left, ★★ at 30%, ★ finish), best badge. Two columns on computers (selector needs `.sheet.modal.lvl-card`).
+- **Pause:** level name, stats chips (`#pauseStats`), hint box, 4 tiles: Show me (`#btnPauseHint` → resume + `showMe`), Restart, Sound, Home.
+- **Lose:** violet card, danger icon, cause line (`#resCause` from deathCause), score/stars hidden; big button = "Undo last move" when possible.
+- **Settings** grouped with coloured icons; **Records** stats with icons + per-world progress (`#profWorlds`); **How to play** art icons,
+  2 columns on computers; **Leaderboard** top-3 tinted rows (`data-rank`); **Shop** segmented tabs, glowing stage
+  (`.shop-grid` needs `grid-auto-rows: max-content`, cards clip overflow and otherwise get squashed).
+- **Motion:** press scale/hover lift on buttons, modals pop in, rows stagger in (`rowIn`), level banner pops.
