@@ -205,8 +205,7 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   dodge warnings on 4/12/23. All 30 routes re-verified.
 - **Crush grace:** a stone/pearl that has dropped exactly one cell onto the diver teeters for one tick (`teeter` event: wobble +
   yelp) before crushing, so the plug-pull dodge is fair. Tracked with `o.fallN` / `o.graced` in `physics()`; monsters get no grace.
-- **Phone speed / Auto quality:** recent iPhones (`strongPhone`: iOS, 3x screen) start on High and Auto never drops them below it;
-  the boot benchmark warms shaders first and uses a 9-frame median; Auto ignores long gaps and the first seconds after a level or
+- **Phone speed / Auto quality:** (the old iPhone "never below High" floor was removed — see Graphics tuning below); Auto ignores long gaps and the first seconds after a level or
   tier change (`aqHold`), and if a drop doesn't raise fps it reverts and stops (frame-rate cap, e.g. iOS Low Power Mode at 30 fps).
   Dynamic resolution never goes below 85%. Phones: no MSAA on the screen buffer (post anti-aliases), light rays at 1/8 res,
   standard instead of physical shading on big matte surfaces (`surfMat`), shimmer skips the bottom of the backdrop.
@@ -299,3 +298,13 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   2 columns on computers; **Leaderboard** top-3 tinted rows (`data-rank`); **Shop** segmented tabs, glowing stage
   (`.shop-grid` needs `grid-auto-rows: max-content`, cards clip overflow and otherwise get squashed).
 - **Motion:** press scale/hover lift on buttons, modals pop in, rows stagger in (`rowIn`), level banner pops.
+
+## Graphics tuning at load (Auto)
+- Boot (Auto only) first loads level 21 (one of the heaviest) and runs `world.benchmark(start)`: from the device ceiling
+  (`deviceCeiling()`: phones High, computers Ultra; Medium for weak GPUs by renderer string, <4 GB `deviceMemory` or ≤4 cores on phones;
+  Low under 2 GB) it times frames with a pixel read-back (CPU+GPU) and steps down until the median fits 15 ms (phone) / 13 ms (computer).
+  Slightly over on a phone → same tier at 88% resolution; still very slow on Low → 85%. The loader shows "Tuning graphics: …".
+- Then every warm-up level is compiled at the chosen tier (so no shader compiles mid-game).
+- When Auto changes tier during play, `world.onAutoTier` saves it (`save.settings.aqTier`); the next launch starts tuning one tier above it.
+- No tier floor for iPhones any more (it kept slow phones stuck on High). Phones cap MSAA at 2x on every tier.
+- Tests seed `settings.gfx: 'low'`, so they skip the tuning; `tour`-style scripts must do the same or wait ~1 min for the loader.
