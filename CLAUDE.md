@@ -308,3 +308,7 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - When Auto changes tier during play, `world.onAutoTier` saves it (`save.settings.aqTier`); the next launch starts tuning one tier above it.
 - No tier floor for iPhones any more (it kept slow phones stuck on High). Phones cap MSAA at 2x on every tier.
 - Tests seed `settings.gfx: 'low'`, so they skip the tuning; `tour`-style scripts must do the same or wait ~1 min for the loader.
+- **Computers:** pixel budget per tier in `resize()` (low 1.3 / medium 2.2 / high 3.4 / ultra 5.2 megapixels; `prBase` is the tier's
+  ratio, the budget and `resScale` are applied on every resize). Big/retina monitors used to draw 8–19 MP per frame. Auto lowers
+  resolution on computers too (down to 70%) before dropping a tier, and in play reacts below 50 fps (phones 38). The FPS meter
+  also shows the canvas size.

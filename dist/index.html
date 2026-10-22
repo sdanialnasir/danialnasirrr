@@ -3454,7 +3454,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         high: { pr: 1.75, post: true, sh: 2048, msaa: 4, rays: 1.0, rs: 28, lens: 0, bloom: 0.8 }, ultra: { pr: 2.5, post: true, sh: 4096, msaa: 4, rays: 1.35, rs: 48, lens: 1, bloom: 0.85 } };
       if (q === 'auto' || !T_[q]) q = this.quality && T_[this.quality] ? this.quality : 'high'; const c = Object.assign({}, T_[q]); if (isMobile) c.msaa = Math.min(c.msaa, 2); const prev = this.quality, wasLow = prev === 'low', isLow = q === 'low'; this.quality = q;
       const ss = isMobile ? 1 : { low: 1, medium: 1, high: 1.25, ultra: 1.5 }[q]; // a touch of supersampling on desktop for crisper edges
-      this.pixelRatio = Math.min(c.pr, (devicePixelRatio || 1) * ss) * (this.resScale || 1);
+      this.prBase = Math.min(c.pr, (devicePixelRatio || 1) * ss); this.pixelRatio = this.prBase * (this.resScale || 1); // resize() applies the pixel budget
       const P = this.post; P.enabled = c.post && P.supported;
       if (P.supported && P.main) { P.rays = c.rays; P.raySamples = c.rs; P.lens = c.lens; P.strength = c.bloom; if (P.main.samples !== c.msaa) { P.main.samples = c.msaa; P.main.dispose(); } }
       const shOn = c.sh > 0; if (this.renderer.shadowMap.enabled !== shOn) { this.renderer.shadowMap.enabled = shOn; this.scene.traverse(o => { if (o.material) [].concat(o.material).forEach(m => m.needsUpdate = true); }); }
@@ -3474,10 +3474,10 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       // the GPU struggling: go back up and stop dropping for this session
       if (A.check && A.t >= 2.5) { const c = A.check; A.check = null; if (fps < c.fps * 1.15) { A.capped = true; this.resScale = c.rs; this.setQuality(c.from); if (this.onAutoTier) this.onAutoTier(this.quality); A.t = A.n = A.sum = 0; return; } }
       if (A.capped) { A.t = A.n = A.sum = 0; return; }
-      if (isMobile) { const rs = this.resScale || 1;
-        if (fps < 45 && A.t >= 2.5 && rs > 0.87) { A.check = { from: this.quality, rs, fps }; this.resScale = Math.max(0.85, rs - 0.075); this.setQuality(this.quality); A.t = A.n = A.sum = 0; A.since = 0; return; }
+      { const rs = this.resScale || 1, minRs = isMobile ? 0.85 : 0.7;
+        if (fps < (isMobile ? 45 : 52) && A.t >= 2.5 && rs > minRs + 0.02) { A.check = { from: this.quality, rs, fps }; this.resScale = Math.max(minRs, rs - (isMobile ? 0.075 : 0.1)); this.setQuality(this.quality); A.t = A.n = A.sum = 0; A.since = 0; return; }
         if (fps >= 58 && rs < 1 && A.since > 4) { this.resScale = Math.min(1, rs + 0.05); this.setQuality(this.quality); A.t = A.n = A.sum = 0; A.since = 0; return; } }
-      if (fps < (this.menuMode ? 47 : 38) && A.t >= 3 && i > 0) { A.check = { from: this.quality, rs: this.resScale || 1, fps }; A.banned[order[i]] = performance.now() + 120000; this.setQuality(order[Math.max(0, i - 1)]); A.since = 0; if (this.onAutoTier) this.onAutoTier(this.quality); }
+      if (fps < (this.menuMode ? 47 : isMobile ? 38 : 50) && A.t >= 3 && i > 0) { A.check = { from: this.quality, rs: this.resScale || 1, fps }; A.banned[order[i]] = performance.now() + 120000; this.setQuality(order[Math.max(0, i - 1)]); A.since = 0; if (this.onAutoTier) this.onAutoTier(this.quality); }
       else if (A.t >= 4 && fps >= 57 && i < 3 && A.since > 6 && (this.menuMode || !this.e) && !((A.banned[order[i + 1]] || 0) > performance.now())) { this.setQuality(order[i + 1]); A.since = 0; if (this.onAutoTier) this.onAutoTier(this.quality); }
       else if (A.t < 4) return;
       A.t = A.n = A.sum = 0;
@@ -3566,6 +3566,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     }
     resize() {
       const w = innerWidth, h = innerHeight; if (!w || !h) return;
+      // pixel budget per tier: a 4K / retina monitor at Ultra would otherwise draw 10+ million pixels every frame
+      const mp = { low: 1.3, medium: 2.2, high: 3.4, ultra: 5.2 }[this.quality] || 3.4;
+      this.pixelRatio = Math.max(0.6, Math.min(this.prBase || this.pixelRatio, Math.sqrt(mp * 1e6 / (w * h)))) * (this.resScale || 1);
       this.renderer.setPixelRatio(this.pixelRatio); this.renderer.setSize(w, h, false);
       this.post.setSize(Math.round(w * this.pixelRatio), Math.round(h * this.pixelRatio));
       this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
@@ -4527,8 +4530,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         if (i > 0 && slow > 250) continue;
         const ms = []; for (let k = 0; k < 7; k++) ms.push(frameMs()); ms.sort((a, b) => a - b); m = ms[3];
         if (m <= budget || i === 0) break;
-        if (m <= budget * 1.35 && isMobile) { this.resScale = 0.88; this.setQuality(order[i]); break; } } // just over: keep the look, render 12% fewer pixels
-      if (i === 0 && m > budget * 1.6 && isMobile) { this.resScale = 0.85; this.setQuality('low'); }
+        if (m <= budget * 1.35) { this.resScale = isMobile ? 0.88 : 0.8; this.setQuality(order[i]); break; } } // just over: keep the look, render 12% fewer pixels
+      if (i === 0 && m > budget * 1.6) { this.resScale = isMobile ? 0.85 : 0.7; this.setQuality('low'); }
       this.aqHold = performance.now() + 4000; return { ms: m, q: this.quality }; }
     render() {
       // phones: refresh the shadow map every other frame (the key light and tank never move; bobbing at 30 Hz is indistinguishable)
@@ -5368,7 +5371,7 @@ window.__T = T;
   function frame(now) {
     requestAnimationFrame(frame);
     const realDt = Math.max(0, (now - lastFrame) / 1000); const dt = Math.min(0.05, realDt); lastFrame = now;
-    if (save.settings.fps) { FPSM.n++; FPSM.t += realDt; if (FPSM.t >= 0.5) { $('#fpsMeter').textContent = `${Math.round(FPSM.n / FPSM.t)} fps · ${world.quality} · ${Math.round((world.resScale || 1) * 100)}%`; FPSM.n = 0; FPSM.t = 0; } }
+    if (save.settings.fps) { FPSM.n++; FPSM.t += realDt; if (FPSM.t >= 0.5) { $('#fpsMeter').textContent = `${Math.round(FPSM.n / FPSM.t)} fps · ${world.quality} · ${Math.round((world.resScale || 1) * 100)}% · ${world.renderer.domElement.width}×${world.renderer.domElement.height}`; FPSM.n = 0; FPSM.t = 0; } }
     if (engine && (state === 'playing' || state === 'over')) {
       if (state === 'playing') {
         stickTick(realDt * 1000);
