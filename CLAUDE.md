@@ -356,3 +356,17 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - Shop suits recolour the texture in the shader (`aqSkin`: purple → helmet, yellow → suit, pink → fins, shading kept; default
   Violet Star = untouched texture). Patterned suits lose their pattern on this model. Hats sit on the Head bone.
 - Cost (level 2, high): the diver went from 70 draw calls / 35.5k triangles (59 parts) to 9 draw calls / 7.5k triangles.
+
+## Safe undo + live hints
+- **Undo** (`undo()`): after popping a snapshot it keeps stepping back (up to 12 more) while `doomed(snap)` — the diver dies within
+  10 ticks whether he stays put or makes any single move (oxygen deaths ignored). Then `undoHold`: the frame loop doesn't step the
+  engine (stones hang, air paused) until the player presses a move. Toast "Rewound N moves to a safe spot" when it went further.
+- **Hints are planned from the live board** (`planFrom`, async, ~14 ms slices, up to 4 s / 20k expansions): first the verified route
+  is replayed on a hidden copy from where the diver stands (walk to the route's spot, then the route) and only used if it *wins*
+  (`plRoute`); otherwise a best-first search (port of tools/solver/macro.js: walk/dig/push/air macros) looks for a win or a state
+  back on the route. The coach then follows that plan (`COACH.plan` = route string + `planRefs`). Coins are charged only when a plan
+  exists. Leaving the plan re-plans for free. No plan → `noWayForward`: "No way to finish from here." (search exhausted, no pruning)
+  or "I couldn't find a way from here." (budget hit), with "Rewind N moves" to the newest history snapshot whose route still wins.
+- Checked: 85 off-route boards (all 30 levels, route prefix + 8 random moves): every plan found replays to a win; the 8 with no plan
+  were confirmed hopeless by a 60k-node offline search except one hard level-22 board.
+- Debug: `__dc.plan(cb)`, `__dc.planCheck(plan)`, `__dc.doomed()`, `__dc.undo()`.
