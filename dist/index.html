@@ -952,6 +952,7 @@ body:not([data-state="cine"]) .cine-gates { opacity: 0 !important; }
   #home .hm-nav { zoom: 0.8; }
 }
 @media (orientation: landscape) and (min-width: 760px) and (max-height: 660px) { #home .hm-logo { zoom: 0.6; } #home .hm-kicker { display: none; } }
+#btnHint.busy .ico, #btnHint.busy svg.i, #btnHint.busy .ico3d { animation: hintThink .8s ease-in-out infinite alternate; } @keyframes hintThink { to { transform: scale(1.18) rotate(8deg); filter: brightness(1.4); } }
 </style>
 </head>
 <body data-state="splash">
@@ -4686,7 +4687,7 @@ window.__T = T;
     document.querySelectorAll('.ld-title, .gs-title, .hm-title, .cine-title .title').forEach(t => { t.classList.add('logo-art'); t.setAttribute('aria-label', 'Aqua Energizer'); });
   })();
   const canvas = $('#c');
-  const world = World.create(canvas); window.__dc = { world, get engine() { return engine; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { skipTut = true; try { startLevel(i); beginPlay(); } finally { skipTut = false; } }, tut: (i) => { if (save.tutSeen) delete save.tutSeen[i]; startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), World, intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
+  const world = World.create(canvas); window.__dc = { world, get engine() { return engine; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { skipTut = true; try { startLevel(i); beginPlay(); } finally { skipTut = false; } }, plan: (cb) => planFrom(engine, coachRefs(), COACH.route, cb), planCheck: (plan) => plSim(engine, plan).won, doomed: () => doomed(engine), undo: () => undo(), tut: (i) => { if (save.tutSeen) delete save.tutSeen[i]; startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), World, intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
   world.onSfx = n => Audio.play(n); world.onToast = m => toast(m);
   let gateOpenAt = 0, gateNudged = true;
   world.onGateOpen = () => { if (state === 'replay') return; gateOpenAt = performance.now(); gateNudged = false; banner('The gate is awake!', 'Swim in!', 'Swim into the glowing gate to carry the light home.', 3200); };
@@ -5196,7 +5197,7 @@ window.__T = T;
   const ROUTES = /*routes*/{"1":"DDDRRRL..DRRRRRRL..UULLLLDLDR..R..R..R..R..R..R","2":"RRRRDDDRRRRL...LLLLDDRRRRR.","3":"RRRRRRRRDLLULLLLDRR..RDDRDD.","4":"DDDRRRRRRRRRRLLLLUDL.RRRRRR.","5":"LLLLULLLLLLDD...LRURRRDDDLLUDL.RRRRRRRRRR.","6":"RRRRDR........RDRRRRRDDDLLLLLLLLLLL.","7":"RRRRDDRRUDL...RRLLLUULLLLDDRRRRRRRRRRRRR.","8":"LLULLLLLLLLLDRRRRRLLLLLLDDDDRRRRRRRRRRRR.","9":"LLLLLLLLLLDLLLLLD.......DRRRRRR.....R.RRDDRDLLLLLLLLLL.","10":"RRRDDDDRRRRLUUUDDDL.RRLRRRRRRUULLULLDDRDR...LLLLLLLLULLDRRRRRRRRRRRRRR.","11":"LLLLLLLLLLLLLDDRRRRRRRR.....LLLLLLLLDDRRRRRRLLLLLLUULLDDRRRRRRRRRRRRR.","12":"URRRDRRRRRRRRRRRRRLLLLLLLLLLLLLULLDRRRRRRRRRRRRRRRLLLLLLLLDURRRRRRRRRRRDDDDLLLLLLLLLLLLLLLLULLDDDRRRRRRRRRRRRRRRRRLLLLLLLLLLLLLLLLUURRRRRRRRRRRRRRUURUURRDDDDLLLLLLLUDLLLLLLLLLULLDDDRRRRRRRRRRRRRRRRRR.","13":"RRDDUU....RRRRRRRRRRRRRRDDDDDLLLLLLLLLLLLUUUDDDRR......LLUUUUURRRRRRRRRRRRDDDDDLLLLLLLLLLL.LD.","14":"RRRDDR....RRRRURRDLLLLRRRRRRRRUD...LRURRDLLLUDLLLLLLLLLLLULLDRRRRRRRRRRR.....RDDDDD.","15":"RRDDDDDLRRRLLUUUUURRRRRDDDDDLLL..LLUUUURRRRRDDDDUUUUULLLLLDDDDDRRRR..LLLLRRRRRUUUUURRRRDDDDDLRRRRRLLLLUUUUULLLLDDDDDRRRRUUUUULLLLDDDDDRRRRRRRLLLUUUUULLLLDDDDDRRRRRRLLLLLLLLLLL.LD.","16":"DDDDDDDRURRRDRRRLLLLULLDRRRRRRRLLLLUUUUUUURRRRRRRR....RDDDDDDLLUULLLRUULLLDDRRRRLDUUULLLDDRR....RDDDD.","17":"DDDRRRRRRRL.RRRRRR.RRRRRUUULLLLLLLRRRRRRRDDDLLLLLLLLLLLLLLLLLUUURRRRRRRRRRRRRRRLRRRDDDLLLLLLLLLLLLLLLRLLLDDDRRRRRRRRRRRRRRRRR.","18":"UUUUURRRRRRRRRRRRRRRRDDDDR..RL....DRLLLLLLLLLLLLUDL.RRRRRLLLLLLLUUDDL.RRRRRRRRRRRRRRRRRR.","19":"RRRRRRRRRRRRDLULLDRLLLLULLDRRLLULLDRRRRLLLLULLDRRRRRRURRRRRRRRDLURRRDLLLLLLU..........LLDDDDRDDRDDD.","20":"RRRRRDDDDLRRLUUUURRRRRRRRRRRDDDDLLLLLLLLLLLRRRR.RRRRRRRUUUU..LL...LLLLLLLLLDDDDRRRRRRRRRRRUUUULLLLLLLLLLLDDDDRRRRRRRRRRRUUUULLLLLLLLLLLLLLLDDDDRRRRRRRRRRRRRRRR.","21":"DDDDDLLLLLLLLLLLLLUUUULLULRRRR..........LDDDDDLLLLLLLRRRRRRRRRRRRRRRRRRRRUUUUULLLLLLRRRRRRDDDDDLLLLLLLLLLLLLLLLLLLLL.","22":"RRRRRRRRRRRRRRRRRDLRDDLDLDLDLLLLRRRRURURURUULULLLLLLLLLLLLDRR....RR...RURRLLDDDDDDLRUUUUUULLLLLLLLDRRRRRRURRRRRDL.........RURRDLLLULLDURDLDDDDDRDD.","23":"RUUURRRRRRRRRRRRRRRRRRRRDDDLLLLLLLLLLLLUDR..RRRRRRRRRRRUUULLLLLLLLLLLLLLLLLLLLDDDRRUDRRRRUDRRRRRUDRRRRRUDRRR.RUUULLLLLLLLLLLLLLLLLLLLLRDDDLDDDDRRRRRUDRRRRRRUDRRRRRUDRRRRR.","24":"RRRRDU......RRRRRRRR..DU.....RRRR...DU....RRDDDDLLLLLLLLLLLLL.LRRRRRRRRRRRRRRUUUULLLLLLLLLLLLLLLLLLDDDDRRRRR..RRRRRRRRRRRRRR.","25":"RRRRRDDD....DLLR......RUUUURRRRDDDDRRL......LUUUULLLLDDDDRRL....DRRRRRRRRRRRRLLLLLLLLLLLLULUUUULLLLLDDDDDRRRRRRRRRRRRRRRRRRR.","26":"RRRRRRDDDDLLRULLR....RRUUULLLLLLDDDDRRL...LUUUURRRRRRDDDDDDR....RL....DLUUUUUUURRRRRRRDDDDDDRR.L.....LDLLRRRRRRLLLLUUUUUUURRRRRRRRDDDDDDLLR....RDLLLLLLLLLLLLLLLLLLL.","27":"RRDD..U...RRRRRRRRRURRRRRRD....DU....LLLLULLLLDDU....DDDLLLLLRRRRRRRRRRLLLLLLLUUUULLLLLLLDDDDRRRRRRRRRRRRRRRRRRRRLLLLLLLLUDL.RRRRRRRRRR.","28":"RRRRRDRRURRDLLRRURRDLLLLRRRRURRRDRRRRURRDLLLL.....LLLLRLULLLLLLDLDDDDRRRRRRRRRRRRRRRDULLLLLLLLLLLLLLLUUUURRRRRRRRLLLLLLLLDDDDRRRRRRRRRRRRRRLLLLLLLLLLLLLLUUUULLRLULLDRRRLLLLLDDDDRRRRRRRRRRRRRRRRRRRR..RDD.","29":"RRDD......U...RRRRRRRRUDDU........RRRRRRRUD......DU....RRDU...LLLLLLLLLDDDLLLLLLRRRRRRRRRRRLLLLLDDDDRRRRRRRRRRLLLLLLLLLLLLLLLLLLLLUUUURRRRRRRRRLLLLLLLLLDDDDRRRRRRRRRRRRRRRRRRRRLLLLLLLLLLUUUUUURRRRRRRRRRRDDLLLLLLLLLLRLLLLLLLLLLLLDDDDRRRRRRRRRRRRRRRRRRRRR.","30":"RRRRDU....RRRRRRRDU..........RRDURRDLLLLLLLDDDDDRRRRRRRRRLLLLLLLLLLLUUULRDDDLRRRRRUUUUUULLLLLLLLLLDDDRRRRRLLLLLUUURRRRRRRRDDDDDDUUUUUULLLLLDDDRRRDDLDRRRRRRRRRRRRLLLLLLLUUUUUULLLDULLDRRLLLLLLLUDDDRRRRRRDDDRRRRRRRRRRRLLLLLLLUUUUUURRRRRRDLLLLLULLLDDDDDDRRRRRRRRRR."}/*end*/;
   const COACH = { on: false, auto: false, hint: 0, route: '', lvl: null, refs: null, idle: 0, lastP: '', ck: '', undoShown: false };
   const objKey = (e) => { const a = []; for (const o of e.objects.values()) if (o.t === T.ROCK || o.t === T.BALL) a.push(o.x + ',' + o.y); return a.sort().join(';') + '|' + e.ballsIn; };
-  function coachStart(i, custom) { COACH.auto = i === 0 && !custom; COACH.hint = 0; COACH.on = COACH.auto; COACH.idle = 0; COACH.ck = ''; COACH.undoShown = false; world.setCoachTrail(null); coachHand(null);
+  function coachStart(i, custom) { COACH.auto = i === 0 && !custom; COACH.hint = 0; COACH.plan = null; COACH.replanKey = ''; planJob++; HINT.busy = false; undoHold = false; COACH.on = COACH.auto; COACH.idle = 0; COACH.ck = ''; COACH.undoShown = false; world.setCoachTrail(null); coachHand(null);
     const lv = custom || LEVELS[i], route = custom ? custom.route || '' : ROUTES[i + 1] || ''; if (COACH.lvl !== lv) { COACH.lvl = lv; COACH.route = route; COACH.refs = null; } }
   function coachRefs() { if (COACH.refs || !COACH.route) return COACH.refs;
     const e = new Engine(COACH.lvl); e.time = e.oxygen = 9999; const M = { U: 'up', D: 'down', L: 'left', R: 'right' }; const R = COACH.refs = [{ key: objKey(e), p: [e.player.x, e.player.y] }];
@@ -5215,13 +5216,15 @@ window.__T = T;
   function coachTick(realDt) {
     COACH.on = COACH.auto || COACH.hint > 0;
     if (!COACH.on || state !== 'playing' || !engine || !engine.player || engine.state !== 'playing') { if (COACH.trail) { COACH.trail = false; world.setCoachTrail(null); coachHand(null); } return; }
-    const pk = engine.player.x + ',' + engine.player.y; if (pk !== COACH.lastP) { if (COACH.lastP && COACH.hint > 0) { COACH.hint--; if (!COACH.hint) { COACH.trail = false; world.setCoachTrail(null); coachHand(null); hintSync(); return; } } COACH.lastP = pk; COACH.idle = 0; if (!COACH.hint) { COACH.trail = false; world.setCoachTrail(null); coachHand(null); } } else COACH.idle += realDt;
+    const pk = engine.player.x + ',' + engine.player.y; if (pk !== COACH.lastP) { if (COACH.lastP && COACH.hint > 0) { COACH.hint--; if (!COACH.hint) { if (!COACH.auto) COACH.plan = null; COACH.trail = false; world.setCoachTrail(null); coachHand(null); hintSync(); return; } } COACH.lastP = pk; COACH.idle = 0; if (!COACH.hint) { COACH.trail = false; world.setCoachTrail(null); coachHand(null); } } else COACH.idle += realDt;
     const wait = COACH.hint > 0 ? 0 : save.stars[1] ? 6 : COACH.firstDone ? 3.5 : 1.2; if (COACH.idle < wait) return;
     const cur = objKey(engine), ck = pk + '|' + cur + '|' + engine.gate.open; if (ck === COACH.ck && COACH.trail) return; COACH.ck = ck; // nothing changed since the last hint drawn
-    const pl = [engine.player.x, engine.player.y]; let target = null, dir = null; const R = coachRefs(); if (!R) return; const RT = COACH.route;
+    const pl = [engine.player.x, engine.player.y]; let target = null, dir = null; const R = COACH.plan ? COACH.plan.refs : coachRefs(); if (!R) return; const RT = COACH.plan ? COACH.plan.route : COACH.route;
     if (engine.gate.open) target = [engine.gate.x, engine.gate.y];
     else { let j = -1; for (let k = R.length - 1; k >= 0; k--) if (R[k].key === cur) { j = k; break; }
-      if (j < 0) { world.setCoachTrail(null); coachHand(null); COACH.trail = false; if (COACH.hint > 0) { COACH.hint = 0; hintSync(); offRoute(); return; }
+      if (j < 0) { world.setCoachTrail(null); coachHand(null); COACH.trail = false;
+        if (!HINT.busy && COACH.replanKey !== cur) { COACH.replanKey = cur; findPlan(plan => { COACH.plan = { route: plan, refs: planRefs(engine, plan) }; COACH.ck = ''; }); return; } // re-plan from here (free)
+        if (HINT.busy) return; if (COACH.hint > 0) { COACH.hint = 0; hintSync(); return; }
         if (!COACH.undoShown) { COACH.undoShown = true; toast(document.body.classList.contains('touch') ? 'Oops! Tap ↶ to undo' : 'Oops! Press Z to undo'); $('#btnUndo').classList.add('nudge'); setTimeout(() => $('#btnUndo').classList.remove('nudge'), 4000); } return; }
       let k = j + 1; while (k < R.length && R[k].key === cur) k++; if (k >= R.length) target = [engine.gate.x, engine.gate.y];
       else { let m = k; while (m > 0 && RT[m - 1] === '.') m--; target = R[m - 1].p; dir = RT[m - 1]; } }
@@ -5237,24 +5240,34 @@ window.__T = T;
   let toastTimer = null;
   function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 2200); }
   // ---- "Show me" hints: the coach walks the next 5 moves of the level's verified route. One free hint every 90 s, or pay coins now.
-  const HINT = { cost: 25, every: 90, readyAt: 0 };
+  const HINT = { cost: 25, every: 90, readyAt: 0, busy: false };
   const hintFree = () => performance.now() >= HINT.readyAt;
   function hintSync() { const b = $('#btnHint'); if (!b) return; const free = hintFree(), left = Math.ceil((HINT.readyAt - performance.now()) / 1000);
     b.classList.toggle('on', COACH.hint > 0); const tg = b.querySelector('em'); const txt = COACH.hint > 0 ? COACH.hint : free ? 'free' : HINT.cost; if (tg.textContent !== String(txt)) tg.textContent = txt; b.classList.toggle('free', free && !COACH.hint);
     const lab = free ? 'Show me the next moves (free)' : `Show me the next moves (${HINT.cost} coins, free again in ${left}s)`; if (hintSync.lab !== lab) { hintSync.lab = lab; b.setAttribute('aria-label', lab); } }
   function showMe() { if (state !== 'playing' || !engine || engine.state !== 'playing') return; click();
     if (!COACH.route) { toast('No hint for this dive'); return; }
-    if (COACH.hint > 0) { COACH.hint = 0; hintSync(); return; } // tap again to hide it
-    if (!coachRefs()) return;
-    if (!engine.gate.open && !COACH.refs.keys.has(objKey(engine))) { offRoute(); return; } // nothing spent: the board has left every known path
-    if (!hintFree()) { if (save.coins < HINT.cost) { toast(`Free hint in ${Math.ceil((HINT.readyAt - performance.now()) / 1000)} s (or ${HINT.cost} coins)`); return; } save.coins -= HINT.cost; persist(); syncCoins(); toast(`Hint · −${HINT.cost} coins`); }
-    else HINT.readyAt = performance.now() + HINT.every * 1000;
-    runHint = true; COACH.hint = 5; COACH.lastP = engine.player.x + ',' + engine.player.y; COACH.ck = ''; COACH.idle = 0; buzz(12); hintSync(); }
+    if (COACH.hint > 0) { COACH.hint = 0; if (!COACH.auto) COACH.plan = null; hintSync(); return; } // tap again to hide it
+    if (HINT.busy || !coachRefs()) return;
+    if (!hintFree() && save.coins < HINT.cost) { toast(`Free hint in ${Math.ceil((HINT.readyAt - performance.now()) / 1000)} s (or ${HINT.cost} coins)`); return; }
+    findPlan(plan => { // charged only when there really is a way forward from this board
+      if (!hintFree()) { save.coins -= HINT.cost; persist(); syncCoins(); toast(`Hint · −${HINT.cost} coins`); } else HINT.readyAt = performance.now() + HINT.every * 1000;
+      runHint = true; COACH.plan = { route: plan, refs: planRefs(engine, plan) }; COACH.hint = 5; COACH.lastP = engine.player.x + ',' + engine.player.y; COACH.ck = ''; COACH.idle = 0; buzz(12); hintSync(); }); }
+  // plan from the board as it is now (async); if the board moved on meanwhile, the answer is dropped
+  function findPlan(ok) { if (!engine || !engine.player) return; HINT.busy = true; const b = $('#btnHint'); b.classList.add('busy'); const key = plKey(engine), t0 = performance.now(); let told = false;
+    const tell = setTimeout(() => { told = true; toast('Finding a way from here…'); }, 350);
+    planFrom(engine, coachRefs(), COACH.route, (plan, proven) => { clearTimeout(tell); HINT.busy = false; b.classList.remove('busy');
+      if (state !== 'playing' || !engine || engine.state !== 'playing' || plKey(engine) !== key) return;
+      if (plan === null) { noWayForward(proven); return; } ok(plan); }); }
   $('#btnHint').onclick = showMe;
+  // nothing wins from here: say so plainly and offer to rewind to the newest moment that still has a way through
+  function noWayForward(proven = true) { const msg = proven ? 'No way to finish from here.' : 'I couldn\'t find a way from here.'; COACH.hint = 0; COACH.plan = null; hintSync(); world.setCoachTrail(null); coachHand(null); const R = coachRefs(); let k = -1;
+    for (let i = history.length - 1; i >= 0 && i >= history.length - 60; i--) if (plRoute(history[i], R, COACH.route) !== null) { k = i; break; }
+    if (k >= 0) stuckCard(msg, `Rewind ${history.length - k} move${history.length - k === 1 ? '' : 's'}`, () => { history.length = k + 1; undo(); setTimeout(showMe, 80); });
+    else stuckCard(msg, 'Start over', () => { restart(); }); }
+
   // the board left the verified route: find the newest undo snapshot that's back on it and offer to rewind there
-  function offRoute() { const R = coachRefs(); let k = -1; if (R) for (let i = history.length - 1; i >= 0; i--) if (R.keys.has(objKey(history[i]))) { k = i; break; }
-    if (k >= 0) stuckCard('This board has left the known path.', `Rewind ${history.length - k} move${history.length - k === 1 ? '' : 's'}`, () => { history.length = k + 1; undo(); setTimeout(showMe, 50); });
-    else stuckCard('This board has left the known path.', 'Restart', () => { restart(); }); }
+  function offRoute() { noWayForward(); }
   // ---- "Stuck? Undo": a pearl that can never reach the gate (below it, or boxed in on a solid floor) gets an immediate prompt
   function deadPearl(e) { if (!e.gate || e.gate.open) return null; const solid = (x, y) => { const t = e.get(x, y); return t === T.STEEL || t === T.WALL; };
     for (const o of e.objects.values()) { if (o.t !== T.BALL) continue; if (o.y > e.gate.y) return o; if (!o.falling && solid(o.x, o.y + 1) && solid(o.x - 1, o.y) && solid(o.x + 1, o.y)) return o; }
@@ -5281,12 +5294,77 @@ window.__T = T;
     for (const [id, o] of e.objects) { const c = { ...o }; map.set(o, c); n.objects.set(id, c); }
     n.obj = e.obj.map(o => (o ? map.get(o) || null : null)); n.player = e.player ? map.get(e.player) : null; n.gate = e.gate ? { ...e.gate } : null;
     n.events = []; n.moveQueue = []; n.held = null; return n; }
+
+  // ---- live hint planner: hints come from the board as it really is, never from a path that is already blocked.
+  // 1) the level's verified route, checked by playing it to the end on a hidden copy of the board from where the diver stands;
+  // 2) if that fails, a small best-first search (the same macro moves as tools/solver/macro.js: walk, dig, push, grab air) looks
+  //    for a way back onto the route or straight to a win; 3) if nothing works, the player is told and offered a rewind.
+  const PLM = { U: 'up', D: 'down', L: 'left', R: 'right' }, PLD = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }, PLL = { up: 'U', down: 'D', left: 'L', right: 'R' };
+  const plHeavy = o => o.t === T.ROCK || o.t === T.BALL;
+  function plSim(e0, plan) { const e = cloneEngine(e0); e.time = e0.time; for (const c of plan) { if (c !== '.') { const p = e.player; if (!p) return { e, ok: false }; e.press(PLM[c]); }
+      e.step(); if (e.state === 'won') return { e, ok: true, won: true }; if (e.state !== 'playing') return { e, ok: false }; } return { e, ok: true, won: false }; }
+  function plWalk(e, to) { const p = e.player; if (!p) return null; if (p.x === to[0] && p.y === to[1]) return ''; const path = coachPath(e, [p.x, p.y], to); if (!path) return null; let x = p.x, y = p.y, out = '';
+    for (const [nx, ny] of path) { out += nx > x ? 'R' : nx < x ? 'L' : ny > y ? 'D' : 'U'; x = nx; y = ny; } return out; }
+  // the verified route from this exact board: walk to where the route expects the diver, then follow it; valid only if it wins
+  function plRoute(e, R, RT) { if (!R || !RT) return null; const key = objKey(e); let tried = 0;
+    for (let j = R.length - 1; j >= 0 && tried < 4; j--) { if (R[j].key !== key || !R[j].p) continue; tried++;
+      const walk = plWalk(e, R[j].p); if (walk === null) continue; const plan = walk + RT.slice(j); const r = plSim(e, plan); if (r.won) return plan; }
+    return null; }
+  function plKey(e) { let k = e.grid.join(''); for (const o of e.objects.values()) if (plHeavy(o) || o.t === T.PLAYER) k += '|' + o.t + ',' + o.x + ',' + o.y; return k + '|' + e.ballsIn; }
+  function plWalkable(e, x, y) { if (x < 0 || y < 0 || x >= e.w || y >= e.h) return false; const t = e.get(x, y), o = e.obj[y * e.w + x]; if (o && o.t !== T.PLAYER) return false; return t === T.EMPTY || t === T.SAND || t === T.AIR || t === T.PLAYER || (t === T.GATE && e.gate && e.gate.open); }
+  function plPath(e, tx, ty) { const p = e.player, W = e.w, prev = new Map(), q = [[p.x, p.y]]; prev.set(p.y * W + p.x, null);
+    for (let qi = 0; qi < q.length; qi++) { const [x, y] = q[qi]; if (x === tx && y === ty) break; for (const d in PLD) { const nx = x + PLD[d][0], ny = y + PLD[d][1], k = ny * W + nx; if (prev.has(k) || !plWalkable(e, nx, ny)) continue;
+        if (e.get(nx, ny) === T.GATE && !(nx === tx && ny === ty)) continue; prev.set(k, [y * W + x, d]); q.push([nx, ny]); } }
+    if (!prev.has(ty * W + tx)) return null; const out = []; let k = ty * W + tx; while (prev.get(k)) { const [pk, d] = prev.get(k); out.push(d); k = pk; } return out.reverse(); }
+  function plSettle(e, log) { for (let i = 0; i < 10; i++) { let moving = false; for (const o of e.objects.values()) if (plHeavy(o) && o.falling) moving = true; if (!moving && i > 1) break; e.step(); log.push('.'); if (e.state !== 'playing') return; } }
+  function plExec(e, dirs, log) { for (const d of dirs) { const p = e.player, x0 = p.x, y0 = p.y; e.press(d); e.step(); log.push(PLL[d]); if (e.state === 'won') return true; if (e.state !== 'playing') return false;
+      if (e.player.x === x0 && e.player.y === y0) { e.step(); log.push('.'); if (e.state !== 'playing') return e.state === 'won'; if (e.player.x === x0 && e.player.y === y0) return false; } } return true; }
+  function plMacros(e) { const out = [], p = e.player; if (!p) return out; if (e.gate && e.gate.open) out.push({ kind: 'gate', tx: e.gate.x, ty: e.gate.y });
+    for (let y = 0; y < e.h; y++) for (let x = 0; x < e.w; x++) if (e.get(x, y) === T.AIR) out.push({ kind: 'air', tx: x, ty: y });
+    for (const o of e.objects.values()) { if (!plHeavy(o)) continue;
+      for (const d of ['left', 'right']) { const dx = PLD[d][0], sx = o.x - dx, tt = e.get(o.x + dx, o.y); if ((tt === T.EMPTY && !e.obj[o.y * e.w + o.x + dx]) || (tt === T.GATE && o.t === T.BALL)) out.push({ kind: 'push', tx: sx, ty: o.y, then: d });
+        for (let k = 1; k <= 12; k++) { const cx = o.x + dx * k, t2 = e.get(cx, o.y); if (t2 === T.EMPTY && !e.obj[o.y * e.w + cx]) continue; if (t2 === T.SAND) out.push({ kind: 'dig', tx: cx, ty: o.y }); break; } }
+      for (let k = 1; k <= 8; k++) { const t2 = e.get(o.x, o.y + k); if (t2 === T.EMPTY && !e.obj[(o.y + k) * e.w + o.x]) continue; if (t2 === T.SAND) out.push({ kind: 'dig', tx: o.x, ty: o.y + k }); break; }
+      for (const [cx, cy] of [[o.x - 1, o.y], [o.x + 1, o.y], [o.x - 1, o.y + 1], [o.x + 1, o.y + 1]]) if (e.get(cx, cy) === T.SAND) out.push({ kind: 'dig', tx: cx, ty: cy }); }
+    if (e.gate) for (const [cx, cy] of [[e.gate.x - 1, e.gate.y], [e.gate.x + 1, e.gate.y], [e.gate.x, e.gate.y - 1]]) if (e.get(cx, cy) === T.SAND) out.push({ kind: 'dig', tx: cx, ty: cy });
+    return out; }
+  function plApply(e, m) { const n = cloneEngine(e), log = []; const pth = plPath(n, m.tx, m.ty); if (!pth) return null; if (m.kind === 'dig' && pth.length === 0) return null;
+    if (!plExec(n, pth, log)) return n.state === 'won' ? { e: n, log } : null; if (n.state === 'won') return { e: n, log };
+    if (m.kind === 'push') { if (!plExec(n, [m.then], log)) return null; }
+    if (m.kind === 'dig' && pth.length) { const back = { up: 'down', down: 'up', left: 'right', right: 'left' }[pth[pth.length - 1]], bx = n.player.x + PLD[back][0], by = n.player.y + PLD[back][1]; if (plWalkable(n, bx, by)) { if (!plExec(n, [back], log)) return null; } }
+    plSettle(n, log); if (n.state === 'dead') return null; return { e: n, log }; }
+  function plH(e) { let s = (e.ballsTotal - e.ballsIn) * 60; const g = e.gate; for (const o of e.objects.values()) if (o.t === T.BALL && g) s += Math.abs(o.x - g.x) + Math.abs(o.y - g.y) * 1.5; if (g && g.open && e.player) s += Math.abs(e.player.x - g.x) + Math.abs(e.player.y - g.y); return s; }
+  // async: a few milliseconds at a time so the game keeps drawing. cb(plan string | null)
+  let planJob = 0;
+  function planFrom(e0, R, RT, cb, budgetMs = 4000) { const job = ++planJob, start = cloneEngine(e0); start.time = e0.time;
+    const quick = plRoute(start, R, RT); if (quick !== null) { cb(quick); return; }
+    const seen = new Set([plKey(start)]), open = [{ e: start, log: '', f: plH(start) }], t0 = performance.now(); let exp = 0, pruned = false;
+    const chunk = () => { if (job !== planJob) return; const tEnd = performance.now() + 14;
+      while (open.length && performance.now() < tEnd) { open.sort((a, b) => a.f - b.f); const cur = open.shift(); exp++;
+        for (const m of plMacros(cur.e)) { const r = plApply(cur.e, m); if (!r) continue; const log = cur.log + r.log.join('');
+          if (r.e.state === 'won') { cb(log); return; }
+          const back = R && R.keys && R.keys.has(objKey(r.e)) ? plRoute(r.e, R, RT) : null; if (back !== null) { cb(log + back); return; }
+          const k = plKey(r.e); if (seen.has(k)) continue; seen.add(k); open.push({ e: r.e, log, f: plH(r.e) + log.length * 0.02 }); }
+        if (open.length > 4000) { open.sort((a, b) => a.f - b.f); open.length = 2000; pruned = true; } }
+      if (!open.length || performance.now() - t0 > budgetMs || exp > 20000) { cb(null, !open.length && !pruned); return; } setTimeout(chunk, 0); }; // 2nd arg: the search ran out of moves (truly stuck)
+    setTimeout(chunk, 0); }
+  // the coach follows a plan from the current board: reference states simulated along it
+  function planRefs(e0, plan) { const e = cloneEngine(e0); e.time = e0.time; const R = [{ key: objKey(e), p: e.player ? [e.player.x, e.player.y] : null }];
+    for (const c of plan) { if (c !== '.') e.press(PLM[c]); e.step(); R.push({ key: objKey(e), p: e.player ? [e.player.x, e.player.y] : null }); if (e.state !== 'playing') break; }
+    R.keys = new Set(R.map(r => r.key)); return R; }
+  // undo lands somewhere you can survive: if staying put and every single move both die within ~1.5 s, step back further
+  function doomed(e) { if (!e.player) return true;
+    for (const first of ['', 'U', 'D', 'L', 'R']) { const c = cloneEngine(e); c.oxygen = Math.max(c.oxygen, 30); if (first) c.press(PLM[first]); let dead = false;
+      for (let i = 0; i < 10; i++) { c.step(); if (c.state === 'dead') { dead = true; break; } if (c.state === 'won') break; } if (!dead) return false; }
+    return true; }
   function undo() {
     if (!history.length || !engine || (state !== 'playing' && state !== 'over') || engine.state === 'won' || $('#ending').classList.contains('on')) { if (state === 'playing') toast('Nothing to undo yet'); return; }
-    click(); buzz(10); hideStuck(); stuckKey = ''; const snap = history.pop(); runUndo = true; if (snap.__log !== undefined) runLog = runLog.slice(0, snap.__log); const cp = world.camPos.clone(), ct = world.camTarget.clone();
+    click(); buzz(10); hideStuck(); stuckKey = ''; planJob++; COACH.plan = null; let snap = history.pop(), extra = 0; while (history.length && extra < 12 && doomed(snap)) { snap = history.pop(); extra++; } runUndo = true; if (snap.__log !== undefined) runLog = runLog.slice(0, snap.__log); const cp = world.camPos.clone(), ct = world.camTarget.clone();
     engine = cloneEngine(snap); world.keepTreasures(); world.loadLevel(engine); world.onTick(engine, performance.now()); world.startPlay(); world.camPos.copy(cp); world.camTarget.copy(ct);
     held.clear(); heldOrder = []; endTouch(); acc = 0; overTimer = 0; resultShown = false; hudKey = ''; lastScore = -1;
-    if (state !== 'playing') { setState('playing'); show(null); } updateHud(); }
+    if (state !== 'playing') { setState('playing'); show(null); } updateHud(); undoHold = true;
+    if (extra) toast(`Rewound ${extra + 1} moves to a safe spot`); }
+  let undoHold = false; // after an undo the world waits for the player's next move (a falling stone hangs until you act)
   $('#btnUndo').onclick = undo;
 
   // ---- watch your best run: the fastest winning attempt is stored as a tick route and played back at 2x
@@ -5560,6 +5638,7 @@ window.__T = T;
       if (state === 'playing') {
         stickTick(realDt * 1000);
         acc = Math.min(acc + (now - (frame.last || now)), 300); frame.last = now; // a long gap (tab throttled, iframe off-screen, GC) must not fast-forward the dive
+        if (undoHold) { if ((engine.moveQueue && engine.moveQueue.length) || engine.held) undoHold = false; else acc = 0; }
         if (engine.moveQueue && engine.moveQueue.length && acc >= engine.tickMs * 0.6 && acc < engine.tickMs) acc = engine.tickMs; // a fresh tap moves now instead of waiting out the tick
         while (acc >= engine.tickMs) {
           acc -= engine.tickMs;

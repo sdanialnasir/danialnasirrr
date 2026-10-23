@@ -952,6 +952,7 @@ body:not([data-state="cine"]) .cine-gates { opacity: 0 !important; }
   #home .hm-nav { zoom: 0.8; }
 }
 @media (orientation: landscape) and (min-width: 760px) and (max-height: 660px) { #home .hm-logo { zoom: 0.6; } #home .hm-kicker { display: none; } }
+#btnHint.busy .ico, #btnHint.busy svg.i, #btnHint.busy .ico3d { animation: hintThink .8s ease-in-out infinite alternate; } @keyframes hintThink { to { transform: scale(1.18) rotate(8deg); filter: brightness(1.4); } }
 </style>
 </head>
 <body data-state="splash">
