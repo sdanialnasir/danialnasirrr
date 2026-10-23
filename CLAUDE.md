@@ -369,4 +369,8 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   or "I couldn't find a way from here." (budget hit), with "Rewind N moves" to the newest history snapshot whose route still wins.
 - Checked: 85 off-route boards (all 30 levels, route prefix + 8 random moves): every plan found replays to a win; the 8 with no plan
   were confirmed hopeless by a 60k-node offline search except one hard level-22 board.
+- Plan checks ignore the air clock (a hint is about the path). `plRoute` tries several matching route positions and, on monster
+  levels, 0–28 ticks of waiting so the route's timing lines up with where the piranhas/jellyfish/crabs are now (without this,
+  levels 6, 18, 20, 25, 26 said "No way to finish" right at the start). All 30 levels give a hint after 0/7/25 s of idling;
+  off-route boards: 83/85 planned (the other 2 are truly lost).
 - Debug: `__dc.plan(cb)`, `__dc.planCheck(plan)`, `__dc.doomed()`, `__dc.undo()`.

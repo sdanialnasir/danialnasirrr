@@ -4041,14 +4041,19 @@ window.__T = T;
   //    for a way back onto the route or straight to a win; 3) if nothing works, the player is told and offered a rewind.
   const PLM = { U: 'up', D: 'down', L: 'left', R: 'right' }, PLD = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }, PLL = { up: 'U', down: 'D', left: 'L', right: 'R' };
   const plHeavy = o => o.t === T.ROCK || o.t === T.BALL;
-  function plSim(e0, plan) { const e = cloneEngine(e0); e.time = e0.time; for (const c of plan) { if (c !== '.') { const p = e.player; if (!p) return { e, ok: false }; e.press(PLM[c]); }
+  function plSim(e0, plan) { const e = cloneEngine(e0); e.time = e0.time; e.oxygen = Math.max(e.oxygen, 9999); /* a hint is about the path, not the clock */ for (const c of plan) { if (c !== '.') { const p = e.player; if (!p) return { e, ok: false }; e.press(PLM[c]); }
       e.step(); if (e.state === 'won') return { e, ok: true, won: true }; if (e.state !== 'playing') return { e, ok: false }; } return { e, ok: true, won: false }; }
   function plWalk(e, to) { const p = e.player; if (!p) return null; if (p.x === to[0] && p.y === to[1]) return ''; const path = coachPath(e, [p.x, p.y], to); if (!path) return null; let x = p.x, y = p.y, out = '';
     for (const [nx, ny] of path) { out += nx > x ? 'R' : nx < x ? 'L' : ny > y ? 'D' : 'U'; x = nx; y = ny; } return out; }
   // the verified route from this exact board: walk to where the route expects the diver, then follow it; valid only if it wins
-  function plRoute(e, R, RT) { if (!R || !RT) return null; const key = objKey(e); let tried = 0;
-    for (let j = R.length - 1; j >= 0 && tried < 4; j--) { if (R[j].key !== key || !R[j].p) continue; tried++;
-      const walk = plWalk(e, R[j].p); if (walk === null) continue; const plan = walk + RT.slice(j); const r = plSim(e, plan); if (r.won) return plan; }
+  // the verified route from this exact board: walk to where the route expects the diver, wait for the monsters to line up the
+  // way they did when the route was recorded (a few ticks), then follow it. Used only if it actually wins on a hidden copy.
+  function plRoute(e, R, RT) { if (!R || !RT) return null; const key = objKey(e), js = [];
+    for (let j = 0; j < R.length; j++) if (R[j].key === key && R[j].p) js.push(j); if (!js.length) return null;
+    const pick = [...new Set([js[js.length - 1], js[0], js[Math.floor(js.length / 2)], js[js.length - 2], js[1]].filter(x => x !== undefined))];
+    const monsters = [...e.objects.values()].some(o => o.t === T.FISH || o.t === T.JELLY || o.t === T.CRAB), waits = monsters ? 28 : 0;
+    for (const j of pick) { const walk = plWalk(e, R[j].p); if (walk === null) continue;
+      for (let w = 0; w <= waits; w++) { const plan = walk + '.'.repeat(w) + RT.slice(j); if (plSim(e, plan).won) return plan; } }
     return null; }
   function plKey(e) { let k = e.grid.join(''); for (const o of e.objects.values()) if (plHeavy(o) || o.t === T.PLAYER) k += '|' + o.t + ',' + o.x + ',' + o.y; return k + '|' + e.ballsIn; }
   function plWalkable(e, x, y) { if (x < 0 || y < 0 || x >= e.w || y >= e.h) return false; const t = e.get(x, y), o = e.obj[y * e.w + x]; if (o && o.t !== T.PLAYER) return false; return t === T.EMPTY || t === T.SAND || t === T.AIR || t === T.PLAYER || (t === T.GATE && e.gate && e.gate.open); }
