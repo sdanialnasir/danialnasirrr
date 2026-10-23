@@ -341,3 +341,18 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   back from menus; ledge/rock plants only grow into empty cells; short laptop screens compact the home column and dock; landscape
   phones keep the bottom buttons off the tank; `--ink-3` contrast raised. Ledge plants no longer grow inside air bubbles/stones/pearls.
 - Publish the artifact with `files` for manifest.json and icons/ so the PWA manifest resolves.
+
+## The owner's Meshy diver (skinned model)
+- Source: the owner's rigged Meshy GLB (21.7 MB; not kept in the repo). `python3 tools/convert_diver.py <file.glb>` writes
+  `src/assets/models/diver.js` (`window.AQ_DIVER`, ~0.6 MB): texture 4096 PNG → 1024 WebP with padded islands, mesh quantised
+  (3,142 triangles, 23 Mixamo bones, `mixamorig:` dropped), clips idle/walk/swim/push/run with i16 rotations and in-place hips.
+  index.html loads it before game.js; to swap the character, drop in a new GLB and re-run the converter (same rig names).
+- `makeDiver()` builds the SkinnedMesh when `AQ_DIVER` exists (else `makeDiverProc()`, the old procedural diver, which also still
+  creates the shared skin materials). Bind with an **identity** bind matrix (the inverse binds are in model space). The model is turned
+  to face +x and scaled ×0.54 (`GLB_K`) so it matches the old diver's frame: cell fit, shop preview, mascot, death poses unchanged.
+- `glbDrive()` (called from the player update) blends stand (walk @0.569 s, paused) / walk (×0.55, it hunches) / swim / float idle /
+  push (@0.65 s, paused, also used for digging) so the weights always sum to 1. Procedural lean is scaled ×0.4 for the GLB; turn
+  angle 0.72 (more toward the camera) instead of 0.35. Limb/face code writes to dummies; scarf and lamp glow ride on bones (`glue`).
+- Shop suits recolour the texture in the shader (`aqSkin`: purple → helmet, yellow → suit, pink → fins, shading kept; default
+  Violet Star = untouched texture). Patterned suits lose their pattern on this model. Hats sit on the Head bone.
+- Cost (level 2, high): the diver went from 70 draw calls / 35.5k triangles (59 parts) to 9 draw calls / 7.5k triangles.
