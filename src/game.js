@@ -28,9 +28,10 @@ class Engine {
     this.w = Math.max(...rows.map(r => r.length));
     this.h = rows.length;
     this.name = level.name || '';
-    this.time = level.time || 120;      // oxygen in seconds
+    this.tickMs = level.tickMs || 225;  // one game tick (was 150 ms): diver, stones and monsters all share it
+    this.tscale = this.tickMs / 150;     // level air times were tuned for 150 ms ticks: scale them so difficulty stays the same
+    this.time = (level.time || 120) * this.tscale;      // oxygen in seconds
     this.oxygen = this.time;
-    this.tickMs = level.tickMs || 150;
     this.grid = new Array(this.w * this.h).fill(T.EMPTY);
     this.water = new Uint8Array(this.w * this.h); // 1 = open water at level start (monsters stay in open water)
     this.obj = new Array(this.w * this.h).fill(null); // dynamic object per cell
@@ -139,7 +140,7 @@ class Engine {
     const t = this.get(nx, ny);
     if (t === T.EMPTY) { this.moveObj(p, nx, ny); this.lastMoved = true; return; }
     if (t === T.SAND) { this.set(nx, ny, T.EMPTY); this.dug++; this.score += 1; this.emit('dig', { x: nx, y: ny }); this.moveObj(p, nx, ny); this.lastMoved = true; return; }
-    if (t === T.AIR) { this.set(nx, ny, T.EMPTY); this.oxygen = Math.min(this.time, this.oxygen + 30); this.score += 50; this.emit('air', { x: nx, y: ny }); this.moveObj(p, nx, ny); this.lastMoved = true; return; }
+    if (t === T.AIR) { this.set(nx, ny, T.EMPTY); this.oxygen = Math.min(this.time, this.oxygen + 30 * this.tscale); this.score += 50; this.emit('air', { x: nx, y: ny }); this.moveObj(p, nx, ny); this.lastMoved = true; return; }
     if (t === T.GATE) {
       if (this.gate.open) { this.state = 'won'; this.wonAt = this.tick; this.score += Math.round(this.oxygen) * 10 + 500; this.emit('win', { x: nx, y: ny }); this.moveObj(p, nx, ny); }
       else this.emit('gateLocked', { x: nx, y: ny });
@@ -448,7 +449,7 @@ const LEVELS = [
 '#WWWWWWWWW WWWWWW#',
 '##################',
 ]},
-{ name: "Air Supply", time: 55, hint: "Grab capsules only after the pearls pass. Pull a plug from below? Step aside at once!", tip: "New: air capsules. Each one gives +30 s of air.", map: [
+{ name: "Air Supply", time: 55, hint: "Grab capsules only after the pearls pass. Pull a plug from below? Step aside at once!", tip: "New: air capsules. Each one gives +45 s of air.", map: [
 '######################',
 '#....WWWWWWWWWWWWW...#',
 '#P.B.B             ..#',
@@ -3160,7 +3161,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           const u = m.userData, fit = u.fit || { s: 1.3, yOff: 0.04 }, dir = e.playerDir >= 0 ? 1 : -1, ph = ent.phase;
           // ---- locomotion: a damped spring chases the diver's cell, so every move eases out, overshoots a hair and settles like a body in water
           if (!ent.sp || Math.hypot(ent.sp.x - o.x, ent.sp.y + o.y) > 2.5) ent.sp = { x: o.x, y: -o.y, vx: 0, vy: 0 };
-          { const S = ent.sp, k = 115, c = 2 * Math.sqrt(k) * 0.74, n = Math.max(1, Math.ceil(dt / 0.008)), h = dt / n;
+          { const S = ent.sp, k = 70, c = 2 * Math.sqrt(k) * 0.8, n = Math.max(1, Math.ceil(dt / 0.008)), h = dt / n;
             for (let i = 0; i < n; i++) { S.vx += (k * (o.x - S.x) - c * S.vx) * h; S.vy += (k * (-o.y - S.y) - c * S.vy) * h; S.x += S.vx * h; S.y += S.vy * h; } }
           const gx0 = ent.sp.x, gy0 = ent.sp.y, vxW = ent.sp.vx, vyW = ent.sp.vy, speed = Math.hypot(vxW, vyW);
           if (moving) { this.lastMove = t; this.moveDir.set(o.x - o.px, -(o.y - o.py)); }
@@ -3707,7 +3708,7 @@ window.__T = T;
   function startCine() {
     if (cineRunning) return; cineRunning = true;
     setState('cine'); show(null); $('#skipIntro').hidden = false; $('#cineTitle').classList.remove('on'); $('#cineFade').classList.add('on'); $('#cineFade').classList.add('black');
-    cineEngine = new Engine(LEVELS[0]); cineEngine.time = 999; cineEngine.oxygen = 999; cineEngine.cine = true;
+    cineEngine = new Engine(Object.assign({}, LEVELS[0], { tickMs: 150 })); cineEngine.time = 999; cineEngine.oxygen = 999; cineEngine.cine = true;
     world.loadLevel(cineEngine); world.onTick(cineEngine, performance.now()); world.startPlay();
     world.cineCam = true; world.cineT = 0; world.cineShot = 'descent'; world.shotT0 = 0; world.storyDim = 0.95; world.cineFx = { glow: 0, storm: 0, lamp: 0 }; world.wakeT = undefined;
     cine = { t: 0, i: 0, wait: 0, wonAt: null, gateAt: null, said: {} }; acc = 0; frame.last = performance.now();
@@ -3876,10 +3877,10 @@ window.__T = T;
     held.clear(); heldOrder = []; acc = 0; overTimer = 0; lowAirBeep = 0; resultShown = false; endTouch();
     $('#introNum').textContent = dive ? `Daily Dive · ${new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}` : `Level ${i + 1} of ${LEVELS.length}`; $('#introName').textContent = lv.name; $('#introHint').textContent = lv.hint;
     drawLevelPreview($('#introPrev'), lv, false);
-    { const g = $('#introGoals'), t = lv.time; if (engine.relaxed || dive) { g.innerHTML = dive ? '<span class="goal dd">☀ Race the clock: fastest time wins today</span>' : '<span class="goal">Relaxed mode: no air timer</span>'; }
+    { const g = $('#introGoals'), t = engine.time; if (engine.relaxed || dive) { g.innerHTML = dive ? '<span class="goal dd">☀ Race the clock: fastest time wins today</span>' : '<span class="goal">Relaxed mode: no air timer</span>'; }
       else g.innerHTML = `<span class="goal g3"><b>★★★</b>${Math.ceil(t * 0.6)}s+ air left</span><span class="goal g2"><b>★★<i>★</i></b>${Math.ceil(t * 0.3)}s+</span><span class="goal g1"><b>★<i>★★</i></b>finish</span>`;
       const st = !dive && save.stars[i + 1], bb = $('#introBest'); bb.hidden = !st; if (st) bb.textContent = `Your best ${'★'.repeat(st)}${'☆'.repeat(3 - st)}`; }
-    $('#introBalls').textContent = engine.ballsTotal === 1 ? '1 pearl' : `${engine.ballsTotal} pearls`; $('#introAir').textContent = engine.relaxed ? 'Relaxed: no air timer' : `${Math.round(lv.time || engine.time)}s of air`;
+    $('#introBalls').textContent = engine.ballsTotal === 1 ? '1 pearl' : `${engine.ballsTotal} pearls`; $('#introAir').textContent = engine.relaxed ? 'Relaxed: no air timer' : `${Math.round(engine.time)}s of air`;
     screenStack = []; setState('intro'); show('intro'); hudKey = ''; updateHud();
     Audio.setMusic(save.settings.music);
   }
@@ -3900,7 +3901,7 @@ window.__T = T;
         { at: 'rock', id: 't5b', text: 'Drop a stone on it to stop it.' }],
     5: [{ at: 'jelly', id: 't6a', text: 'A jellyfish swims up and down. Cross when it is far away.' }],
     8: [{ at: 'crab', id: 't9a', text: 'A crab walks back and forth. Stay out of its way!' }],
-    11: [{ at: 'airc', id: 't12a', text: 'An air bubble! Grab it for 30 more seconds of air.' }] };
+    11: [{ at: 'airc', id: 't12a', text: 'An air bubble! Grab it for 45 more seconds of air.' }] };
   const TUT = { on: false, steps: null, i: 0, t0: 0, raf: 0 }; let skipTut = false; // tests start levels directly, without the tutorial
   function tutTarget(st) { const e = engine; if (!e) return null; if (st.at[0] === '#') return { el: document.querySelector(st.at) };
     const want = { player: T.PLAYER, ball: T.BALL, rock: T.ROCK, fish: T.FISH, jelly: T.JELLY, crab: T.CRAB }[st.at], pl = e.player || { x: 0, y: 0 };
@@ -4116,7 +4117,7 @@ window.__T = T;
   let replay = null, lastWin = null; const MV = { U: 'up', D: 'down', L: 'left', R: 'right' };
   function checkRun(lv, m, relaxed) { try { const e = new Engine(lv); e.relaxed = relaxed; for (const c of m) { if (c !== '.') e.press(MV[c]); e.step(); if (e.state !== 'playing') break; } for (let k = 0; k < 10 && e.state === 'playing'; k++) e.step(); return e.state === 'won'; } catch (er) { return false; } }
   function startReplay(n, back) { const run = save.runs && save.runs[n]; if (!run) return; click(); hideStuck(); coachHand(null); world.setCoachTrail(null);
-    const e = new Engine(LEVELS[n - 1]); e.relaxed = !!run.rx; e.tickMs = 75; // 2x
+    const e = new Engine(LEVELS[n - 1]); e.relaxed = !!run.rx; e.tickMs = Math.round(e.tickMs / 2); // 2x
     replay = { e, m: run.m, i: 0, back, n, end: 0 }; world.loadLevel(e); world.onTick(e, performance.now()); world.startPlay(); world.lastTick = performance.now();
     setState('replay'); show(null); $('#rpName').textContent = `Level ${n} · your best run`; $('#replayTag').hidden = false; acc = 0; }
   function endReplay() { if (!replay) return; const r = replay; replay = null; $('#replayTag').hidden = true; acc = 0;
@@ -4284,7 +4285,7 @@ window.__T = T;
   const DEAD = 16;
   function stickSpeed(dist, R) { return Math.max(0, Math.min(1, (dist - DEAD) / (R - DEAD))); }
   function stepInterval(t) { // ms between steps for speed t in 0..1
-    const slow = 470, fast = engine ? engine.tickMs : 150; return slow + (fast - slow) * Math.min(1, Math.pow(t / 0.85, 0.65)); }
+    const fast = engine ? engine.tickMs : 225, slow = Math.max(470, fast * 2.1); return slow + (fast - slow) * Math.min(1, Math.pow(t / 0.85, 0.65)); }
   const onStickDown = ev => {
     if (state === 'intro') { beginPlay(); }
     if (state !== 'playing' || (ev.pointerType === 'mouse' && ev.button !== 0)) return; // touch, pen, or left-mouse drag

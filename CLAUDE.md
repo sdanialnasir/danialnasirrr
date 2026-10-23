@@ -374,3 +374,10 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   levels 6, 18, 20, 25, 26 said "No way to finish" right at the start). All 30 levels give a hint after 0/7/25 s of idling;
   off-route boards: 83/85 planned (the other 2 are truly lost).
 - Debug: `__dc.plan(cb)`, `__dc.planCheck(plan)`, `__dc.doomed()`, `__dc.undo()`.
+
+## Game speed (slower, smoother)
+- One engine tick is now **225 ms** (was 150): the diver, falling stones/pearls and every monster move 1.5× slower together, so
+  every escape and timing puzzle works exactly as before (routes are tick-based; all 30 still win). `Engine.tscale = tickMs / 150`
+  scales each level's air (`time`) and the air capsule (+45 s) so the air budget in ticks is unchanged. The intro film keeps 150 ms
+  ticks (its voice-over beats); the best-run replay runs at half the tick. Drag stick: slowest step `max(470, tick × 2.1)` ms.
+  The diver's glide spring is softer (k 70, damping 0.8) to fill the longer step. Tap = one smooth step, hold = one cell per tick.

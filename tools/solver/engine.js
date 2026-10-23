@@ -25,9 +25,10 @@ class Engine {
     this.w = Math.max(...rows.map(r => r.length));
     this.h = rows.length;
     this.name = level.name || '';
-    this.time = level.time || 120;      // oxygen in seconds
+    this.tickMs = level.tickMs || 225;  // one game tick (was 150 ms): diver, stones and monsters all share it
+    this.tscale = this.tickMs / 150;     // level air times were tuned for 150 ms ticks: scale them so difficulty stays the same
+    this.time = (level.time || 120) * this.tscale;      // oxygen in seconds
     this.oxygen = this.time;
-    this.tickMs = level.tickMs || 150;
     this.grid = new Array(this.w * this.h).fill(T.EMPTY);
     this.water = new Uint8Array(this.w * this.h); // 1 = open water at level start (monsters stay in open water)
     this.obj = new Array(this.w * this.h).fill(null); // dynamic object per cell
@@ -136,7 +137,7 @@ class Engine {
     const t = this.get(nx, ny);
     if (t === T.EMPTY) { this.moveObj(p, nx, ny); this.lastMoved = true; return; }
     if (t === T.SAND) { this.set(nx, ny, T.EMPTY); this.dug++; this.score += 1; this.emit('dig', { x: nx, y: ny }); this.moveObj(p, nx, ny); this.lastMoved = true; return; }
-    if (t === T.AIR) { this.set(nx, ny, T.EMPTY); this.oxygen = Math.min(this.time, this.oxygen + 30); this.score += 50; this.emit('air', { x: nx, y: ny }); this.moveObj(p, nx, ny); this.lastMoved = true; return; }
+    if (t === T.AIR) { this.set(nx, ny, T.EMPTY); this.oxygen = Math.min(this.time, this.oxygen + 30 * this.tscale); this.score += 50; this.emit('air', { x: nx, y: ny }); this.moveObj(p, nx, ny); this.lastMoved = true; return; }
     if (t === T.GATE) {
       if (this.gate.open) { this.state = 'won'; this.wonAt = this.tick; this.score += Math.round(this.oxygen) * 10 + 500; this.emit('win', { x: nx, y: ny }); this.moveObj(p, nx, ny); }
       else this.emit('gateLocked', { x: nx, y: ny });
