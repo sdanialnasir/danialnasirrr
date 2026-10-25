@@ -381,3 +381,15 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   scales each level's air (`time`) and the air capsule (+45 s) so the air budget in ticks is unchanged. The intro film keeps 150 ms
   ticks (its voice-over beats); the best-run replay runs at half the tick. Drag stick: slowest step `max(470, tick × 2.1)` ms.
   The diver's glide spring is softer (k 70, damping 0.8) to fill the longer step. Tap = one smooth step, hold = one cell per tick.
+
+## Wow pass (feel + transitions)
+- **Win:** `clearStamp()` — a big "Level clear!" / "Perfect!" / "Dive complete!" stamp with stars that chime in (`Audio.star(i)`) over the
+  tank; the gate fires a big light ring (`world.ringAt(11)`) and a fountain of pearl-light; the result card follows after 2.1 s (lose: 1.4 s).
+- **Pearl delivered:** 0.23 s slow-motion beat (`slowMo`, counted on the frame clock — never wall time), a ring at the gate
+  (`ringAt(3.2)`), a higher note per pearl (`Audio.pearl(n)`), the HUD pearl pops (`.pop`). Gate opening: ring `ringAt(7)`.
+  `ringAt` reuses the intro film's wake ring (`wakePlay` lets it show outside the film).
+- **Transitions:** `wipeTo(fn, ev)` — a bubble wipe (`#wipe`, circle reveal from the tap point + rising bubbles) around level start,
+  next level and going home/levels from the result or pause screens; it also hides the level build. Off with reduced motion.
+- **Phones, level start:** the camera shows the whole tank for ~1.5 s with the level name, then glides to the diver (first move ends it).
+- Title: logo floats, "Tap to start" pulses, bubbles drift up behind. Level-1 coach drops its "Swim in!" word when the gate is open
+  (the gate marker already says it). Result card (computers): the diver stands beside the score.

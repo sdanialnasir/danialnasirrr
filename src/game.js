@@ -875,7 +875,9 @@ const Audio = (() => {
   function setMuted(m) { muted = m; if (master) master.gain.value = m ? 0 : 1; }
   function setMusic(on) { musicOn = on; if (musicBus && ctx) musicBus.gain.setTargetAtTime(on ? settings.music : 0, ctx.currentTime, 0.6); }
   function setVolumes(music, sfx) { settings.music = music; settings.sfx = sfx; if (musicBus) musicBus.gain.value = musicOn ? music : 0; if (sfxBus) sfxBus.gain.value = sfx; try { localStorage.setItem('dc-audio', JSON.stringify(settings)); } catch {} }
-  return { init, resume, play, vo, stopVo, swell, setTension, setMuted, setMusic, setVolumes, settings, get ctx() { return ctx; } };
+  function pearl(n) { if (!ctx || muted) return; const t = ctx.currentTime + 0.05, f = 523 * Math.pow(2, (n - 1) * 4 / 12); note(f, t, 0.9, 'triangle', 0.13, sfxBus); note(f * 2, t + 0.07, 0.6, 'sine', 0.06, sfxBus); } // each pearl a step higher
+  function star(i) { if (!ctx || muted) return; const t = ctx.currentTime, f = 784 * Math.pow(2, i * 5 / 12); note(f, t, 0.7, 'triangle', 0.14, sfxBus); note(f * 1.5, t + 0.03, 0.5, 'sine', 0.06, sfxBus); thump(110, 0.12, 0.18); }
+  return { init, resume, play, vo, stopVo, swell, setTension, setMuted, setMusic, setVolumes, settings, pearl, star, get ctx() { return ctx; } };
 })();
 
 // Deep Current — renderer v3: clean, bright, front-on puzzle board built from premium primitives.
@@ -2986,7 +2988,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       sp.position.set(x, y + 0.3, 0.9); sp.renderOrder = 9; sp.scale.set(0.01, 0.01, 1); this.levelGroup.add(sp); this.pops.push({ sp, t: 0, y: y + 0.3 }); }
     // ---- intro cinematic effects, driven by the controller through this.cineFx = { glow, storm, lamp } (0..1 each)
     cineFlash(k = 1) { if (REDUCED_MOTION) k *= 0.15; this.flashK = Math.max(this.flashK || 0, k); }
-    cineWake() { this.wakeT = this.time; }
+    cineWake() { this.wakeT = this.time; this.wakeScale = 9; this.wakePlay = false; }
+    ringAt(sc) { this.wakeT = this.time; this.wakeScale = sc; this.wakePlay = !this.menuMode; } // a ring of light racing out of the gate
     tickCine(dt) { const F = this.cineFx, on = !!(this.cineCam && F && this.e); const t = this.time;
       if (!this.cineGlow) { this.cineGlow = []; const mk = (c) => new THREE.SpriteMaterial({ map: TEX.dot, color: c, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
         for (let i = 0; i < 90; i++) { const sp = new THREE.Sprite(mk([0xff8a3a, 0xffc94a, 0xff5a2a, 0x7ff0ff][i % 4])); sp.visible = false; sp.renderOrder = 7; this.scene.add(sp); this.cineGlow.push({ sp, ph: Math.random() * 6.28, sz: 0.3 + Math.random() * 0.45, sp0: 0.15 + Math.random() * 0.3 }); }
@@ -3009,8 +3012,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         this.lampBeam.position.set(pp.x + 1.6 * dir, pp.y + 0.22, 0.7); this.lampBeam.scale.set(3.6 * lk, 1.1 * lk, 1); this.lampBeam.material.opacity = (on ? 0.35 : 0.2) * lk * fl; }
       else if (this.lampGlow) this.lampGlow.visible = this.lampBeam.visible = false;
       // the gate waking: a ring of light racing outward
-      const wt = on && this.wakeT !== undefined ? t - this.wakeT : 99;
-      if (wt < 1.6 && e && e.gate) { const k = wt / 1.6; this.wakeRing.visible = true; this.wakeRing.position.set(e.gate.x, -e.gate.y, 0.8); this.wakeRing.scale.setScalar(0.5 + k * 9); this.wakeRing.material.opacity = (1 - k) * 0.85; } else this.wakeRing.visible = false;
+      const wt = this.wakeT !== undefined && (on || this.wakePlay) ? t - this.wakeT : 99, wsc = this.wakeScale || 9;
+      if (wt < 1.6 && e && e.gate) { const k = wt / 1.6; this.wakeRing.visible = true; this.wakeRing.position.set(e.gate.x, -e.gate.y, 0.8); this.wakeRing.scale.setScalar(0.5 + k * wsc); this.wakeRing.material.opacity = (1 - k) * 0.85; } else this.wakeRing.visible = false;
       this.flashK = Math.max(0, (this.flashK || 0) - dt * 3.2); }
     // level-1 coach: a pulsing trail of light along the cells the diver should swim/dig through next (cells: [[x,y],...] or null)
     toScreen(x, y, z = 0.5) { const v = new V3(x, -y, z).project(this.camera); return [(v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight]; }
@@ -3047,16 +3050,16 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           this.shake = Math.max(this.shake, ev.t === T.ROCK ? 0.12 : 0.07); P.emit(x, y - 0.42, 0.4, 10, { color: SAND, speed: 1.2, life: 0.5, size: 0.1, kind: 1, spread: 0.7 }); this.sfx('land'); break; }
         case 'roll': this.sfx('roll'); break;
         case 'teeter': { const ent = this.entities.get(ev.id); if (ent) ent.teeter = 1; this.sfx('eep'); this.playerMood('surprise', 0.5); this.shake = Math.max(this.shake, 0.06); break; } // grace tick: the stone wobbles, the diver yelps
-        case 'absorb': { P.emit(x, y, 0.5, 40, { color: new THREE.Color(1, 0.55, 0.25), speed: 2.6, life: 0.8, size: 0.14 }); P.emit(x, y, 0.5, 30, { color: new THREE.Color(0.5, 0.9, 1), speed: 2, life: 1, size: 0.12 }); this.sfx('absorb'); this.popText(x, y + 0.2, e.ballsIn >= e.ballsTotal ? 'All pearls in!' : `${e.ballsIn}/${e.ballsTotal}`, '#ffb36a'); if (this.onStat && !this.menuMode) this.onStat('pearl'); this.playerMood('joy', 1.25); setTimeout(() => this.sfx('yay'), 260);
+        case 'absorb': { this.ringAt(3.2); P.emit(x, y, 0.5, 40, { color: new THREE.Color(1, 0.55, 0.25), speed: 2.6, life: 0.8, size: 0.14 }); P.emit(x, y, 0.5, 30, { color: new THREE.Color(0.5, 0.9, 1), speed: 2, life: 1, size: 0.12 }); this.sfx('absorb'); this.popText(x, y + 0.2, e.ballsIn >= e.ballsTotal ? 'All pearls in!' : `${e.ballsIn}/${e.ballsTotal}`, '#ffb36a'); if (this.onStat && !this.menuMode) this.onStat('pearl'); this.playerMood('joy', 1.25); setTimeout(() => this.sfx('yay'), 260);
           const ent = this.entities.get(ev.id); if (ent) { ent.absorbing = { t: 0, from: new V3(ev.fromX, -ev.fromY, 0.05), to: new V3(x, y, 0.3) }; this.entities.delete(ev.id); this.absorbing.push(ent); } break; }
-        case 'gateOpen': { if (this.onGateOpen && !this.menuMode && !e.cine) this.onGateOpen(); this.playerMood('joy', 1.25); this.flashFx('flash'); P.emit(x, y, 0.5, 70, { color: new THREE.Color(0.55, 0.95, 1), speed: 3.5, life: 1.3, size: 0.16 }); P.bubbles(x, y, 0.2, 18, 0.12, 0.8); this.sfx('gateOpen'); this.shake = 0.18; break; }
+        case 'gateOpen': { this.ringAt(7); if (this.onGateOpen && !this.menuMode && !e.cine) this.onGateOpen(); this.playerMood('joy', 1.25); this.flashFx('flash'); P.emit(x, y, 0.5, 70, { color: new THREE.Color(0.55, 0.95, 1), speed: 3.5, life: 1.3, size: 0.16 }); P.bubbles(x, y, 0.2, 18, 0.12, 0.8); this.sfx('gateOpen'); this.shake = 0.18; break; }
         case 'gateLocked': if (this.onToast && this.time - (this.lastLockToast ?? -9) > 2.5) { this.lastLockToast = this.time; this.onToast(`Deliver all energy first (${e.ballsIn}/${e.ballsTotal})`); } this.sfx('gateLocked'); this.playerMood('bonk', 0.55); this.sfx('hmm'); break;
         case 'monsterDeath': { P.bubbles(x, y, 0.2, 14, 0.1, 0.6); this.popText(x, y, 'Bonk!', '#ff8fd0'); P.emit(x, y, 0.4, 20, { color: new THREE.Color(1, 0.7, 0.4), speed: 2, life: 0.7, size: 0.12 }); this.sfx('monsterDeath'); this.shake = Math.max(this.shake, 0.12);
           for (const ent of this.entities.values()) if (ent.o.x === ev.x && ent.o.y === ev.y && ent.o.t === ev.t) { ent.ghost = { t: 0, kind: 'monster' }; this.ghosts.push(ent); this.entities.delete(ent.o.id); } break; }
         case 'playerDeath': { P.bubbles(x, y, 0.2, 36, 0.13, 0.8); this.shake = 0.4; this.sfx('death'); this.sfx('aww'); this.setFx('dead');
           if (ev.cause === 'crushed') { P.emit(x, y - 0.3, 0.45, 26, { color: SAND, speed: 1.6, life: 0.9, size: 0.1, kind: 1, spread: 0.5, vy: 0.4 }); P.emit(x, y, 0.5, 14, { color: new THREE.Color(1, 0.95, 0.6), speed: 2.4, life: 0.5, size: 0.13, spread: 0.2 }); this.shake = 0.55; }
           for (const ent of this.entities.values()) if (ent.o.t === T.PLAYER) { ent.ghost = { t: 0, kind: 'player', cause: ev.cause, cx: x, cy: y }; ent.m.userData.baseScale = ent.m.scale.x; this.ghosts.push(ent); this.entities.delete(ent.o.id); } break; }
-        case 'win': { this.flashFx('flash'); for (let i = 0; i < 4; i++) P.emit(x, y, 0.5, 30, { color: new THREE.Color().setHSL(Math.random(), 0.85, 0.65), speed: 3.5, life: 1.6, size: 0.15 }); this.sfx('win'); this.sfx('woohoo');
+        case 'win': { this.flashFx('flash'); this.ringAt(11); for (let i = 0; i < 3; i++) P.emit(x, y + 0.2, 0.6, 26, { color: new THREE.Color(1, 0.78 + i * 0.07, 0.3), speed: 2.2 + i, life: 2, size: 0.2, vy: 1.6 }); /* a fountain of pearl-light */ for (let i = 0; i < 4; i++) P.emit(x, y, 0.5, 30, { color: new THREE.Color().setHSL(Math.random(), 0.85, 0.65), speed: 3.5, life: 1.6, size: 0.15 }); this.sfx('win'); this.sfx('woohoo');
           for (const ent of this.entities.values()) if (ent.o.t === T.PLAYER) { ent.ghost = { t: 0, kind: 'win', to: new V3(x, y, 0.3) }; this.ghosts.push(ent); this.entities.delete(ent.o.id); } break; }
       }
     }
@@ -3659,6 +3662,9 @@ window.__T = T;
   let menuEngine = null;
   function showMenuScene() { if (menuKeep) { menuKeep = false; return; } if (menuEngine && world.e === menuEngine) return; /* already on screen: never rebuild the same scene */ menuEngine = new Engine(LEVELS[0]); menuEngine.time = 1e9; menuEngine.oxygen = 1e9; menuEngine.menu = true; world.loadLevel(menuEngine); world.onTick(menuEngine, performance.now()); reefProgress(); }
   function reefProgress() { const c = cleared(); world.reefLights = c * 3; world.reefK = c / LEVELS.length; }
+  function wipeTo(fn, ev) { const w = $('#wipe'); if (!w || REDUCED_MOTION || w.classList.contains('in')) { fn(); return; }
+    const x = ev && ev.clientX ? ev.clientX : innerWidth / 2, y = ev && ev.clientY ? ev.clientY : innerHeight / 2; w.style.setProperty('--x', x + 'px'); w.style.setProperty('--y', y + 'px');
+    w.classList.add('in'); Audio.play('bubble'); setTimeout(() => { try { fn(); } finally { setTimeout(() => w.classList.remove('in'), 90); } }, 380); }
   function openHome() { setPeekSafe(); Audio.setTension(0); setState('menu'); go('home'); showMenuScene(); reefProgress(); homeLayout(); idleThumbs(); }
   // wide screens: the menu column sits on the left, so the menu camera moves the tank into the free space on the right
   function homeLayout() { let sh = 0, lift; const home = $('#home');
@@ -3678,11 +3684,11 @@ window.__T = T;
       case 'land': if (pl) { const d = Math.max(Math.abs(pl.x - v.x), Math.abs(pl.y - v.y)); if (d <= 1) want([26, 40, 16], 6); else if (d <= 3) want(12, 3); } break;
       case 'monsterDeath': want([20, 30, 20], 5); weekBump('bonk'); break;
       case 'teeter': want([22, 50, 22], 7); break;
-      case 'absorb': want([18, 50, 30], 8); break;
+      case 'absorb': want([18, 50, 30], 8); slowMo = 0.23; Audio.pearl(e.ballsIn); break;
       case 'gateOpen': want([30, 60, 30, 60, 90], 9); Audio.swell(); break;
     }
     if (pat) buzz(pat); }
-  let cineRunning = false;
+  let cineRunning = false, slowMo = 0; // seconds of a short slow-motion beat when a pearl goes in (counted on the frame clock)
   // ---- opening cinematic: the real game, played by itself (route verified to win Level 1)
   let cine = null, cineEngine = null;
   let menuKeep = false; // after the intro, its finished tank stays on as the menu backdrop (no reload, no jump)
@@ -3805,7 +3811,7 @@ window.__T = T;
       const lab = document.createElement('span'); lab.className = 'lv-name' + (horiz ? ' below' : px > MW / 2 ? ' left' : ''); if (!locked) { const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = LEVELS[i].name; lab.append(nm); if (i === cur) { const c = document.createElement('em'); c.textContent = 'Current'; lab.prepend(c); } }
       if (!locked || horiz) b.appendChild(lab);
       if (!locked && save.runs && save.runs[num]) { const wb = document.createElement('span'); wb.className = 'lv-watch'; wb.setAttribute('role', 'button'); wb.setAttribute('aria-label', `Watch your best run of level ${num}`); wb.textContent = '▶'; wb.onclick = ev => { ev.stopPropagation(); startReplay(num, 'levels'); }; b.appendChild(wb); }
-      b.onclick = () => { if (LV.dragged) return; click(); if (locked) { toast(`Clear level ${save.unlocked} to unlock level ${num}`); b.classList.remove('nope'); void b.offsetWidth; b.classList.add('nope'); buzz(12); return; } if (LV.sel === i) { startLevel(i); return; } selectLevel(i); };
+      b.onclick = () => { if (LV.dragged) return; click(); if (locked) { toast(`Clear level ${save.unlocked} to unlock level ${num}`); b.classList.remove('nope'); void b.offsetWidth; b.classList.add('nope'); buzz(12); return; } if (LV.sel === i) { wipeTo(() => startLevel(i), event); return; } selectLevel(i); };
       map.appendChild(b); }
     // the diver stands beside the current level (and walks there from the last level the map showed)
     if (cur >= w.from && cur < w.to) { const dv = document.createElement('div'); dv.className = 'lv-diver' + (!horiz && pts[cur - w.from][0] > MW / 2 ? ' r' : ''); const th = diverThumb(); dv.innerHTML = th ? `<img alt="" src="${th}">` : '<span>🤿</span>'; map.appendChild(dv);
@@ -3824,7 +3830,7 @@ window.__T = T;
     $('#lvcSub').textContent = locked ? `Clear level ${save.unlocked} first` : stars ? `${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}  ·  best ${(save.best[num] || 0).toLocaleString()}` : 'Ready to dive?';
     const pb = $('#lvPlay'); pb.disabled = locked; pb.innerHTML = locked ? 'Locked' : `<svg class="i" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg>Play<span class="pl-n"> level ${num}</span>`; $('#lvCard').classList.toggle('locked', locked);
     drawLevelPreview($('#lvPrev'), lv, locked); }
-  $('#lvPlay').onclick = () => { if (LV.sel + 1 > save.unlocked) return; click(); buzz(10); startLevel(LV.sel); };
+  $('#lvPlay').onclick = ev => { if (LV.sel + 1 > save.unlocked) return; click(); buzz(10); wipeTo(() => startLevel(LV.sel), ev); };
   $('#lvPrevW').onclick = () => { if (LV.w > 0) { click(); LV.w--; LV.sel = WORLDS[LV.w].from; const cur = save.unlocked - 1; if (cur >= WORLDS[LV.w].from && cur < WORLDS[LV.w].to) LV.sel = cur; else LV.sel = Math.min(WORLDS[LV.w].to - 1, cur); renderWorld(); } };
   $('#lvNextW').onclick = () => { if (LV.w < WORLDS.length - 1) { click(); LV.w++; const cur = save.unlocked - 1; LV.sel = cur >= WORLDS[LV.w].from && cur < WORLDS[LV.w].to ? cur : WORLDS[LV.w].from; renderWorld(); } };
   // drag the map with the mouse on computers (touch scrolls natively)
@@ -3927,7 +3933,7 @@ window.__T = T;
     save.tutSeen = save.tutSeen || {}; save.tutSeen[TUT.idx] = 1; save.tipsSeen = save.tipsSeen || {}; save.tipsSeen[TUT.idx] = 1; persist();
     setState('playing'); lastFrame = performance.now(); acc = 0; world.lastTick = performance.now(); banner(); } // like beginPlay: the frame loop keeps its own clock (frame.last)
   $('#tut').addEventListener('click', ev => { if (ev.target.closest('.tut-skip')) { click(); TUT.t0 = 0; endTut(); return; } tutNext(); });
-  function beginPlay() { if (state !== 'intro' && state !== 'paused') return; const fromIntro = state === 'intro'; setState('playing'); show(null); lastFrame = performance.now(); acc = 0; world.lastTick = performance.now(); if (fromIntro) { world.startPlay(); if (!startTut(levelIdx)) banner(); } }
+  function beginPlay() { if (state !== 'intro' && state !== 'paused') return; const fromIntro = state === 'intro'; setState('playing'); show(null); lastFrame = performance.now(); acc = 0; world.lastTick = performance.now(); if (fromIntro) { world.startPlay(); if (!startTut(levelIdx)) { banner(); if (World.isMobile && !skipTut) { world.peek = true; clearTimeout(beginPlay.pk); beginPlay.pk = setTimeout(() => { if (!mapBtn.classList.contains('on')) world.peek = false; }, 1500); } } } } // phones: a look at the whole tank first, then the camera glides down to the diver
   let bannerTimer = null;
   // ---- level-1 coach: follows the verified winning route. When the player hesitates it shows a glowing trail to where the
   // diver should go next and, once there, an animated hand (key cap on computers) showing which way to swipe.
@@ -3945,7 +3951,7 @@ window.__T = T;
     for (const c of COACH.route) { if (c !== '.') e.press(M[c]); e.step(); R.push({ key: objKey(e), p: e.player ? [e.player.x, e.player.y] : null }); }
     R.keys = new Set(R.map(r => r.key)); return R; }
   // what the next move does, in two or three words, shown beside the hand
-  function coachSay(pl, dir) { const e = engine, d = { U: [0, -1], D: [0, 1], L: [-1, 0], R: [1, 0] }[dir]; if (!e || !d || !pl) return '';
+  function coachSay(pl, dir) { const e = engine, d = { U: [0, -1], D: [0, 1], L: [-1, 0], R: [1, 0] }[dir]; if (!e || !d || !pl || (e.gate && e.gate.open)) return ''; /* the gate's own 'Swim in!' marker says it */
     const t = e.get(pl[0] + d[0], pl[1] + d[1]); return t === T.SAND ? 'Dig!' : t === T.BALL ? 'Push the pearl!' : t === T.ROCK ? 'Push the stone!' : t === T.GATE ? 'Swim in!' : t === T.AIR ? 'Grab the air!' : 'Swim this way'; }
   function coachHand(pos, dir) { const h = $('#coachHand'); if (!pos) { h.classList.remove('on'); return; } { const sy = h.querySelector('.ch-say'); if (sy) sy.textContent = coachSay(engine && engine.player ? [engine.player.x, engine.player.y] : null, dir); }
     h.style.left = pos[0] + 'px'; h.style.top = pos[1] + 'px'; h.dataset.dir = dir; h.classList.add('on'); h.classList.toggle('keys', !document.body.classList.contains('touch')); }
@@ -4176,7 +4182,12 @@ window.__T = T;
   function pushDaily() { const D = ddSave(); if (!D.best) return; ddWriting = ddWriting.then(async () => { await LB.ready; if (!LB.db || !LB.uid) return;
     try { await LB.db.doc('daily/' + LB.uid).set({ day: D.key, t: D.best.t, air: D.best.air, nick: (save.name || 'Diver').slice(0, 16), suit: save.equip.suit, updatedAt: Date.now() }); } catch (er) { if (er && er.code === 'invalid_argument') LB.readOnly = true; } }); }
   $('#btnDaily').onclick = startDaily;
-  function finishLevel() {
+  function clearStamp() { const el = $('#clearStamp'); if (!el) return; const won = engine.state === 'won', frac = engine.oxygen / engine.time;
+    const stars = dive ? 0 : engine.relaxed ? 1 : frac >= 0.6 ? 3 : frac >= 0.3 ? 2 : 1; el.querySelector('b').textContent = dive ? 'Dive complete!' : stars === 3 ? 'Perfect!' : 'Level clear!';
+    const st = [...el.querySelectorAll('.cs-stars i')]; st.forEach(s => s.className = ''); el.querySelector('.cs-stars').hidden = !!dive;
+    el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+    st.forEach((s, i) => setTimeout(() => { if (!el.classList.contains('on')) return; s.classList.add('show'); if (i < stars) { s.classList.add('got'); Audio.star(i); buzz(14); } }, 520 + i * 230)); }
+  function finishLevel() { { const cs = $('#clearStamp'); if (cs) cs.classList.remove('on'); }
     resultShown = true; { const m = $('#resMascot'), th = diverThumb(); if (th) { m.src = th; m.hidden = false; } }
     const won = engine.state === 'won'; const n = levelIdx + 1; { const rc = $('#resCause'); rc.textContent = won ? '' : { crushed: 'A stone landed on your head. Undo and step aside sooner.', monster: 'A sea creature caught you. Watch its path, or drop a stone on it.', oxygen: 'Your air ran out. Look for air capsules, or plan a shorter route.', self: 'You restarted the dive.', spiked: 'Ouch, spikes!' }[engine.deathCause] || ''; rc.hidden = won || !rc.textContent; } if (dive) return finishDaily(won);
     setState('over'); show('result');
@@ -4201,7 +4212,7 @@ window.__T = T;
       if (n >= save.unlocked && n < LEVELS.length) save.unlocked = n + 1; persist();
       $('#resTitle').textContent = n === LEVELS.length ? 'Last gate open!' : engine.relaxed ? 'Relaxed clear!' : ['Energized!', 'Great dive!', 'Brilliant!'][stars - 1];
       $('#resStars').hidden = false;
-      starEls.forEach((s, i) => setTimeout(() => { s.classList.add('show'); if (i < stars) { s.classList.add('on'); Audio.play('click'); buzz(12); } }, 250 + i * 260));
+      starEls.forEach((s, i) => setTimeout(() => { s.classList.add('show'); if (i < stars) { s.classList.add('on'); Audio.star(i); buzz(12); } }, 250 + i * 260));
       $('#resBest').hidden = !(engine.score > prevBest && prevBest > 0);
       $('#resStats').innerHTML = engine.relaxed ? `<div class="stat"><i class="si t"></i><b>${Math.round(engine.wonAt * engine.tickMs / 1000)}s</b><span>dive time</span></div><div class="stat"><i class="si s"></i><b>★</b><span>air timer off for ★★★</span></div>` : `<div class="stat"><i class="si a"></i><b>${Math.ceil(engine.oxygen)}s</b><span>air left</span></div><div class="stat"><i class="si e"></i><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>pearls</span></div>`;
       $('#btnNext').textContent = n >= LEVELS.length ? 'The reef awakens ✨' : 'Next level'; $('#btnNext').hidden = false; $('#btnNext').classList.toggle('green', n >= LEVELS.length);
@@ -4232,7 +4243,7 @@ window.__T = T;
       hud.fill.style.width = (engine.ballsTotal ? engine.ballsIn / engine.ballsTotal * 100 : 100) + '%';
       hud.etxt.textContent = engine.gate.open ? 'Gate open! Swim in' : `${engine.ballsIn} / ${engine.ballsTotal} pearls`;
       hud.gate.classList.toggle('open', !!engine.gate.open); $('#hudProg').classList.toggle('open', !!engine.gate.open);
-      { const pe = $('#hudPearls'), n = engine.ballsTotal; if (n <= 6) { if (pe.children.length !== n || pe.firstChild && pe.firstChild.nodeType !== 1) pe.innerHTML = '<i></i>'.repeat(n); [...pe.children].forEach((c, k) => c.classList.toggle('on', k < engine.ballsIn)); }
+      { const pe = $('#hudPearls'), n = engine.ballsTotal; if (n <= 6) { if (pe.children.length !== n || pe.firstChild && pe.firstChild.nodeType !== 1) pe.innerHTML = '<i></i>'.repeat(n); [...pe.children].forEach((c, k) => c.classList.toggle('on', k < engine.ballsIn)); if (engine.ballsIn > (hud.lastIn ?? engine.ballsIn) && pe.children[engine.ballsIn - 1]) { const c = pe.children[engine.ballsIn - 1]; c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); } hud.lastIn = engine.ballsIn; }
         else pe.innerHTML = `<i class="${engine.ballsIn ? 'on' : ''}"></i>${engine.ballsIn}/${n}`; }
       hud.gate.innerHTML = engine.gate.open ? '<svg class="i" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>' : '<svg class="i" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
     }
@@ -4242,6 +4253,7 @@ window.__T = T;
 
   // ---- input: keyboard ----
   const KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right', W: 'up', S: 'down', A: 'left', D: 'right' };
+  function setHeldPeekOff() { if (beginPlay.pk && world.peek && !mapBtn.classList.contains('on')) { clearTimeout(beginPlay.pk); beginPlay.pk = 0; world.peek = false; } }
   function setHeld(dir, on) {
     if (on) { if (!held.has(dir)) { held.add(dir); heldOrder.push(dir); if (engine) engine.press(dir); } }
     else { held.delete(dir); heldOrder = heldOrder.filter(d => d !== dir); }
@@ -4316,15 +4328,15 @@ window.__T = T;
   // ---- buttons ----
   function unlock() { if (state !== 'splash' || (typeof booting !== 'undefined' && booting)) return; Audio.init(); Audio.resume(); Audio.setMusic(save.settings.music); Audio.setMuted(false); tryFullscreen(); if (!save.introSeen) startCine(); else openHome(); }
   $('#splash').addEventListener('pointerup', unlock);
-  $('#btnPlay').onclick = () => { click(); buzz(10); startLevel(Math.min(save.unlocked, LEVELS.length) - 1); };
+  $('#btnPlay').onclick = ev => { click(); buzz(10); wipeTo(() => startLevel(Math.min(save.unlocked, LEVELS.length) - 1), ev); };
   $('#btnDive').onclick = () => { click(); beginPlay(); };
   $('#btnPause').onclick = () => { click(); pause(); };
   $('#btnRestartHud').onclick = () => { if (state === 'playing') { buzz(20); restart(); toast('Fresh start!'); } };
   $('#btnResume').onclick = () => { click(); beginPlay(); };
   $('#btnRestart').onclick = restart;
-  $('#btnQuit').onclick = () => { click(); openHome(); };
-  $('#btnResHome').onclick = () => { click(); openHome(); };
-  function nextLevel() { click(); startLevel(levelIdx + 1); }
+  $('#btnQuit').onclick = ev => { click(); wipeTo(openHome, ev); };
+  $('#btnResHome').onclick = ev => { click(); wipeTo(openHome, ev); };
+  function nextLevel() { click(); wipeTo(() => startLevel(levelIdx + 1)); }
   $('#btnNext').onclick = () => { if (dive && engine.state === 'won') { click(); lbTab = 'fast'; openHome(); go('ranks'); return; } if (engine.state === 'won' && levelIdx + 1 < LEVELS.length) nextLevel(); else if (engine.state === 'won') openEnding(); else if (engine.state !== 'won' && history.length) undo(); else restart(); };
   // the finale: all 30 gates awake. A one-time coin bonus, the story's payoff, and a nudge to go back for every star.
   function openEnding() { click(); Audio.play('win'); setState('ending'); show('ending'); const first = !save.finished;
@@ -4336,7 +4348,7 @@ window.__T = T;
   $('#btnEndHome').onclick = () => { click(); openHome(); };
   $('#btnEndIntro').onclick = () => { click(); openHome(); setTimeout(() => { if (typeof startCine === 'function') startCine(); }, 50); };
   $('#btnRetry').onclick = () => { restart(); };
-  $('#btnResLevels').onclick = () => { click(); openHome(); go('levels'); };
+  $('#btnResLevels').onclick = ev => { click(); wipeTo(() => { openHome(); go('levels'); }, ev); };
   function tryFullscreen(force) { const el = document.documentElement; if (!document.fullscreenElement && el.requestFullscreen && force) el.requestFullscreen().catch(() => {}); }
   // settings
   function applyAudio() { Audio.setMusic(save.settings.music); Audio.setVolumes(Audio.settings.music, save.settings.sfx ? 0.9 : 0); }
@@ -4384,6 +4396,8 @@ window.__T = T;
       if (state === 'playing') {
         stickTick(realDt * 1000);
         acc = Math.min(acc + (now - (frame.last || now)), 300); frame.last = now; // a long gap (tab throttled, iframe off-screen, GC) must not fast-forward the dive
+        if (beginPlay.pk && ((engine.moveQueue && engine.moveQueue.length) || engine.held)) setHeldPeekOff(); // the first move ends the opening look
+        if (slowMo > 0) { slowMo = Math.max(0, slowMo - realDt); acc = 0; } // the world holds its breath for a moment
         if (undoHold) { if ((engine.moveQueue && engine.moveQueue.length) || engine.held) undoHold = false; else acc = 0; }
         if (engine.moveQueue && engine.moveQueue.length && acc >= engine.tickMs * 0.6 && acc < engine.tickMs) acc = engine.tickMs; // a fresh tap moves now instead of waiting out the tick
         while (acc >= engine.tickMs) {
@@ -4393,7 +4407,7 @@ window.__T = T;
           engine.step(); tickWorld(engine, now - acc);
           { const p = engine.player; runLog += p && p.x !== px0 ? (p.x > px0 ? 'R' : 'L') : p && p.y !== py0 ? (p.y > py0 ? 'D' : 'U') : '.'; }
           if (pre && engine.player && (engine.player.x !== px0 || engine.player.y !== py0)) { history.push(pre); if (history.length > 200) history.shift(); stuckTimer = 0; }
-          if (engine.state !== 'playing') { overTimer = 0; setState('over'); hideStuck(); Audio.setTension(0); held.clear(); heldOrder = []; endTouch(); buzz(engine.state === 'won' ? 30 : [40, 40, 60]); break; }
+          if (engine.state !== 'playing') { overTimer = 0; if (engine.state === 'won') clearStamp(); setState('over'); hideStuck(); Audio.setTension(0); held.clear(); heldOrder = []; endTouch(); buzz(engine.state === 'won' ? 30 : [40, 40, 60]); break; }
         }
         if (engine.state === 'playing') {
           coachTick(realDt); checkStuck(); hintSync();
@@ -4407,7 +4421,7 @@ window.__T = T;
         overTimer += realDt; frame.last = now;
         acc += dt * 1000; while (acc >= engine.tickMs) { acc -= engine.tickMs; engine.step(); tickWorld(engine, now - acc); }
         updateHud();
-        if (overTimer > 1.4 && !resultShown) finishLevel();
+        if (overTimer > (engine.state === 'won' ? 2.1 : 1.4) && !resultShown) finishLevel();
       }
     } else {
       frame.last = now;
@@ -4421,7 +4435,7 @@ window.__T = T;
     if (covered && heldFrame && !heldDirty) { lastHeld = now; return; }
     heldFrame = covered; heldDirty = false;
     if (TUT.on) tutPlace();
-    { world.update(dt, now); world.render(); if (!covered && gfxMode() === 'auto' && (state === 'playing' || state === 'menu' || state === 'cine')) world.autoQuality(realDt); }
+    { world.update(slowMo > 0 ? dt * 0.3 : dt, now); world.render(); if (!covered && gfxMode() === 'auto' && (state === 'playing' || state === 'menu' || state === 'cine')) world.autoQuality(realDt); }
   }
   addEventListener('resize', () => { heldDirty = true; world.resize(); homeLayout(); if ($('#levels').classList.contains('on')) renderWorld(); });
   canvas.addEventListener('webglcontextlost', ev => { ev.preventDefault(); if (state === 'playing') pause(); }, false);

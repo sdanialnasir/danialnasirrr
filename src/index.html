@@ -953,6 +953,39 @@ body:not([data-state="cine"]) .cine-gates { opacity: 0 !important; }
 }
 @media (orientation: landscape) and (min-width: 760px) and (max-height: 660px) { #home .hm-logo { zoom: 0.6; } #home .hm-kicker { display: none; } }
 #btnHint.busy .ico, #btnHint.busy svg.i, #btnHint.busy .ico3d { animation: hintThink .8s ease-in-out infinite alternate; } @keyframes hintThink { to { transform: scale(1.18) rotate(8deg); filter: brightness(1.4); } }
+/* ---- wow pass: win stamp, wipe transitions, HUD pearl pop, title life ---- */
+#clearStamp { position: fixed; left: 50%; top: 34%; z-index: 22; transform: translate(-50%, -50%); text-align: center; pointer-events: none; opacity: 0; }
+#clearStamp.on { animation: csIn .55s cubic-bezier(.2, 1.6, .4, 1) forwards; }
+#clearStamp b { display: block; font-family: var(--display); font-weight: 400; font-size: clamp(2.8rem, 11vw, 5.2rem); line-height: 1; color: var(--gold); -webkit-text-stroke: 6px #0b2f6e; paint-order: stroke fill; text-shadow: 0 6px 0 #062a6a, 0 0 40px rgba(255, 210, 63, 0.75); white-space: nowrap; }
+.cs-stars { display: flex; justify-content: center; gap: 0.4rem; margin-top: 0.4rem; }
+.cs-stars i { font-style: normal; font-size: clamp(2.6rem, 9vw, 4rem); line-height: 1; color: rgba(255, 255, 255, 0.25); -webkit-text-stroke: 3px #0b2f6e; paint-order: stroke fill; transform: scale(0); }
+.cs-stars i:nth-child(2) { font-size: clamp(3.2rem, 11vw, 5rem); transform-origin: 50% 70%; }
+.cs-stars i.show { animation: csStar .42s cubic-bezier(.3, 1.8, .5, 1) forwards; }
+.cs-stars i.got { color: var(--gold); text-shadow: 0 4px 0 #c96a0c, 0 0 26px rgba(255, 210, 63, 0.95); }
+@keyframes csIn { 0% { opacity: 0; transform: translate(-50%, -50%) scale(2.2) rotate(-6deg); } 60% { opacity: 1; transform: translate(-50%, -50%) scale(0.92) rotate(1deg); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(-2deg); } }
+@keyframes csStar { 0% { transform: scale(2.4) rotate(-25deg); opacity: 0; } 70% { transform: scale(0.88) rotate(4deg); opacity: 1; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+body:not([data-state="over"]) #clearStamp { display: none; }
+#wipe { position: fixed; inset: 0; z-index: 45; pointer-events: none; }
+#wipe.in { pointer-events: auto; }
+#wipe .wp-c { position: absolute; inset: 0; background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), #2e8be6, #0b3a8c 55%, #061f55); clip-path: circle(0px at var(--x, 50%) var(--y, 50%)); transition: clip-path .34s cubic-bezier(.6, 0, .4, 1); }
+#wipe.in .wp-c { clip-path: circle(150vmax at var(--x, 50%) var(--y, 50%)); transition-duration: .38s; }
+#wipe .wp-b i { position: absolute; left: var(--l); bottom: -12%; width: calc(3.2rem * var(--s)); height: calc(3.2rem * var(--s)); border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95), rgba(190,235,255,0.35) 35%, rgba(120,200,255,0.12) 65%, rgba(120,200,255,0.0) 72%); border: 1.5px solid rgba(220, 245, 255, 0.55); opacity: 0; }
+#wipe.in .wp-b i { animation: wpBub .9s cubic-bezier(.3, .6, .4, 1) var(--d) forwards; }
+@keyframes wpBub { 0% { opacity: 0; transform: translateY(0) scale(0.6); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-115vh) scale(1.1); } }
+#hudPearls i.pop { animation: pearlPop .5s cubic-bezier(.3, 1.8, .5, 1); }
+@keyframes pearlPop { 0% { transform: scale(1); } 35% { transform: scale(1.8); filter: brightness(1.8) drop-shadow(0 0 10px #ffb36a); } 100% { transform: scale(1); } }
+.gs-title { animation: gsFloat 4.2s ease-in-out infinite; }
+@keyframes gsFloat { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-10px) rotate(1deg); } }
+.gs-tap { animation: gsPulse 1.6s ease-in-out infinite; }
+@keyframes gsPulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 210, 63, 0.55); } 50% { transform: scale(1.05); box-shadow: 0 0 0 14px rgba(255, 210, 63, 0); } }
+#splash::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0; opacity: 0.7;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.8) 0 2px, transparent 3px), radial-gradient(circle, rgba(255,255,255,0.6) 0 3px, transparent 4px), radial-gradient(circle, rgba(255,255,255,0.5) 0 1.5px, transparent 2.5px);
+  background-size: 140px 260px, 230px 340px, 90px 180px; background-position: 10px 0, 60px 40px, 30px 90px; animation: gsBubbles 9s linear infinite; }
+#splash .gs-center { position: relative; z-index: 1; }
+@keyframes gsBubbles { to { background-position: 10px -260px, 60px -300px, 30px -90px; } }
+/* result card: the diver stands proudly beside the score (computers) */
+@media (orientation: landscape) and (min-width: 760px) and (min-height: 560px) { .res-mascot:not([hidden]) { left: auto; right: -0.6rem; bottom: -0.4rem; width: 8.5rem; height: 8.5rem; transform: none; } .res-l { position: relative; } }
+@media (prefers-reduced-motion: reduce) { .gs-title, .gs-tap, #splash::after, #wipe .wp-b i { animation: none !important; } #clearStamp.on { animation: none; opacity: 1; } .cs-stars i.show { animation: none; transform: none; } }
 </style>
 </head>
 <body data-state="splash">
@@ -1039,6 +1072,8 @@ body:not([data-state="cine"]) .cine-gates { opacity: 0 !important; }
 </section>
 <div id="tut" aria-live="polite"><div class="tut-ring"></div><div class="tut-bub"><span class="tut-step"></span><p class="tut-txt"></p><span class="tut-next">Tap to continue</span></div><button class="tut-skip" type="button">Skip</button></div>
 <div id="cineCap" class="cine-cap" aria-live="polite"></div>
+<div id="clearStamp" aria-live="polite"><b>Level clear!</b><span class="cs-stars"><i>★</i><i>★</i><i>★</i></span></div>
+<div id="wipe" aria-hidden="true"><div class="wp-c"></div><div class="wp-b"><i style="--l:0%;--d:0.00s;--s:0.6"></i><i style="--l:37%;--d:0.32s;--s:1.5"></i><i style="--l:74%;--d:0.28s;--s:1.4"></i><i style="--l:11%;--d:0.24s;--s:1.3"></i><i style="--l:48%;--d:0.20s;--s:1.2"></i><i style="--l:85%;--d:0.16s;--s:1.1"></i><i style="--l:22%;--d:0.12s;--s:1.0"></i><i style="--l:59%;--d:0.08s;--s:0.9"></i><i style="--l:96%;--d:0.04s;--s:0.8"></i><i style="--l:33%;--d:0.00s;--s:0.7"></i><i style="--l:70%;--d:0.32s;--s:0.6"></i><i style="--l:7%;--d:0.28s;--s:1.5"></i><i style="--l:44%;--d:0.24s;--s:1.4"></i><i style="--l:81%;--d:0.20s;--s:1.3"></i></div></div>
 <div id="cineGates" class="cine-gates" aria-hidden="true"><div class="cg-row"><i style="--k:0" class="lit"></i><i style="--k:1"></i><i style="--k:2"></i><i style="--k:3"></i><i style="--k:4"></i><i style="--k:5"></i><i style="--k:6"></i><i style="--k:7"></i><i style="--k:8"></i><i style="--k:9"></i><i style="--k:10"></i><i style="--k:11"></i><i style="--k:12"></i><i style="--k:13"></i><i style="--k:14"></i><i style="--k:15"></i><i style="--k:16"></i><i style="--k:17"></i><i style="--k:18"></i><i style="--k:19"></i><i style="--k:20"></i><i style="--k:21"></i><i style="--k:22"></i><i style="--k:23"></i><i style="--k:24"></i><i style="--k:25"></i><i style="--k:26"></i><i style="--k:27"></i><i style="--k:28"></i><i style="--k:29"></i></div><p><b>1</b> / 30 gates awake</p></div>
 <div id="cineTitle" class="cine-title" aria-hidden="true"><h1 class="title ld-title"><span>Aqua</span><span>Energizer</span></h1><p>Your dive begins</p></div>
 <div id="cineFade" class="cine-fade"></div>
