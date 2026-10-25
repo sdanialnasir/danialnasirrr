@@ -410,3 +410,6 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - No "All pearls in!" pop on the last pearl (it sat on the "Swim in!" marker); the clear stamp hides the gate banner.
 - **SFX reverb:** a generated stereo impulse response (2.4 s, unit energy, darker as it decays) through a ConvolverNode at 0.32 wet,
   plus a faint short echo; replaces the old slap-back delay.
+- **Crush:** the diver flattens *in front of* the stone (z 0.14 → 0.5), turned to face the camera so the squash spreads sideways;
+  the red "!" is hidden on death; dizzy stars a bit bigger.
+- **The Deep (world 3):** sparse, slowly pulsing cyan lichen spots on the front faces of the reef rock (`massMat`, world 2 only).
