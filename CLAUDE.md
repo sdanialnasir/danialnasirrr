@@ -413,3 +413,6 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - **Crush:** the diver flattens *in front of* the stone (z 0.14 → 0.5), turned to face the camera so the squash spreads sideways;
   the red "!" is hidden on death; dizzy stars a bit bigger.
 - **The Deep (world 3):** sparse, slowly pulsing cyan lichen spots on the front faces of the reef rock (`massMat`, world 2 only).
+- **Feedback:** air capsule pickup shows "+45s air" + a cyan burst; undo blinks the screen edge blue (`#fx.rewind`) and puffs bubbles
+  around the diver; the result score rolls up (1 s ease-out, after a 0.25 s beat). "Watch best run" button label is now "Best run"
+  (aria-label keeps the full text) so it fits on one line on phones.

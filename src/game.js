@@ -3142,7 +3142,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           { const vx = code === 1 ? 1.1 : code === 2 ? -1.1 : 0, vy = code === 3 ? -0.6 : code === 4 ? 1.1 : 0.4; // grains spray away from the diver and settle
             P.emit(x + vx * 0.25, y, 0.42, 18, { color: SAND, speed: 0.45, life: 1.1, size: 0.075, kind: 1, spread: 0.35, vx, vy: vy + 0.5 });
             P.emit(x, y, 0.44, 8, { color: new THREE.Color(0xc99a4a), speed: 0.3, life: 0.9, size: 0.11, kind: 1, spread: 0.3, vx: vx * 0.6, vy: 0.4 }); } this.refreshLips(); P.emit(x, y + 0.2, 0.42, 22, { color: SAND, speed: 0.55, life: 1.3, size: 0.08, kind: 1, spread: 0.45 }); P.emit(x, y, 0.42, 5, { color: new THREE.Color(0xf7e2b0), speed: 0.25, life: 0.7, size: 0.32, kind: 0, spread: 0.3 }); this.sfx('dig'); break; }
-        case 'air': { const a = this.airObjs.get(ev.y * e.w + ev.x); if (a) { this.levelGroup.remove(a); this.airObjs.delete(ev.y * e.w + ev.x); } P.bubbles(x, y, 0.2, 16, 0.12, 0.6); this.sfx('air'); break; }
+        case 'air': { const a = this.airObjs.get(ev.y * e.w + ev.x); if (a) { this.levelGroup.remove(a); this.airObjs.delete(ev.y * e.w + ev.x); } P.bubbles(x, y, 0.2, 16, 0.12, 0.6); P.emit(x, y, 0.5, 18, { color: new THREE.Color(0.55, 0.95, 1), speed: 1.8, life: 0.7, size: 0.12 }); this.sfx('air'); if (!this.menuMode && !e.relaxed) this.popText(x, y + 0.2, '+' + Math.round(30 * (e.tscale || 1)) + 's air', '#8ff4ff'); break; }
         case 'push': { const dx = e.player ? Math.sign(ev.x - e.player.x) || 1 : 1; // ev = the pushed object's new cell
           P.emit(x - dx * 0.45, y - 0.42, 0.42, 9, { color: SAND, speed: 0.5, life: 0.8, size: 0.09, kind: 1, spread: 0.25, vx: -dx * 0.5, vy: 0.35 });
           P.emit(x - dx * 1.35, y - 0.45, 0.4, 5, { color: new THREE.Color(0xd9b06a), speed: 0.4, life: 0.6, size: 0.07, kind: 1, spread: 0.15, vx: -dx * 0.9, vy: 0.5 });
@@ -4226,6 +4226,7 @@ window.__T = T;
     engine = cloneEngine(snap); world.keepTreasures(); world.loadLevel(engine); world.onTick(engine, performance.now()); world.startPlay(); world.camPos.copy(cp); world.camTarget.copy(ct);
     held.clear(); heldOrder = []; endTouch(); acc = 0; overTimer = 0; resultShown = false; hudKey = ''; lastScore = -1;
     if (state !== 'playing') { setState('playing'); show(null); } updateHud(); undoHold = true;
+    if (!REDUCED_MOTION) world.flashFx('rewind'); { const pl = engine.player; if (pl) world.particles.bubbles(pl.x, -pl.y, 0.4, 10, 0.08, 0.35); } /* time rewound: a cool blue blink + a puff of bubbles */
     if (extra) toast(`Rewound ${extra + 1} moves to a safe spot`); }
   let undoHold = false; // after an undo the world waits for the player's next move (a falling stone hangs until you act)
   $('#btnUndo').onclick = undo;
@@ -4276,7 +4277,9 @@ window.__T = T;
   function startDaily() { const L = todayDive(); if (!L) return; if (save.unlocked < DIVE_FROM) { toast(`Clear level ${DIVE_FROM - 1} to unlock the Daily Dive`); return; } click(); buzz(10); ddSave().tries++; persist(); startLevel(-1, L); }
   function finishDaily(won) { const D = ddSave(), L = dive; setState('over'); show('result'); const r = $('#result'); r.classList.toggle('win', won); r.classList.toggle('lose', !won);
     $('#resKicker').textContent = `Daily Dive · ${L.name}`; $('#resStars').hidden = true; $('#resBest').hidden = true; $('#resExtra').hidden = !won; $('#btnWatch').hidden = true;
-    $('#resScore').textContent = engine.score.toLocaleString(); save.stats.dug += engine.dug || 0; weekBump('dig', engine.dug || 0);
+    { const el = $('#resScore'), total = engine.score, t0 = performance.now(); el.textContent = '0'; /* the score rolls up while the card pops in */
+      const tick = (now) => { const k = Math.min(1, (now - t0 - 250) / 1000); if (k > 0) el.textContent = Math.round(total * (1 - Math.pow(1 - k, 3))).toLocaleString(); if (k < 1 && resultShown) requestAnimationFrame(tick); else el.textContent = total.toLocaleString(); };
+      if (REDUCED_MOTION) el.textContent = total.toLocaleString(); else requestAnimationFrame(tick); } save.stats.dug += engine.dug || 0; weekBump('dig', engine.dug || 0);
     if (D.played !== D.key) { D.played = D.key; weekBump('daily'); }
     if (won) { const t = Math.round(engine.wonAt * engine.tickMs / 100) / 10, air = Math.round((engine.time - engine.oxygen) * 10) / 10, prev = D.best, first = !prev;
       const better = !prev || t < prev.t; if (better) D.best = { t, air: prev ? Math.min(prev.air, air) : air }; else D.best.air = Math.min(D.best.air, air);
@@ -4305,7 +4308,9 @@ window.__T = T;
     const r = $('#result'); r.classList.toggle('win', won); r.classList.toggle('lose', !won);
     const prevBest = save.best[n] || 0;
     $('#resKicker').textContent = `Level ${n} · ${LEVELS[levelIdx].name}`;
-    $('#resScore').textContent = engine.score.toLocaleString();
+    { const el = $('#resScore'), total = engine.score, t0 = performance.now(); el.textContent = '0'; /* the score rolls up while the card pops in */
+      const tick = (now) => { const k = Math.min(1, (now - t0 - 250) / 1000); if (k > 0) el.textContent = Math.round(total * (1 - Math.pow(1 - k, 3))).toLocaleString(); if (k < 1 && resultShown) requestAnimationFrame(tick); else el.textContent = total.toLocaleString(); };
+      if (REDUCED_MOTION) el.textContent = total.toLocaleString(); else requestAnimationFrame(tick); }
     const starEls = [...document.querySelectorAll('#resStars i')]; starEls.forEach(s => s.className = '');
     if (won) {
       const frac = engine.oxygen / engine.time; const stars = engine.relaxed ? 1 : frac >= 0.6 ? 3 : frac >= 0.3 ? 2 : 1;
