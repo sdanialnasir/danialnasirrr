@@ -2328,9 +2328,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   const DAILY_WORLD = new Map(); // Daily Dive puzzles borrow a world's look (set by the controller)
   const WORLD_TINT = [0xffffff, 0xcdb2ff, 0x6a80c4], WORLD_FOG = [0, 0.12, 0.32];
   // per-world identity inside the tank: frame lacquer, water colour, and the deep's glowing specks
-  const WORLD_STYLE = [{ trim: 0x18284f, lo: [0.09, 0.36, 0.64], hi: [0.24, 0.76, 0.96], glow: 0, crystals: 0 },
-    { trim: 0x3b1c74, lo: [0.16, 0.14, 0.5], hi: [0.42, 0.5, 0.95], glow: 0.25, crystals: 0xb57cff },
-    { trim: 0x0c2f3a, lo: [0.03, 0.1, 0.3], hi: [0.1, 0.38, 0.66], glow: 1, crystals: 0x4ff0d8 }];
+  const WORLD_STYLE = [{ trim: 0x18284f, lo: [0.04, 0.42, 0.64], hi: [0.2, 0.84, 0.97], glow: 0, crystals: 0 },
+    { trim: 0x3b1c74, lo: [0.12, 0.2, 0.52], hi: [0.34, 0.62, 0.96], glow: 0.25, crystals: 0xb57cff },
+    { trim: 0x0c2f3a, lo: [0.02, 0.15, 0.3], hi: [0.07, 0.47, 0.66], glow: 1, crystals: 0x4ff0d8 }];
   const ART_SETS = {
     old: { plinth: ['rocks', 'coralA', 'plant2', 'coralB', 'plant4', 'rocks', 'coralC', 'plantS', 'plant1', 'coralA', 'rocks', 'plant3', 'coralB'],
       ledge: ['plant1', 'plant2', 'plant3', 'plant4', 'plantS', 'coralA', 'coralC'], stars: ['star1', 'star2'], shells: ['shell1', 'shell2', 'shell3'], jelly: 'jelly', goal: 'goal', platform: 'platform' },
@@ -2349,7 +2349,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.post = new Post(this.renderer, isMobile);
       this.pixelRatio = Math.min(devicePixelRatio || 1, isMobile ? 2 : 2);
       buildTextures(); buildMaterials(); buildGeometry();
-      this.scene = new THREE.Scene(); this.scene.background = new THREE.Color(0x1477cf);
+      this.scene = new THREE.Scene(); this.scene.background = new THREE.Color(0x138ccf);
       this.camera = new THREE.PerspectiveCamera(28, 1, 2, 400); this.tilt = isMobile ? 0.05 : 0.1; // camera pitch: a little from above, flatter on phones so less floor shows
       this.camTarget = new V3(); this.camPos = new V3(0, 0, 30); this.shake = 0;
       this.moveDir = new THREE.Vector2(); this.lead = new THREE.Vector2(); this.zoomK = 1.12; this.lastMove = -99;
@@ -2399,7 +2399,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     buildReef() {
       if (this.reef) { this.scene.remove(this.reef.group); this.reef.group.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
       this.reef = Reef.build(this.quality === 'low'); this.scene.add(this.reef.group); this.reef.group.visible = !this.photoMode; // a tier change rebuilds it: keep it hidden behind the painting
-      this.scene.fog = new THREE.Fog(0x0a4790, 60, 140);
+      this.scene.fog = new THREE.Fog(0x0a5a8f, 60, 140);
       this.positionReef();
     }
     positionReef() { if (!this.reef || !this.e) return; const W = this.e.w, H = this.e.h; this.reef.group.position.set((W - 1) / 2, -(H - 1) - 1.3, 0); }
@@ -3510,6 +3510,14 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         if (m <= budget * 1.35) { this.resScale = isMobile ? 0.88 : 0.8; this.setQuality(order[i]); break; } } // just over: keep the look, render 12% fewer pixels
       if (i === 0 && m > budget * 1.6) { this.resScale = isMobile ? 0.85 : 0.7; this.setQuality('low'); }
       this.aqHold = performance.now() + 4000; return { ms: m, q: this.quality }; }
+    // a still photo of the loaded level's tank interior (the home screen's level card): own camera, drawn through the shared context
+    tankShot(cv) { const e = this.e; if (!e || !MAIN_R) return false;
+      this.update(0.016, performance.now()); this.update(0.016, performance.now() + 16); // place everything, settle sand/sprites
+      const cam = new THREE.PerspectiveCamera(26, cv.width / cv.height, 0.5, 200), fov = cam.fov * Math.PI / 180;
+      const x0 = 0.5, x1 = e.w - 1.5, yT = -0.5, yB = -(e.h - 1.5), cx = (x0 + x1) / 2, cy = (yT + yB) / 2, hw = (x1 - x0) / 2 * 0.94, hh = (yT - yB) / 2 * 0.94;
+      const d = Math.min(hh / Math.tan(fov / 2), hw / Math.tan(fov / 2) / cam.aspect); // fill the card (crop the frame, never letterbox)
+      cam.position.set(cx, cy + d * 0.08, d); cam.lookAt(cx, cy, 0); cam.updateMatrixWorld();
+      const sd = new SharedDraw(cv, 1.5); try { sd.render(this.scene, cam); } finally { sd.dispose(); } return true; }
     render() {
       // phones: refresh the shadow map every other frame (the key light and tank never move; bobbing at 30 Hz is indistinguishable)
       const sm = this.renderer.shadowMap; if (isMobile && sm.enabled) { sm.autoUpdate = false; this.frameN = (this.frameN || 0) + 1; if (this.frameN % 2 === 0 || this.shadowDirty) { sm.needsUpdate = true; this.shadowDirty = false; } }
@@ -3759,7 +3767,7 @@ window.__T = T;
     if (id === 'shop') openShop(); if (id === 'rewards') buildRewards(); if (id === 'ranks') openRanks(lbTab); else if (LB.unsub) { LB.unsub(); LB.unsub = null; }
     if (id === 'profile') buildProfile(); if (id === 'settings') syncSettings(); if (id === 'home') refreshHome();
     if (id === 'name') { $('#nameInput').value = save.name || ''; setTimeout(() => $('#nameInput').focus(), 50); }
-    show(id); if (id === 'home') homeLayout(); if (id === 'levels') buildLevels();
+    show(id); if (id === 'home') { if (state === 'menu' || state === 'splash') homeCard(); homeLayout(); } if (id === 'levels') buildLevels();
   }
   document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { click(); go(b.dataset.go); }));
 
@@ -3768,6 +3776,7 @@ window.__T = T;
   function refreshHome() {
     const next = Math.min(save.unlocked, LEVELS.length);
     $('#playSub').textContent = save.unlocked > 1 ? `Continue · Level ${next}` : 'Play · Level 1';
+    $('#playMain').textContent = save.unlocked > 1 ? 'Continue' : 'Play'; $('#playLv').textContent = `— Level ${next} —`; $('#hmCardLv').textContent = `Level ${next}`;
     $('#hmName').textContent = save.name || 'Diver'; $('#hmAva').textContent = (save.name || 'D')[0].toUpperCase(); $('#hmStars').textContent = totalStars(); $('#hmLvl').textContent = next;
     $('#hmDot').hidden = claimableCount() === 0; syncCoins(); syncDiveBtn();
   }
@@ -3778,7 +3787,16 @@ window.__T = T;
   function wipeTo(fn, ev) { const w = $('#wipe'); if (!w || REDUCED_MOTION || w.classList.contains('in')) { fn(); return; }
     const x = ev && ev.clientX ? ev.clientX : innerWidth / 2, y = ev && ev.clientY ? ev.clientY : innerHeight / 2; w.style.setProperty('--x', x + 'px'); w.style.setProperty('--y', y + 'px');
     w.classList.add('in'); Audio.play('bubble'); setTimeout(() => { try { fn(); } finally { setTimeout(() => w.classList.remove('in'), 90); } }, 380); }
-  function openHome() { setPeekSafe(); Audio.setTension(0); setState('menu'); go('home'); showMenuScene(); reefProgress(); homeLayout(); idleThumbs(); }
+  function openHome() { setPeekSafe(); Audio.setTension(0); setState('menu'); go('home'); showMenuScene(); reefProgress(); homeCard(); homeLayout(); idleThumbs(); }
+  // phone portrait home (the owner's mockup): painted backdrop, waving diver, and a card with a photo of the next level's tank.
+  // The 3D scene is hidden behind it there, so the frame loop holds instead of rendering.
+  const HM3 = matchMedia('(max-width: 760px) and (orientation: portrait)'); let cardKey = '';
+  function homeCard() { const n = Math.min(save.unlocked, LEVELS.length); if (!HM3.matches || cardKey === String(n)) return;
+    const prev = world.e; try { const e = new Engine(LEVELS[n - 1]); e.menu = true; e.time = e.oxygen = 1e9; world.loadLevel(e); world.onTick(e, performance.now()); if (world.tankShot($('#hmCardCv'))) cardKey = String(n); }
+    catch (er) {} finally { if (prev) { world.loadLevel(prev); world.onTick(prev, performance.now()); } } }
+  try { HM3.addEventListener('change', () => { if ($('#home').classList.contains('on')) homeCard(); }); } catch (er) {}
+  if (UI && UI.home_diver) $('#hmDiver').src = UI.home_diver; else $('#hmDiver').hidden = true;
+  $('#hmCard').onclick = ev => $('#btnPlay').onclick(ev);
   // wide screens: the menu column sits on the left, so the menu camera moves the tank into the free space on the right
   function homeLayout() { let sh = 0, lift; const home = $('#home');
     if (world.menuMode && home.classList.contains('on')) { const col = $('.hm-col').getBoundingClientRect(), nav = $('.hm-nav').getBoundingClientRect(), top = $('.hm-top').getBoundingClientRect();
@@ -4444,7 +4462,10 @@ window.__T = T;
   }
 
   // ---- buttons ----
-  function unlock() { if (state !== 'splash' || (typeof booting !== 'undefined' && booting)) return; Audio.init(); Audio.resume(); Audio.setMusic(save.settings.music); Audio.setMuted(false); tryFullscreen(); if (!save.introSeen) startCine(); else openHome(); }
+  // the title opens on finger-up; the browser's click that follows would land on whatever menu button is now under the finger
+  // (it started a level straight from the title), so swallow clicks for a moment after it
+  let clickGuard = false; document.addEventListener('click', ev => { if (clickGuard) { clickGuard = false; ev.stopPropagation(); ev.preventDefault(); } }, true);
+  function unlock() { if (state !== 'splash' || (typeof booting !== 'undefined' && booting)) return; clickGuard = true; setTimeout(() => { clickGuard = false; }, 0); /* the click is already queued behind this pointerup, so it runs before this timer */ Audio.init(); Audio.resume(); Audio.setMusic(save.settings.music); Audio.setMuted(false); tryFullscreen(); if (!save.introSeen) startCine(); else openHome(); }
   $('#splash').addEventListener('pointerup', unlock);
   $('#btnPlay').onclick = ev => { click(); buzz(10); wipeTo(() => startLevel(Math.min(save.unlocked, LEVELS.length) - 1), ev); };
   $('#btnDive').onclick = () => { click(); beginPlay(); };
@@ -4549,7 +4570,7 @@ window.__T = T;
     }
     // the 3D world holds still while a screen covers it (level map, menus, pause, results): draw one fresh frame for the
     // blurred backdrop, then stop re-rendering until the screen closes. Saves the whole GPU budget on those screens.
-    const covered = state !== 'playing' && state !== 'cine' && state !== 'replay' && !!document.querySelector('.screen.sheet.on, #levels.on');
+    const covered = state !== 'playing' && state !== 'cine' && state !== 'replay' && (!!document.querySelector('.screen.sheet.on, #levels.on') || (state === 'menu' && HM3.matches && $('#home').classList.contains('on')));
     if (covered && heldFrame && !heldDirty) { lastHeld = now; return; }
     heldFrame = covered; heldDirty = false;
     if (TUT.on) tutPlace();

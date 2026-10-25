@@ -989,6 +989,90 @@ body:not([data-state="over"]) #clearStamp { display: none; }
 /* result card: the diver stands proudly beside the score (computers) */
 @media (orientation: landscape) and (min-width: 760px) and (min-height: 560px) { .res-mascot:not([hidden]) { left: auto; right: -0.6rem; bottom: -0.4rem; width: 8.5rem; height: 8.5rem; transform: none; } .res-l { position: relative; } }
 @media (prefers-reduced-motion: reduce) { .gs-title, .gs-tap, #splash::after, #wipe .wp-b i { animation: none !important; } #clearStamp.on { animation: none; opacity: 1; } .cs-stars i.show { animation: none; transform: none; } }
+
+/* ===== Home v3: the owner's phone mockup (phone portrait only). Painted backdrop + rays + bubbles, waving diver, a framed photo of the
+   next level, gold Continue pill on a rock ledge, navy Daily Dive bar, purple How to Play + blue Intro, navy tab bar. ===== */
+.hm3-bg, .hm3-stage, .play-big .pl2 { display: none; }
+/* the mockup's colours on every screen size (layout stays per size) */
+#home .hm-daily { color: #fff; background: linear-gradient(180deg, rgba(26, 44, 96, 0.94), rgba(14, 26, 66, 0.94)); border: 2px solid rgba(130, 160, 235, 0.45); box-shadow: 0 0.5rem 1.2rem rgba(0, 10, 40, 0.4), inset 0 1px 0 rgba(255,255,255,0.14); }
+#home .hm-daily small { color: rgba(214, 226, 255, 0.82); } #home .hm-daily.locked { filter: none; opacity: 1; }
+#home .hm-ava { background: radial-gradient(circle at 35% 30%, #a77bff, #6a2fe0 70%); border: 3px solid #ffc83a; color: #fff; }
+#home .hm-nav { background: linear-gradient(180deg, rgba(20, 34, 78, 0.95), rgba(10, 20, 54, 0.97)); border-color: rgba(120, 155, 230, 0.4); }
+@media (max-width: 760px) and (orientation: portrait) {
+  #home { background: #0a3f8a; }
+  #home .hm3-bg { display: block; position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+    background: linear-gradient(180deg, rgba(6, 46, 120, 0.45) 0%, rgba(20, 150, 210, 0.08) 28%, rgba(8, 70, 150, 0.2) 58%, rgba(5, 28, 78, 0.78) 84%, rgba(4, 18, 56, 0.92) 100%),
+      var(--bgphoto, linear-gradient(180deg, #2fb4ef, #0a3f8a)) 50% 0% / auto 122% no-repeat, #0a3f8a; }
+  #home .hm3-rays { position: absolute; left: -20%; right: -20%; top: -5%; height: 62%; background: repeating-linear-gradient(102deg, rgba(190, 245, 255, 0.13) 0 1.1rem, transparent 1.1rem 4.4rem);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,0.5) 45%, transparent 100%); mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,0.5) 45%, transparent 100%);
+    filter: blur(6px); mix-blend-mode: screen; animation: hm3rays 14s ease-in-out infinite alternate; }
+  #home .hm3-bub { position: absolute; inset: 0; opacity: 0.8;
+    background-image: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.9) 0 1px, rgba(190,240,255,0.35) 2px, transparent 4px), radial-gradient(circle at 35% 30%, rgba(255,255,255,0.85) 0 1.5px, rgba(190,240,255,0.3) 3px, transparent 6px);
+    background-size: 9rem 13rem, 14rem 19rem; background-position: 1rem 0, 6rem 4rem; animation: hm3bub 18s linear infinite; }
+  #home .hm3-coral { position: absolute; bottom: -1.5rem; width: 46vw; height: 30vw; background: var(--ui-coral) center bottom / contain no-repeat; filter: blur(2.5px) saturate(1.15); opacity: 0.95; }
+  #home .hm3-coral.l { left: -12vw; transform: rotate(8deg); } #home .hm3-coral.r { right: -12vw; transform: scaleX(-1) rotate(8deg); }
+  @keyframes hm3rays { from { transform: translateX(-3%) skewX(-2deg); opacity: 0.85; } to { transform: translateX(3%) skewX(2deg); opacity: 1; } }
+  @keyframes hm3bub { from { background-position: 1rem 0, 6rem 4rem; } to { background-position: 2rem -13rem, 5rem -15rem; } }
+
+  /* top bar: navy glass pills, purple avatar with a gold ring, cream settings tile */
+  #home .hm-chip, #home .hm-coins { background: linear-gradient(180deg, rgba(18, 36, 86, 0.9), rgba(10, 22, 60, 0.9)); border: 2px solid rgba(120, 160, 240, 0.45); box-shadow: 0 0.4rem 1rem rgba(0, 10, 40, 0.35), inset 0 1px 0 rgba(255,255,255,0.15); }
+  #home .hm-ava { background: radial-gradient(circle at 35% 30%, #a77bff, #6a2fe0 70%); border: 3px solid #ffc83a; color: #fff; box-shadow: 0 0 0 2px rgba(10, 22, 60, 0.9); }
+
+  /* column: logo · stage (diver + level card) · Continue · Daily Dive · How to Play / Intro */
+  #home .hm-col { top: calc(var(--safe-t) + 4.3rem); bottom: calc(var(--safe-b) + 7.4rem); }
+  #home .hm-kicker { display: none; }
+  .ui-art #home .hm-title, #home .hm-title { width: min(62vw, 19.5rem); }
+  #home .hm3-stage { display: block; position: relative; width: 100%; flex: 1 1 auto; min-height: 11rem; max-height: 22rem; margin: -0.8rem 0 0.2rem; }
+  #home .hm3-diver { position: absolute; left: -3vw; top: -0.4rem; bottom: 0; height: calc(100% + 0.4rem); width: 58vw; object-fit: contain; object-position: left center; z-index: 2; pointer-events: none;
+    filter: drop-shadow(0 0.7rem 1.1rem rgba(0, 18, 60, 0.5)); transform-origin: 30% 60%; animation: hm3float 4.4s ease-in-out infinite; }
+  @keyframes hm3float { 0%, 100% { transform: translateY(-0.35rem) rotate(-2deg); } 50% { transform: translateY(0.35rem) rotate(1.5deg); } }
+  #home .hm3-card { position: absolute; right: 3.5vw; top: 54%; transform: translateY(-50%); width: 48vw; max-width: 19rem; aspect-ratio: 3 / 2; padding: 0.3rem; border-radius: 1.15rem; z-index: 1;
+    background: linear-gradient(180deg, rgba(40, 130, 230, 0.6), rgba(10, 40, 110, 0.75)); border: 3px solid #86e8ff;
+    box-shadow: 0 0 0 2px rgba(16, 50, 130, 0.85), 0 0 1.3rem rgba(90, 215, 255, 0.75), 0 0.8rem 1.6rem rgba(0, 15, 50, 0.5); }
+  #home .hm3-card:active { transform: translateY(-50%) scale(0.97); }
+  #home .hm3-shot { display: block; width: 100%; height: 100%; border-radius: 0.8rem; overflow: hidden; background: #0b3a7a; box-shadow: inset 0 0 0 1px rgba(0, 20, 60, 0.5); }
+  #home .hm3-shot canvas { display: block; width: 100%; height: 100%; object-fit: cover; }
+  #home .hm3-tab { position: absolute; top: -1.15rem; left: 50%; transform: translateX(-50%); z-index: 2; padding: 0.15rem 1.15rem 0.2rem; border-radius: 0.75rem; white-space: nowrap;
+    font-family: var(--display); font-size: 1.2rem; color: #fff; text-shadow: 0 2px 2px rgba(0, 10, 40, 0.6);
+    background: linear-gradient(180deg, #1d4496, #0d2766); border: 2px solid #86e8ff; box-shadow: 0 0 0.7rem rgba(90, 215, 255, 0.6); }
+
+  #home .hm-cta { position: relative; isolation: isolate; width: min(100% - 2.2rem, 26rem); gap: 0.7rem; margin-top: 0.2rem; }
+  #home .hm-cta .kbd-hint { display: none; }
+  #home .hm-cta::before { content: ""; position: absolute; z-index: -1; left: 3%; right: 3%; top: 3.2rem; height: 2.7rem; border-radius: 1.4rem 1.4rem 50% 50% / 1rem 1rem 1.7rem 1.7rem; /* the rock ledge the pill sits on */
+    background: radial-gradient(ellipse at 30% 30%, rgba(120, 150, 190, 0.5), transparent 40%), radial-gradient(ellipse at 75% 40%, rgba(110, 140, 180, 0.4), transparent 38%), linear-gradient(180deg, #4b5d80 0%, #2a3756 40%, #151d36 100%);
+    box-shadow: 0 0.6rem 1.2rem rgba(0, 8, 30, 0.55), inset 0 2px 0 rgba(170, 200, 240, 0.35); }
+  #home #btnPlay { align-self: center; width: 80%; min-height: 5.1rem; }
+  #home #btnPlay #playSub { display: none; }
+  #home #btnPlay .pl2 { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+  #home #btnPlay #playMain { font-family: var(--display); font-weight: 400; font-size: 2.45rem; color: #4a2604; letter-spacing: 0.01em; }
+  #home #btnPlay #playLv { margin-top: 0.15rem; font-family: var(--display); font-size: 1.05rem; color: #7a4510; letter-spacing: 0.02em; }
+  #home .hm-daily { min-height: 3.9rem; color: #fff; background: linear-gradient(180deg, rgba(26, 44, 96, 0.94), rgba(14, 26, 66, 0.94)); border: 2px solid rgba(130, 160, 235, 0.45);
+    box-shadow: 0 0.5rem 1.2rem rgba(0, 10, 40, 0.4), inset 0 1px 0 rgba(255,255,255,0.14); }
+  #home .hm-daily small { color: rgba(214, 226, 255, 0.82); }
+  #home .hm-daily.locked { filter: none; opacity: 1; } #home .hm-daily.locked .dd-ic { filter: saturate(0.75); }
+  #home .hm-sec { gap: 0.7rem; }
+  #home .sec-btn { min-height: 3.7rem; justify-content: flex-start; padding-left: 0.55rem; }
+  #home .sec-btn b { font-size: 1.2rem; white-space: nowrap; text-shadow: 0 2px 2px rgba(0, 10, 40, 0.45); }
+  #home .sec-btn .ic { width: 2.7rem; height: 2.7rem; border-radius: 0.7rem; flex: none; box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 2px 0 rgba(0,0,0,0.18); }
+  #home .sec-btn.c-how { background: linear-gradient(180deg, #a66bff, #6c2fe6); border: 2px solid rgba(214, 186, 255, 0.75); box-shadow: 0 0.3rem 0 #4b1aa6, 0 0.6rem 1.2rem rgba(30, 0, 80, 0.4); }
+  #home .sec-btn.c-how .ic { background: linear-gradient(180deg, #c49bff, #8a55f5); }
+  #home .sec-btn.c-intro { background: linear-gradient(180deg, #3fa6ff, #1c62e8); border: 2px solid rgba(176, 218, 255, 0.8); box-shadow: 0 0.3rem 0 #1546aa, 0 0.6rem 1.2rem rgba(0, 20, 80, 0.4); }
+  #home .sec-btn.c-intro .ic { background: linear-gradient(180deg, #ff9a66, #f0483a); }
+
+  /* tab bar: deep navy panel, big art icons, thin dividers, red badge on Rewards */
+  #home .hm-nav { padding: 0.6rem 0.3rem 0.55rem; border-radius: 1.7rem; background: linear-gradient(180deg, rgba(20, 34, 78, 0.95), rgba(10, 20, 54, 0.97)); border: 2px solid rgba(120, 155, 230, 0.4); }
+  #home .hm-big .ic { width: 4rem; height: 3.6rem; }
+  #home .hm-big b { font-size: 1.15rem; }
+}
+@media (max-width: 760px) and (orientation: portrait) and (max-height: 760px) { /* short phones (SE / mini): everything a notch smaller so nothing runs under the tab bar */
+  #home .hm-col { top: calc(var(--safe-t) + 3.6rem); bottom: calc(var(--safe-b) + 6.4rem); }
+  #home .hm3-stage { min-height: 6.5rem; margin-top: -0.6rem; } #home .hm-cta { gap: 0.45rem; } #home #btnPlay { min-height: 4rem; width: 74%; } #home #btnPlay #playMain { font-size: 1.85rem; } #home #btnPlay #playLv { font-size: 0.9rem; }
+  #home .hm-cta::before { top: 2.5rem; height: 2.2rem; }
+  #home .hm-daily, #home .sec-btn { min-height: 3rem; } #home .hm-daily .dd-ic { width: 2.3rem; height: 2.3rem; } #home .hm-daily b { font-size: 1.2rem; } #home .sec-btn .ic { width: 2.2rem; height: 2.2rem; } #home .sec-btn b { font-size: 1.05rem; }
+  .ui-art #home .hm-title, #home .hm-title { width: min(50vw, 15rem); }
+  #home .hm-nav { padding: 0.35rem 0.2rem 0.3rem; } #home .hm-big .ic { width: 3.1rem; height: 2.7rem; } #home .hm-big b { font-size: 0.95rem; }
+}
+@media (prefers-reduced-motion: reduce) { #home .hm3-rays, #home .hm3-bub, #home .hm3-diver { animation: none !important; } }
 </style>
 </head>
 <body data-state="splash">
@@ -1048,6 +1132,7 @@ body:not([data-state="over"]) #clearStamp { display: none; }
 </section>
 
 <section id="home" class="screen gs-screen">
+  <div class="hm3-bg" aria-hidden="true"><i class="hm3-rays"></i><i class="hm3-bub"></i><i class="hm3-coral l"></i><i class="hm3-coral r"></i></div>
   <header class="hm-top">
     <button class="hm-chip" data-go="profile" aria-label="Your profile"><span class="hm-ava" id="hmAva">D</span><span class="hm-who"><b id="hmName">Diver</b><small><i class="st">★</i> <span id="hmStars">0</span> · Level <span id="hmLvl">1</span></small></span></button>
     <div class="hm-right">
@@ -1057,11 +1142,12 @@ body:not([data-state="over"]) #clearStamp { display: none; }
   </header>
   <div class="hm-col">
     <div class="hm-logo"><h1 class="title hm-title"><span>Aqua</span><span>Energizer</span></h1><p class="hm-kicker">Dig · Push · Breathe · Escape</p></div>
+    <div class="hm3-stage"><img class="hm3-diver" id="hmDiver" alt="" aria-hidden="true"><button class="hm3-card" id="hmCard" type="button" aria-label="Play the current level"><span class="hm3-tab" id="hmCardLv">Level 1</span><span class="hm3-shot"><canvas id="hmCardCv" width="480" height="320"></canvas></span></button></div>
     <div class="hm-cta">
-      <button class="play-big hm-play" id="btnPlay"><b id="playSub">Continue · Level 1</b><svg class="i pl-arrow" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg></button>
+      <button class="play-big hm-play" id="btnPlay"><b id="playSub">Continue · Level 1</b><span class="pl2"><b id="playMain">Continue</b><small id="playLv">— Level 1 —</small></span><svg class="i pl-arrow" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg></button>
       <p class="kbd-hint desk-only"><kbd>Enter</kbd> · Continue</p>
       <button class="hm-daily" id="btnDaily"><span class="dd-ic">☀</span><span class="dd-t"><b>Daily Dive</b><small id="ddSub">New puzzle today</small></span><span class="dd-go" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></button>
-      <div class="hm-sec"><button class="sec-btn c-how" data-go="how"><span class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.2 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5M12 17.5h.01"/></svg></span><b>How to</b></button><button class="sec-btn c-intro" id="btnIntro2"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg></span><b>Intro</b></button></div>
+      <div class="hm-sec"><button class="sec-btn c-how" data-go="how"><span class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.2 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5M12 17.5h.01"/></svg></span><b>How to Play</b></button><button class="sec-btn c-intro" id="btnIntro2"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg></span><b>Intro</b></button></div>
     </div>
   </div>
   <nav class="hm-nav" aria-label="Menu">

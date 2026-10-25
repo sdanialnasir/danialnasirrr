@@ -424,3 +424,17 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - **Boot guard** (inline script before the game scripts in index.html): no WebGL → a plain message + Reload on the loader (the test
   context is released at once); an uncaught error while the loader is up → "Something went wrong while loading" + Reload.
 - Low-tier film night overlay (`#cineDark`) multiplies deep blue instead of a flat navy wash.
+
+## Home v3 = the owner's phone mockup (phone portrait) + cyan water
+- **Phone portrait home** (`@media (max-width: 760px) and (orientation: portrait)`, "Home v3" block at the end of the `<style>`): painted
+  backdrop (`--bgphoto`, cyan haze, CSS light rays + rising bubbles, blurred corals in the bottom corners), the logo, the owner's waving
+  diver (`ui/home_diver.webp`, cut out of the mockup with rembg isnet-anime; `#hmDiver`, floats), a **level card** (`#hmCard`: "Level N"
+  tab, glowing cyan frame, a photo of the next level's tank in `#hmCardCv` taken by `world.tankShot(cv)` through the shared context;
+  `homeCard()` loads that level for one frame and restores the menu scene; cached per level in `cardKey`), a two-line gold
+  "Continue / — Level N —" pill (`#playMain`, `#playLv`; `#playSub` is the one-line version for other sizes) on a rock ledge, navy Daily
+  Dive bar, purple How to Play + blue Intro, navy tab bar. The 3D scene is fully covered there, so the frame loop holds (`HM3`).
+  Other sizes keep their layout but take the mockup's colours (navy Daily Dive, purple/gold avatar, navy nav).
+- **Title tap ghost click fixed:** the title opens on pointerup and the following click used to hit the menu button under the finger
+  (it started a level). `clickGuard` swallows exactly that one click.
+- **Water toward cyan:** `WORLD_STYLE` lo/hi shifted (shallows lo .04,.42,.64 / hi .2,.84,.97; caves and the deep a touch cyan too),
+  scene background 0x138ccf, fog 0x0a5a8f.
