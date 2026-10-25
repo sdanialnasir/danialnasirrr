@@ -393,3 +393,14 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - **Phones, level start:** the camera shows the whole tank for ~1.5 s with the level name, then glides to the diver (first move ends it).
 - Title: logo floats, "Tap to start" pulses, bubbles drift up behind. Level-1 coach drops its "Swim in!" word when the gate is open
   (the gate marker already says it). Result card (computers): the diver stands beside the score.
+
+## AAA pass: props + real-audio drop-in
+- **Stones** (`makeBoulder`): sculpted sphere (lumps + a few chisel planes, smooth normals), the sheet rocks' cyan vein pattern
+  (`rockWebTex`: tiling Voronoi, veins fade in and out) sampled triplanar in the stone's own space so it rolls with it, darker
+  underside (vertex colour), three flat barnacles merged into the same mesh. Still one mesh + one material for every stone.
+- **Air capsules** (`makeAir`): glass soap-bubble shell (`MAT.airShell`: fresnel rim, clear middle, iridescence), window highlight
+  sprite, cyan inner glow, crisp O₂ badge, three tiny bubbles rising inside; bob + jelly wobble in the update loop.
+- **Real sound files:** `src/assets/sfx/<name>.mp3` (variants `<name>_2.mp3` …) replace that synthesized sound (random variant,
+  ±4% pitch); `src/assets/music/ambience.mp3` loops instead of the synth chords (swell/tension still act through `padF`).
+  `build_assets.py` embeds them as `AQ_DATA.SFX` / `AQ_DATA.MUSIC`. Names + prompts: `docs/sound-list.md`. Debug: `__dc.aud.files`.
+- Close-up audits must set `camera.near` low (the game camera's near plane is 2, so a camera closer than that cuts through objects).
