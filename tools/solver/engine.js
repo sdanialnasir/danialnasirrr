@@ -115,7 +115,9 @@ class Engine {
     if (this.state !== 'playing') { this.physics(); this.monsters(); return; }
 
     // oxygen (relaxed mode, an accessibility option, never runs out)
-    if (!this.relaxed) this.oxygen -= this.tickMs / 1000;
+    // the air clock starts with the player's first move, so reading the level (or a tutorial) costs nothing
+    if (!this.begun && (this.moveQueue.length || this.held)) { this.begun = true; this.begunAt = this.tick - 1; }
+    if (!this.relaxed && this.begun) this.oxygen -= this.tickMs / 1000;
     if (this.oxygen <= 0) { this.oxygen = 0; this.die('oxygen'); return; }
 
     // player

@@ -118,7 +118,9 @@ class Engine {
     if (this.state !== 'playing') { this.physics(); this.monsters(); return; }
 
     // oxygen (relaxed mode, an accessibility option, never runs out)
-    if (!this.relaxed) this.oxygen -= this.tickMs / 1000;
+    // the air clock starts with the player's first move, so reading the level (or a tutorial) costs nothing
+    if (!this.begun && (this.moveQueue.length || this.held)) { this.begun = true; this.begunAt = this.tick - 1; }
+    if (!this.relaxed && this.begun) this.oxygen -= this.tickMs / 1000;
     if (this.oxygen <= 0) { this.oxygen = 0; this.die('oxygen'); return; }
 
     // player
@@ -3854,7 +3856,7 @@ window.__T = T;
     // 5. the gate wakes: a ring of light, the pearl-lights pour back, the reef relights
     if (E.gate && E.gate.open && c.gateAt === null) { c.gateAt = T; shot('gate'); Audio.play('wake'); world.cineWake(); world.cineFlash(0.7); say('vo8'); }
     if (c.gateAt !== null) { const k = T - c.gateAt; world.storyDim = ramp(1.3, 0, 0.2, 2.2, k); F.glow = ramp(0, 1, 0.3, 2.4, k); F.lamp = ramp(1, 0, 0.6, 1.6, k); }
-    $('#cineDark').style.opacity = world.post && world.post.enabled ? 0 : (world.nightK || 0) * 0.72; // low tier: no post pass, darken with an overlay
+    $('#cineDark').style.opacity = world.post && world.post.enabled ? 0 : (world.nightK || 0) * 0.92; // low tier: no post pass, darken with an overlay
     acc += Math.min(250, realDt * 1000);
     while (acc >= E.tickMs) { acc -= E.tickMs; E.step();
       for (const v of E.events) { if (v.type === 'dig') once('v5', () => say('vo5')); if (v.type === 'push' && v.t === T_BALL) once('v7', () => say('vo7')); }
@@ -4009,7 +4011,7 @@ window.__T = T;
     0: [{ at: 'player', id: 't1a', text: 'This is you, the diver!' },
         { at: 'ball', id: 't1b', text: 'This red pearl is full of light.' },
         { at: 'gate', id: 't1c', text: 'Push the pearl into the gate to wake it up.' },
-        { at: '#hud .air', id: 't1d', text: 'This is your air. Finish before it runs out!' },
+        { at: '#hud .air', id: 't1d', text: 'This is your air. It starts when you move, so look first. Finish before it runs out!' },
         { at: 'player', id: 't1e', text: () => touchUI() ? 'Swipe to swim. Swim into sand to dig through it.' : 'Use the arrow keys to swim. Swim into sand to dig through it.' }],
     1: [{ at: 'rock', id: 't2a', text: 'This is a stone. Take away the sand under it, and it falls.' },
         { at: 'player', id: 't2b', text: 'Never stand right under a stone!' }],
@@ -4281,7 +4283,7 @@ window.__T = T;
       const tick = (now) => { const k = Math.min(1, (now - t0 - 250) / 1000); if (k > 0) el.textContent = Math.round(total * (1 - Math.pow(1 - k, 3))).toLocaleString(); if (k < 1 && resultShown) requestAnimationFrame(tick); else el.textContent = total.toLocaleString(); };
       if (REDUCED_MOTION) el.textContent = total.toLocaleString(); else requestAnimationFrame(tick); } save.stats.dug += engine.dug || 0; weekBump('dig', engine.dug || 0);
     if (D.played !== D.key) { D.played = D.key; weekBump('daily'); }
-    if (won) { const t = Math.round(engine.wonAt * engine.tickMs / 100) / 10, air = Math.round((engine.time - engine.oxygen) * 10) / 10, prev = D.best, first = !prev;
+    if (won) { const t = Math.round((engine.wonAt - (engine.begunAt || 0)) * engine.tickMs / 100) / 10, /* race time from the first move */ air = Math.round((engine.time - engine.oxygen) * 10) / 10, prev = D.best, first = !prev;
       const better = !prev || t < prev.t; if (better) D.best = { t, air: prev ? Math.min(prev.air, air) : air }; else D.best.air = Math.min(D.best.air, air);
       $('#resBest').hidden = !(prev && t < prev.t); $('#resTitle').textContent = first ? 'Daily Dive cleared!' : better ? 'Faster!' : 'Cleared!';
       $('#resStats').innerHTML = `<div class="stat"><b>${t.toFixed(1)}s</b><span>dive time</span></div><div class="stat"><b>${air.toFixed(1)}s</b><span>air used</span></div><div class="stat"><b>${D.best.t.toFixed(1)}s</b><span>today's best</span></div>`;

@@ -416,3 +416,11 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - **Feedback:** air capsule pickup shows "+45s air" + a cyan burst; undo blinks the screen edge blue (`#fx.rewind`) and puffs bubbles
   around the diver; the result score rolls up (1 s ease-out, after a 0.25 s beat). "Watch best run" button label is now "Best run"
   (aria-label keeps the full text) so it fits on one line on phones.
+
+## Launch-readiness pass (first-run audit)
+- **Air starts on the first move** (`Engine.begun`, set when a move is queued or held): reading the level card, the spotlight tutorial
+  or the coach no longer costs air (a new player lost 10 s on level 1 before moving). Daily Dive race time counts from the first move
+  too (`begunAt`). Routes are unaffected (they move at tick 0); `tools/solver/engine.js` regenerated. Tutorial air line says so.
+- **Boot guard** (inline script before the game scripts in index.html): no WebGL → a plain message + Reload on the loader (the test
+  context is released at once); an uncaught error while the loader is up → "Something went wrong while loading" + Reload.
+- Low-tier film night overlay (`#cineDark`) multiplies deep blue instead of a flat navy wash.
