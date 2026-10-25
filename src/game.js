@@ -701,10 +701,17 @@ const Audio = (() => {
     musicBus = ctx.createGain(); musicBus.gain.value = settings.music; musicBus.connect(master);
     sfxBus = ctx.createGain(); sfxBus.gain.value = settings.sfx; sfxBus.connect(master);
     ambBus = ctx.createGain(); ambBus.gain.value = 0.5; ambBus.connect(master);
-    // underwater reverb-ish: a gentle feedback delay on the sfx bus
-    const delay = ctx.createDelay(0.5); delay.delayTime.value = 0.18;
-    const fb = ctx.createGain(); fb.gain.value = 0.25;
-    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1200;
+    // underwater space: a soft generated reverb (stereo decaying noise, darker as it fades) under every sound effect,
+    // plus a faint short echo off the tank glass
+    try { const n = Math.floor(ctx.sampleRate * 2.4), ir = ctx.createBuffer(2, n, ctx.sampleRate);
+      for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); let lpv = 0, e = 0;
+        for (let i = 0; i < n; i++) { const t = i / ctx.sampleRate, a = 0.9 - 0.75 * Math.min(1, t / 1.8); lpv += (Math.random() * 2 - 1 - lpv) * a; d[i] = lpv * Math.exp(-t * 2.6) * Math.min(1, t * 90); e += d[i] * d[i]; }
+        const g = 1 / Math.sqrt(e || 1); for (let i = 0; i < n; i++) d[i] *= g; } /* unit energy: the wet level is set by 'wet' alone */
+      const conv = ctx.createConvolver(); conv.buffer = ir; const pre = ctx.createBiquadFilter(); pre.type = 'lowpass'; pre.frequency.value = 2600;
+      const wet = ctx.createGain(); wet.gain.value = 0.32; sfxBus.connect(pre); pre.connect(conv); conv.connect(wet); wet.connect(master); } catch (er) {}
+    const delay = ctx.createDelay(0.5); delay.delayTime.value = 0.13;
+    const fb = ctx.createGain(); fb.gain.value = 0.12;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1000;
     sfxBus.connect(delay); delay.connect(lp); lp.connect(fb); fb.connect(delay); lp.connect(master);
     ambient(); loadFiles();
   }
@@ -3078,7 +3085,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         for (let i = 0; i < 90; i++) { const sp = new THREE.Sprite(mk([0xff8a3a, 0xffc94a, 0xff5a2a, 0x7ff0ff][i % 4])); sp.visible = false; sp.renderOrder = 7; this.scene.add(sp); this.cineGlow.push({ sp, ph: Math.random() * 6.28, sz: 0.3 + Math.random() * 0.45, sp0: 0.15 + Math.random() * 0.3 }); }
         const lm = new THREE.SpriteMaterial({ map: TEX.dot, color: 0xfff1c0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
         this.lampGlow = new THREE.Sprite(lm); this.lampBeam = new THREE.Sprite(lm.clone()); for (const l of [this.lampGlow, this.lampBeam]) { l.visible = false; l.renderOrder = 7; this.scene.add(l); }
-        this.wakeRing = new THREE.Mesh(new THREE.RingGeometry(0.8, 1, 64), new THREE.MeshBasicMaterial({ color: 0xbfffe8, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); this.wakeRing.visible = false; this.wakeRing.renderOrder = 7; this.scene.add(this.wakeRing); }
+        { const [c, g] = canvas(256), gr = g.createRadialGradient(128, 128, 0, 128, 128, 128); /* a soft light ring: faint fill, cyan glow, white-hot edge */
+          gr.addColorStop(0, 'rgba(120,230,255,0)'); gr.addColorStop(0.55, 'rgba(120,230,255,0.08)'); gr.addColorStop(0.8, 'rgba(110,225,255,0.55)'); gr.addColorStop(0.9, 'rgba(235,255,255,1)'); gr.addColorStop(0.95, 'rgba(140,235,255,0.5)'); gr.addColorStop(1, 'rgba(120,230,255,0)');
+          g.fillStyle = gr; g.fillRect(0, 0, 256, 256); TEX.ringGlow = tex(c); }
+        const rm = () => new THREE.MeshBasicMaterial({ map: TEX.ringGlow, color: 0xe8fff8, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+        this.wakeRing = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 2.1), rm()); this.wakeRing.visible = false; this.wakeRing.renderOrder = 7; this.scene.add(this.wakeRing);
+        this.wakeRing2 = new THREE.Mesh(this.wakeRing.geometry, rm()); this.wakeRing2.visible = false; this.wakeRing2.renderOrder = 7; this.scene.add(this.wakeRing2); }
       const e = this.e, W = e ? e.w : 12, H = e ? e.h : 7;
       // menu: every gate the player has woken sends one more pearl-light drifting through the tank (gate collection)
       const ml = !on && this.menuMode ? Math.min(this.cineGlow.length, this.reefLights || 0) : 0, FF = on ? F : { glow: 0.8, storm: 0 };
@@ -3096,7 +3108,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       else if (this.lampGlow) this.lampGlow.visible = this.lampBeam.visible = false;
       // the gate waking: a ring of light racing outward
       const wt = this.wakeT !== undefined && (on || this.wakePlay) ? t - this.wakeT : 99, wsc = this.wakeScale || 9;
-      if (wt < 1.6 && e && e.gate) { const k = wt / 1.6; this.wakeRing.visible = true; this.wakeRing.position.set(e.gate.x, -e.gate.y, 0.8); this.wakeRing.scale.setScalar(0.5 + k * wsc); this.wakeRing.material.opacity = (1 - k) * 0.85; } else this.wakeRing.visible = false;
+      if (wt < 1.6 && e && e.gate) { const k = wt / 1.6; this.wakeRing.visible = true; this.wakeRing.position.set(e.gate.x, -e.gate.y, 0.8); this.wakeRing.scale.setScalar(0.5 + k * wsc); this.wakeRing.material.opacity = (1 - k) * (1 - k * 0.3);
+          const k2 = Math.max(0, (wt - 0.18) / 1.6); this.wakeRing2.visible = k2 > 0 && k2 < 1; this.wakeRing2.position.copy(this.wakeRing.position); this.wakeRing2.scale.setScalar(0.4 + k2 * wsc * 0.7); this.wakeRing2.material.opacity = (1 - k2) * 0.6; }
+        else { this.wakeRing.visible = false; if (this.wakeRing2) this.wakeRing2.visible = false; }
       this.flashK = Math.max(0, (this.flashK || 0) - dt * 3.2); }
     // level-1 coach: a pulsing trail of light along the cells the diver should swim/dig through next (cells: [[x,y],...] or null)
     toScreen(x, y, z = 0.5) { const v = new V3(x, -y, z).project(this.camera); return [(v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight]; }
@@ -3133,7 +3147,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           this.shake = Math.max(this.shake, ev.t === T.ROCK ? 0.12 : 0.07); P.emit(x, y - 0.42, 0.4, 10, { color: SAND, speed: 1.2, life: 0.5, size: 0.1, kind: 1, spread: 0.7 }); this.sfx('land'); break; }
         case 'roll': this.sfx('roll'); break;
         case 'teeter': { const ent = this.entities.get(ev.id); if (ent) ent.teeter = 1; this.sfx('eep'); this.playerMood('surprise', 0.5); this.shake = Math.max(this.shake, 0.06); break; } // grace tick: the stone wobbles, the diver yelps
-        case 'absorb': { this.ringAt(3.2); P.emit(x, y, 0.5, 40, { color: new THREE.Color(1, 0.55, 0.25), speed: 2.6, life: 0.8, size: 0.14 }); P.emit(x, y, 0.5, 30, { color: new THREE.Color(0.5, 0.9, 1), speed: 2, life: 1, size: 0.12 }); this.sfx('absorb'); this.popText(x, y + 0.2, e.ballsIn >= e.ballsTotal ? 'All pearls in!' : `${e.ballsIn}/${e.ballsTotal}`, '#ffb36a'); if (this.onStat && !this.menuMode) this.onStat('pearl'); this.playerMood('joy', 1.25); setTimeout(() => this.sfx('yay'), 260);
+        case 'absorb': { this.ringAt(3.2); P.emit(x, y, 0.5, 40, { color: new THREE.Color(1, 0.55, 0.25), speed: 2.6, life: 0.8, size: 0.14 }); P.emit(x, y, 0.5, 30, { color: new THREE.Color(0.5, 0.9, 1), speed: 2, life: 1, size: 0.12 }); this.sfx('absorb'); if (e.ballsIn < e.ballsTotal) this.popText(x, y + 0.2, `${e.ballsIn}/${e.ballsTotal}`, '#ffb36a'); /* the last one: the 'Swim in!' marker + banner speak instead */ if (this.onStat && !this.menuMode) this.onStat('pearl'); this.playerMood('joy', 1.25); setTimeout(() => this.sfx('yay'), 260);
           const ent = this.entities.get(ev.id); if (ent) { ent.absorbing = { t: 0, from: new V3(ev.fromX, -ev.fromY, 0.05), to: new V3(x, y, 0.3) }; this.entities.delete(ev.id); this.absorbing.push(ent); } break; }
         case 'gateOpen': { this.ringAt(7); if (this.onGateOpen && !this.menuMode && !e.cine) this.onGateOpen(); this.playerMood('joy', 1.25); this.flashFx('flash'); P.emit(x, y, 0.5, 70, { color: new THREE.Color(0.55, 0.95, 1), speed: 3.5, life: 1.3, size: 0.16 }); P.bubbles(x, y, 0.2, 18, 0.12, 0.8); this.sfx('gateOpen'); this.shake = 0.18; break; }
         case 'gateLocked': if (this.onToast && this.time - (this.lastLockToast ?? -9) > 2.5) { this.lastLockToast = this.time; this.onToast(`Deliver all energy first (${e.ballsIn}/${e.ballsTotal})`); } this.sfx('gateLocked'); this.playerMood('bonk', 0.55); this.sfx('hmm'); break;
@@ -3142,8 +3156,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         case 'playerDeath': { P.bubbles(x, y, 0.2, 36, 0.13, 0.8); this.shake = 0.4; this.sfx('death'); this.sfx('aww'); this.setFx('dead');
           if (ev.cause === 'crushed') { P.emit(x, y - 0.3, 0.45, 26, { color: SAND, speed: 1.6, life: 0.9, size: 0.1, kind: 1, spread: 0.5, vy: 0.4 }); P.emit(x, y, 0.5, 14, { color: new THREE.Color(1, 0.95, 0.6), speed: 2.4, life: 0.5, size: 0.13, spread: 0.2 }); this.shake = 0.55; }
           for (const ent of this.entities.values()) if (ent.o.t === T.PLAYER) { ent.ghost = { t: 0, kind: 'player', cause: ev.cause, cx: x, cy: y }; ent.m.userData.baseScale = ent.m.scale.x; this.ghosts.push(ent); this.entities.delete(ent.o.id); } break; }
-        case 'win': { this.flashFx('flash'); this.ringAt(11); for (let i = 0; i < 3; i++) P.emit(x, y + 0.2, 0.6, 26, { color: new THREE.Color(1, 0.78 + i * 0.07, 0.3), speed: 2.2 + i, life: 2, size: 0.2, vy: 1.6 }); /* a fountain of pearl-light */ for (let i = 0; i < 4; i++) P.emit(x, y, 0.5, 30, { color: new THREE.Color().setHSL(Math.random(), 0.85, 0.65), speed: 3.5, life: 1.6, size: 0.15 }); this.sfx('win'); this.sfx('woohoo');
-          for (const ent of this.entities.values()) if (ent.o.t === T.PLAYER) { ent.ghost = { t: 0, kind: 'win', to: new V3(x, y, 0.3) }; this.ghosts.push(ent); this.entities.delete(ent.o.id); } break; }
+        case 'win': { const wx = e.gate ? e.gate.x : x, wy = e.gate ? -e.gate.y : y; this.flashFx('flash'); this.ringAt(11); for (let i = 0; i < 3; i++) P.emit(wx, wy + 0.2, 0.6, 26, { color: new THREE.Color(1, 0.78 + i * 0.07, 0.3), speed: 2.2 + i, life: 2, size: 0.2, vy: 1.6 }); /* a fountain of pearl-light */ for (let i = 0; i < 4; i++) P.emit(wx, wy, 0.5, 30, { color: new THREE.Color().setHSL(Math.random(), 0.85, 0.65), speed: 3.5, life: 1.6, size: 0.15 }); this.sfx('win'); this.sfx('woohoo');
+          for (const ent of this.entities.values()) if (ent.o.t === T.PLAYER) { ent.ghost = { t: 0, kind: 'win', to: e.gate ? new V3(e.gate.x, -e.gate.y, 0.75) : new V3(x, y, 0.75) }; this.ghosts.push(ent); this.entities.delete(ent.o.id); } break; }
       }
     }
 
@@ -3357,7 +3371,14 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.syncEntityShadows();
       // ghosts
       this.ghosts = this.ghosts.filter(ent => { const g = ent.ghost, m = ent.m; g.t += dt;
-        if (g.kind === 'win') { const k = Math.min(1, g.t / 1); m.position.lerp(g.to, Math.min(1, dt * 5)); m.rotation.y += dt * 12; m.scale.setScalar(1.45 * (1 - k * k)); if (k >= 1) { this.levelGroup.remove(m); return false; } return true; }
+        if (g.kind === 'win') { if (g.s0 === undefined) { g.s0 = m.scale.x; g.from = m.position.clone(); } /* a happy hop, then a spiral into the light, leaving sparkles */
+          const k = Math.min(1, g.t / 1.15), hop = Math.sin(Math.min(1, k / 0.45) * Math.PI) * 0.3, mv = 1 - Math.pow(1 - Math.min(1, k / 0.5), 3), /* dash to the gate (ease-out) */
+            sk = Math.max(0, (k - 0.45) / 0.55), ease = sk * sk * (3 - 2 * sk), r = 0.3 * Math.sin(sk * Math.PI), an = g.t * 14; /* then spin down into it */
+          m.position.set(g.from.x + (g.to.x - g.from.x) * mv + Math.cos(an) * r, g.from.y + (g.to.y - g.from.y) * mv + hop + Math.sin(an) * r * 0.5, g.from.z + (g.to.z - g.from.z) * mv);
+          m.rotation.y += dt * (3 + 18 * ease); m.scale.setScalar(g.s0 * (k < 0.45 ? 1 + 0.1 * Math.sin(k / 0.45 * Math.PI) : 1 - ease));
+          const pull = sk;
+          if (pull > 0 && Math.random() < 0.6) this.particles.emit(m.position.x, m.position.y, 0.6, 1, { color: new THREE.Color(1, 0.9, 0.5), speed: 0.4, life: 0.6, size: 0.1, spread: 0.1 });
+          if (k >= 1) { this.levelGroup.remove(m); return false; } return true; }
         if (g.kind === 'monster') { m.position.y -= dt * 1.2; m.rotation.z += dt * 4; const k = Math.min(1, g.t / 0.8); m.scale.setScalar(1 - k); if (k >= 1) { this.levelGroup.remove(m); return false; } return true; }
         return this.animateDeath(ent, dt); });
       this.absorbing = this.absorbing.filter(ent => { const ab = ent.absorbing; ab.t += dt * 2.5; const k = Math.min(1, ab.t); ent.m.position.lerpVectors(ab.from, ab.to, k * k); ent.m.scale.setScalar(1 - k * 0.9); if (k >= 1) { this.levelGroup.remove(ent.m); return false; } return true; });
@@ -4267,7 +4288,7 @@ window.__T = T;
   function pushDaily() { const D = ddSave(); if (!D.best) return; ddWriting = ddWriting.then(async () => { await LB.ready; if (!LB.db || !LB.uid) return;
     try { await LB.db.doc('daily/' + LB.uid).set({ day: D.key, t: D.best.t, air: D.best.air, nick: (save.name || 'Diver').slice(0, 16), suit: save.equip.suit, updatedAt: Date.now() }); } catch (er) { if (er && er.code === 'invalid_argument') LB.readOnly = true; } }); }
   $('#btnDaily').onclick = startDaily;
-  function clearStamp() { const el = $('#clearStamp'); if (!el) return; const won = engine.state === 'won', frac = engine.oxygen / engine.time;
+  function clearStamp() { const el = $('#clearStamp'); if (!el) return; clearTimeout(bannerTimer); $('#lvlBanner').classList.remove('on'); /* the stamp takes the stage: no 'Swim in!' banner under it */ const won = engine.state === 'won', frac = engine.oxygen / engine.time;
     const stars = dive ? 0 : engine.relaxed ? 1 : frac >= 0.6 ? 3 : frac >= 0.3 ? 2 : 1; el.querySelector('b').textContent = dive ? 'Dive complete!' : stars === 3 ? 'Perfect!' : 'Level clear!';
     const st = [...el.querySelectorAll('.cs-stars i')]; st.forEach(s => s.className = ''); el.querySelector('.cs-stars').hidden = !!dive;
     el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');

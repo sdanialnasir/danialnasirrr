@@ -404,3 +404,9 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   ±4% pitch); `src/assets/music/ambience.mp3` loops instead of the synth chords (swell/tension still act through `padF`).
   `build_assets.py` embeds them as `AQ_DATA.SFX` / `AQ_DATA.MUSIC`. Names + prompts: `docs/sound-list.md`. Debug: `__dc.aud.files`.
 - Close-up audits must set `camera.near` low (the game camera's near plane is 2, so a camera closer than that cuts through objects).
+- **Win moment:** the diver dashes to the gate (it starts ~1 cell behind because of the glide), hops, then spins down into the light
+  in front of the gate (z 0.75) with a sparkle trail; the win ring and fountain fire at the gate (the `win` event carries the diver's
+  old cell). The gate/win ring is a soft glowing texture (`TEX.ringGlow`) with a second ring trailing it (`wakeRing2`).
+- No "All pearls in!" pop on the last pearl (it sat on the "Swim in!" marker); the clear stamp hides the gate banner.
+- **SFX reverb:** a generated stereo impulse response (2.4 s, unit energy, darker as it decays) through a ConvolverNode at 0.32 wet,
+  plus a faint short echo; replaces the old slap-back delay.
