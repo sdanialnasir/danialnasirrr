@@ -645,26 +645,7 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   is searched. Best-first toward the goal but complete, so "No way to finish from here" is a proof. Monster levels keep the macro search
   (air ignored there now too, budget 7 s / 60k expansions).
 
-## Progressive difficulty: levels 13–30 rebuilt with a complete solver (owner: "later levels are too easy")
-- **Lineup:** 1–12 unchanged (tutorial + air capsules). 13–30 = 13 new generated puzzles in rising difficulty with 5 kept monster levels
-  as breathers between them: 14 Crossfire, 17 Crab Cave (was 18), 21 Night Shoal (World 3 tip), 24 Gauntlet, 27 Deep Pressure (was 23).
-  New: 13 Middle Pearl, 15 Open Road, 16 Rockfall, 18 Loose Stone, 19 Long Floor, 20 Three in a Row, 22 Step Back, 23 The Long Way,
-  25 Two Steps Back, 26 Keystone Drop, 28 Plugged Pit, 29 Long Haul, 30 The Last Gate. Air = route seconds × 4 + 60 (room to think).
-  Old 12–30 design notes in `tools/solver/redesign/` and `plans.json` describe the previous maps (kept for reference only).
-- **tools/gen/exact.js** — complete solver + difficulty meter for monster-free rooms (same pocket method as the in-game hints). Reports
-  the shortest-decision route, reachable states, dead states (alive diver, no way to win), `traps` and `tempt` (decision points on the
-  route where a move that *looks like progress* — a pearl closer to the gate — silently loses), and `why` (those tempting moves).
-  Rooms with lots of sand explode combinatorially (keep generated rooms compact). Bug fixed while building it: the diver's own square
-  must count as free when checking pushes (he swims off it first), otherwise results depended on where in the pocket he stood.
-- **tools/gen/gen.js** — `node gen.js <seed> <W> <H> <pearls> <iters> <out.jsonl>`: starts from a trivially winnable room (floor + gate,
-  pearls beside it) and hill-climbs it (mutations: rock/sand/stone cells, move a pearl/the gate) keeping only boards that are at rest at
-  the start and proven solvable. Objective: tempting deadlocks + stones moved on purpose + pearls pushed *away* from the gate + stones
-  dropped by digging + how many of those kinds appear, minus moves made while things fall (timing-heavy = unfair on a phone).
-  Lessons: "how long a greedy search wanders" over-rates sandy rooms and jam-only rooms; "tempting traps" alone produces endless
-  "nearest pearl first" puzzles — the preparation terms are what give variety.
-- **tools/gen/curate.js** (best room per run + fall-move check) and **tools/gen/install.js** (`node install.js lineup.json [--dry]`:
-  `{keep: oldIndex}` or `{name,time,hint,map,route}` per slot; replays every route with the real air clock, writes LEVELS + routes.json;
-  appends '.' to routes without one — play_routes.py treats a route with no '.' as a macro route and adds settle ticks).
-- Save v3 resets stars/best/best-run/relic flags of levels 13–30 (they belonged to other maps); progress, coins and outfits stay.
-- Checked: all 30 routes win in the build (play_routes), 0 danger-glow false alarms along every route, a relic in all 30 levels,
-  hints on generated rooms after random off-route moves: 17 found, 4 proven lost (offers a rewind), 1 budget-out.
+## Generated levels: tried and reverted (owner: keep the original levels)
+- Levels 13–30 were briefly replaced by solver-generated rooms (tools/gen/). The owner didn't like them (repetitive, still felt easy),
+  so the original LEVELS + routes are back. **Keep the current 30 levels.** tools/gen/ (exact.js complete solver/difficulty meter,
+  gen.js generator, curate.js, install.js lineup installer) stays for reference only; don't swap levels without the owner asking.
