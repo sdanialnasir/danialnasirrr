@@ -649,3 +649,18 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - Levels 13–30 were briefly replaced by solver-generated rooms (tools/gen/). The owner didn't like them (repetitive, still felt easy),
   so the original LEVELS + routes are back. **Keep the current 30 levels.** tools/gen/ (exact.js complete solver/difficulty meter,
   gen.js generator, curate.js, install.js lineup installer) stays for reference only; don't swap levels without the owner asking.
+
+## Hint cards + rewritten hints and intros (owner: "the introduction texts look off, boring, outdated")
+- **Copy:** every level `hint` was rewritten short and punchy; `**words**` mark the key idea and render gold (`rich()` in the controller
+  escapes HTML, then turns `**x**` into `<b>`). The old one-line `tip` strings are gone: levels with something new now carry
+  `intro: { ic, k, t, d }` (icon kind, kicker like "New creature" / "Twist" / "World 2", title, line) — levels 2, 3, 5, 6, 9, 11, 12, 14, 18, 21.
+  `TUT_STEPS` lines got a label `k` ("New: piranha", "Stay safe"…) and the same `**…**` emphasis.
+- **Look:** level card + pause = a "The trick" tip card (`.tipcard`: gold bulb tile, label, text); the level card's pearls/air chips became an
+  "In this dive" kit row (`#introKit`: pearls, stones, piranhas, jellyfish, crabs, air capsules counted from the map, each with a 3D icon,
+  then the air). The level-start banner shows the intro as a glossy card under the level name (`#lbCard`, 4.6 s, once per level via
+  `tipsSeen`). Tutorial bubble = icon of what it talks about + label pill + text + step dots + gold "Next ›" / "Let's dive ›" pill.
+- **3D icons:** `World.iconShot(kind)` now also renders pearl, fish, jelly, crab and air (plus stone/sand); the controller caches them as
+  CSS variables `--ic-<kind>` (`needIcons`). World intro cards use the coral / crystal UI art.
+- Bug fixed: a spotlight tutorial left open (e.g. restart or home during it) carried over into the next level; `startLevel`/`openHome`
+  now close it. Debug: `__dc.card(i)` opens a level's card.
+- Don't name a class `air` inside cards: the HUD's `.air` styles (air meter) leak onto it.

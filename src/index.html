@@ -1499,6 +1499,56 @@ html body:is(.ui-art, :not(.ui-art)) .rw-vip .rv-go { background: var(--gold-g) 
 html body:is(.ui-art, :not(.ui-art)) .lb-row.top[data-rank="1"] { background: linear-gradient(180deg, rgba(255, 210, 60, 0.45), rgba(200, 120, 0, 0.35)) !important; border-color: #ffd23f !important; }
 html body:is(.ui-art, :not(.ui-art)) .shop-stage { background: radial-gradient(ellipse at 50% 70%, rgba(120, 210, 255, 0.35), transparent 65%), var(--gp2) !important; }
 html body:is(.ui-art, :not(.ui-art)) .rg-bar, html body:is(.ui-art, :not(.ui-art)) .rwb-bar { background: rgba(0, 10, 45, 0.6) !important; box-shadow: inset 0 0.12rem 0.2rem rgba(0, 0, 0, 0.45) !important; border: 0.1rem solid rgba(110, 200, 255, 0.45) !important; }
+
+/* ===== Hint cards: "The trick" tip cards, the "in this dive" kit row, intro cards for new creatures / worlds, a richer tutorial bubble.
+   3D icons are rendered by the game (World.iconShot) into --ic-<kind>; each element gets its own --ic. ===== */
+html body:is(.ui-art, :not(.ui-art)) .tipcard { display: flex !important; align-items: center; gap: 0.85rem; padding: 0.7rem 0.9rem 0.7rem 0.7rem !important; text-align: left; border-radius: 1.2rem !important;
+  background: linear-gradient(180deg, rgba(255, 214, 90, 0.16), rgba(255, 170, 40, 0.06)), var(--gp2) !important; border: 0.16rem solid rgba(255, 214, 110, 0.7) !important;
+  box-shadow: 0 0 0 0.12rem var(--out), inset 0 0.14rem 0 rgba(255, 255, 255, 0.22), 0 0.4rem 1rem rgba(0, 10, 40, 0.35) !important; }
+html body:is(.ui-art, :not(.ui-art)) .tipcard::before { content: none !important; }
+html body:is(.ui-art, :not(.ui-art)) .tc-ic { flex: none; width: 3rem; height: 3rem; border-radius: 0.9rem; background: var(--ui-bulb, none) center / 74% no-repeat, radial-gradient(circle at 40% 30%, #ffe9a0, #ffb52a 60%, #e07a00);
+  box-shadow: 0 0 0 0.12rem #8a4a00, inset 0 0.2rem 0.1rem rgba(255, 255, 255, 0.55), 0 0.3rem 0.6rem rgba(60, 20, 0, 0.35); }
+html body:is(.ui-art, :not(.ui-art)) .tc-t { min-width: 0; } html body:is(.ui-art, :not(.ui-art)) .tc-t small { display: block; font-family: var(--display); font-weight: 600; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: #ffd86a; }
+html body:is(.ui-art, :not(.ui-art)) .tc-t p { margin: 0.12rem 0 0; font-weight: 700; font-size: 1rem; line-height: 1.38; color: #f2f8ff; }
+html body:is(.ui-art, :not(.ui-art)) .tc-t p b, html body:is(.ui-art, :not(.ui-art)) .lbc-t p b, html body:is(.ui-art, :not(.ui-art)) .tut-txt b { color: #ffd86a; font-weight: 900; }
+html body:is(.ui-art, :not(.ui-art)) .pause-hint.tipcard .tc-ic { width: 2.6rem; height: 2.6rem; }
+html body:is(.ui-art, :not(.ui-art)) .kitrow { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.45rem; margin: 0 0 0.9rem; }
+html body:is(.ui-art, :not(.ui-art)) .kit { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.7rem 0.25rem 0.3rem; border-radius: 999px; background: var(--gp2); border: 0.14rem solid rgba(110, 200, 255, 0.7);
+  box-shadow: 0 0 0 0.1rem var(--out), inset 0 0.12rem 0 rgba(255, 255, 255, 0.22); font-weight: 800; font-size: 0.85rem; color: #dff0ff; animation: rowIn .45s both; }
+html body:is(.ui-art, :not(.ui-art)) .kit:nth-child(2) { animation-delay: .05s; } html body:is(.ui-art, :not(.ui-art)) .kit:nth-child(3) { animation-delay: .1s; } html body:is(.ui-art, :not(.ui-art)) .kit:nth-child(4) { animation-delay: .15s; } html body:is(.ui-art, :not(.ui-art)) .kit:nth-child(5) { animation-delay: .2s; } html body:is(.ui-art, :not(.ui-art)) .kit:nth-child(6) { animation-delay: .25s; }
+html body:is(.ui-art, :not(.ui-art)) .kit b { font-family: var(--display); font-weight: 700; font-size: 1.05rem; color: #fff; }
+html body:is(.ui-art, :not(.ui-art)) .kic { width: 1.9rem; height: 1.9rem; flex: none; background: var(--ic, none) center / contain no-repeat; filter: drop-shadow(0 0.15rem 0.2rem rgba(0, 10, 40, 0.5)); }
+html body:is(.ui-art, :not(.ui-art)) .kic.o { background-image: var(--ui-bubble, none); }
+html body:is(.ui-art, :not(.ui-art)) .kit.k-air { border-color: rgba(120, 230, 255, 0.8); } html body:is(.ui-art, :not(.ui-art)) .kitrow { align-items: center; }
+/* level-start intro card (new creature / new world) under the level name */
+html body:is(.ui-art, :not(.ui-art)) #lvlBanner.has-card em { display: none; }
+html body:is(.ui-art, :not(.ui-art)) .lb-card { display: flex; align-items: center; gap: 0.9rem; width: min(88vw, 25rem); margin: 0.8rem auto 0; padding: 0.75rem 1rem 0.75rem 0.75rem; text-align: left; border-radius: 1.4rem;
+  background: var(--gp); border: 0.2rem solid var(--rim); box-shadow: var(--gsh), 0 1rem 2rem rgba(0, 8, 30, 0.45); pointer-events: none; }
+html body:is(.ui-art, :not(.ui-art)) .lb-card[hidden] { display: none; }
+html body:is(.ui-art, :not(.ui-art)) #lvlBanner.on .lb-card { animation: lbcIn .6s .25s cubic-bezier(.2, 1.4, .4, 1) both; } @keyframes lbcIn { from { opacity: 0; transform: translateY(0.8rem) scale(0.9); } }
+html body:is(.ui-art, :not(.ui-art)) .lbc-ic { flex: none; width: 4.4rem; height: 4.4rem; border-radius: 1.1rem; background: var(--ic, none) center / 88% no-repeat, radial-gradient(circle at 50% 40%, rgba(150, 230, 255, 0.55), rgba(20, 60, 150, 0.2) 70%);
+  box-shadow: inset 0 0 0 0.12rem rgba(150, 220, 255, 0.45); }
+html body:is(.ui-art, :not(.ui-art)) .lb-card[data-ic="world2"] .lbc-ic { background: var(--ui-coral, none) center / 80% no-repeat, radial-gradient(circle at 50% 40%, rgba(220, 160, 255, 0.55), rgba(60, 20, 140, 0.25) 70%); }
+html body:is(.ui-art, :not(.ui-art)) .lb-card[data-ic="world3"] .lbc-ic { background: var(--ui-crystal, none) center / 80% no-repeat, radial-gradient(circle at 50% 40%, rgba(120, 200, 255, 0.5), rgba(10, 20, 80, 0.3) 70%); }
+html body:is(.ui-art, :not(.ui-art)) .lbc-t { min-width: 0; } html body:is(.ui-art, :not(.ui-art)) .lbc-k { display: inline-block; padding: 0.12rem 0.6rem; border-radius: 999px; background: var(--gold-g); color: #13235a; font-family: var(--display); font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; box-shadow: 0 0 0 0.1rem #9c4d00; }
+html body:is(.ui-art, :not(.ui-art)) .lbc-t b { display: block; margin: 0.2rem 0 0.1rem; font-family: var(--display) !important; font-weight: 700; font-size: 1.45rem !important; line-height: 1.1; color: #fff !important; -webkit-text-stroke: 0 !important; text-shadow: 0 0.12rem 0 var(--out) !important; animation: none !important; }
+html body:is(.ui-art, :not(.ui-art)) .lbc-t p { margin: 0; font-weight: 700; font-size: 0.95rem; line-height: 1.35; color: #e8f4ff; }
+/* tutorial bubble: icon of what it talks about, label, text, step dots and a Next pill */
+html body:is(.ui-art, :not(.ui-art)) .tut-bub { display: flex; align-items: center; gap: 0.9rem; text-align: left !important; padding: 0.9rem 1rem 0.85rem 0.85rem !important; border-radius: 1.5rem !important;
+  background: var(--gp) !important; border: 0.2rem solid var(--rim) !important; box-shadow: var(--gsh), 0 1.2rem 2.4rem rgba(0, 8, 30, 0.5) !important; width: min(90vw, 27rem) !important; }
+html body:is(.ui-art, :not(.ui-art)) .tut-ic { flex: none; align-self: flex-start; width: 4rem; height: 4rem; border-radius: 1.1rem; background: var(--ic, none) center / 88% no-repeat, radial-gradient(circle at 50% 40%, rgba(150, 230, 255, 0.55), rgba(20, 60, 150, 0.2) 70%);
+  box-shadow: inset 0 0 0 0.12rem rgba(150, 220, 255, 0.45); }
+html body:is(.ui-art, :not(.ui-art)) .tut-ic[data-ic="gate"] { background-image: var(--ui-gate_open, none), radial-gradient(circle at 50% 40%, rgba(150, 230, 255, 0.55), rgba(20, 60, 150, 0.2) 70%); background-size: 80%, auto; }
+html body:is(.ui-art, :not(.ui-art)) .tut-ic[data-ic="airm"] { background-image: var(--ui-bubble, none), radial-gradient(circle at 50% 40%, rgba(150, 230, 255, 0.55), rgba(20, 60, 150, 0.2) 70%); background-size: 70%, auto; }
+html body:is(.ui-art, :not(.ui-art)) .tut-body { flex: 1; min-width: 0; }
+html body:is(.ui-art, :not(.ui-art)) .tut-step { display: inline-block !important; padding: 0.12rem 0.6rem; border-radius: 999px; background: var(--gold-g); color: #13235a !important; font-family: var(--display); font-weight: 700 !important; font-size: 0.72rem !important; letter-spacing: 0.1em !important; box-shadow: 0 0 0 0.1rem #9c4d00; }
+html body:is(.ui-art, :not(.ui-art)) .tut-txt { margin: 0.35rem 0 0.55rem !important; font-family: var(--font) !important; font-weight: 800 !important; font-size: 1.08rem !important; line-height: 1.38 !important; color: #fff !important; text-align: left !important; }
+html body:is(.ui-art, :not(.ui-art)) .tut-foot { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+html body:is(.ui-art, :not(.ui-art)) .tut-dots { display: inline-flex; gap: 0.3rem; } html body:is(.ui-art, :not(.ui-art)) .tut-dots i { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: rgba(160, 210, 255, 0.35); } html body:is(.ui-art, :not(.ui-art)) .tut-dots i.done { background: rgba(255, 216, 106, 0.6); } html body:is(.ui-art, :not(.ui-art)) .tut-dots i.on { width: 1.2rem; border-radius: 99px; background: #ffd86a; }
+html body:is(.ui-art, :not(.ui-art)) .tut-next { animation: none !important; padding: 0.3rem 0.95rem; border-radius: 999px; background: var(--gold-g); color: #13235a !important; font-family: var(--display); font-weight: 700 !important; font-size: 0.92rem !important; box-shadow: 0 0 0 0.12rem #9c4d00, inset 0 0.2rem 0.1rem rgba(255, 255, 255, 0.55); }
+html body:is(.ui-art, :not(.ui-art)) .tut-next::after { content: " ›"; }
+html body:is(.ui-art, :not(.ui-art)) #lvlBanner .lbc-t p b { display: inline; margin: 0; font-family: var(--font) !important; font-size: inherit !important; line-height: inherit; color: #ffd86a !important; -webkit-text-stroke: 0 !important; text-shadow: none !important; animation: none !important; }
+html body:is(.ui-art, :not(.ui-art)) #lvlBanner .lb-card { margin-top: 1rem; }
 </style>
 </head>
 <body data-state="splash">
@@ -1562,7 +1612,7 @@ html body:is(.ui-art, :not(.ui-art)) .rg-bar, html body:is(.ui-art, :not(.ui-art
 <div id="fpsMeter" hidden></div>
 <div id="coachHand" aria-hidden="true"><div class="ch-in"><svg class="ch-finger" viewBox="0 0 64 64"><path d="M26 6c3 0 5 2 5 5v17l2-1c3-1 6 1 6 4v1l2-1c3-1 6 1 6 4v1l1-.5c3-1 6 1 6 4V48c0 7-6 12-13 12H32c-5 0-9-2-12-6L9 40c-2-2-1-5 1-6 2-2 5-2 7 0l4 4V11c0-3 2-5 5-5z" fill="#fff" stroke="#1b2a4a" stroke-width="3" stroke-linejoin="round"/></svg><span class="ch-key"></span></div><span class="ch-arrow"></span><span class="ch-say"></span></div>
 
-<div id="lvlBanner" aria-live="polite"><small id="lbNum">Level 1</small><b id="lbName">First Light</b><em id="lbTip"></em></div>
+<div id="lvlBanner" aria-live="polite"><small id="lbNum">Level 1</small><b id="lbName">First Light</b><em id="lbTip"></em><div class="lb-card" id="lbCard" hidden><i class="lbc-ic" aria-hidden="true"></i><div class="lbc-t"><span class="lbc-k" id="lbK">New</span><b id="lbT"></b><p id="lbD"></p></div></div></div>
 <button id="btnMap" aria-label="Hold to view the whole map"><svg class="i" viewBox="0 0 24 24"><path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/></svg><span class="hb-l">Map</span></button>
 <div id="mapTag">Map view</div>
 
@@ -1607,7 +1657,7 @@ html body:is(.ui-art, :not(.ui-art)) .rg-bar, html body:is(.ui-art, :not(.ui-art
     <button class="hm-big c-intro" id="btnReplayIntro"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg></span><b>Intro</b></button>
   </nav>
 </section>
-<div id="tut" aria-live="polite"><div class="tut-ring"></div><div class="tut-bub"><span class="tut-step"></span><p class="tut-txt"></p><span class="tut-next">Tap to continue</span></div><button class="tut-skip" type="button">Skip</button></div>
+<div id="tut" aria-live="polite"><div class="tut-ring"></div><div class="tut-bub"><i class="tut-ic" aria-hidden="true"></i><div class="tut-body"><span class="tut-step"></span><p class="tut-txt"></p><div class="tut-foot"><span class="tut-dots"></span><span class="tut-next">Next</span></div></div></div><button class="tut-skip" type="button">Skip</button></div>
 <div id="cineCap" class="cine-cap" aria-live="polite"></div>
 <div id="comboStamp" aria-live="polite"><b>BONK!</b><span>+15</span></div>
 <div id="clearStamp" aria-live="polite"><b>Level clear!</b><span class="cs-stars"><i>★</i><i>★</i><i>★</i></span></div>
@@ -1708,8 +1758,8 @@ html body:is(.ui-art, :not(.ui-art)) .rg-bar, html body:is(.ui-art, :not(.ui-art
   <div class="wrap">
     <p class="kicker" id="introNum">Level 1 of 30</p><h1 class="title" id="introName">First Light</h1>
     <div class="ic-prev"><canvas id="introPrev" width="520" height="300"></canvas><span class="ic-best" id="introBest" hidden></span></div>
-    <p class="msg ic-hint" id="introHint"></p>
-    <div class="chips"><span class="chip"><i class="b"></i><span id="introBalls"></span></span><span class="chip"><i class="o"></i><span id="introAir"></span></span></div>
+    <div class="ic-hint tipcard"><i class="tc-ic" aria-hidden="true"></i><div class="tc-t"><small>The trick</small><p id="introHint"></p></div></div>
+    <div class="kitrow" id="introKit" aria-label="In this dive"></div>
     <div class="ic-goals" id="introGoals"></div>
     <button class="cta" id="btnDive">Dive!</button>
     <p class="kbd-hint desk-only"><kbd>Enter</kbd> to dive</p>
@@ -1720,7 +1770,7 @@ html body:is(.ui-art, :not(.ui-art)) .rg-bar, html body:is(.ui-art, :not(.ui-art
   <div class="wrap">
     <p class="kicker" id="pauseLvl">Level 1</p><h1 class="title">Paused</h1>
     <div class="pz-stats" id="pauseStats"></div>
-    <div class="pause-hint"><span class="ph-ic" aria-hidden="true"></span><p id="pauseHint"></p></div>
+    <div class="pause-hint tipcard"><i class="tc-ic" aria-hidden="true"></i><div class="tc-t"><small>The trick</small><p id="pauseHint"></p></div></div>
     <button class="cta" id="btnResume">Resume</button>
     <div class="pz-vol" aria-label="Volume"><div class="row vol-row"><span class="set-ic c-blue"><svg class="i" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span><span class="rt">Music</span><input type="range" class="vol" data-vol="music" min="0" max="100" step="1" aria-label="Music volume"><b class="vol-v">0%</b></div><div class="row vol-row"><span class="set-ic c-teal"><svg class="i" viewBox="0 0 24 24"><path d="M2 12c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/><path d="M2 17c2-3 4-3 6 0s4 3 6 0 4-3 6 0" opacity=".55"/><path d="M2 7c2-3 4-3 6 0s4 3 6 0 4-3 6 0" opacity=".55"/></svg></span><span class="rt">Ambience</span><input type="range" class="vol" data-vol="amb" min="0" max="100" step="1" aria-label="Ambience volume"><b class="vol-v">0%</b></div><div class="row vol-row"><span class="set-ic c-orange"><svg class="i" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg></span><span class="rt">Effects</span><input type="range" class="vol" data-vol="sfx" min="0" max="100" step="1" aria-label="Effects volume"><b class="vol-v">0%</b></div></div>
     <div class="trio quad">

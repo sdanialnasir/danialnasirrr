@@ -338,7 +338,7 @@ Engine.prototype.fullKey = function () {
 //         P diver  F piranha (hunts)  J jellyfish (vertical)  C crab (horizontal)  A air capsule
 // `time` is oxygen in seconds. Every level is verified winnable by tools/verify.js.
 const LEVELS = [
-{ name: "First Light", time: 60, hint: "Dig a tunnel to the gate first. Then push the red pearl along it, into the gate, and swim in.", map: [
+{ name: "First Light", time: 60, hint: "Dig a **tunnel to the gate** first, then roll the pearl along it and swim in after it.", map: [
 '############',
 '#P.........#',
 '#..........#',
@@ -347,7 +347,7 @@ const LEVELS = [
 '#.........E#',
 '############',
 ]},
-{ name: "Pinned", time: 45, hint: "Dig under the pearl, then step aside. Never stay below anything that can fall.", tip: "New: falling stones. Never stand right under one!", map: [
+{ name: "Pinned", time: 45, hint: "Dig **under** the pearl, then **step aside** at once. Never wait below anything that can fall.", intro: { ic: 'stone', k: 'New', t: 'Falling stones', d: 'Dig the sand away and they drop. **Never stand right under one!**' }, map: [
 '##############',
 '#P.......WWWW#',
 '#WWWW....RWWW#',
@@ -357,7 +357,7 @@ const LEVELS = [
 '#  W.....EWWW#',
 '##############',
 ]},
-{ name: "The Shaft", time: 45, hint: "The first thing down the shaft rolls left into the pit. Choose what goes first.", tip: "Falling stones and pearls roll off round tops, left first.", map: [
+{ name: "The Shaft", time: 45, hint: "Whatever drops first rolls **left into the pit**. Decide which one you want down there.", intro: { ic: 'stone', k: 'Good to know', t: 'Round tops roll', d: 'Falling stones and pearls slide off round things, **left first**.' }, map: [
 '##############',
 '#P...........#',
 '#...B   R....#',
@@ -367,7 +367,7 @@ const LEVELS = [
 '#WWWWWWEWWWWW#',
 '##############',
 ]},
-{ name: "Two Roads", time: 45, hint: "Clear the low road first. When you pull a plug from below, step aside at once!", map: [
+{ name: "Two Roads", time: 45, hint: "Open the **low road** first. Pulled a plug from below? **Step aside** at once!", map: [
 '##############',
 '#P.....  ....#',
 '#.WW...B...W #',
@@ -376,7 +376,7 @@ const LEVELS = [
 '#WWWWWWWWWWWW#',
 '##############',
 ]},
-{ name: "Piranha Pit", time: 55, hint: "Watch the piranha. Push the stone down the shaft as it swims underneath.", tip: "New: piranha. It hunts you once it sees you.", map: [
+{ name: "Piranha Pit", time: 55, hint: "Time it: drop the **stone down the shaft** just as the piranha swims underneath.", intro: { ic: 'fish', k: 'New creature', t: 'Piranha', d: 'Patrols the water and **charges** the moment it sees you.' }, map: [
 '################',
 '#....   ..   ..#',
 '#.......WW....P#',
@@ -386,7 +386,7 @@ const LEVELS = [
 '#WWWWWWWWWWWWWW#',
 '################',
 ]},
-{ name: "Jelly Shaft", time: 50, hint: "The jellyfish surges when you are in its column. Wait till it's far, then cross.", tip: "New: jellyfish. They surge up and down their shaft.", map: [
+{ name: "Jelly Shaft", time: 50, hint: "The jellyfish **surges** when you're in its column. Wait until it's **far away**, then cross.", intro: { ic: 'jelly', k: 'New creature', t: 'Jellyfish', d: 'Drifts up and down its shaft, and **surges** when you line up with it.' }, map: [
 '##############',
 '#P....WJW....#',
 '#...... W....#',
@@ -396,7 +396,7 @@ const LEVELS = [
 '#E         B.#',
 '##############',
 ]},
-{ name: "Keystone", time: 55, hint: "The road has a hole. Anything pushed over it drops in. Fill it first.", map: [
+{ name: "Keystone", time: 55, hint: "The road has a **hole**. Anything pushed over it drops in, so **fill it first**.", map: [
 '################',
 '#P....WRW......#',
 '#.WWW.W.W.WWWW.#',
@@ -405,7 +405,7 @@ const LEVELS = [
 '#WWWWWWWWWWWWWW#',
 '################',
 ]},
-{ name: "Pitfall", time: 55, hint: "A pearl stuck against a wall can never be pushed again. Choose where it lands.", map: [
+{ name: "Pitfall", time: 55, hint: "A pearl pressed **against a wall** can never be pushed again. Choose where it lands.", map: [
 '################',
 '#WW..........WW#',
 '#W   B        P#',
@@ -416,7 +416,7 @@ const LEVELS = [
 '#WWWWWWWWWWWWWW#',
 '################',
 ]},
-{ name: "Ambush", time: 70, hint: "Push the pearl ahead as a shield and slip down the hole when the crab is at the far end.", tip: "New: crabs. They patrol the open water.", map: [
+{ name: "Ambush", time: 70, hint: "Push the pearl ahead **as a shield**, then slip down the hole while the crab is **at the far end**.", intro: { ic: 'crab', k: 'New creature', t: 'Crab', d: 'Scuttles back and forth along the open water. **Stay out of its path.**' }, map: [
 '##################',
 '#W...B..........P#',
 '#......W....W....#',
@@ -428,7 +428,7 @@ const LEVELS = [
 '#WWWWWWWWWWWWWWWW#',
 '##################',
 ]},
-{ name: "Stone Bridge", time: 75, hint: "Three stones fill the shaft. The pearl crosses last.", map: [
+{ name: "Stone Bridge", time: 75, hint: "**Three stones** fill the shaft. The pearl crosses **last**.", map: [
 '#################',
 '#P.....R...WWWWW#',
 '#.....W.W.......#',
@@ -440,7 +440,7 @@ const LEVELS = [
 '#WWWWWWWW WWWWWW#',
 '#################',
 ]},
-{ name: "Counterweight", time: 75, hint: "Each stone rests on the sand below it. Dig only under the stones you need.", tip: "World 2: the Coral Caves", map: [
+{ name: "Counterweight", time: 75, hint: "Every stone sits on **sand**. Dig only under the stones you **really need**.", intro: { ic: 'world2', k: 'World 2', t: 'The Coral Caves', d: 'Tighter caves and trickier drops. **Plan before you dig.**' }, map: [
 '##################',
 '#               P#',
 '#WW.WWRWWWRWWRW.W#',
@@ -451,7 +451,7 @@ const LEVELS = [
 '#WWWWWWWWW WWWWWW#',
 '##################',
 ]},
-{ name: "Air Supply", time: 55, hint: "Grab capsules only after the pearls pass. Pull a plug from below? Step aside at once!", tip: "New: air capsules. Each one gives +45 s of air.", map: [
+{ name: "Air Supply", time: 55, hint: "Take capsules **after** the pearls pass. Pulled a plug from below? **Step aside!**", intro: { ic: 'air', k: 'New', t: 'Air capsules', d: 'Swim into one for **+45 seconds** of air.' }, map: [
 '######################',
 '#....WWWWWWWWWWWWW...#',
 '#P.B.B             ..#',
@@ -463,7 +463,7 @@ const LEVELS = [
 '#W.                 E#',
 '######################',
 ]},
-{ name: "Trapdoor", time: 110, hint: "When the trapdoor opens, the stones beside it follow the pearl down. Decide where.", map: [
+{ name: "Trapdoor", time: 110, hint: "When the trapdoor opens, the **stones beside it follow** the pearl down. Decide where they go.", map: [
 '####################',
 '#P.................#',
 '#...RBR.WWWWWWWWW..#',
@@ -474,7 +474,7 @@ const LEVELS = [
 '#WWWWE WWWWWWWWWWWW#',
 '####################',
 ]},
-{ name: "Crossfire", time: 115, hint: "The left well holds exactly two stones. Pick the right two before you drop any.", tip: "Twist: two piranhas at once", map: [
+{ name: "Crossfire", time: 115, hint: "The left well holds **exactly two stones**. Pick the right two before you drop any.", intro: { ic: 'fish', k: 'Twist', t: 'Two piranhas', d: 'Two hunters at once: **watch both rows.**' }, map: [
 '####################',
 '#P....R..W.........#',
 '#............W.....#',
@@ -486,7 +486,7 @@ const LEVELS = [
 '#WWWWWWWWWWWWEWWWWW#',
 '####################',
 ]},
-{ name: "Avalanche", time: 190, hint: "Each stone needs a home of its own. Count them before you empty a silo.", map: [
+{ name: "Avalanche", time: 190, hint: "Every stone needs **a home of its own**. Count them before you empty a silo.", map: [
 '####################',
 '#P.................#',
 '#........WWW.......#',
@@ -497,7 +497,7 @@ const LEVELS = [
 '#WEW WWW WWWW WWWWW#',
 '####################',
 ]},
-{ name: "Vault", time: 140, hint: "The vault has two doors. Only one lets the stone out without sealing the gate.", map: [
+{ name: "Vault", time: 140, hint: "Two doors, one way out: only one lets the stone escape **without sealing the gate**.", map: [
 '####################',
 '#P...........R WWWW#',
 '#.....WWWWWWWW WWWW#',
@@ -510,7 +510,7 @@ const LEVELS = [
 '#WWWWWWWWWEWWWWWWWW#',
 '####################',
 ]},
-{ name: "Switchback", time: 140, hint: "Two holes in the road. Stones fill holes, but you can only push from behind.", map: [
+{ name: "Switchback", time: 140, hint: "**Two holes** in the road. Stones fill them, but you can only push **from behind**.", map: [
 '####################',
 '#P..B         R   .#',
 '#.WWWWWWWW WWWWWW .#',
@@ -522,7 +522,7 @@ const LEVELS = [
 '#WWWWWWWWWWWWWWWWWW#',
 '####################',
 ]},
-{ name: "Crab Cave", time: 115, hint: "Crabs die under stones too. Watch its rhythm before you pull the plug.", tip: "Twist: stones crush crabs too", map: [
+{ name: "Crab Cave", time: 115, hint: "Stones **crush crabs** too. Learn its rhythm, then pull the plug.", intro: { ic: 'crab', k: 'Twist', t: 'Stones crush crabs', d: 'Drop one **as it passes underneath**.' }, map: [
 '########################',
 '#.................WWWWW#',
 '#.WWWWWWWWWWWWWWW.WWWWW#',
@@ -533,7 +533,7 @@ const LEVELS = [
 '#WWWWWWWWWWW WWWWWWW WW#',
 '########################',
 ]},
-{ name: "The Pit", time: 130, hint: "The shaft bends twice. Whatever drops first decides where the next one rolls.", map: [
+{ name: "The Pit", time: 130, hint: "The shaft **bends twice**. What drops first decides where the next one rolls.", map: [
 '####################',
 '#P.................#',
 '#.B.R.R....R....B..#',
@@ -547,7 +547,7 @@ const LEVELS = [
 '#WWWWWWWWWWEWWWWWWW#',
 '####################',
 ]},
-{ name: "Lockstep", time: 180, hint: "Push the bottom pearl LEFT, out the back, so the stone drops in front of you.", map: [
+{ name: "Lockstep", time: 180, hint: "Push the bottom pearl **left, out the back**, so the stone drops in front of you.", map: [
 '####################',
 '#P.......... ......#',
 '#W.WWW.WBWWW WWWW.W#',
@@ -558,7 +558,7 @@ const LEVELS = [
 '#WWWWWWWWWWWWWWWWWW#',
 '####################',
 ]},
-{ name: "Night Shoal", time: 170, hint: "Three piranhas, two stones. The pearl is a weapon too, and order is everything.", tip: "World 3: the Deep", map: [
+{ name: "Night Shoal", time: 170, hint: "Three piranhas, two stones. **The pearl is a weapon too**, and order is everything.", intro: { ic: 'world3', k: 'World 3', t: 'The Deep', d: 'Darker water, longer dives, **no easy roads**.' }, map: [
 '########################',
 '#...  R...R  W  B.....P#',
 '#WWW WW...WW W WWWWWWW.#',
@@ -569,7 +569,7 @@ const LEVELS = [
 '#WWW WWWWWWW WWWWWWWWWW#',
 '########################',
 ]},
-{ name: "Hourglass", time: 185, hint: "Open the gate-side valve first; the near pearl goes before any stone.", map: [
+{ name: "Hourglass", time: 185, hint: "Open the **gate-side valve** first. The near pearl goes **before any stone**.", map: [
 '####################',
 '#P                 #',
 '#  R  B     R B  R #',
@@ -582,7 +582,7 @@ const LEVELS = [
 '#WWWWWWWW WEWWWWWWW#',
 '####################',
 ]},
-{ name: "Deep Pressure", time: 40, hint: "Every capsule props up a stone: grab it, then step aside at once. Mind where it lands.", map: [
+{ name: "Deep Pressure", time: 40, hint: "Each capsule **props up a stone**. Grab it, step aside at once, and mind where it lands.", map: [
 '########################',
 '#                      #',
 '#W.WRWWWRWRWWRWWWWRWWW #',
@@ -595,7 +595,7 @@ const LEVELS = [
 '#WWWWWWWWWWWWWWWWWWWWWW#',
 '########################',
 ]},
-{ name: "Gauntlet", time: 150, hint: "Some shafts sink below the road. Not every stone has to fall where it starts.", map: [
+{ name: "Gauntlet", time: 150, hint: "Some shafts sink **below the road**. Not every stone has to fall where it starts.", map: [
 '######################',
 '#P                  W#',
 '#.WWR.WWWWWWR.WWR.W.W#',
@@ -606,7 +606,7 @@ const LEVELS = [
 '#WWWW WWWWWWWWWWWWWWW#',
 '######################',
 ]},
-{ name: "Chain Reaction", time: 175, hint: "Count how deep each pit is. Leaning stones topple in after their neighbour.", map: [
+{ name: "Chain Reaction", time: 175, hint: "**Count each pit.** Leaning stones topple in after their neighbour.", map: [
 '######################',
 '#P                   #',
 '#.WWWW.WBW.WWWW.WWWWW#',
@@ -619,7 +619,7 @@ const LEVELS = [
 '#WWW WWWWWWW WWWWWWWW#',
 '######################',
 ]},
-{ name: "Citadel", time: 220, hint: "The vault tips left unless that side is sealed. Count every pit before a drop.", map: [
+{ name: "Citadel", time: 220, hint: "The vault **tips left** unless that side is sealed. Count every pit before a drop.", map: [
 '########################',
 '#P                     #',
 '#.WWBWW.WWWWWW.WWWWWWW.#',
@@ -633,7 +633,7 @@ const LEVELS = [
 '#WWWWWWWW WWWWWW WWW WW#',
 '########################',
 ]},
-{ name: "Undertow", time: 195, hint: "Whatever falls crushes what's below. Wait for the monster, then step out of the notch.", map: [
+{ name: "Undertow", time: 195, hint: "Falling things crush what's below. **Wait for the monster**, then step out of the notch.", map: [
 '########################',
 '#P.....................#',
 '#............R.........#',
@@ -644,7 +644,7 @@ const LEVELS = [
 '#WWWWWWWWWWWWWWWWWWWWWW#',
 '########################',
 ]},
-{ name: "Abyss", time: 225, hint: "Two deep jellyfish shafts. Stones go down first, and count how deep each one is.", map: [
+{ name: "Abyss", time: 225, hint: "Two deep jellyfish shafts. **Stones go down first**, and count **how deep** each one is.", map: [
 '########################',
 '#P.....W........W......#',
 '#...B.. .R.R.B.. ...R..#',
@@ -656,7 +656,7 @@ const LEVELS = [
 '#WWWWWW WWWWWWWWWWWWWWE#',
 '########################',
 ]},
-{ name: "The Energizer", time: 270, hint: "Everything you have learned. Ready the deep road before a single pearl drops.", map: [
+{ name: "The Energizer", time: 270, hint: "Everything you've learned. Prepare **the deep road** before a single pearl drops.", map: [
 '########################',
 '#P.....................#',
 '#......................#',
@@ -670,7 +670,7 @@ const LEVELS = [
 '#WWWWWWWWWW WWWWWWWWWWW#',
 '########################',
 ]},
-{ name: "Deep Current", time: 270, hint: "Three pearls, one shaft. Fill it to the road, free the vault, and mind the order.", map: [
+{ name: "Deep Current", time: 270, hint: "Three pearls, one shaft: **fill it to the road**, free the vault, and **mind the order**.", map: [
 '######################',
 '#P...................#',
 '#.....R.B..R.R.R.B...#',
@@ -3725,13 +3725,18 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   function iconShot(kind, px = 160) { if (!MAIN_R) return null; const cv = document.createElement('canvas'); cv.width = cv.height = px;
     const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(28, 1, 0.1, 20); cam.position.set(0.55, 0.75, 2.6); cam.lookAt(0, 0, 0);
     sc.add(new THREE.HemisphereLight(0xe6f6ff, 0x3a3020, 1.6)); const k = new THREE.DirectionalLight(0xfff1dc, 3); k.position.set(-2, 3, 3); sc.add(k); const r = new THREE.DirectionalLight(0x8fe4ff, 1.4); r.position.set(3, 1, -2); sc.add(r);
-    let obj; if (kind === 'stone') { obj = makeBoulder(); obj.scale.setScalar(1.25); obj.rotation.set(0.3, 0.6, 0.1); }
+    let obj, own = false; if (kind === 'stone') { obj = makeBoulder(); obj.scale.setScalar(1.25); obj.rotation.set(0.3, 0.6, 0.1); }
+    else if (kind === 'pearl') { obj = makeBall(true); obj.scale.setScalar(1.3); }
+    else if (kind === 'fish' || kind === 'jelly' || kind === 'crab') { obj = kind === 'fish' ? makeFish() : kind === 'jelly' ? makeJelly() : makeCrab(); own = true;
+      const bb = new THREE.Box3().setFromObject(obj), sz = bb.getSize(new THREE.Vector3()), c = bb.getCenter(new THREE.Vector3()), k = 1.05 / Math.max(sz.x, sz.y, 0.01);
+      const g = new THREE.Group(); obj.position.sub(c); g.add(obj); g.scale.setScalar(k); g.rotation.set(0.15, kind === 'crab' ? -0.35 : -0.55, 0); obj = g; }
+    else if (kind === 'air') { obj = makeAir(); obj.scale.setScalar(1.2); }
     else { const s = 0.38, rr = 0.1, sh = new THREE.Shape(); sh.moveTo(-s + rr, -s); sh.lineTo(s - rr, -s); sh.quadraticCurveTo(s, -s, s, -s + rr); sh.lineTo(s, s - rr); sh.quadraticCurveTo(s, s, s - rr, s); sh.lineTo(-s + rr, s); sh.quadraticCurveTo(-s, s, -s, s - rr); sh.lineTo(-s, -s + rr); sh.quadraticCurveTo(-s, -s, -s + rr, -s);
       const g = new THREE.ExtrudeGeometry(sh, { depth: 0.5, bevelEnabled: true, bevelSize: 0.06, bevelThickness: 0.06, bevelSegments: 4, curveSegments: 6 }); g.center();
       const t = sprTex('sand').clone(); t.needsUpdate = true; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1.4, 1.4);
       obj = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ map: t, color: 0xffd08a, roughness: 0.95 })); obj.rotation.set(0.25, -0.5, 0); obj.scale.setScalar(1.15); }
     sc.add(obj); const sd = new SharedDraw(cv, 2); try { sd.render(sc, cam); } finally { sd.dispose(); } const url = cv.toDataURL('image/png');
-    obj.traverse(o => { if (o.isMesh && kind !== 'stone') { o.geometry.dispose(); o.material.map.dispose(); o.material.dispose(); } }); return url; }
+    if (kind === 'sand') obj.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.map.dispose(); o.material.dispose(); } }); return url; }
   return { create: c => new WorldImpl(c), isMobile, iconShot, isIOS, dailyWorld: (name, w) => DAILY_WORLD.set(name, w), setColorMarks: on => { CB.on = !!on; if (MAT.cbMark) MAT.cbMark.visible = CB.on; }, ready, SKINS, SKIN, applySkin, preview: (cv, thumb) => new SkinPreview(cv, thumb), trailColor, rarityOf };
 })();
 
@@ -3758,7 +3763,7 @@ window.__T = T;
     document.querySelectorAll('.ld-title, .gs-title, .hm-title, .cine-title .title').forEach(t => { t.classList.add('logo-art'); t.setAttribute('aria-label', 'Aqua Energizer'); });
   })();
   const canvas = $('#c');
-  const world = World.create(canvas); window.__dc = { world, aud: Audio, get engine() { return engine; }, get save() { return save; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { skipTut = true; try { startLevel(i); beginPlay(); } finally { skipTut = false; } }, plan: (cb) => planFrom(engine, coachRefs(), COACH.route, cb), planCheck: (plan) => plSim(engine, plan).won, doomed: () => doomed(engine), relic: (i) => relicCell(i), run: () => RUN, tick: () => { engine.step(); tickWorld(engine, performance.now()); dangerScan(); }, danger: () => { dangerScan(); return world.lastDanger; }, undo: () => undo(), tut: (i) => { if (save.tutSeen) delete save.tutSeen[i]; startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), World, intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
+  const world = World.create(canvas); window.__dc = { world, aud: Audio, card: (i) => startLevel(i), get engine() { return engine; }, get save() { return save; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { skipTut = true; try { startLevel(i); beginPlay(); } finally { skipTut = false; } }, plan: (cb) => planFrom(engine, coachRefs(), COACH.route, cb), planCheck: (plan) => plSim(engine, plan).won, doomed: () => doomed(engine), relic: (i) => relicCell(i), run: () => RUN, tick: () => { engine.step(); tickWorld(engine, performance.now()); dangerScan(); }, danger: () => { dangerScan(); return world.lastDanger; }, undo: () => undo(), tut: (i) => { if (save.tutSeen) delete save.tutSeen[i]; startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), World, intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
   world.onSfx = n => Audio.play(n); world.onToast = m => toast(m);
   let gateOpenAt = 0, gateNudged = true;
   world.onGateOpen = () => { if (state === 'replay' || state === 'clip') return; gateOpenAt = performance.now(); gateNudged = false; banner('The gate is awake!', 'Swim in!', 'Swim into the glowing gate to carry the light home.', 3200); };
@@ -3978,6 +3983,12 @@ window.__T = T;
   // computer home: the layers drift a little with the mouse (depth); phones skip it
   { const home = $('#home'); let mx = 0, my = 0, raf = 0; if (home && !isTouch && !REDUCED_MOTION) home.addEventListener('pointermove', ev => { mx = ev.clientX / innerWidth * 2 - 1; my = ev.clientY / innerHeight * 2 - 1;
       if (!raf) raf = requestAnimationFrame(() => { raf = 0; home.style.setProperty('--mx', mx.toFixed(3)); home.style.setProperty('--my', my.toFixed(3)); }); }); }
+  // ---- 3D icons for hints, intro cards and the tutorial (rendered once each, then reused as CSS variables --ic-<kind>)
+  const ICON = {};
+  function needIcons(kinds) { for (const k of kinds) { if (ICON[k] !== undefined) continue; let u = null; try { u = World.iconShot(k, 192); } catch (er) {} ICON[k] = u;
+      if (u) document.documentElement.style.setProperty('--ic-' + k, `url("${u}")`); } }
+  // hint text: **words** become highlighted
+  const rich = s => String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
   function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id)); shownId = id; hearing(); }
   function setState(s) { state = s; document.body.dataset.state = s; hearing(); }
   // underwater hearing: the music + ambience close in while a card covers the dive, and open again when you swim
@@ -4010,7 +4021,7 @@ window.__T = T;
   function wipeTo(fn, ev) { const w = $('#wipe'); if (!w || REDUCED_MOTION || w.classList.contains('in')) { fn(); return; }
     const x = ev && ev.clientX ? ev.clientX : innerWidth / 2, y = ev && ev.clientY ? ev.clientY : innerHeight / 2; w.style.setProperty('--x', x + 'px'); w.style.setProperty('--y', y + 'px');
     w.classList.add('in'); Audio.play('bubble'); setTimeout(() => { try { fn(); } finally { setTimeout(() => w.classList.remove('in'), 90); } }, 380); }
-  function openHome() { setPeekSafe(); Audio.setTension(0); Audio.music('menu'); setState('menu'); go('home'); showMenuScene(); reefProgress(); homeCard(); homeLayout(); idleThumbs(); }
+  function openHome() { if (TUT.on) { TUT.on = false; Audio.stopVo(); $('#tut').classList.remove('on'); world.focus = null; } setPeekSafe(); Audio.setTension(0); Audio.music('menu'); setState('menu'); go('home'); showMenuScene(); reefProgress(); homeCard(); homeLayout(); idleThumbs(); }
   // phone portrait home (the owner's mockup): painted backdrop, waving diver, and a card with a photo of the next level's tank.
   // The 3D scene is hidden behind it there, so the frame loop holds instead of rendering.
   // the mockup home: phones in portrait, and computers / big landscape screens (laid out for width). Both cover the 3D scene.
@@ -4286,24 +4297,26 @@ window.__T = T;
   $('#nameInput').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') $('#nameSave').click(); });
 
   // ---- levels ----
-  function startLevel(i, custom) {
+  function startLevel(i, custom) { if (TUT.on) { TUT.on = false; Audio.stopVo(); $('#tut').classList.remove('on'); world.focus = null; }
     if (typeof booting !== 'undefined' && booting) dropLoader();
     runTreasures = 0; runTreasureSet.clear(); runLog = ''; runUndo = false; runHint = false; runReset();
     levelIdx = i; const lv = custom || LEVELS[i]; dive = custom && custom.daily ? custom : null;
     Audio.music(!custom && i >= 20 ? 'deep' : 'play'); // the Deep gets its own dark soundscape
     engine = new Engine(lv); engine.relaxed = !!save.settings.relaxed && !dive; if (dive) { engine.daily = true; World.dailyWorld(lv.name, dayNum() % 3); } /* the Daily Dive is a race: always on the clock */ world.loadLevel(engine); hideStuck(); stuckKey = ''; Audio.setTension(0); document.body.classList.toggle('relaxed', engine.relaxed);
     window.__LEVELSCENE = (custom || LEVELS[i]).scene || null; history = []; stuckTimer = 0; stuckShown = false; gateNudged = true; coachStart(i, custom);
-    { const ph = $('#pauseHint'); if (ph) ph.textContent = lv.hint || ''; }
+    { const ph = $('#pauseHint'); if (ph) ph.innerHTML = rich(lv.hint); }
     relicSync(); tickWorld(engine, performance.now());
     held.clear(); heldOrder = []; acc = 0; overTimer = 0; lowAirBeep = 0; resultShown = false; endTouch();
-    $('#introNum').textContent = dive ? `Daily Dive · ${new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}` : `Level ${i + 1} of ${LEVELS.length}`; $('#introName').textContent = lv.name; $('#introHint').textContent = lv.hint;
+    $('#introNum').textContent = dive ? `Daily Dive · ${new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}` : `Level ${i + 1} of ${LEVELS.length}`; $('#introName').textContent = lv.name; $('#introHint').innerHTML = rich(lv.hint);
     { const cv = $('#introPrev'), wide = matchMedia('(orientation: landscape) and (min-width: 760px) and (min-height: 560px)').matches, w = wide ? 560 : 620, h = wide ? 490 : 340; if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
       if (dive) drawLevelPreview(cv, lv, false); else levelPhoto(cv, i, false); }
     { const g = $('#introGoals'), t = engine.time; if (engine.relaxed || dive) { g.innerHTML = dive ? '<span class="goal dd">☀ Race the clock: fastest time wins today</span>' : '<span class="goal">Relaxed mode: no air timer</span>'; }
       else g.innerHTML = `<span class="goal g3"><b>★★★</b>${Math.ceil(t * 0.6)}s+ air left</span><span class="goal g2"><b>★★<i>★</i></b>${Math.ceil(t * 0.3)}s+</span><span class="goal g1"><b>★<i>★★</i></b>finish</span>`;
       if (!dive && relicCell(i)) g.insertAdjacentHTML('beforeend', (save.relics || {})[i + 1] ? '<span class="goal relic got"><i class="rl"></i>Hidden relic found</span>' : '<span class="goal relic"><i class="rl"></i>A relic is hidden somewhere here</span>');
       const st = !dive && save.stars[i + 1], bb = $('#introBest'); bb.hidden = !st; if (st) bb.textContent = `Your best ${'★'.repeat(st)}${'☆'.repeat(3 - st)}`; }
-    $('#introBalls').textContent = engine.ballsTotal === 1 ? '1 pearl' : `${engine.ballsTotal} pearls`; $('#introAir').textContent = engine.relaxed ? 'Relaxed: no air timer' : `${Math.round(engine.time)}s of air`;
+    { const m = lv.map.join(''), n = ch => m.split(ch).length - 1, items = [['pearl', engine.ballsTotal, 'pearl', 'pearls'], ['stone', n('R') + n('X'), 'stone', 'stones'], ['fish', n('F'), 'piranha', 'piranhas'], ['jelly', n('J'), 'jellyfish', 'jellyfish'], ['crab', n('C'), 'crab', 'crabs'], ['air', n('A'), 'air capsule', 'air capsules']].filter(x => x[1] > 0);
+      needIcons(items.map(x => x[0])); $('#introKit').innerHTML = items.map(([k, c, one, many]) => `<span class="kit"><i class="kic" style="--ic: var(--ic-${k})"></i><b>${c}</b><span>${c === 1 ? one : many}</span></span>`).join('') +
+        `<span class="kit k-air"><i class="kic o"></i><b>${engine.relaxed ? '∞' : Math.round(engine.time)}${engine.relaxed ? '' : 's'}</b><span>${engine.relaxed ? 'no timer' : 'of air'}</span></span>`; }
     screenStack = []; setState('intro'); show('intro'); hudKey = ''; updateHud();
     applyAudio();
   }
@@ -4312,19 +4325,19 @@ window.__T = T;
   // step; tap (or Enter/Space) for the next. Each step has a voice id: drop src/assets/vo/<id>.mp3 in and it plays with the step.
   const touchUI = () => document.body.classList.contains('touch');
   const TUT_STEPS = {
-    0: [{ at: 'player', id: 't1a', text: 'This is you, the diver!' },
-        { at: 'ball', id: 't1b', text: 'This red pearl is full of light.' },
-        { at: 'gate', id: 't1c', text: 'Push the pearl into the gate to wake it up.' },
-        { at: '#hud .air', id: 't1d', text: 'This is your air. It starts when you move, so look first. Finish before it runs out!' },
-        { at: 'player', id: 't1e', text: () => touchUI() ? 'Swipe to swim. Swim into sand to dig through it.' : 'Use the arrow keys to swim. Swim into sand to dig through it.' }],
-    1: [{ at: 'rock', id: 't2a', text: 'This is a stone. Take away the sand under it, and it falls.' },
-        { at: 'player', id: 't2b', text: 'Never stand right under a stone!' }],
-    2: [{ at: 'rock', id: 't3a', text: 'Falling stones and pearls roll off round things. They roll left first.' }],
-    4: [{ at: 'fish', id: 't5a', text: 'A piranha! If it touches you, the dive is over.' },
-        { at: 'rock', id: 't5b', text: 'Drop a stone on it to stop it.' }],
-    5: [{ at: 'jelly', id: 't6a', text: 'A jellyfish swims up and down. Cross when it is far away.' }],
-    8: [{ at: 'crab', id: 't9a', text: 'A crab walks back and forth. Stay out of its way!' }],
-    11: [{ at: 'airc', id: 't12a', text: 'An air bubble! Grab it for 45 more seconds of air.' }] };
+    0: [{ at: 'player', id: 't1a', k: 'Meet the diver', text: 'This is **you**. Swim, dig and push your way to the gate.' },
+        { at: 'ball', id: 't1b', k: 'Energy pearl', text: 'This red pearl is **full of light**. The gate needs it.' },
+        { at: 'gate', id: 't1c', k: 'The gate', text: '**Push the pearl in** to wake the gate, then swim in yourself.' },
+        { at: '#hud .air', id: 't1d', k: 'Your air', text: 'Air starts on your **first move**, so look around first. Finish before it runs out!' },
+        { at: 'player', id: 't1e', k: 'How to swim', text: () => touchUI() ? '**Swipe** to swim. Swim into sand to **dig** through it.' : 'Use the **arrow keys** to swim. Swim into sand to **dig** through it.' }],
+    1: [{ at: 'rock', id: 't2a', k: 'New: stones', text: 'Take the sand away **under a stone** and it falls.' },
+        { at: 'player', id: 't2b', k: 'Stay safe', text: '**Never stand right under** a stone!' }],
+    2: [{ at: 'rock', id: 't3a', k: 'Good to know', text: 'Falling stones and pearls **roll off round things**, and they roll **left first**.' }],
+    4: [{ at: 'fish', id: 't5a', k: 'New: piranha', text: 'It patrols the water and **charges** the moment it sees you.' },
+        { at: 'rock', id: 't5b', k: 'Fight back', text: '**Drop a stone** on it to stop it for good.' }],
+    5: [{ at: 'jelly', id: 't6a', k: 'New: jellyfish', text: 'It drifts up and down its shaft. Cross when it is **far away**.' }],
+    8: [{ at: 'crab', id: 't9a', k: 'New: crab', text: 'It scuttles back and forth. **Stay out of its path!**' }],
+    11: [{ at: 'airc', id: 't12a', k: 'New: air capsule', text: 'Swim into it for **+45 seconds** of air.' }] };
   const TUT = { on: false, steps: null, i: 0, t0: 0, raf: 0 }; let skipTut = false; // tests start levels directly, without the tutorial
   function tutTarget(st) { const e = engine; if (!e) return null; if (st.at[0] === '#') return { el: document.querySelector(st.at) };
     const want = { player: T.PLAYER, ball: T.BALL, rock: T.ROCK, fish: T.FISH, jelly: T.JELLY, crab: T.CRAB }[st.at], pl = e.player || { x: 0, y: 0 };
@@ -4339,8 +4352,11 @@ window.__T = T;
     ring.style.left = (cx - w / 2) + 'px'; ring.style.top = (cy - h / 2) + 'px'; ring.style.width = w + 'px'; ring.style.height = h + 'px';
     const bh = bub.offsetHeight || 120, below = cy < innerHeight * 0.5; let top = below ? cy + h / 2 + 22 : cy - h / 2 - 22 - bh; top = Math.max(12, Math.min(innerHeight - bh - 12, top)); bub.style.top = top + 'px'; }
   function tutShow() { const st = TUT.steps[TUT.i]; TUT.tg = tutTarget(st); if (TUT.tg && !TUT.tg.el) world.focus = { x: TUT.tg.x, y: -TUT.tg.y }; /* phones: the camera glides to what the line is about */ TUT.t0 = performance.now(); const txt = typeof st.text === 'function' ? st.text() : st.text;
-    $('#tut .tut-txt').textContent = txt; $('#tut .tut-step').textContent = TUT.steps.length > 1 ? `${TUT.i + 1} / ${TUT.steps.length}` : 'New!';
-    $('#tut .tut-next').textContent = TUT.i < TUT.steps.length - 1 ? (touchUI() ? 'Tap to continue' : 'Click or press Enter') : (touchUI() ? "Tap to play" : 'Click or press Enter to play');
+    $('#tut .tut-txt').innerHTML = rich(txt); $('#tut .tut-step').textContent = st.k || (TUT.steps.length > 1 ? 'How it works' : 'New!');
+    { const ic = { player: 'diver', ball: 'pearl', rock: 'stone', fish: 'fish', jelly: 'jelly', crab: 'crab', airc: 'air', gate: 'gate' }[st.at] || (st.at === '#hud .air' ? 'airm' : 'diver'), el = $('#tut .tut-ic');
+      if (['pearl', 'stone', 'fish', 'jelly', 'crab', 'air'].includes(ic)) { needIcons([ic]); el.style.setProperty('--ic', `var(--ic-${ic})`); } else if (ic === 'diver') { const th = diverThumb(); el.style.setProperty('--ic', th ? `url("${th}")` : 'none'); } else el.style.removeProperty('--ic');
+      el.dataset.ic = ic; $('#tut .tut-dots').innerHTML = TUT.steps.length > 1 ? TUT.steps.map((_, k) => `<i class="${k === TUT.i ? 'on' : k < TUT.i ? 'done' : ''}"></i>`).join('') : ''; }
+    $('#tut .tut-next').textContent = TUT.i < TUT.steps.length - 1 ? 'Next' : "Let's dive";
     const b = $('#tut .tut-bub'); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); Audio.stopVo(); Audio.vo(st.id); Audio.play('click'); }
   function startTut(idx) { const steps = TUT_STEPS[idx]; if (!steps || dive || skipTut) return false; save.tutSeen = save.tutSeen || {}; if (save.tutSeen[idx]) return false;
     TUT.on = true; TUT.idx = idx; TUT.steps = steps.filter(st => tutTarget(st)); if (!TUT.steps.length) { TUT.on = false; return false; } TUT.i = 0; setState('tut');
@@ -4400,9 +4416,11 @@ window.__T = T;
       if (path && path.length) { const first = path[0], d = first[0] > pl[0] ? 'R' : first[0] < pl[0] ? 'L' : first[1] > pl[1] ? 'D' : 'U'; coachHand(world.toScreen(pl[0], pl[1]), d); } } }
   function banner(small, big, line, ms) { const lv = dive || LEVELS[levelIdx], b = $('#lvlBanner'); if (!lv) return;
     let tip = line || ''; if (small === undefined && dive) { small = 'Daily Dive'; big = dive.name; tip = 'Same puzzle for every diver today. Go fast!'; ms = 2600; }
-    if (small === undefined) { small = `Level ${levelIdx + 1}`; big = lv.name; tip = (lv.tip && !(save.tipsSeen || {})[levelIdx]) ? lv.tip : ''; if (tip) { save.tipsSeen = save.tipsSeen || {}; save.tipsSeen[levelIdx] = 1; persist(); } ms = tip ? 3600 : 1900; }
+    let card = null; if (small === undefined) { small = `Level ${levelIdx + 1}`; big = lv.name; card = (lv.intro && !(save.tipsSeen || {})[levelIdx]) ? lv.intro : null; tip = ''; if (card) { save.tipsSeen = save.tipsSeen || {}; save.tipsSeen[levelIdx] = 1; persist(); } ms = card ? 4600 : 1900; }
+    { const c = $('#lbCard'); c.hidden = !card; if (card) { if (!/^world/.test(card.ic)) needIcons([card.ic]); c.dataset.ic = card.ic; c.style.setProperty('--ic', /^world/.test(card.ic) ? 'none' : `var(--ic-${card.ic})`);
+        $('#lbK').textContent = card.k; $('#lbT').textContent = card.t; $('#lbD').innerHTML = rich(card.d); } }
     $('#lbNum').textContent = small; $('#lbName').textContent = big; $('#lbTip').textContent = tip; b.classList.toggle('go', big === 'Swim in!');
-    b.classList.add('on'); banner.start = small === `Level ${levelIdx + 1}` && !tip; clearTimeout(bannerTimer); bannerTimer = setTimeout(() => b.classList.remove('on'), ms || 1900); }
+    b.classList.add('on'); b.classList.toggle('has-card', !!card); banner.start = small === `Level ${levelIdx + 1}` && !tip && !card; clearTimeout(bannerTimer); bannerTimer = setTimeout(() => b.classList.remove('on'), ms || 1900); }
   let toastTimer = null;
   function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 2200); }
   // ---- "Show me" hints: the coach walks the next 5 moves of the level's verified route. One free hint every 90 s, or pay coins now.
