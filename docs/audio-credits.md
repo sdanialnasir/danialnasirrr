@@ -18,3 +18,10 @@ Built by `tools/make_sounds.py` into `src/assets/sfx/*.mp3` and `src/assets/musi
 
 Before release, double-check the Gravity Sound licence on their channel page (the tracks were taken from an MIT game that
 credits them; Gravity Sound publishes under CC BY 4.0). Kevin MacLeod's licence is CC BY 4.0 per incompetech.com.
+
+## Calm palette (tools/make_calm_sounds.py)
+The reward and UI cues (win, star, pearl, absorb, gateOpen, gateLocked, death, monsterDeath, bite, lowAir, click, hint, undo,
+treasure, air, bump, land) and the underwater ambience loop (music/ambience.mp3) are now synthesised in-house by
+`tools/make_calm_sounds.py` (soft mallet notes in C major pentatonic, warm pads, modelled bubbles, filtered-noise water).
+They are original works with no third-party source material, so no credit is required for them. The uiSFX cues those
+files replaced are no longer shipped. Dig, push, roll, swim and bubble still use the sources listed above.

@@ -570,3 +570,18 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   seabed in front of the tank isn't empty on phones.
 - **Level-name banner** hides on the first move (`banner.start`; banners with a new-element tip stay their full time).
 - Audit tip: phone screenshots need an iPhone user agent (`isMobile` is UA-based), otherwise the camera uses the computer framing.
+
+## Calm sound palette + water ambience (owner: "soothing, calm, clean"; the level-clear sound was annoying)
+- `python3 tools/make_calm_sounds.py` (no inputs) re-makes win, star, pearl, absorb, gateOpen, gateLocked, death, monsterDeath, bite,
+  lowAir, click, hint, undo, treasure(_2/_3), air, bump, land(_2) as soft mallet notes (fundamental + fast-fading 2nd/4th partial, slightly
+  detuned twin) in **C major pentatonic**, warm sine pads, modelled bubbles and low filtered-noise "water" whooshes, all low-passed and put
+  through a long dark stereo hall. Run it **after** `make_sounds.py` (which still makes dig/push/roll/swim/bubble from recordings).
+- It also writes `src/assets/music/ambience.mp3`: a 32 s seamless stereo underwater loop (deep rumble, slow swells, moving water band
+  420–1300 Hz so phone speakers carry it, panned distant bubble streams, sparse fizz). It plays on the **Ambience** channel; when it
+  exists the synth swell/hum (`bgK` = 0) and synth bubble blips are off. Kept at 32 s because decoded audio is ~11 MB.
+- Game side: pearl and star pitch steps are pentatonic (`[0,2,4,7,9,12,14]`, `[0,2,5]`); the level clear chimes once (the clear stamp's stars
+  + the win cue: the result card's star chimes and the coin-count chime are gone); low-air pulse every 2.4 s (1.3 s under 6 s, was 1 s / 0.5 s);
+  swim gain 0.2, star 0.42, lowAir 0.34. Measured mix (level, default sliders): music + ambience −26 dB RMS, ambience alone −27 dB,
+  loudest effects −6.8 dB, peak −0.6 dBFS, no overs. Credits: docs/audio-credits.md (calm palette is original, no credit needed).
+- **Tunnel water** (`MAT.waterBack` shader): soft slanted sun shafts that sway slowly (strongest under the surface), tiny drifting motes,
+  the tunnel floor a touch deeper. A few ALU ops, no extra draws. Measured headless (software GL, level 21): within noise of before.

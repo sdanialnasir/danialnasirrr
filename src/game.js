@@ -729,8 +729,8 @@ const Audio = (() => {
   // tools/make_sounds.py from Kenney + uiSFX recordings, see docs/audio-credits.md). Music: src/assets/music/{menu,play,deep}.mp3,
   // streamed through <audio> elements (decoding whole songs would cost phones ~40 MB each) into the music bus.
   const FILES = {}; let ambSrc = null;
-  const GAIN = { dig: 0.42, push: 0.55, land: 0.7, roll: 0.4, bump: 0.32, swim: 0.32, bubble: 0.35, air: 0.7, treasure: 0.5, absorb: 0.55, gateOpen: 0.6, gateLocked: 0.5,
-    win: 0.62, death: 0.7, monsterDeath: 0.65, bite: 0.55, lowAir: 0.4, click: 0.35, pearl: 0.42, star: 0.55, hint: 0.45, undo: 0.45 };
+  const GAIN = { dig: 0.42, push: 0.55, land: 0.7, roll: 0.4, bump: 0.32, swim: 0.2, bubble: 0.35, air: 0.7, treasure: 0.5, absorb: 0.55, gateOpen: 0.6, gateLocked: 0.5,
+    win: 0.62, death: 0.7, monsterDeath: 0.65, bite: 0.55, lowAir: 0.34, click: 0.35, pearl: 0.42, star: 0.42, hint: 0.45, undo: 0.45 };
   const VOICE = new Set(['hup', 'yay', 'eep', 'oof', 'hi', 'hmm', 'woohoo', 'aww']); // the synthesized squeaks are off unless a recorded voice exists
   function b64buf(u) { const b = atob(u.slice(u.indexOf(',') + 1)), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a.buffer; }
   function loadFiles() { const D = window.AQ_DATA || {};
@@ -780,7 +780,7 @@ const Audio = (() => {
   // and the occasional distant bubble trail.
   function startMusic() {
     if (!ctx || musicTimer) return;
-    const t0 = ctx.currentTime, bgK = (window.AQ_DATA && AQ_DATA.MUSIC && (AQ_DATA.MUSIC.play || AQ_DATA.MUSIC.menu)) ? 0.4 : 1; // with real music the synth bed only adds a little water air under it
+    const t0 = ctx.currentTime, bgK = (window.AQ_DATA && AQ_DATA.MUSIC && AQ_DATA.MUSIC.ambience) ? 0 : (window.AQ_DATA && AQ_DATA.MUSIC && (AQ_DATA.MUSIC.play || AQ_DATA.MUSIC.menu)) ? 0.4 : 1; // with real music the synth bed only adds a little water air under it
     // ocean swell: brown noise, low-passed, breathing in and out like slow waves
     const sw = ctx.createBufferSource(); sw.buffer = brownBuffer(8); sw.loop = true;
     const swLp = ctx.createBiquadFilter(); swLp.type = 'lowpass'; swLp.frequency.value = 420; swLp.Q.value = 0.4;
@@ -824,7 +824,7 @@ const Audio = (() => {
       if (!ctx) return;
       const now = ctx.currentTime;
       if (now + 1 > nextPad) { padChord(nextPad); nextPad += 14; }
-      if (now + 1 > nextBub) { bubbleTrail(nextBub); nextBub += 4 + Math.random() * 7; }
+      if (now + 1 > nextBub) { if (!FILES.__amb) bubbleTrail(nextBub); nextBub += 4 + Math.random() * 7; }
       if (now + 1 > nextChime && tension < 0.3 && !TR.on) { chime(nextChime); nextChime += 7 + Math.random() * 9; } else if (now + 1 > nextChime) nextChime += 4;
       musicTimer = setTimeout(tick, 400);
     };
@@ -926,8 +926,8 @@ const Audio = (() => {
   function setVolumes(music, sfx) { if (sfx === 0) setVol('sfx', 0); }
   function setVol(k, v) { if (!(k in vol)) return; vol[k] = Math.max(0, Math.min(1, +v || 0)); if (!ctx) return; const t = ctx.currentTime;
     if (k === 'music' && musicBus) musicBus.gain.setTargetAtTime(gMusic(), t, 0.05); if (k === 'amb' && ambBus) ambBus.gain.setTargetAtTime(gAmb(), t, 0.05); if (k === 'sfx' && sfxBus) sfxBus.gain.setTargetAtTime(gSfx(), t, 0.05); }
-  function pearl(n) { if (!ctx || muted) return; if (playFile('pearl', Math.pow(2, (n - 1) * 3 / 12))) return; const t = ctx.currentTime + 0.05, f = 523 * Math.pow(2, (n - 1) * 4 / 12); note(f, t, 0.9, 'triangle', 0.13, sfxBus); note(f * 2, t + 0.07, 0.6, 'sine', 0.06, sfxBus); } // each pearl a step higher
-  function star(i) { if (!ctx || muted) return; if (playFile('star', Math.pow(2, i * 4 / 12))) return; const t = ctx.currentTime, f = 784 * Math.pow(2, i * 5 / 12); note(f, t, 0.7, 'triangle', 0.14, sfxBus); note(f * 1.5, t + 0.03, 0.5, 'sine', 0.06, sfxBus); thump(110, 0.12, 0.18); }
+  function pearl(n) { if (!ctx || muted) return; if (playFile('pearl', Math.pow(2, [0, 2, 4, 7, 9, 12, 14][Math.min(6, Math.max(0, n - 1))] / 12))) return; /* pentatonic steps: overlapping cues stay consonant */ const t = ctx.currentTime + 0.05, f = 523 * Math.pow(2, (n - 1) * 4 / 12); note(f, t, 0.9, 'triangle', 0.13, sfxBus); note(f * 2, t + 0.07, 0.6, 'sine', 0.06, sfxBus); } // each pearl a step higher
+  function star(i) { if (!ctx || muted) return; if (playFile('star', Math.pow(2, [0, 2, 5][Math.min(2, Math.max(0, i))] / 12))) return; const t = ctx.currentTime, f = 784 * Math.pow(2, i * 5 / 12); note(f, t, 0.7, 'triangle', 0.14, sfxBus); note(f * 1.5, t + 0.03, 0.5, 'sine', 0.06, sfxBus); thump(110, 0.12, 0.18); }
   // share clips: the mixed game sound as a MediaStream for the recorder
   let capDest = null;
   function capture() { if (!ctx || !master || !ctx.createMediaStreamDestination) return null; try { capDest = ctx.createMediaStreamDestination(); (outNode || master).connect(capDest); return capDest.stream; } catch (er) { capDest = null; return null; } }
@@ -2705,6 +2705,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
               c += vec3(0.4, 0.95, 1.0) * uGlow * step(0.9, h) * smoothstep(0.09, 0.0, length(f)) * (0.5 + 0.5 * sin(uT * 2.0 + h * 40.0)); } // the deep: drifting bioluminescent specks c += vec3(0.1, 0.18, 0.2) * smoothstep(0.35, 0.0, abs(fract(vW.x * 0.11 + 0.3) - 0.5)) * k; // lighter, bluer water with soft light pools                                     // deep blue at the floor -> bright cyan under the surface
             vec2 p = vW.xy * 0.9; float a = sin(p.x * 3.1 + uT * 0.8 + sin(p.y * 2.3 + uT * 0.55) * 1.5), b = sin(p.y * 2.7 - uT * 0.65 + sin(p.x * 2.9 - uT * 0.7) * 1.5);
             float cau = pow(max(0.0, 1.0 - abs(a + b) * 0.5), 6.0); c += vec3(0.55, 0.95, 1.0) * cau * (0.1 + 0.18 * k);            // moving caustic net on the back glass
+            { float sx = vW.x * 0.34 + vW.y * 0.16 + sin(uT * 0.11) * 0.35, sh = pow(0.5 + 0.5 * sin(sx * 6.2832 + sin(sx * 2.1 + uT * 0.07) * 1.3), 6.0);
+              c += uHi * sh * (0.05 + 0.16 * k * k); }                                                                              // soft slanted sun shafts, swaying slowly, strongest under the surface
+            c *= 0.9 + 0.1 * smoothstep(0.0, 0.5, k);                                                                               // the floor of a tunnel a touch deeper
+            { vec2 q = vW.xy * 5.0 + vec2(sin(uT * 0.21 + vW.y) * 0.4, uT * 0.18); vec2 ci = floor(q); float h = fract(sin(dot(ci, vec2(91.7, 37.3))) * 43758.5);
+              vec2 f = fract(q) - 0.5 - (vec2(fract(h * 5.7), fract(h * 9.1)) - 0.5) * 0.7; c += vec3(0.8, 0.95, 1.0) * step(0.93, h) * smoothstep(0.06, 0.0, length(f)) * 0.22; } // tiny motes drifting in the water
             { float d = length(vW.xy - uLamp.xy), pool = smoothstep(uLamp.z * 2.0, 0.0, d); c *= 1.0 - uLampAmb * 0.8 * (1.0 - pool); c += vec3(0.5, 0.42, 0.25) * pool * pool * uLamp.w * 0.35; }
             gl_FragColor = vec4(pow(c, vec3(2.2)), 0.72); }` }))) : MAT.glassBack);
         if (this.newArt) { const U = back.material.uniforms; U.uH.value.set(yB, yT); U.uLo.value.setRGB(...WS.lo); U.uHi.value.setRGB(...WS.hi); U.uGlow.value = WS.glow; }
@@ -4721,12 +4726,12 @@ window.__T = T;
       setTimeout(() => { if (state === 'over') Audio.vo(['win1', 'win2', 'win3'][Math.random() * 3 | 0]); }, 700);
       { const parts = [['clear', 20], ['stars', stars * 10], ['first clear', firstClear ? 30 : 0], ['new stars', Math.max(0, stars - prevStars) * 15 * (firstClear ? 0 : 1)], ['treasures', runTreasures * 2], ['combos', RUN.combos.reduce((a, c) => a + c[1], 0)], ['relic', RUN.relicGot && !(save.relicPaid || {})[n] ? 50 : 0]].filter(p => p[1] > 0), total = parts.reduce((a, p) => a + p[1], 0);
         if (RUN.relicGot) { save.relicPaid = save.relicPaid || {}; save.relicPaid[n] = 1; } save.coins += total; $('#resCoins').hidden = false; $('#resCoinWhy').innerHTML = parts.map(p => `<span><i>${p[0][0].toUpperCase() + p[0].slice(1)}</i><b>+${p[1]}</b></span>`).join('');
-        const el = $('#resCoinN'); let shown = 0; const t0 = performance.now(); const tick = (now) => { const k = Math.min(1, (now - t0) / 900); shown = Math.round(total * k * (2 - k)); el.textContent = `+${shown}`; if (k < 1) requestAnimationFrame(tick); else Audio.play('treasure'); }; setTimeout(() => requestAnimationFrame(tick), 900); }
+        const el = $('#resCoinN'); let shown = 0; const t0 = performance.now(); const tick = (now) => { const k = Math.min(1, (now - t0) / 900); shown = Math.round(total * k * (2 - k)); el.textContent = `+${shown}`; if (k < 1) requestAnimationFrame(tick); }; setTimeout(() => requestAnimationFrame(tick), 900); }
       pushScore();
       if (n >= save.unlocked && n < LEVELS.length) save.unlocked = n + 1; persist();
       $('#resTitle').textContent = n === LEVELS.length ? 'Last gate open!' : engine.relaxed ? 'Relaxed clear!' : ['Energized!', 'Great dive!', 'Brilliant!'][stars - 1];
       $('#resStars').hidden = false;
-      starEls.forEach((s, i) => setTimeout(() => { s.classList.add('show'); if (i < stars) { s.classList.add('on'); Audio.star(i); buzz(12); } }, 250 + i * 260));
+      starEls.forEach((s, i) => setTimeout(() => { s.classList.add('show'); if (i < stars) { s.classList.add('on'); buzz(12); } /* the clear stamp already chimed the stars: no second set of chimes here */ }, 250 + i * 260));
       $('#resBest').hidden = !(engine.score > prevBest && prevBest > 0);
       $('#resStats').innerHTML = engine.relaxed ? `<div class="stat"><i class="si t"></i><b>${Math.round(engine.wonAt * engine.tickMs / 1000)}s</b><span>dive time</span></div><div class="stat"><i class="si s"></i><b>★</b><span>air timer off for ★★★</span></div>` : `<div class="stat"><i class="si a"></i><b>${Math.ceil(engine.oxygen)}s</b><span>air left</span></div><div class="stat"><i class="si e"></i><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>pearls</span></div>`;
       $('#btnNext').textContent = n >= LEVELS.length ? 'The reef awakens ✨' : 'Next level'; $('#btnNext').hidden = false; $('#btnNext').classList.toggle('green', n >= LEVELS.length);
@@ -4945,7 +4950,7 @@ window.__T = T;
           Audio.setTension(engine.relaxed ? 0 : (15 - engine.oxygen) / 15);
           if (engine.gate && engine.gate.open && !gateNudged && performance.now() - gateOpenAt > 8000) { gateNudged = true; toast('Swim into the glowing gate to finish ✨'); }
           stuckTimer += realDt; if (!stuckShown && stuckTimer > 22 && engine.ballsIn < engine.ballsTotal) { stuckShown = true; toast(isTouch ? 'Stuck? Tap 💡 for a hint, or ↶ to undo' : 'Stuck? Click 💡 for a hint, or press Z to undo'); $('#btnHint').classList.add('nudge'); setTimeout(() => $('#btnHint').classList.remove('nudge'), 4000); }
-          if (engine.oxygen < 15 && !engine.relaxed) { lowAirBeep -= dt; if (lowAirBeep <= 0) { lowAirBeep = engine.oxygen < 6 ? 0.5 : 1; Audio.play('lowAir'); } }
+          if (engine.oxygen < 15 && !engine.relaxed) { lowAirBeep -= dt; if (lowAirBeep <= 0) { lowAirBeep = engine.oxygen < 6 ? 1.3 : 2.4; Audio.play('lowAir'); /* calm: a soft pulse every few seconds, not a beeper */ } }
         }
         updateHud();
       } else { // over: keep physics animating briefly, then show result
