@@ -688,7 +688,7 @@ const LEVELS = [
 
 // Deep Current — procedural audio (no sample files). Ambient bed, generative music, synthesized SFX.
 const Audio = (() => {
-  let ctx = null, master, musicBus, sfxBus, ambBus;
+  let ctx = null, master, musicBus, sfxBus, ambBus, outNode = null; // outNode: what reaches the speakers (after the limiter)
   let started = false, muted = false, musicOn = true;
   let musicTimer = null, musicStep = 0, sandBuf = null, padBus = null, padF = null, padLayer = null, tension = 0;
   const settings = { music: 0.6, sfx: 0.9 };
@@ -699,7 +699,9 @@ const Audio = (() => {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     ctx = new AC();
-    master = ctx.createGain(); master.gain.value = 1; master.connect(ctx.destination);
+    master = ctx.createGain(); master.gain.value = 1;
+    try { const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -12; lim.knee.value = 8; lim.ratio.value = 10; lim.attack.value = 0.003; lim.release.value = 0.25; master.connect(lim); lim.connect(ctx.destination); outNode = lim; } // a limiter: stacked cues (pearl + gate + swell) never crackle on phone speakers
+    catch (er) { master.connect(ctx.destination); }
     musicBus = ctx.createGain(); musicBus.gain.value = settings.music; musicBus.connect(master);
     sfxBus = ctx.createGain(); sfxBus.gain.value = settings.sfx; sfxBus.connect(master);
     ambBus = ctx.createGain(); ambBus.gain.value = 0.5; ambBus.connect(master);
@@ -710,26 +712,45 @@ const Audio = (() => {
         for (let i = 0; i < n; i++) { const t = i / ctx.sampleRate, a = 0.9 - 0.75 * Math.min(1, t / 1.8); lpv += (Math.random() * 2 - 1 - lpv) * a; d[i] = lpv * Math.exp(-t * 2.6) * Math.min(1, t * 90); e += d[i] * d[i]; }
         const g = 1 / Math.sqrt(e || 1); for (let i = 0; i < n; i++) d[i] *= g; } /* unit energy: the wet level is set by 'wet' alone */
       const conv = ctx.createConvolver(); conv.buffer = ir; const pre = ctx.createBiquadFilter(); pre.type = 'lowpass'; pre.frequency.value = 2600;
-      const wet = ctx.createGain(); wet.gain.value = 0.32; sfxBus.connect(pre); pre.connect(conv); conv.connect(wet); wet.connect(master); } catch (er) {}
+      const wet = ctx.createGain(); wet.gain.value = (window.AQ_DATA && AQ_DATA.SFX) ? 0.16 : 0.32; sfxBus.connect(pre); pre.connect(conv); conv.connect(wet); wet.connect(master); } catch (er) {}
     const delay = ctx.createDelay(0.5); delay.delayTime.value = 0.13;
     const fb = ctx.createGain(); fb.gain.value = 0.12;
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1000;
     sfxBus.connect(delay); delay.connect(lp); lp.connect(fb); fb.connect(delay); lp.connect(master);
     ambient(); loadFiles();
   }
-  // real recordings (optional): src/assets/sfx/<name>.mp3 (variants <name>_2.mp3 ...) replace the synthesized sound of that name;
-  // src/assets/music/ambience.mp3 loops under everything instead of the synth pad. build_assets.py embeds them as AQ_DATA.SFX / MUSIC.
+  // real recordings: src/assets/sfx/<name>.mp3 (variants <name>_2.mp3 ...) replace the synthesized sound of that name (made by
+  // tools/make_sounds.py from Kenney + uiSFX recordings, see docs/audio-credits.md). Music: src/assets/music/{menu,play,deep}.mp3,
+  // streamed through <audio> elements (decoding whole songs would cost phones ~40 MB each) into the music bus.
   const FILES = {}; let ambSrc = null;
+  const GAIN = { dig: 0.42, push: 0.55, land: 0.7, roll: 0.4, bump: 0.32, swim: 0.32, bubble: 0.35, air: 0.7, treasure: 0.5, absorb: 0.55, gateOpen: 0.6, gateLocked: 0.5,
+    win: 0.62, death: 0.7, monsterDeath: 0.65, bite: 0.55, lowAir: 0.4, click: 0.35, pearl: 0.42, star: 0.55, hint: 0.45, undo: 0.45 };
+  const VOICE = new Set(['hup', 'yay', 'eep', 'oof', 'hi', 'hmm', 'woohoo', 'aww']); // the synthesized squeaks are off unless a recorded voice exists
   function b64buf(u) { const b = atob(u.slice(u.indexOf(',') + 1)), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a.buffer; }
   function loadFiles() { const D = window.AQ_DATA || {};
     for (const [k, u] of Object.entries(D.SFX || {})) { const name = k.replace(/_\d+$/, ''); ctx.decodeAudioData(b64buf(u)).then(buf => (FILES[name] = FILES[name] || []).push(buf)).catch(() => {}); }
-    const m = D.MUSIC && D.MUSIC.ambience; if (m) ctx.decodeAudioData(b64buf(m)).then(buf => { FILES.__amb = buf; if (started) startAmb(); }).catch(() => {}); }
+    const m = D.MUSIC && D.MUSIC.ambience; if (m) ctx.decodeAudioData(b64buf(m)).then(buf => { FILES.__amb = buf; if (started) startAmb(); }).catch(() => {});
+    initTracks(); }
   function startAmb() { if (!FILES.__amb || ambSrc || !musicBus) return; ambSrc = ctx.createBufferSource(); ambSrc.buffer = FILES.__amb; ambSrc.loop = true;
     const g = ctx.createGain(); g.gain.setValueAtTime(0, ctx.currentTime); g.gain.linearRampToValueAtTime(0.8, ctx.currentTime + 3); ambSrc.connect(g); g.connect(padF || musicBus); ambSrc.start();
     if (padLayer) padLayer.gain.setTargetAtTime(0, ctx.currentTime, 1.5); } /* the recording replaces the synth chords (swell / tension still shape it through padF) */
-  function playFile(name) { const L = FILES[name]; if (!L || !L.length) return false; const src = ctx.createBufferSource(); src.buffer = L[(Math.random() * L.length) | 0];
-    src.playbackRate.value = 0.96 + Math.random() * 0.08; src.connect(sfxBus); src.start(); return true; }
-  function resume() { if (!ctx) init(); if (ctx && ctx.state === 'suspended') ctx.resume(); if (!started) { started = true; startMusic(); } }
+  function playFile(name, r, gain) { const L = FILES[name]; if (!L || !L.length) return false; const src = ctx.createBufferSource(); src.buffer = L[(Math.random() * L.length) | 0];
+    src.playbackRate.value = r || (0.96 + Math.random() * 0.08); const g = ctx.createGain(); g.gain.value = (gain ?? 1) * (GAIN[name] ?? 0.6); src.connect(g); g.connect(sfxBus); src.start(); return true; }
+  // ---- music tracks: two <audio> elements crossfade; a low-pass on the way in lets the game muffle it (low air) or open it (gate wakes)
+  const TR = { on: false, els: [], cur: -1, name: '', want: null, f: null, g: null };
+  function initTracks() { const M = (window.AQ_DATA || {}).MUSIC || {}; if (!M.menu && !M.play && !M.deep) return; TR.on = true; TR.src = M;
+    TR.f = ctx.createBiquadFilter(); TR.f.type = 'lowpass'; TR.f.frequency.value = 18000; TR.g = ctx.createGain(); TR.g.gain.value = 0.62; TR.f.connect(TR.g); TR.g.connect(musicBus);
+    for (let i = 0; i < 2; i++) { const el = new window.Audio(); el.loop = true; el.preload = 'auto'; el.crossOrigin = 'anonymous'; let node = null; try { node = ctx.createMediaElementSource(el); } catch (er) {}
+      const g = ctx.createGain(); g.gain.value = 0; if (node) { node.connect(g); g.connect(TR.f); } TR.els.push({ el, g, node }); }
+    if (padLayer) padLayer.gain.setTargetAtTime(0, ctx.currentTime, 1); if (TR.want !== null) music(TR.want); }
+  function music(name) { TR.want = name; if (!TR.on || !ctx) return; if (name === TR.name) return; const t = ctx.currentTime;
+    if (TR.cur >= 0) { const o = TR.els[TR.cur]; o.g.gain.cancelScheduledValues(t); o.g.gain.setValueAtTime(o.g.gain.value, t); o.g.gain.linearRampToValueAtTime(0, t + 1.6); const el = o.el; setTimeout(() => { if (TR.els[TR.cur] !== o) el.pause(); }, 1800); }
+    TR.name = name; if (!name || !TR.src[name]) { TR.cur = -1; return; }
+    const ni = TR.cur === 0 ? 1 : 0, n = TR.els[ni]; TR.cur = ni; if (n.el.src !== TR.src[name]) n.el.src = TR.src[name]; n.el.currentTime = 0;
+    n.g.gain.cancelScheduledValues(t); n.g.gain.setValueAtTime(0, t); n.g.gain.linearRampToValueAtTime(1, t + 2.2); const p = n.el.play(); if (p && p.catch) p.catch(() => {}); }
+  // iOS lets an <audio> element play from code only after it played once inside a tap: prime both on the first tap
+  function primeTracks() { if (!TR.on || TR.primed) return; TR.primed = true; for (const o of TR.els) { if (!o.el.src && TR.src.menu) o.el.src = TR.src.menu; const p = o.el.play(); if (p && p.then) p.then(() => { if (TR.els[TR.cur] !== o) o.el.pause(); }).catch(() => {}); } }
+  function resume() { if (!ctx) init(); if (ctx && ctx.state === 'suspended') ctx.resume(); primeTracks(); if (!started) { started = true; startMusic(); } if (TR.on && TR.want !== null && TR.cur < 0) { TR.name = ''; music(TR.want); } }
 
   const noiseCache = {};
   function noiseBuffer(seconds = 2) { if (noiseCache[seconds]) return noiseCache[seconds]; // one buffer per length, reused (it was re-made on every sound effect)
@@ -798,7 +819,7 @@ const Audio = (() => {
       const now = ctx.currentTime;
       if (now + 1 > nextPad) { padChord(nextPad); nextPad += 14; }
       if (now + 1 > nextBub) { bubbleTrail(nextBub); nextBub += 4 + Math.random() * 7; }
-      if (now + 1 > nextChime && tension < 0.3) { chime(nextChime); nextChime += 7 + Math.random() * 9; } else if (now + 1 > nextChime) nextChime += 4;
+      if (now + 1 > nextChime && tension < 0.3 && !TR.on) { chime(nextChime); nextChime += 7 + Math.random() * 9; } else if (now + 1 > nextChime) nextChime += 4;
       musicTimer = setTimeout(tick, 400);
     };
     tick(); startAmb();
@@ -883,9 +904,9 @@ const Audio = (() => {
   function swell() { if (!ctx || !padBus) return; const t = ctx.currentTime, g = padBus.gain, f = padF.frequency;
     g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(2.3, t + 1.4); g.linearRampToValueAtTime(1.5, t + 5); g.linearRampToValueAtTime(1 - tension * 0.65, t + 10);
     f.cancelScheduledValues(t); f.setValueAtTime(f.value, t); f.linearRampToValueAtTime(12000, t + 1); [0, 7, 12, 19].forEach((st, i) => note(110 * 2 * Math.pow(2, st / 12), t + 0.2 + i * 0.25, 7, 'sine', 0.035, padBus)); }
-  function setTension(k) { k = Math.max(0, Math.min(1, k)); if (!ctx || !padBus || Math.abs(k - tension) < 0.02) return; tension = k; const t = ctx.currentTime;
+  function setTension(k) { k = Math.max(0, Math.min(1, k)); if (!ctx || !padBus || Math.abs(k - tension) < 0.02) return; tension = k; const t = ctx.currentTime; if (TR.f) { TR.f.frequency.cancelScheduledValues(t); TR.f.frequency.setTargetAtTime(18000 * Math.pow(0.05, k), t, 0.8); }
     padBus.gain.cancelScheduledValues(t); padBus.gain.setTargetAtTime(1 - k * 0.65, t, 0.8); padF.frequency.cancelScheduledValues(t); padF.frequency.setTargetAtTime(12000 * Math.pow(0.04, k), t, 0.8); }
-  function play(name) { if (!ctx || muted) return; try { if (!playFile(name)) SFX[name] && SFX[name](); } catch {} }
+  function play(name) { if (!ctx || muted) return; try { if (!playFile(name) && !(VOICE.has(name) && FILES.click)) SFX[name] && SFX[name](); } catch {} }
   // voice-over: plays an embedded clip (src/assets/vo/<id>.mp3, baked in by build_assets.py) and ducks the ambience under it.
   // Returns the clip length in seconds (0 when no clip exists yet, so the captions keep their own timing).
   let voEl = null;
@@ -897,13 +918,13 @@ const Audio = (() => {
   function setMuted(m) { muted = m; if (master) master.gain.value = m ? 0 : 1; }
   function setMusic(on) { musicOn = on; if (musicBus && ctx) musicBus.gain.setTargetAtTime(on ? settings.music : 0, ctx.currentTime, 0.6); }
   function setVolumes(music, sfx) { settings.music = music; settings.sfx = sfx; if (musicBus) musicBus.gain.value = musicOn ? music : 0; if (sfxBus) sfxBus.gain.value = sfx; try { localStorage.setItem('dc-audio', JSON.stringify(settings)); } catch {} }
-  function pearl(n) { if (!ctx || muted) return; const t = ctx.currentTime + 0.05, f = 523 * Math.pow(2, (n - 1) * 4 / 12); note(f, t, 0.9, 'triangle', 0.13, sfxBus); note(f * 2, t + 0.07, 0.6, 'sine', 0.06, sfxBus); } // each pearl a step higher
-  function star(i) { if (!ctx || muted) return; const t = ctx.currentTime, f = 784 * Math.pow(2, i * 5 / 12); note(f, t, 0.7, 'triangle', 0.14, sfxBus); note(f * 1.5, t + 0.03, 0.5, 'sine', 0.06, sfxBus); thump(110, 0.12, 0.18); }
+  function pearl(n) { if (!ctx || muted) return; if (playFile('pearl', Math.pow(2, (n - 1) * 3 / 12))) return; const t = ctx.currentTime + 0.05, f = 523 * Math.pow(2, (n - 1) * 4 / 12); note(f, t, 0.9, 'triangle', 0.13, sfxBus); note(f * 2, t + 0.07, 0.6, 'sine', 0.06, sfxBus); } // each pearl a step higher
+  function star(i) { if (!ctx || muted) return; if (playFile('star', Math.pow(2, i * 4 / 12))) return; const t = ctx.currentTime, f = 784 * Math.pow(2, i * 5 / 12); note(f, t, 0.7, 'triangle', 0.14, sfxBus); note(f * 1.5, t + 0.03, 0.5, 'sine', 0.06, sfxBus); thump(110, 0.12, 0.18); }
   // share clips: the mixed game sound as a MediaStream for the recorder
   let capDest = null;
-  function capture() { if (!ctx || !master || !ctx.createMediaStreamDestination) return null; try { capDest = ctx.createMediaStreamDestination(); master.connect(capDest); return capDest.stream; } catch (er) { capDest = null; return null; } }
-  function release() { if (capDest) { try { master.disconnect(capDest); } catch (er) {} capDest = null; } }
-  return { init, resume, play, vo, stopVo, swell, setTension, setMuted, setMusic, setVolumes, settings, pearl, star, capture, release, get ctx() { return ctx; }, get files() { return FILES; } };
+  function capture() { if (!ctx || !master || !ctx.createMediaStreamDestination) return null; try { capDest = ctx.createMediaStreamDestination(); (outNode || master).connect(capDest); return capDest.stream; } catch (er) { capDest = null; return null; } }
+  function release() { if (capDest) { try { (outNode || master).disconnect(capDest); } catch (er) {} capDest = null; } }
+  return { init, resume, play, vo, stopVo, swell, setTension, setMuted, setMusic, setVolumes, settings, pearl, star, capture, release, music, get musicOn() { return TR.on; }, get ctx() { return ctx; }, get files() { return FILES; } };
 })();
 
 // Deep Current — renderer v3: clean, bright, front-on puzzle board built from premium primitives.
@@ -3857,7 +3878,7 @@ window.__T = T;
   function wipeTo(fn, ev) { const w = $('#wipe'); if (!w || REDUCED_MOTION || w.classList.contains('in')) { fn(); return; }
     const x = ev && ev.clientX ? ev.clientX : innerWidth / 2, y = ev && ev.clientY ? ev.clientY : innerHeight / 2; w.style.setProperty('--x', x + 'px'); w.style.setProperty('--y', y + 'px');
     w.classList.add('in'); Audio.play('bubble'); setTimeout(() => { try { fn(); } finally { setTimeout(() => w.classList.remove('in'), 90); } }, 380); }
-  function openHome() { setPeekSafe(); Audio.setTension(0); setState('menu'); go('home'); showMenuScene(); reefProgress(); homeCard(); homeLayout(); idleThumbs(); }
+  function openHome() { setPeekSafe(); Audio.setTension(0); Audio.music('menu'); setState('menu'); go('home'); showMenuScene(); reefProgress(); homeCard(); homeLayout(); idleThumbs(); }
   // phone portrait home (the owner's mockup): painted backdrop, waving diver, and a card with a photo of the next level's tank.
   // The 3D scene is hidden behind it there, so the frame loop holds instead of rendering.
   const HM3 = matchMedia('(max-width: 760px) and (orientation: portrait)'); let cardKey = '';
@@ -3913,7 +3934,7 @@ window.__T = T;
   function say(id) { cap(CINE_LINES[id] || ''); Audio.vo(id); }
   const ramp = (from, to, t0, dur, T) => from + (to - from) * Math.min(1, Math.max(0, (T - t0) / dur));
   function startCine() {
-    if (cineRunning) return; cineRunning = true;
+    if (cineRunning) return; cineRunning = true; Audio.music(null);
     setState('cine'); show(null); $('#skipIntro').hidden = false; $('#cineTitle').classList.remove('on'); $('#cineFade').classList.add('on'); $('#cineFade').classList.add('black');
     cineEngine = new Engine(Object.assign({}, LEVELS[0], { tickMs: 150 })); cineEngine.time = 999; cineEngine.oxygen = 999; cineEngine.cine = true;
     world.loadLevel(cineEngine); world.onTick(cineEngine, performance.now()); world.startPlay();
@@ -4077,6 +4098,7 @@ window.__T = T;
     if (typeof booting !== 'undefined' && booting) dropLoader();
     runTreasures = 0; runTreasureSet.clear(); runLog = ''; runUndo = false; runHint = false;
     levelIdx = i; const lv = custom || LEVELS[i]; dive = custom && custom.daily ? custom : null;
+    Audio.music(!custom && i >= 20 ? 'deep' : 'play'); // the Deep gets its own dark soundscape
     engine = new Engine(lv); engine.relaxed = !!save.settings.relaxed && !dive; if (dive) { engine.daily = true; World.dailyWorld(lv.name, dayNum() % 3); } /* the Daily Dive is a race: always on the clock */ world.loadLevel(engine); hideStuck(); stuckKey = ''; Audio.setTension(0); document.body.classList.toggle('relaxed', engine.relaxed);
     window.__LEVELSCENE = (custom || LEVELS[i]).scene || null; history = []; stuckTimer = 0; stuckShown = false; gateNudged = true; coachStart(i, custom);
     { const ph = $('#pauseHint'); if (ph) ph.textContent = lv.hint || ''; }
@@ -4193,7 +4215,7 @@ window.__T = T;
   function hintSync() { const b = $('#btnHint'); if (!b) return; const free = hintFree(), left = Math.ceil((HINT.readyAt - performance.now()) / 1000);
     b.classList.toggle('on', COACH.hint > 0); const tg = b.querySelector('em'); const txt = COACH.hint > 0 ? COACH.hint : free ? 'free' : HINT.cost; if (tg.textContent !== String(txt)) tg.textContent = txt; b.classList.toggle('free', free && !COACH.hint);
     const lab = free ? 'Show me the next moves (free)' : `Show me the next moves (${HINT.cost} coins, free again in ${left}s)`; if (hintSync.lab !== lab) { hintSync.lab = lab; b.setAttribute('aria-label', lab); } }
-  function showMe() { if (state !== 'playing' || !engine || engine.state !== 'playing') return; click();
+  function showMe() { if (state !== 'playing' || !engine || engine.state !== 'playing') return; Audio.play('hint');
     if (!COACH.route) { toast('No hint for this dive'); return; }
     if (COACH.hint > 0) { COACH.hint = 0; if (!COACH.auto) COACH.plan = null; hintSync(); return; } // tap again to hide it
     if (HINT.busy || !coachRefs()) return;
@@ -4312,7 +4334,7 @@ window.__T = T;
     return true; }
   function undo() {
     if (!history.length || !engine || (state !== 'playing' && state !== 'over') || engine.state === 'won' || $('#ending').classList.contains('on')) { if (state === 'playing') toast('Nothing to undo yet'); return; }
-    click(); buzz(10); hideStuck(); stuckKey = ''; planJob++; COACH.plan = null; let snap = history.pop(), extra = 0; while (history.length && extra < 12 && doomed(snap)) { snap = history.pop(); extra++; } runUndo = true; if (snap.__log !== undefined) runLog = runLog.slice(0, snap.__log); const cp = world.camPos.clone(), ct = world.camTarget.clone();
+    Audio.play('undo'); buzz(10); hideStuck(); stuckKey = ''; planJob++; COACH.plan = null; let snap = history.pop(), extra = 0; while (history.length && extra < 12 && doomed(snap)) { snap = history.pop(); extra++; } runUndo = true; if (snap.__log !== undefined) runLog = runLog.slice(0, snap.__log); const cp = world.camPos.clone(), ct = world.camTarget.clone();
     engine = cloneEngine(snap); world.keepTreasures(); world.loadLevel(engine); world.onTick(engine, performance.now()); world.startPlay(); world.camPos.copy(cp); world.camTarget.copy(ct);
     held.clear(); heldOrder = []; endTouch(); acc = 0; overTimer = 0; resultShown = false; hudKey = ''; lastScore = -1;
     if (state !== 'playing') { setState('playing'); show(null); } updateHud(); undoHold = true;

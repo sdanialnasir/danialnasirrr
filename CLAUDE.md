@@ -471,3 +471,17 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   shoulder lights; octopus hood with eyes + 6 swaying tentacles; angler lure with glowing bulb + glowing dots + fangs). Measured frame:
   feet y −0.556, helmet −0.08…0.395, hips −0.23, Spine2 −0.12, face front x ≈ 0.2. **Animate an inner child, never the glued object**
   (its rotation holds the bone-space offset). Head-piece outfits hide hats. The shop preview rebuilds the diver when the kit changes.
+
+## Real sound + music (replaces the synth)
+- `tools/make_sounds.py <sources>` builds `src/assets/sfx/*.mp3` (37 files incl. variants) and `src/assets/music/{menu,play,deep}.mp3`
+  (looped excerpts with an equal-power crossfade, 64 kbps stereo). Sources + licences: `docs/audio-credits.md` (Kenney CC0 recordings,
+  uiSFX CC0 'dreamy'/'soft' cues, physically modelled bubbles; music CC BY 4.0: Kevin MacLeod "Chill Wave", Gravity Sound "Meadow" /
+  "Soundscape Dark" → **Settings › Credits** must stay). The source packs are not in the repo (fetched with git/npm, see the script header).
+  Everything gets an underwater treatment (low-pass, short dark reverb) baked in; the runtime reverb is lighter when files exist.
+- `Audio.playFile(name, rate, gain)` uses per-sound levels (`GAIN`); `pearl(n)` / `star(i)` pitch the recorded cue up per step.
+  Synth voice squeaks (`VOICE`) are off when recordings exist. Synth chords/chimes are muted when music tracks exist.
+- **Music** streams through two `<audio>` elements (crossfade 1.6–2.2 s) → low-pass `TR.f` (tension muffles it) → music bus.
+  `Audio.music('menu'|'play'|'deep'|null)`: home = menu, levels 1–20 + Daily = play, 21–30 = deep, intro film = none. iOS: both
+  elements are primed on the first tap (`primeTracks`).
+- **Limiter** (DynamicsCompressor) after the master; share clips and tests capture *after* it (`outNode`). Measured on a level-2 run:
+  peak −1.5 dBFS, no clipped samples, effects ~10 dB over the music.
