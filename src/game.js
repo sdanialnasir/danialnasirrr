@@ -690,6 +690,7 @@ const LEVELS = [
 const Audio = (() => {
   let ctx = null, master, musicBus, sfxBus, ambBus, outNode = null; // outNode: what reaches the speakers (after the limiter)
   let started = false, muted = false, musicOn = true;
+  let muffF = null, muffG = null, muffK = 0;
   let musicTimer = null, musicStep = 0, sandBuf = null, padBus = null, padF = null, padLayer = null, tension = 0;
   const settings = { music: 0.6, sfx: 0.9 };
   // three player volumes (0..1, the sliders in Settings and on the pause screen): music = the songs, amb = the soft underwater bed
@@ -708,9 +709,11 @@ const Audio = (() => {
       const sc = ctx.createWaveShaper(), N = 2048, cv = new Float32Array(N), K = 0.708; for (let i = 0; i < N; i++) { const x = i / (N - 1) * 2 - 1, a = Math.abs(x); cv[i] = Math.sign(x) * (a <= K ? a : K + (1 - K) * Math.tanh((a - K) / (1 - K))); }
       sc.curve = cv; sc.oversample = '2x'; lim.connect(sc); sc.connect(ctx.destination); outNode = sc; } // a limiter: stacked cues (pearl + gate + swell) never crackle on phone speakers
     catch (er) { master.connect(ctx.destination); }
-    musicBus = ctx.createGain(); musicBus.gain.value = gMusic(); musicBus.connect(master);
+    // "underwater hearing": music + ambience pass through one low-pass that closes a little while a menu covers the game
+    muffF = ctx.createBiquadFilter(); muffF.type = 'lowpass'; muffF.frequency.value = 20000; muffF.Q.value = 0.5; muffG = ctx.createGain(); muffG.gain.value = 1; muffF.connect(muffG); muffG.connect(master);
+    musicBus = ctx.createGain(); musicBus.gain.value = gMusic(); musicBus.connect(muffF);
     sfxBus = ctx.createGain(); sfxBus.gain.value = gSfx(); sfxBus.connect(master);
-    ambBus = ctx.createGain(); ambBus.gain.value = gAmb(); ambBus.connect(master);
+    ambBus = ctx.createGain(); ambBus.gain.value = gAmb(); ambBus.connect(muffF); if (muffK) muffle(muffK);
     // underwater space: a soft generated reverb (stereo decaying noise, darker as it fades) under every sound effect,
     // plus a faint short echo off the tank glass
     try { const n = Math.floor(ctx.sampleRate * 2.4), ir = ctx.createBuffer(2, n, ctx.sampleRate);
@@ -910,6 +913,8 @@ const Audio = (() => {
   function swell() { if (!ctx || !padBus) return; const t = ctx.currentTime, g = padBus.gain, f = padF.frequency;
     g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(2.3, t + 1.4); g.linearRampToValueAtTime(1.5, t + 5); g.linearRampToValueAtTime(1 - tension * 0.65, t + 10);
     f.cancelScheduledValues(t); f.setValueAtTime(f.value, t); f.linearRampToValueAtTime(12000, t + 1); [0, 7, 12, 19].forEach((st, i) => note(110 * 2 * Math.pow(2, st / 12), t + 0.2 + i * 0.25, 7, 'sine', 0.035, padBus)); }
+  // k 0 = open (playing), 1 = muffled (pause / result / sheets during a level): a soft shelf, not a wall
+  function muffle(k) { muffK = k; if (!ctx || !muffF) return; const t = ctx.currentTime; muffF.frequency.cancelScheduledValues(t); muffF.frequency.setTargetAtTime(20000 * Math.pow(900 / 20000, k), t, k ? 0.18 : 0.35); muffG.gain.cancelScheduledValues(t); muffG.gain.setTargetAtTime(1 - 0.28 * k, t, 0.3); }
   function setTension(k) { k = Math.max(0, Math.min(1, k)); if (!ctx || !padBus || Math.abs(k - tension) < 0.02) return; tension = k; const t = ctx.currentTime; if (TR.f) { TR.f.frequency.cancelScheduledValues(t); TR.f.frequency.setTargetAtTime(18000 * Math.pow(0.05, k), t, 0.8); }
     padBus.gain.cancelScheduledValues(t); padBus.gain.setTargetAtTime(1 - k * 0.65, t, 0.8); padF.frequency.cancelScheduledValues(t); padF.frequency.setTargetAtTime(12000 * Math.pow(0.04, k), t, 0.8); }
   function play(name) { if (!ctx || muted) return; try { if (!playFile(name) && !(VOICE.has(name) && FILES.click)) SFX[name] && SFX[name](); } catch {} }
@@ -932,7 +937,7 @@ const Audio = (() => {
   let capDest = null;
   function capture() { if (!ctx || !master || !ctx.createMediaStreamDestination) return null; try { capDest = ctx.createMediaStreamDestination(); (outNode || master).connect(capDest); return capDest.stream; } catch (er) { capDest = null; return null; } }
   function release() { if (capDest) { try { (outNode || master).disconnect(capDest); } catch (er) {} capDest = null; } }
-  return { init, resume, play, vo, stopVo, swell, setTension, setMuted, setMusic, setVolumes, setVol, vol, settings, pearl, star, capture, release, music, get musicOn() { return TR.on; }, get ctx() { return ctx; }, get files() { return FILES; } };
+  return { init, resume, play, vo, stopVo, swell, setTension, muffle, setMuted, setMusic, setVolumes, setVol, vol, settings, pearl, star, capture, release, music, get musicOn() { return TR.on; }, get ctx() { return ctx; }, get files() { return FILES; } };
 })();
 
 // Deep Current — renderer v3: clean, bright, front-on puzzle board built from premium primitives.
@@ -3740,7 +3745,7 @@ window.__T = T;
     document.querySelectorAll('.ld-title, .gs-title, .hm-title, .cine-title .title').forEach(t => { t.classList.add('logo-art'); t.setAttribute('aria-label', 'Aqua Energizer'); });
   })();
   const canvas = $('#c');
-  const world = World.create(canvas); window.__dc = { world, aud: Audio, get engine() { return engine; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { skipTut = true; try { startLevel(i); beginPlay(); } finally { skipTut = false; } }, plan: (cb) => planFrom(engine, coachRefs(), COACH.route, cb), planCheck: (plan) => plSim(engine, plan).won, doomed: () => doomed(engine), relic: (i) => relicCell(i), run: () => RUN, tick: () => { engine.step(); tickWorld(engine, performance.now()); dangerScan(); }, danger: () => { dangerScan(); return world.lastDanger; }, undo: () => undo(), tut: (i) => { if (save.tutSeen) delete save.tutSeen[i]; startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), World, intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
+  const world = World.create(canvas); window.__dc = { world, aud: Audio, get engine() { return engine; }, get save() { return save; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { skipTut = true; try { startLevel(i); beginPlay(); } finally { skipTut = false; } }, plan: (cb) => planFrom(engine, coachRefs(), COACH.route, cb), planCheck: (plan) => plSim(engine, plan).won, doomed: () => doomed(engine), relic: (i) => relicCell(i), run: () => RUN, tick: () => { engine.step(); tickWorld(engine, performance.now()); dangerScan(); }, danger: () => { dangerScan(); return world.lastDanger; }, undo: () => undo(), tut: (i) => { if (save.tutSeen) delete save.tutSeen[i]; startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), World, intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
   world.onSfx = n => Audio.play(n); world.onToast = m => toast(m);
   let gateOpenAt = 0, gateNudged = true;
   world.onGateOpen = () => { if (state === 'replay' || state === 'clip') return; gateOpenAt = performance.now(); gateNudged = false; banner('The gate is awake!', 'Swim in!', 'Swim into the glowing gate to carry the light home.', 3200); };
@@ -3752,7 +3757,7 @@ window.__T = T;
     try { const s = JSON.parse(localStorage.getItem('dc-save') || '{}'); Object.assign(d, s); d.settings = Object.assign({ music: true, sfx: true, dpad: false, vibe: true, quality: 'high' }, s.settings || {}); } catch {} return d; })();
   // guard against damaged saves (a null field used to stop the game from booting) and move old saves to the redesigned levels:
   // stars/best/tips from before v2 belonged to different level layouts, so they reset (coins, skins and progress are kept)
-  for (const k of ['stars', 'best', 'owned', 'stats', 'ach', 'daily', 'equip', 'tipsSeen', 'relics', 'relicPaid']) if (save[k] !== undefined && (save[k] === null || typeof save[k] !== 'object' || Array.isArray(save[k]))) delete save[k];
+  for (const k of ['stars', 'best', 'owned', 'stats', 'ach', 'daily', 'equip', 'tipsSeen', 'relics', 'relicPaid', 'chest']) if (save[k] !== undefined && (save[k] === null || typeof save[k] !== 'object' || Array.isArray(save[k]))) delete save[k];
   save.stars = save.stars || {}; save.best = save.best || {}; if (typeof save.coins !== 'number' || !isFinite(save.coins)) save.coins = 0; save.unlocked = Math.max(1, Math.min(30, +save.unlocked || 1));
   if ((save.v || 1) < 2) { const s1 = save.stars[1], b1 = save.best[1]; save.stars = s1 ? { 1: s1 } : {}; save.best = b1 ? { 1: b1 } : {}; save.tipsSeen = {}; save.v = 2; }
   const persist = () => { try { localStorage.setItem('dc-save', JSON.stringify(save)); } catch {} };
@@ -3807,6 +3812,8 @@ window.__T = T;
       d.innerHTML = i % 7 === 6 ? `<span>Day ${i + 1}</span><i class="gift-ic">🎁</i><b>Rare</b>` : `<span>Day ${i + 1}</span><i class="coin"></i><b>${dailyCoins(i)}</b>`; el.appendChild(d); }
     const btn = $('#dailyClaim'); btn.disabled = !ds.can; btn.textContent = ds.can ? (ds.day % 7 === 6 ? 'Open the chest 🎁' : `Claim ${dailyCoins(ds.day)} coins`) : 'Come back tomorrow';
     buildWeekly();
+    { const c = chestState(); $('#rwChestN').textContent = `${c.n}/${CHEST_N}`; $('#rwChestF').style.width = (c.n / CHEST_N * 100) + '%'; const left = 3 - c.o % 3;
+      $('#rwChestS').textContent = `Earn ${CHEST_N - c.n} more new star${CHEST_N - c.n > 1 ? 's' : ''} to open it: 75 coins` + (left === 1 ? ', and this one holds a rare item!' : ` · a rare item in ${left} chests`); }
     const ul = $('#achList'); ul.innerHTML = '';
     ACH.slice().sort((a, b) => (!!save.ach[a.id] - !!save.ach[b.id]) || ((b.v() >= b.goal) - (a.v() >= a.goal))).forEach(a => { const v = Math.min(a.goal, a.v()), done = !!save.ach[a.id], ready = !done && v >= a.goal;
       const li = document.createElement('li'); li.className = done ? 'done' : '';
@@ -3944,11 +3951,24 @@ window.__T = T;
   }
 
   // ---- state ----
+  let quietAt = 0, quietOn = false;
   let engine = null, levelIdx = 0, state = 'splash', acc = 0, lastFrame = performance.now(), overTimer = 0, lowAirBeep = 0, resultShown = false;
   const held = new Set(); let heldOrder = [];
   let screenStack = [];
-  function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id)); }
-  function setState(s) { state = s; document.body.dataset.state = s; }
+  // caustic light for the menus: one tileable 256 px canvas of soft bright Voronoi edges, used by the .caus layers
+  (function causticTile() { try { const N = 256, cv = document.createElement('canvas'); cv.width = cv.height = N; const c2 = cv.getContext('2d'), im = c2.createImageData(N, N), P = [];
+    let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647; for (let i = 0; i < 14; i++) P.push([rnd() * N, rnd() * N]);
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { let d1 = 1e9, d2 = 1e9; for (const p of P) for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) { const dx = x - p[0] - ox * N, dy = y - p[1] - oy * N, d = dx * dx + dy * dy; if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) d2 = d; }
+      const e = Math.sqrt(d2) - Math.sqrt(d1), v = Math.pow(Math.max(0, 1 - e / 9), 3), j = (y * N + x) * 4; im.data[j] = 190 + 65 * v; im.data[j + 1] = 240 + 15 * v; im.data[j + 2] = 255; im.data[j + 3] = 255 * v; }
+    c2.putImageData(im, 0, 0); document.documentElement.style.setProperty('--caus', `url("${cv.toDataURL('image/png')}")`); } catch (er) {} })();
+  // computer home: the layers drift a little with the mouse (depth); phones skip it
+  { const home = $('#home'); let mx = 0, my = 0, raf = 0; if (home && !isTouch && !REDUCED_MOTION) home.addEventListener('pointermove', ev => { mx = ev.clientX / innerWidth * 2 - 1; my = ev.clientY / innerHeight * 2 - 1;
+      if (!raf) raf = requestAnimationFrame(() => { raf = 0; home.style.setProperty('--mx', mx.toFixed(3)); home.style.setProperty('--my', my.toFixed(3)); }); }); }
+  function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id)); shownId = id; hearing(); }
+  function setState(s) { state = s; document.body.dataset.state = s; hearing(); }
+  // underwater hearing: the music + ambience close in while a card covers the dive, and open again when you swim
+  let shownId = '';
+  function hearing() { const k = state === 'paused' ? 1 : state === 'over' && shownId === 'result' ? 0.75 : state === 'menu' && shownId && shownId !== 'home' && shownId !== 'splash' ? 0.4 : 0; if (k !== hearing.k) { hearing.k = k; Audio.muffle(k); } }
   function go(id) {
     if (id === 'home' && state !== 'menu' && state !== 'splash' && !go.inHome) { go.inHome = true; try { openHome(); } finally { go.inHome = false; } return; }
     if (id === 'back') { id = screenStack.pop() || 'home'; } else { const cur = document.querySelector('.screen.on'); if (cur && cur.id !== id && id !== 'home') screenStack.push(cur.id); if (id === 'home') screenStack = []; }
@@ -4677,7 +4697,7 @@ window.__T = T;
   function syncDiveBtn() { const b = $('#btnDaily'); if (!b) return; const L = todayDive(), D = ddSave(), locked = save.unlocked < DIVE_FROM || !L; b.classList.toggle('locked', locked); b.classList.toggle('done', !!D.best);
     $('#ddSub').textContent = locked ? (L ? `Unlocks after level ${DIVE_FROM - 1}` : 'Coming soon') : D.best ? `Today: ${D.best.t.toFixed(1)} s · beat it?` : `${L.name} · new today`; }
   function startDaily() { const L = todayDive(); if (!L) return; if (save.unlocked < DIVE_FROM) { toast(`Clear level ${DIVE_FROM - 1} to unlock the Daily Dive`); return; } click(); buzz(10); ddSave().tries++; persist(); startLevel(-1, L); }
-  function finishDaily(won) { const D = ddSave(), L = dive; setState('over'); show('result'); const r = $('#result'); r.classList.toggle('win', won); r.classList.toggle('lose', !won);
+  function finishDaily(won) { const D = ddSave(), L = dive; setState('over'); show('result'); $('#resGoals').hidden = true; const r = $('#result'); r.classList.toggle('win', won); r.classList.toggle('lose', !won);
     $('#resKicker').textContent = `Daily Dive · ${L.name}`; $('#resStars').hidden = true; $('#resBest').hidden = true; $('#resExtra').hidden = !won; $('#btnWatch').hidden = true; setShareLabel(true);
     { const el = $('#resScore'), total = engine.score, t0 = performance.now(); el.textContent = '0'; /* the score rolls up while the card pops in */
       const tick = (now) => { const k = Math.min(1, (now - t0 - 250) / 1000); if (k > 0) el.textContent = Math.round(total * (1 - Math.pow(1 - k, 3))).toLocaleString(); if (k < 1 && resultShown) requestAnimationFrame(tick); else el.textContent = total.toLocaleString(); };
@@ -4703,10 +4723,24 @@ window.__T = T;
     const st = [...el.querySelectorAll('.cs-stars i')]; st.forEach(s => s.className = ''); el.querySelector('.cs-stars').hidden = !!dive;
     el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
     st.forEach((s, i) => setTimeout(() => { if (!el.classList.contains('on')) return; s.classList.add('show'); if (i < stars) { s.classList.add('got'); Audio.star(i); buzz(14); } }, 520 + i * 230)); }
+  // ---- Star chest: every new star fills it; 9 open it (75 coins, every 3rd chest a rare item) ----
+  const CHEST_N = 9;
+  function chestState() { const c = save.chest = save.chest || {}; c.n = Math.max(0, Math.min(CHEST_N - 1, c.n | 0)); c.o = Math.max(0, c.o | 0); return c; }
+  function chestAdd(g) { const c = chestState(), before = c.n; let opened = 0, gift = null; c.n += g; while (c.n >= CHEST_N) { c.n -= CHEST_N; c.o++; opened++; if (c.o % 3 === 0 && !gift) gift = giftItem(300, 600) || giftItem(600, 1200); }
+    return { before, gained: g, opened, after: c.n, gift }; }
+  function goalRow(id, title, frac, num, from) { const f = $('#rg' + id + 'F'); $('#rg' + id + 'T').textContent = title; $('#rg' + id + 'N').textContent = num;
+    f.style.transition = 'none'; f.style.width = (Math.max(0, Math.min(1, from ?? frac)) * 100) + '%'; void f.offsetWidth; f.style.transition = ''; setTimeout(() => { f.style.width = (Math.max(0, Math.min(1, frac)) * 100) + '%'; }, REDUCED_MOTION ? 0 : 700); }
+  function renderGoals(won, ch) { const w = WORLDS[worldOfIdx(levelIdx)], cnt = w.to - w.from; let awake = 0; for (let k = w.from + 1; k <= w.to; k++) if (save.stars[k]) awake++;
+    goalRow('World', `${w.name} · gates awake`, awake / cnt, `${awake}/${cnt}`);
+    const c = chestState(), row = $('#rgChest'); row.classList.remove('open');
+    if (ch && ch.opened) { goalRow('Chest', 'Star chest opened!', 1, `+${ch.opened * 75}`, ch.before / CHEST_N); setTimeout(() => { if (ch.gift) grantItem(ch.gift, 'Star chest'); if (!resultShown) return; row.classList.add('open'); Audio.play('treasure'); buzz([20, 30, 40]); }, REDUCED_MOTION ? 0 : 1500); }
+    else goalRow('Chest', ch && ch.gained ? `Star chest · +${ch.gained} ★` : won ? 'Star chest · earn new stars' : 'Star chest · win to add stars', c.n / CHEST_N, `${c.n}/${CHEST_N}`, ch ? ch.before / CHEST_N : null);
+    const pr = $('#rgPearl'); pr.hidden = won || dive || engine.deathCause === 'self';
+    if (!pr.hidden) { const a = engine.ballsIn, b = engine.ballsTotal; goalRow('Pearl', a >= b ? 'So close! The gate was open' : a ? `So close! ${a} of ${b} pearls in` : `Pearls in: ${a} of ${b}`, b ? a / b : 1, `${a}/${b}`); } }
   function finishLevel() { { const cs = $('#clearStamp'); if (cs) cs.classList.remove('on'); }
     resultShown = true; { const m = $('#resMascot'), th = diverThumb(); if (th) { m.src = th; m.hidden = false; } }
     const won = engine.state === 'won'; const n = levelIdx + 1; { const rc = $('#resCause'); rc.textContent = won ? '' : { crushed: 'A stone landed on your head. Undo and step aside sooner.', monster: 'A sea creature caught you. Watch its path, or drop a stone on it.', oxygen: 'Your air ran out. Look for air capsules, or plan a shorter route.', self: 'You restarted the dive.', spiked: 'Ouch, spikes!' }[engine.deathCause] || ''; rc.hidden = won || !rc.textContent; } if (dive) return finishDaily(won);
-    setState('over'); show('result');
+    setState('over'); show('result'); $('#resGoals').hidden = false;
     const r = $('#result'); r.classList.toggle('win', won); r.classList.toggle('lose', !won);
     const prevBest = save.best[n] || 0;
     $('#resKicker').textContent = `Level ${n} · ${LEVELS[levelIdx].name}`;
@@ -4717,14 +4751,14 @@ window.__T = T;
     if (won) {
       const frac = engine.oxygen / engine.time; const stars = engine.relaxed ? 1 : frac >= 0.6 ? 3 : frac >= 0.3 ? 2 : 1;
       const prevStars = save.stars[n] || 0, firstClear = !prevStars;
-      save.stars[n] = Math.max(prevStars, stars); if (!engine.relaxed) save.best[n] = Math.max(prevBest, engine.score);
+      save.stars[n] = Math.max(prevStars, stars); if (!engine.relaxed) save.best[n] = Math.max(prevBest, engine.score); const ch = chestAdd(Math.max(0, stars - prevStars));
       save.stats.wins++; save.stats.dug += engine.dug || 0;
       weekBump('wins'); weekBump('stars', stars); if (stars === 3) weekBump('perfect'); if (!runUndo) weekBump('noundo'); if (!runHint) weekBump('nohint'); weekBump('dig', engine.dug || 0);
       { const m = runLog.replace(/\.+$/, '') + '.', old = (save.runs || {})[n]; if ((!old || m.length < old.m.length) && checkRun(LEVELS[levelIdx], m, engine.relaxed)) { save.runs = save.runs || {}; save.runs[n] = { m, rx: engine.relaxed ? 1 : 0 }; } } // keep the fastest verified run
       lastWin = { n, stars, secs: Math.round(engine.wonAt * engine.tickMs / 1000), name: LEVELS[levelIdx].name, relaxed: engine.relaxed };
       lastRun = { lv: LEVELS[levelIdx], n, log: runLog, relaxed: engine.relaxed, won: true, name: LEVELS[levelIdx].name };
       setTimeout(() => { if (state === 'over') Audio.vo(['win1', 'win2', 'win3'][Math.random() * 3 | 0]); }, 700);
-      { const parts = [['clear', 20], ['stars', stars * 10], ['first clear', firstClear ? 30 : 0], ['new stars', Math.max(0, stars - prevStars) * 15 * (firstClear ? 0 : 1)], ['treasures', runTreasures * 2], ['combos', RUN.combos.reduce((a, c) => a + c[1], 0)], ['relic', RUN.relicGot && !(save.relicPaid || {})[n] ? 50 : 0]].filter(p => p[1] > 0), total = parts.reduce((a, p) => a + p[1], 0);
+      { const parts = [['clear', 20], ['stars', stars * 10], ['first clear', firstClear ? 30 : 0], ['new stars', Math.max(0, stars - prevStars) * 15 * (firstClear ? 0 : 1)], ['treasures', runTreasures * 2], ['combos', RUN.combos.reduce((a, c) => a + c[1], 0)], ['relic', RUN.relicGot && !(save.relicPaid || {})[n] ? 50 : 0], ['star chest', ch.opened * 75]].filter(p => p[1] > 0), total = parts.reduce((a, p) => a + p[1], 0);
         if (RUN.relicGot) { save.relicPaid = save.relicPaid || {}; save.relicPaid[n] = 1; } save.coins += total; $('#resCoins').hidden = false; $('#resCoinWhy').innerHTML = parts.map(p => `<span><i>${p[0][0].toUpperCase() + p[0].slice(1)}</i><b>+${p[1]}</b></span>`).join('');
         const el = $('#resCoinN'); let shown = 0; const t0 = performance.now(); const tick = (now) => { const k = Math.min(1, (now - t0) / 900); shown = Math.round(total * k * (2 - k)); el.textContent = `+${shown}`; if (k < 1) requestAnimationFrame(tick); }; setTimeout(() => requestAnimationFrame(tick), 900); }
       pushScore();
@@ -4736,7 +4770,7 @@ window.__T = T;
       $('#resStats').innerHTML = engine.relaxed ? `<div class="stat"><i class="si t"></i><b>${Math.round(engine.wonAt * engine.tickMs / 1000)}s</b><span>dive time</span></div><div class="stat"><i class="si s"></i><b>★</b><span>air timer off for ★★★</span></div>` : `<div class="stat"><i class="si a"></i><b>${Math.ceil(engine.oxygen)}s</b><span>air left</span></div><div class="stat"><i class="si e"></i><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>pearls</span></div>`;
       $('#btnNext').textContent = n >= LEVELS.length ? 'The reef awakens ✨' : 'Next level'; $('#btnNext').hidden = false; $('#btnNext').classList.toggle('green', n >= LEVELS.length);
       $('#btnRetry').lastChild.textContent = 'Replay';
-      $('#resExtra').hidden = false; $('#btnWatch').hidden = !(save.runs && save.runs[n]); setShareLabel(true);
+      $('#resExtra').hidden = false; $('#btnWatch').hidden = !(save.runs && save.runs[n]); setShareLabel(true); renderGoals(true, ch);
     } else { $('#resExtra').hidden = !clipOk() || engine.deathCause === 'self'; $('#btnWatch').hidden = true; /* a funny fail is shareable too */ setShareLabel(false);
       lastRun = { lv: LEVELS[levelIdx], n, log: runLog, relaxed: engine.relaxed, won: false, cause: engine.deathCause, name: LEVELS[levelIdx].name };
       $('#resCoins').hidden = true; save.stats.dug += engine.dug || 0; weekBump('dig', engine.dug || 0); persist(); lastWin = null;
@@ -4745,7 +4779,7 @@ window.__T = T;
       $('#resTitle').textContent = cause; $('#resStars').hidden = true; $('#resBest').hidden = true;
       $('#resStats').innerHTML = `<div class="stat"><i class="si e"></i><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>pearls</span></div><div class="stat"><i class="si a"></i><b>${Math.max(0, Math.ceil(engine.oxygen))}s</b><span>air left</span></div>`;
       $('#btnNext').textContent = history.length ? 'Undo last move' : 'Try again'; $('#btnNext').hidden = false; $('#btnNext').classList.add('green');
-      $('#btnRetry').lastChild.textContent = 'Restart';
+      $('#btnRetry').lastChild.textContent = 'Restart'; renderGoals(false, null);
     }
   }
 
@@ -4933,6 +4967,7 @@ window.__T = T;
         acc = Math.min(acc + (now - (frame.last || now)), 300); frame.last = now; // a long gap (tab throttled, iframe off-screen, GC) must not fast-forward the dive
         if (beginPlay.pk && ((engine.moveQueue && engine.moveQueue.length) || engine.held)) setHeldPeekOff(); // the first move ends the opening look
         if (banner.start && ((engine.moveQueue && engine.moveQueue.length) || engine.held)) { banner.start = false; $('#lvlBanner').classList.remove('on'); } // ...and the level-name banner (it sat over the tank)
+        { const mv = (engine.moveQueue && engine.moveQueue.length) || engine.held || touch; if (mv) quietAt = now; const q = !!quietAt && now - quietAt < 1200 && (engine.relaxed || engine.oxygen > 15); if (q !== quietOn) { quietOn = q; document.body.classList.toggle('swim', q); } } // quiet HUD while swimming
         if (slowMo > 0) { slowMo = Math.max(0, slowMo - realDt); acc = 0; } // the world holds its breath for a moment
         if (undoHold) { if ((engine.moveQueue && engine.moveQueue.length) || engine.held) undoHold = false; else acc = 0; }
         if (engine.moveQueue && engine.moveQueue.length && acc >= engine.tickMs * 0.6 && acc < engine.tickMs) acc = engine.tickMs; // a fresh tap moves now instead of waiting out the tick

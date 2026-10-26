@@ -602,3 +602,17 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   0.62 → 0.42, bloom ×0.85.
 - **Sound:** UI and small cues are drier and tighter (hall wet 0.05–0.14, shorter tails); the click is a soft tactile tick
   (rounded 1.15 kHz tap + 320 Hz body) instead of a water drop. Level clear / gate keep their gentle space.
+
+## Immersion pass (owner: "more immersion... aesthetically pleasing... keeps playing")
+- **Underwater hearing:** music + ambience go through one low-pass (`muffF`/`muffG` in Audio, `Audio.muffle(k)`); `hearing()` (called from
+  `show`/`setState`) closes it on pause (k 1), the result card (0.75) and menu sheets over home (0.4), and opens it in play/home/title.
+  Effects are never muffled.
+- **Living menus:** `.caus` layers (home backdrop + `#lvBg`) drift a generated caustic tile (`--caus`, 256 px Voronoi edges made once at
+  boot) with `mix-blend-mode: screen`, transform-only animation. Computer home: mouse parallax (`--mx/--my` on `#home`, diver/card/corals/
+  rays/logo move different amounts via the `translate` property). Off with reduced motion.
+- **Quiet HUD:** `body.swim` while the diver is moving (within 1.2 s of a move/hold/drag): top bar 62%, bottom buttons 45%. Never while
+  air ≤ 15 s.
+- **Star chest** (`CHEST_N = 9`, `chestAdd`, `save.chest = {n, o}`): each *new* star (above the level's previous best) fills it; full = 75
+  coins (result row "Star chest"), every 3rd chest also a rare item (`giftItem(300, 600)`). Shown in Rewards (`#rwChest`) and on the result.
+- **Result goals** (`#resGoals`, `renderGoals`): star chest bar (animates from the old fill; pops open with `chest_open` art), world progress
+  ("Coral Caves · gates awake 4/10"), and on a fail "So close! 1 of 2 pearls in". Hidden on the Daily Dive. Debug: `__dc.save`.

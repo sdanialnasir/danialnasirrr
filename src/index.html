@@ -1369,6 +1369,48 @@ html body.ui-art #btnMap.on { background: rgba(255, 212, 94, 0.9) !important; co
 .item .rib { box-shadow: none !important; }
 
 .ph { background: rgba(11, 36, 62, 0.92) !important; border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important; box-shadow: none !important; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+
+/* ===== Immersion pass: moving light on menus, computer parallax, quiet HUD while swimming, result goals, star chest ===== */
+.caus { position: absolute; inset: -24rem; z-index: 1; pointer-events: none; background: var(--caus, none) 0 0 / 22rem 22rem repeat; mix-blend-mode: screen; opacity: 0.17;
+  -webkit-mask-image: linear-gradient(180deg, #000 10%, rgba(0,0,0,0.35) 55%, transparent 85%); mask-image: linear-gradient(180deg, #000 10%, rgba(0,0,0,0.35) 55%, transparent 85%);
+  will-change: transform; animation: causA 26s linear infinite; }
+.caus.b { background-size: 15rem 15rem; opacity: 0.12; animation: causB 19s linear infinite; }
+@keyframes causA { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-22rem, -22rem, 0); } }
+@keyframes causB { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(15rem, -15rem, 0); } }
+#home .caus { display: none; }
+@media (max-width: 760px) and (orientation: portrait) { #home .caus { display: block; } }
+@media (orientation: landscape) and (min-width: 760px) and (min-height: 521px) { #home .caus { display: block; }
+  #home .hm3-diver, #home .hm3-card, #home .hm3-coral, #home .hm3-rays, #home .hm-logo { transition: translate 0.9s cubic-bezier(.2,.7,.2,1); }
+  #home .hm3-diver { translate: calc(var(--mx, 0) * -14px) calc(var(--my, 0) * -9px); }
+  #home .hm3-card { translate: calc(var(--mx, 0) * -6px) calc(var(--my, 0) * -4px); }
+  #home .hm3-coral { translate: calc(var(--mx, 0) * -26px) calc(var(--my, 0) * -10px); }
+  #home .hm3-rays { translate: calc(var(--mx, 0) * 10px) 0; }
+  #home .hm-logo { translate: calc(var(--mx, 0) * -4px) calc(var(--my, 0) * -3px); } }
+@media (prefers-reduced-motion: reduce) { .caus { animation: none; } #home .hm3-diver, #home .hm3-card, #home .hm3-coral, #home .hm3-rays, #home .hm-logo { translate: none !important; } }
+/* quiet HUD: while the diver is on the move the HUD steps back a little; it comes back when he stops (or air is low) */
+#hud, #hudB, #btnMap { transition: opacity 0.6s ease; }
+body.swim[data-state="playing"] #hud { opacity: 0.62; }
+body.swim[data-state="playing"] #hudB, body.swim[data-state="playing"] #btnMap { opacity: 0.45; }
+/* result goals: star chest, world progress, "so close" on a fail */
+.res-goals { display: grid; gap: 0.5rem; margin: 0 0 1rem; }
+.res-goals[hidden], .rg[hidden] { display: none; }
+.rg { display: flex; align-items: center; gap: 0.7rem; padding: 0.55rem 0.8rem; border-radius: 1rem; background: rgba(255, 255, 255, 0.055); border: 1px solid rgba(255, 255, 255, 0.1); text-align: left; animation: rowIn 0.5s both; }
+.rg:nth-child(2) { animation-delay: 0.12s; } .rg:nth-child(3) { animation-delay: 0.24s; }
+.rg-ic { flex: none; width: 2.2rem; height: 2.2rem; display: block; background: center / contain no-repeat; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35)); }
+.rg-ic.chest { background-image: var(--ui-chest, none); } .rg.open .rg-ic.chest { background-image: var(--ui-chest_open, var(--ui-chest, none)); animation: chestPop 0.6s cubic-bezier(.3,1.6,.5,1); }
+.rg-ic.gate { background-image: var(--ui-gate_open, none); } .rg-ic.pearl { background-image: var(--ui-pearl, none); }
+.rg-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.3rem; } .rg-t b { font-weight: 800; font-size: 0.92rem; color: #eaf8ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rg small, .rw-chest .rc-n { flex: none; font-family: var(--display); font-size: 1.05rem; color: #ffd86a; min-width: 2.6rem; text-align: right; }
+.rg-bar { display: block; height: 0.45rem; border-radius: 99px; background: rgba(0, 10, 40, 0.45); overflow: hidden; }
+.rg-bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, #5ee8ff, #ffd86a); transition: width 1.1s cubic-bezier(.2,.8,.2,1); box-shadow: 0 0 0.6rem rgba(120, 230, 255, 0.5); }
+#rgWorld .rg-bar i { background: linear-gradient(90deg, #4fd2ff, #7dffcf); } #rgPearl .rg-bar i { background: linear-gradient(90deg, #ff9a6a, #ffd23f); }
+.rg.open { border-color: rgba(255, 212, 94, 0.55); box-shadow: 0 0 1.2rem rgba(255, 212, 94, 0.25); } .rg.open .rg-t b { color: #ffd86a; }
+@keyframes chestPop { 0% { transform: scale(0.6) rotate(-8deg); } 60% { transform: scale(1.25) rotate(4deg); } 100% { transform: none; } }
+.res.win .res-cause { display: none; }
+.rw-chest { display: flex; align-items: center; gap: 0.8rem; margin: 0 0 1rem; padding: 0.75rem 0.95rem; border-radius: 1.3rem; background: rgba(255, 255, 255, 0.055); border: 1px solid rgba(94, 232, 255, 0.28); }
+.rw-chest .rg-ic { width: 3rem; height: 3rem; } .rw-chest .rc-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+.rw-chest b { font-family: var(--display); font-size: 1.2rem; color: #fff; } .rw-chest small { font-weight: 700; font-size: 0.82rem; color: rgba(230, 245, 255, 0.78); line-height: 1.25; }
+.rw-chest .rg-bar { margin-top: 0.2rem; height: 0.55rem; }
 </style>
 </head>
 <body data-state="splash">
@@ -1450,7 +1492,7 @@ html body.ui-art #btnMap.on { background: rgba(255, 212, 94, 0.9) !important; co
 </section>
 
 <section id="home" class="screen gs-screen">
-  <div class="hm3-bg" aria-hidden="true"><i class="hm3-rays"></i><i class="hm3-bub"></i><i class="hm3-coral l"></i><i class="hm3-coral r"></i></div>
+  <div class="hm3-bg" aria-hidden="true"><i class="hm3-rays"></i><i class="hm3-bub"></i><i class="hm3-coral l"></i><i class="hm3-coral r"></i><i class="caus"></i><i class="caus b"></i></div>
   <header class="hm-top">
     <button class="hm-chip" data-go="profile" aria-label="Your profile"><span class="hm-ava" id="hmAva">D</span><span class="hm-who"><b id="hmName">Diver</b><small><i class="st">★</i> <span id="hmStars">0</span> · Level <span id="hmLvl">1</span></small></span></button>
     <div class="hm-right">
@@ -1489,7 +1531,7 @@ html body.ui-art #btnMap.on { background: rgba(255, 212, 94, 0.9) !important; co
 <div id="cineDark" aria-hidden="true"></div>
 
 <section id="levels" class="screen lv">
-  <div class="lv-bg" id="lvBg" aria-hidden="true"></div>
+  <div class="lv-bg" id="lvBg" aria-hidden="true"><i class="caus"></i><i class="caus b"></i></div>
   <header class="lv-top">
     <div class="lv-title"><button class="back" data-go="home" aria-label="Back"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h2>Levels</h2></div>
     <div class="lv-world"><button class="lv-arrow" id="lvPrevW" aria-label="Previous world"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><div class="lv-wname"><b id="lvWorld">World 1 · Sunlit Shallows</b><small id="lvWorldSub"></small></div><button class="lv-arrow" id="lvNextW" aria-label="Next world"><svg class="i" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button></div>
@@ -1633,6 +1675,7 @@ html body.ui-art #btnMap.on { background: rgba(255, 212, 94, 0.9) !important; co
   <div class="wrap">
     <div class="ph"><button class="back" data-go="back" aria-label="Back"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h2>Rewards</h2><span class="pill coins-pill"><i class="coin" aria-hidden="true"></i><b class="coinCount">0</b></span></div>
     <button class="rw-vip" id="rwVip" type="button"><span class="rv-ic" aria-hidden="true">👑</span><span class="rv-t"><b id="rwVipT">Premium outfits</b><small id="rwVipS">Post about the game publicly to get the VIP Black Gold suit</small></span><span class="rv-go">Share</span></button>
+    <div class="rw-chest" id="rwChest"><i class="rg-ic chest" aria-hidden="true"></i><span class="rc-t"><b>Star chest</b><small id="rwChestS">Every 9 new stars open it: 75 coins, and every 3rd chest holds a rare outfit piece</small><span class="rg-bar"><i id="rwChestF"></i></span></span><span class="rc-n" id="rwChestN">0/9</span></div>
     <div class="rw-grid">
       <div class="panel rw-daily">
         <h3 class="sec-h">Daily treasure <small class="streak" id="streakN"></small></h3>
@@ -1669,6 +1712,11 @@ html body.ui-art #btnMap.on { background: rgba(255, 212, 94, 0.9) !important; co
     <div class="res-r">
       <div class="res-stats" id="resStats"></div>
       <div class="res-coins" id="resCoins" hidden><span class="rc-top"><i class="coin" aria-hidden="true"></i><b id="resCoinN">+0</b></span><span class="rc-why" id="resCoinWhy"></span></div>
+      <div class="res-goals" id="resGoals">
+        <div class="rg" id="rgPearl" hidden><i class="rg-ic pearl" aria-hidden="true"></i><span class="rg-t"><b id="rgPearlT">So close!</b><span class="rg-bar"><i id="rgPearlF"></i></span></span><small id="rgPearlN">0/0</small></div>
+        <div class="rg" id="rgChest"><i class="rg-ic chest" aria-hidden="true"></i><span class="rg-t"><b id="rgChestT">Star chest</b><span class="rg-bar"><i id="rgChestF"></i></span></span><small id="rgChestN">0/9</small></div>
+        <div class="rg" id="rgWorld"><i class="rg-ic gate" aria-hidden="true"></i><span class="rg-t"><b id="rgWorldT">World</b><span class="rg-bar"><i id="rgWorldF"></i></span></span><small id="rgWorldN">0/10</small></div>
+      </div>
       <button class="cta" id="btnNext">Next level</button>
       <p class="kbd-hint desk-only"><kbd>Enter</kbd> to continue</p>
       <div class="res-extra" id="resExtra" hidden><button class="pill-btn" id="btnWatch" aria-label="Watch your best run"><svg class="i" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Best run</button><button class="pill-btn" id="btnShare"><svg class="i" viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Share</button></div>
