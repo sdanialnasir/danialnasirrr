@@ -559,3 +559,14 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   (hint chime + "Gate" label), 0.42 s apart (`world.reveal`, `funUpdate`). Doesn't block input; no camera move (desktop camera stays still).
 - Debug: `__dc.relic(i)`, `__dc.run()` (combos, relic state), `__dc.tick()` (one exact engine tick through the normal event path; use it in
   tests instead of wall-clock frames when timing matters).
+
+## Visual polish: crisp rock, seabed depth, banner
+- **Reef rock** (`massMat`): `TEX.cobbleRock` is now a crisp 1024 px tileable height map (jittered grid of rounded cobbles, dark mortar,
+  small pebbles packed into the gaps, fine grain; anisotropy 4), sampled at 0.3 per world unit, with **bump lighting** from two extra
+  taps (stones lit from the top-left like the key light). The old 256 px soft texture looked blurry at phone zoom.
+- **Sand overhang shade** fades out at the ends of an overhang (diagonal neighbours from the mask) instead of stopping square at a cell
+  edge (it left a dark notch at cavity corners).
+- **Seabed depth**: a nearer, sparser prop layer (z 2.6–4.8: bigger weed clumps, shells, stones with ground shadows) so the band of
+  seabed in front of the tank isn't empty on phones.
+- **Level-name banner** hides on the first move (`banner.start`; banners with a new-element tip stay their full time).
+- Audit tip: phone screenshots need an iPhone user agent (`isMobile` is UA-based), otherwise the camera uses the computer framing.

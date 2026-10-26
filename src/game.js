@@ -1133,7 +1133,13 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             ln = max(ln, (1.0 - step(0.5, nD)) * (1.0 - smoothstep(w - aa, w + aa, 1.0 - lc.y)));
             ln = max(ln, (1.0 - step(0.5, nU)) * (1.0 - smoothstep(w - aa, w + aa, lc.y)));
             vLine = 0.0; }
-          vEdge = sh; vTopOpen = 1.0 - step(0.5, nU); vBotOpen = (1.0 - step(0.5, nD)) * (1.0 - step(0.5, texture2D(uMask, (cell + vec2(0.0, 1.0) + 0.5) / uSize).b)); vLc = lc; } }` : '#include <clipping_planes_fragment>')
+          vEdge = sh; vTopOpen = 1.0 - step(0.5, nU); vBotOpen = (1.0 - step(0.5, nD)) * (1.0 - step(0.5, texture2D(uMask, (cell + vec2(0.0, 1.0) + 0.5) / uSize).b));
+            { /* the underside shade fades out at the ends of an overhang instead of stopping square at a cell edge (it left a dark notch) */
+              vec4 dl = texture2D(uMask, (cell + vec2(-1.0, 1.0) + 0.5) / uSize), dr = texture2D(uMask, (cell + vec2(1.0, 1.0) + 0.5) / uSize);
+              float dLo = (1.0 - step(0.5, dl.r)) * (1.0 - step(0.5, dl.b)), dRo = (1.0 - step(0.5, dr.r)) * (1.0 - step(0.5, dr.b));
+              float fl = nL < 0.5 ? 1.0 : mix(smoothstep(0.0, 0.55, lc.x), 1.0, dLo), fr = nR < 0.5 ? 1.0 : mix(smoothstep(0.0, 0.55, 1.0 - lc.x), 1.0, dRo);
+              vBotOpen *= fl * fr; }
+            vLc = lc; } }` : '#include <clipping_planes_fragment>')
         .replace('#include <color_fragment>', `#include <color_fragment>
         { vec2 p = vWp.xy;
           // warm golden base with a gentle large-scale light/dark drift
@@ -1172,7 +1178,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           float speck = fract(sin(dot(floor(p * 48.0), vec2(12.9898, 78.233))) * 43758.5453);
           
           c = mix(c, uNew > 0.5 ? vec3(0.42, 0.22, 0.09) : dark * 0.75, vEdge * 0.75);
-          if (uNew > 0.5 && vBotOpen > 0.5) { float band = smoothstep(0.55, 1.0, vLc.y); c = mix(c, c * vec3(0.66, 0.58, 0.54), band * band); } // underside of a sand ledge: soft shade, no hard band
+          if (uNew > 0.5 && vBotOpen > 0.001) { float band = smoothstep(0.5, 1.0, vLc.y); c = mix(c, c * vec3(0.7, 0.62, 0.58), band * band * vBotOpen); } // underside of a sand ledge: soft shade, no hard band
           c = mix(c, lip, vTopOpen * smoothstep(0.15, 0.06, vLc.y));
           c = mix(c, vec3(0.008, 0.016, 0.066) * 1.9, vLine);
           // shells, starfish and pebbles pressed into the sand face (they go away with the sand when dug)
@@ -1912,20 +1918,29 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   // a sunlit lip on exposed tops; uses the sand mask's wall channel (.b) to know which neighbours are open
   function massMat(world) { MAT.mass = MAT.mass || [];
     if (MAT.mass[world]) return MAT.mass[world];
-    if (!TEX.cobbleRock) { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'); g.fillStyle = '#6d6d6d'; g.fillRect(0, 0, 256, 256);
-      let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
-      for (let i = 0; i < 70; i++) { const x = rnd() * 256, y = rnd() * 256, rx = 14 + rnd() * 20, ry = 10 + rnd() * 14, a = rnd() * 3, v = 150 + rnd() * 70;
-        for (const ox of [-256, 0, 256]) for (const oy of [-256, 0, 256]) { g.fillStyle = `rgb(${v * 0.55},${v * 0.55},${v * 0.55})`; g.beginPath(); g.ellipse(x + ox + 2, y + oy + 3, rx, ry, a, 0, 7); g.fill();
-          const gr = g.createRadialGradient(x + ox - rx * 0.3, y + oy - ry * 0.4, 1, x + ox, y + oy, rx); gr.addColorStop(0, `rgb(${v + 30},${v + 30},${v + 30})`); gr.addColorStop(1, `rgb(${v * 0.8},${v * 0.8},${v * 0.8})`); g.fillStyle = gr; g.beginPath(); g.ellipse(x + ox, y + oy, rx - 2, ry - 2, a, 0, 7); g.fill(); } }
-      TEX.cobbleRock = new THREE.CanvasTexture(c); TEX.cobbleRock.wrapS = TEX.cobbleRock.wrapT = THREE.RepeatWrapping; TEX.cobbleRock.colorSpace = THREE.NoColorSpace; }
+    if (!TEX.cobbleRock) { // a crisp, tileable height map: packed cobbles (jittered grid) with dark mortar gaps, rounded tops and fine grain
+      const N = 1024, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'); g.fillStyle = '#262626'; g.fillRect(0, 0, N, N);
+      let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647; const G = 9, cs = N / G;
+      for (let gy = 0; gy < G; gy++) for (let gx = 0; gx < G; gx++) { const x = (gx + 0.5 + (rnd() - 0.5) * 0.5) * cs, y = (gy + 0.5 + (rnd() - 0.5) * 0.5) * cs, rx = cs * (0.4 + rnd() * 0.12), ry = cs * (0.32 + rnd() * 0.12), a = rnd() * 3.14, v = 0.62 + rnd() * 0.3;
+        for (const ox of [-N, 0, N]) for (const oy of [-N, 0, N]) { const X = x + ox, Y = y + oy; if (X < -cs || X > N + cs || Y < -cs || Y > N + cs) continue;
+          g.save(); g.translate(X, Y); g.rotate(a); const gr = g.createRadialGradient(-rx * 0.18, -ry * 0.22, 1, 0, 0, Math.max(rx, ry) * 1.02);
+          const L = k => Math.round(255 * Math.min(1, v * k)); gr.addColorStop(0, `rgb(${L(1.12)},${L(1.12)},${L(1.12)})`); gr.addColorStop(0.62, `rgb(${L(0.92)},${L(0.92)},${L(0.92)})`); gr.addColorStop(0.9, `rgb(${L(0.62)},${L(0.62)},${L(0.62)})`); gr.addColorStop(1, 'rgb(60,60,60)');
+          g.fillStyle = gr; g.beginPath(); g.ellipse(0, 0, rx, ry, 0, 0, 7); g.fill(); g.restore(); } }
+      for (let k = 0; k < 140; k++) { const x = rnd() * N, y = rnd() * N, rr = cs * (0.1 + rnd() * 0.12), v = 0.5 + rnd() * 0.3; // small pebbles packed into the gaps: less of a polka-dot grid
+        for (const ox of [-N, 0, N]) for (const oy of [-N, 0, N]) { const X = x + ox, Y = y + oy; if (X < -cs || X > N + cs || Y < -cs || Y > N + cs) continue; const p0 = g.getImageData(Math.max(0, Math.min(N - 1, X | 0)), Math.max(0, Math.min(N - 1, Y | 0)), 1, 1).data[0]; if (p0 > 70) continue;
+          const gr = g.createRadialGradient(X - rr * 0.25, Y - rr * 0.3, 0.5, X, Y, rr); gr.addColorStop(0, `rgb(${255 * v | 0},${255 * v | 0},${255 * v | 0})`); gr.addColorStop(1, 'rgb(55,55,55)'); g.fillStyle = gr; g.beginPath(); g.arc(X, Y, rr, 0, 7); g.fill(); } }
+      { const im = g.getImageData(0, 0, N, N), d = im.data; for (let k = 0; k < d.length; k += 4) { const n = (rnd() - 0.5) * 22; d[k] = d[k + 1] = d[k + 2] = Math.max(0, Math.min(255, d[k] + n)); } g.putImageData(im, 0, 0); }
+      TEX.cobbleRock = new THREE.CanvasTexture(c); TEX.cobbleRock.wrapS = TEX.cobbleRock.wrapT = THREE.RepeatWrapping; TEX.cobbleRock.colorSpace = THREE.NoColorSpace; TEX.cobbleRock.anisotropy = 4; }
     const COL = [[0.82, 0.46, 0.3], [0.5, 0.34, 0.75], [0.24, 0.4, 0.6]][world] || [0.82, 0.46, 0.3];
     const m = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85, envMapIntensity: 0.3 });
     m.onBeforeCompile = (sh) => { sh.uniforms.uMask = MAT.sandMask.tex; sh.uniforms.uSize = MAT.sandMask.size; sh.uniforms.uRock = { value: TEX.cobbleRock }; sh.uniforms.uCol = { value: new THREE.Vector3(...COL) }; sh.uniforms.uCausticT = MAT.causticT; sh.uniforms.uLamp = MAT.lamp; sh.uniforms.uLampAmb = MAT.lampAmb;
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWm; varying vec3 vNm;').replace('#include <project_vertex>', '#include <project_vertex>\n{ vec4 wp4 = vec4(transformed, 1.0);\n#ifdef USE_INSTANCING\n wp4 = instanceMatrix * wp4;\n#endif\n vWm = (modelMatrix * wp4).xyz; vNm = normal; }');
       sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform sampler2D uMask, uRock; uniform vec2 uSize; uniform vec3 uCol; uniform float uCausticT, uLampAmb; uniform vec4 uLamp; varying vec3 vWm; varying vec3 vNm;')
         .replace('#include <color_fragment>', `#include <color_fragment>
-        { vec2 p = vWm.xy; vec2 pt = abs(vNm.y) > 0.5 ? vWm.xz * vec2(1.0, 1.6) : abs(vNm.x) > 0.5 ? vWm.zy * vec2(1.6, 1.0) : vWm.xy; float r = texture2D(uRock, pt * 0.42).r; float r2 = texture2D(uRock, pt * 0.17 + 0.37).r;
-          vec3 c = uCol * (0.16 + 0.4 * r * r) * (0.8 + 0.35 * r2);
+        { vec2 p = vWm.xy; vec2 pt = abs(vNm.y) > 0.5 ? vWm.xz * vec2(1.0, 1.6) : abs(vNm.x) > 0.5 ? vWm.zy * vec2(1.6, 1.0) : vWm.xy; float r = texture2D(uRock, pt * 0.3).r; float r2 = texture2D(uRock, pt * 0.17 + 0.37).r;
+          vec3 c = uCol * (0.14 + 0.46 * r * r) * (0.85 + 0.25 * r2);
+          { float ee = 0.012, hx = texture2D(uRock, (pt + vec2(ee, 0.0)) * 0.3).r - r, hy = texture2D(uRock, (pt + vec2(0.0, ee)) * 0.3).r - r; // bump: stones lit from the top-left like the key light
+            c *= clamp(1.0 + (-hx * 0.6 + hy * 0.75) * 9.0, 0.55, 1.5); }
           vec2 cell = vec2(floor(p.x + 0.5), floor(-p.y + 0.5)); vec2 lc = vec2(p.x + 0.5, -p.y + 0.5) - cell;
           #define WB(o) texture2D(uMask, (cell + o + 0.5) / uSize).b
           float oU = 1.0 - step(0.5, WB(vec2(0.0, -1.0))), oD = 1.0 - step(0.5, WB(vec2(0.0, 1.0))), oL = 1.0 - step(0.5, WB(vec2(-1.0, 0.0))), oR = 1.0 - step(0.5, WB(vec2(1.0, 0.0)));
@@ -2889,7 +2904,14 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             sp.position.set(x, groundY(x, z) - 0.01, z); sp.rotation.z = (rnd() - 0.5) * 0.4; if (rnd() < 0.5) sp.scale.x = -1; this.levelGroup.add(sp); }
           const weeds = ART.ledge.filter(n => n.startsWith('weed')), nW = Math.round(span * 0.3);
           for (let i = 0; i < nW; i++) { const x = x0f + rnd() * span, z = 1.0 + rnd() * 1.4, sp = sprPlane(weeds[(rnd() * weeds.length) | 0], 0.34 + rnd() * 0.22, true, { drop: false, op: 0.55 });
-            sp.position.set(x, groundY(x, z) - 0.02, z); if (rnd() < 0.5) sp.scale.x = -1; sway(sp, 0.05); this.levelGroup.add(sp); } }
+            sp.position.set(x, groundY(x, z) - 0.02, z); if (rnd() < 0.5) sp.scale.x = -1; sway(sp, 0.05); this.levelGroup.add(sp); }
+          // a nearer, sparser layer (z 2.9-5.6) so the seabed in front of the tank has depth instead of an empty band on phones:
+          // bigger weed clumps and shells, a few stones, each with its ground shadow; kept to the sides and front, never over the tank
+          const gy2 = (x, z) => photoMode ? yF + 0.005 : groundY(x, z), nN = Math.round(span * 0.45);
+          for (let i = 0; i < nN; i++) { const x = x0f - 1 + rnd() * (span + 2), z = 2.6 + rnd() * 2.2, kind = rnd();
+            if (kind < 0.55) { const sp = sprPlane(weeds[(rnd() * weeds.length) | 0], 0.55 + rnd() * 0.45, true, { drop: false, op: 0.5 }); sp.position.set(x, gy2(x, z) - 0.03, z); if (rnd() < 0.5) sp.scale.x = -1; sway(sp, 0.06); this.levelGroup.add(sp); spots.push([x, z, 0.3]); }
+            else { const sp = sprPlane(ART.shells[(rnd() * ART.shells.length) | 0], 0.26 + rnd() * 0.14, true, { drop: false, op: 0.6 }); sp.position.set(x, gy2(x, z) - 0.01, z); sp.rotation.z = (rnd() - 0.5) * 0.5; if (rnd() < 0.5) sp.scale.x = -1; this.levelGroup.add(sp); spots.push([x, z, 0.16]); } }
+          place(new THREE.IcosahedronGeometry(0.12, 1), MAT.fgStone, Math.round(span * 0.12), (d) => { const x = x0f - 1 + rnd() * (span + 2), z = 2.7 + rnd() * 2.1, sc = 0.9 + rnd() * 1.1; d.position.set(x, gy2(x, z), z); d.scale.set(sc * 1.3, sc * 0.6, sc); d.rotation.set(rnd(), rnd() * 6, rnd() * 0.3); return new THREE.Color().setHSL(0.08 + rnd() * 0.05, 0.12, 0.42 + rnd() * 0.2); }, 0.16); }
         if (GEO.shell && !this.newArt) place(GEO.shell, MAT.shellM, Math.round(span * 0.45), (d) => { const x = x0f + rnd() * span, z = 1.0 + rnd() * 1.5; d.position.set(x, groundY(x, z) + 0.03, z); d.rotation.set(-Math.PI / 2 + 0.5, 0, rnd() * 6); d.scale.setScalar(1.1 + rnd() * 0.8); return null; }, 0.15);
         if (GEO.star) place(GEO.star, MAT.starfish, Math.max(2, Math.round(span * 0.15)), (d) => { const x = x0f + rnd() * span, z = 1.1 + rnd() * 1.3; d.position.set(x, groundY(x, z) + 0.03, z); d.rotation.set(-Math.PI / 2, 0, rnd() * 6); d.scale.setScalar(1.3 + rnd() * 0.7); return new THREE.Color().setHSL(0.03 + rnd() * 0.06, 0.8, 0.55 + rnd() * 0.1); }, 0.18);
         if (!this.newArt) { const blade = new THREE.PlaneGeometry(0.06, 0.5, 1, 4); blade.translate(0, 0.25, 0); const gm = new THREE.MeshStandardMaterial({ color: 0x4fae5c, roughness: 0.6, side: THREE.DoubleSide, emissive: 0x0b2e14, emissiveIntensity: 1 });
@@ -4326,7 +4348,7 @@ window.__T = T;
     let tip = line || ''; if (small === undefined && dive) { small = 'Daily Dive'; big = dive.name; tip = 'Same puzzle for every diver today. Go fast!'; ms = 2600; }
     if (small === undefined) { small = `Level ${levelIdx + 1}`; big = lv.name; tip = (lv.tip && !(save.tipsSeen || {})[levelIdx]) ? lv.tip : ''; if (tip) { save.tipsSeen = save.tipsSeen || {}; save.tipsSeen[levelIdx] = 1; persist(); } ms = tip ? 3600 : 1900; }
     $('#lbNum').textContent = small; $('#lbName').textContent = big; $('#lbTip').textContent = tip; b.classList.toggle('go', big === 'Swim in!');
-    b.classList.add('on'); clearTimeout(bannerTimer); bannerTimer = setTimeout(() => b.classList.remove('on'), ms || 1900); }
+    b.classList.add('on'); banner.start = small === `Level ${levelIdx + 1}` && !tip; clearTimeout(bannerTimer); bannerTimer = setTimeout(() => b.classList.remove('on'), ms || 1900); }
   let toastTimer = null;
   function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 2200); }
   // ---- "Show me" hints: the coach walks the next 5 moves of the level's verified route. One free hint every 90 s, or pay coins now.
@@ -4905,6 +4927,7 @@ window.__T = T;
         stickTick(realDt * 1000);
         acc = Math.min(acc + (now - (frame.last || now)), 300); frame.last = now; // a long gap (tab throttled, iframe off-screen, GC) must not fast-forward the dive
         if (beginPlay.pk && ((engine.moveQueue && engine.moveQueue.length) || engine.held)) setHeldPeekOff(); // the first move ends the opening look
+        if (banner.start && ((engine.moveQueue && engine.moveQueue.length) || engine.held)) { banner.start = false; $('#lvlBanner').classList.remove('on'); } // ...and the level-name banner (it sat over the tank)
         if (slowMo > 0) { slowMo = Math.max(0, slowMo - realDt); acc = 0; } // the world holds its breath for a moment
         if (undoHold) { if ((engine.moveQueue && engine.moveQueue.length) || engine.held) undoHold = false; else acc = 0; }
         if (engine.moveQueue && engine.moveQueue.length && acc >= engine.tickMs * 0.6 && acc < engine.tickMs) acc = engine.tickMs; // a fresh tap moves now instead of waiting out the tick
