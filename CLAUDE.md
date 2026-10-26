@@ -506,3 +506,12 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   `homeCard()` draws the photo at the card's real pixel size (160 px steps, up to 1440 wide; re-shot 250 ms after a resize).
   `tankShot` now fits the whole tank in the card (diver, pearls and gate visible) instead of cropping.
 - `ui/home_diver.webp` cleaned: the see-through ghost hand (bottom right) removed; the cut air-tank edge on the left fades out.
+
+## Mix: music lower, gameplay louder (owner request)
+- Music tracks `TR.g` 0.62 → 0.55, and the synth bed under them (ocean swell noise + hum in `startMusic`) × 0.4 when music files
+  exist (`bgK`) — that bed was most of the "background" loudness. Effects × 1.35 in `playFile`.
+- Limiter threshold −12 → −6 dB (ratio 12, knee 6): at −12 it was flattening the effects back down. A soft clipper (WaveShaper, linear
+  below −3 dBFS, tanh above) follows it and is now `outNode`, so stacked big cues can't overshoot.
+- Measured (raw samples after the clipper, level 1 menu → play music + a burst of effects + 6 big cues stacked ×3): music −17.7 → −23.0 dB
+  RMS, loudest effects −10.0 → −6.9 dB, peak −0.6 dBFS, 0 samples over full scale. Script idea: tap `capture()`'s destination with a
+  ScriptProcessor via an init script (Opus-encoded recordings show false overs).

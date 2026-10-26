@@ -2288,7 +2288,10 @@ const Audio = (() => {
     if (!AC) return;
     ctx = new AC();
     master = ctx.createGain(); master.gain.value = 1;
-    try { const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -12; lim.knee.value = 8; lim.ratio.value = 10; lim.attack.value = 0.003; lim.release.value = 0.25; master.connect(lim); lim.connect(ctx.destination); outNode = lim; } // a limiter: stacked cues (pearl + gate + swell) never crackle on phone speakers
+    try { const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -6; lim.knee.value = 6; lim.ratio.value = 12; lim.attack.value = 0.003; lim.release.value = 0.25; master.connect(lim);
+      // a soft clipper after it: transparent below -3 dBFS, rounds off anything the limiter's attack lets through (stacked big cues)
+      const sc = ctx.createWaveShaper(), N = 2048, cv = new Float32Array(N), K = 0.708; for (let i = 0; i < N; i++) { const x = i / (N - 1) * 2 - 1, a = Math.abs(x); cv[i] = Math.sign(x) * (a <= K ? a : K + (1 - K) * Math.tanh((a - K) / (1 - K))); }
+      sc.curve = cv; sc.oversample = '2x'; lim.connect(sc); sc.connect(ctx.destination); outNode = sc; } // a limiter: stacked cues (pearl + gate + swell) never crackle on phone speakers
     catch (er) { master.connect(ctx.destination); }
     musicBus = ctx.createGain(); musicBus.gain.value = settings.music; musicBus.connect(master);
     sfxBus = ctx.createGain(); sfxBus.gain.value = settings.sfx; sfxBus.connect(master);
@@ -2323,11 +2326,11 @@ const Audio = (() => {
     const g = ctx.createGain(); g.gain.setValueAtTime(0, ctx.currentTime); g.gain.linearRampToValueAtTime(0.8, ctx.currentTime + 3); ambSrc.connect(g); g.connect(padF || musicBus); ambSrc.start();
     if (padLayer) padLayer.gain.setTargetAtTime(0, ctx.currentTime, 1.5); } /* the recording replaces the synth chords (swell / tension still shape it through padF) */
   function playFile(name, r, gain) { const L = FILES[name]; if (!L || !L.length) return false; const src = ctx.createBufferSource(); src.buffer = L[(Math.random() * L.length) | 0];
-    src.playbackRate.value = r || (0.96 + Math.random() * 0.08); const g = ctx.createGain(); g.gain.value = (gain ?? 1) * (GAIN[name] ?? 0.6); src.connect(g); g.connect(sfxBus); src.start(); return true; }
+    src.playbackRate.value = r || (0.96 + Math.random() * 0.08); const g = ctx.createGain(); g.gain.value = 1.35 * (gain ?? 1) * (GAIN[name] ?? 0.6); src.connect(g); g.connect(sfxBus); src.start(); return true; }
   // ---- music tracks: two <audio> elements crossfade; a low-pass on the way in lets the game muffle it (low air) or open it (gate wakes)
   const TR = { on: false, els: [], cur: -1, name: '', want: null, f: null, g: null };
   function initTracks() { const M = (window.AQ_DATA || {}).MUSIC || {}; if (!M.menu && !M.play && !M.deep) return; TR.on = true; TR.src = M;
-    TR.f = ctx.createBiquadFilter(); TR.f.type = 'lowpass'; TR.f.frequency.value = 18000; TR.g = ctx.createGain(); TR.g.gain.value = 0.62; TR.f.connect(TR.g); TR.g.connect(musicBus);
+    TR.f = ctx.createBiquadFilter(); TR.f.type = 'lowpass'; TR.f.frequency.value = 18000; TR.g = ctx.createGain(); TR.g.gain.value = 0.55; /* music sits well under the gameplay sounds (owner: music lower, game sounds louder) */ TR.f.connect(TR.g); TR.g.connect(musicBus);
     for (let i = 0; i < 2; i++) { const el = new window.Audio(); el.loop = true; el.preload = 'auto'; el.crossOrigin = 'anonymous'; let node = null; try { node = ctx.createMediaElementSource(el); } catch (er) {}
       const g = ctx.createGain(); g.gain.value = 0; if (node) { node.connect(g); g.connect(TR.f); } TR.els.push({ el, g, node }); }
     if (padLayer) padLayer.gain.setTargetAtTime(0, ctx.currentTime, 1); if (TR.want !== null) music(TR.want); }
@@ -2362,18 +2365,18 @@ const Audio = (() => {
   // and the occasional distant bubble trail.
   function startMusic() {
     if (!ctx || musicTimer) return;
-    const t0 = ctx.currentTime;
+    const t0 = ctx.currentTime, bgK = (window.AQ_DATA && AQ_DATA.MUSIC && (AQ_DATA.MUSIC.play || AQ_DATA.MUSIC.menu)) ? 0.4 : 1; // with real music the synth bed only adds a little water air under it
     // ocean swell: brown noise, low-passed, breathing in and out like slow waves
     const sw = ctx.createBufferSource(); sw.buffer = brownBuffer(8); sw.loop = true;
     const swLp = ctx.createBiquadFilter(); swLp.type = 'lowpass'; swLp.frequency.value = 420; swLp.Q.value = 0.4;
-    const swG = ctx.createGain(); swG.gain.value = 0.0; swG.gain.linearRampToValueAtTime(0.22, t0 + 3);
-    const waveL = ctx.createOscillator(); waveL.frequency.value = 0.11; const waveG = ctx.createGain(); waveG.gain.value = 0.09; waveL.connect(waveG); waveG.connect(swG.gain); waveL.start();
+    const swG = ctx.createGain(); swG.gain.value = 0.0; swG.gain.linearRampToValueAtTime(0.22 * bgK, t0 + 3);
+    const waveL = ctx.createOscillator(); waveL.frequency.value = 0.11; const waveG = ctx.createGain(); waveG.gain.value = 0.09 * bgK; waveL.connect(waveG); waveG.connect(swG.gain); waveL.start();
     const cutL = ctx.createOscillator(); cutL.frequency.value = 0.045; const cutG = ctx.createGain(); cutG.gain.value = 160; cutL.connect(cutG); cutG.connect(swLp.frequency); cutL.start();
     sw.connect(swLp); swLp.connect(swG); swG.connect(musicBus); sw.start();
     // deep hum: what pressure sounds like
     const hum = ctx.createOscillator(); hum.type = 'sine'; hum.frequency.value = 49;
     const hum2 = ctx.createOscillator(); hum2.type = 'sine'; hum2.frequency.value = 73.5;
-    const humG = ctx.createGain(); humG.gain.value = 0; humG.gain.linearRampToValueAtTime(0.06, t0 + 4);
+    const humG = ctx.createGain(); humG.gain.value = 0; humG.gain.linearRampToValueAtTime(0.06 * bgK, t0 + 4);
     hum.connect(humG); hum2.connect(humG); humG.connect(musicBus); hum.start(); hum2.start();
     // soft pad: pure sines through a dark filter, one chord fading into the next every ~14s
     padBus = ctx.createGain(); padBus.gain.value = 1; padBus.connect(musicBus); padF = ctx.createBiquadFilter(); padF.type = 'lowpass'; padF.frequency.value = 12000; padF.connect(padBus); // mood layer: swells / thins with the game
