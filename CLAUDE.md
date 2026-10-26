@@ -539,3 +539,23 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   fill cyan → gold.
 - Test-harness note: don't name a page global `__T` (the game sets `window.__T`), and screenshot right after driving a frame (a pause
   lets the browser drop the WebGL drawing buffer, which looks like a blank level).
+
+## Fun pass (owner-approved): combos, hidden relics, reactions, level-start reveal
+- **Combos** (`fun(e)` from `tickWorld`, controller): a stone dropped on a monster → "BONK!" (+15), two pearls delivered within 14 ticks →
+  "DOUBLE!" (+20). Each = a big tilted stamp (`#comboStamp`, `comboStamp()`), a 0.4 s slow-motion beat, a star chime, a buzz, and coins
+  paid on the win (result row "Combos"). Keys (`RUN.keys`, e.g. `bonk:<type>@x,y`) make each count once per run, so undo-and-repeat
+  can't farm them. Not in replays or clips. Natural combos exist on the verified routes of 15 levels (bonks) and level 4 (double).
+- **Hidden relic** (one per level, all 30): an ancient gold trident coin (`world.setRelic`, `MAT.relic`, `TEX.relicFace`) buried in a cell
+  chosen by `relicCell(i)`: reachable (BFS over the start board plus checkpoint boards along the verified route), never visited by the
+  route, not under a stone/pearl; prefers buried sand far from the route, falls back to a cell just off it, and as a last resort monster
+  water (a guarded relic: levels 17, 23, 24, 26). Buried: only a soft glint on the sand every ~3 s. Dug out: it floats, sways (trident
+  face always visible), glows and sparkles. Taking it (`fun` → `world.collectRelic`): burst, "Relic!", toast "Ancient relic found! n/30",
+  `save.relics[n]`; +50 coins on that level's next win (`save.relicPaid`). Level card shows "A relic is hidden somewhere here" / "Hidden
+  relic found"; Records shows hidden relics n/30. Found relics don't reappear. Checked: all 30 reachable alive (search from points along
+  each route, `relic_reach2.js` idea).
+- **Reactions**: a pearl delivered (not the last) → joy + "yay"; a monster that came adjacent and moved on → dodge hop (`world.dodge`) +
+  "Close one!" (max every 2.5 s); air < 10 s → `world.lowAir`: the diver shivers and gasps bubbles.
+- **Level-start reveal** (`levelReveal()` from `beginPlay`): one ring ping per pearl (left to right, rising pearl chime) then the gate
+  (hint chime + "Gate" label), 0.42 s apart (`world.reveal`, `funUpdate`). Doesn't block input; no camera move (desktop camera stays still).
+- Debug: `__dc.relic(i)`, `__dc.run()` (combos, relic state), `__dc.tick()` (one exact engine tick through the normal event path; use it in
+  tests instead of wall-clock frames when timing matters).

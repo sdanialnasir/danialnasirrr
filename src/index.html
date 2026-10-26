@@ -1279,6 +1279,18 @@ body { background: #0a5ea8; }
 .set-ic.c-blue { background: linear-gradient(180deg, #4fb0ff, #1f6ae8); } .set-ic.c-teal { background: linear-gradient(180deg, #5cf2e6, #13a9b8); }
 input.vol::-webkit-slider-runnable-track { background: linear-gradient(90deg, #5ff0ff 0, #ffd23f var(--p), rgba(255, 255, 255, 0.18) var(--p) 100%); }
 input.vol::-moz-range-progress { background: linear-gradient(90deg, #5ff0ff, #ffd23f); }
+
+/* ===== fun pass: combo stamp, relic chip, relic stat ===== */
+#comboStamp { position: fixed; left: 50%; top: 22%; z-index: 22; transform: translate(-50%, -50%) rotate(-6deg); text-align: center; pointer-events: none; opacity: 0; --cc: #ff8fd0; }
+#comboStamp.on { animation: comboIn 1.35s cubic-bezier(.2, 1.6, .4, 1) forwards; }
+#comboStamp b { display: block; font-family: var(--display); font-weight: 400; font-size: clamp(2.4rem, 10vw, 4.2rem); line-height: 1; color: var(--cc); -webkit-text-stroke: 5px #0b2f6e; paint-order: stroke fill; text-shadow: 0 5px 0 #062a6a, 0 0 30px var(--cc); letter-spacing: 0.02em; }
+#comboStamp span { display: inline-block; margin-top: 0.3rem; padding: 0.15rem 0.8rem; border-radius: 999px; font-family: var(--display); font-size: 1.4rem; color: #4a2604; background: linear-gradient(180deg, #ffe46b, #ffb51e); box-shadow: 0 3px 0 #c97a00, 0 0 14px rgba(255, 210, 63, 0.6); }
+@keyframes comboIn { 0% { opacity: 0; transform: translate(-50%, -50%) rotate(-6deg) scale(2.2); } 14% { opacity: 1; transform: translate(-50%, -50%) rotate(-6deg) scale(0.92); } 24% { transform: translate(-50%, -50%) rotate(-6deg) scale(1.04); }
+  32%, 78% { opacity: 1; transform: translate(-50%, -50%) rotate(-6deg) scale(1); } 100% { opacity: 0; transform: translate(-50%, -62%) rotate(-6deg) scale(0.96); } }
+@media (prefers-reduced-motion: reduce) { #comboStamp.on { animation-duration: 1.6s; animation-timing-function: steps(1); } }
+.goal.relic { grid-column: 1 / -1; justify-content: center; display: inline-flex; align-items: center; gap: 0.4rem; color: #ffe08a; border-color: rgba(255, 210, 90, 0.5) !important; background: linear-gradient(180deg, rgba(90, 60, 10, 0.4), rgba(40, 26, 4, 0.35)) !important; }
+.goal.relic.got { color: #b8ffd9; border-color: rgba(90, 230, 160, 0.5) !important; background: rgba(10, 60, 40, 0.4) !important; }
+.goal .rl, .stat .si.r { display: inline-block; width: 1.1rem; height: 1.1rem; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff6c0, #f2b52c 55%, #a8650a); box-shadow: 0 0 6px rgba(255, 200, 60, 0.7), inset 0 0 0 2px rgba(122, 67, 2, 0.6); flex: none; }
 </style>
 </head>
 <body data-state="splash">
@@ -1389,6 +1401,7 @@ input.vol::-moz-range-progress { background: linear-gradient(90deg, #5ff0ff, #ff
 </section>
 <div id="tut" aria-live="polite"><div class="tut-ring"></div><div class="tut-bub"><span class="tut-step"></span><p class="tut-txt"></p><span class="tut-next">Tap to continue</span></div><button class="tut-skip" type="button">Skip</button></div>
 <div id="cineCap" class="cine-cap" aria-live="polite"></div>
+<div id="comboStamp" aria-live="polite"><b>BONK!</b><span>+15</span></div>
 <div id="clearStamp" aria-live="polite"><b>Level clear!</b><span class="cs-stars"><i>★</i><i>★</i><i>★</i></span></div>
 <div id="wipe" aria-hidden="true"><div class="wp-c"></div><div class="wp-b"><i style="--l:0%;--d:0.00s;--s:0.6"></i><i style="--l:37%;--d:0.32s;--s:1.5"></i><i style="--l:74%;--d:0.28s;--s:1.4"></i><i style="--l:11%;--d:0.24s;--s:1.3"></i><i style="--l:48%;--d:0.20s;--s:1.2"></i><i style="--l:85%;--d:0.16s;--s:1.1"></i><i style="--l:22%;--d:0.12s;--s:1.0"></i><i style="--l:59%;--d:0.08s;--s:0.9"></i><i style="--l:96%;--d:0.04s;--s:0.8"></i><i style="--l:33%;--d:0.00s;--s:0.7"></i><i style="--l:70%;--d:0.32s;--s:0.6"></i><i style="--l:7%;--d:0.28s;--s:1.5"></i><i style="--l:44%;--d:0.24s;--s:1.4"></i><i style="--l:81%;--d:0.20s;--s:1.3"></i></div></div>
 <div id="cineGates" class="cine-gates" aria-hidden="true"><div class="cg-row"><i style="--k:0" class="lit"></i><i style="--k:1"></i><i style="--k:2"></i><i style="--k:3"></i><i style="--k:4"></i><i style="--k:5"></i><i style="--k:6"></i><i style="--k:7"></i><i style="--k:8"></i><i style="--k:9"></i><i style="--k:10"></i><i style="--k:11"></i><i style="--k:12"></i><i style="--k:13"></i><i style="--k:14"></i><i style="--k:15"></i><i style="--k:16"></i><i style="--k:17"></i><i style="--k:18"></i><i style="--k:19"></i><i style="--k:20"></i><i style="--k:21"></i><i style="--k:22"></i><i style="--k:23"></i><i style="--k:24"></i><i style="--k:25"></i><i style="--k:26"></i><i style="--k:27"></i><i style="--k:28"></i><i style="--k:29"></i></div><p><b>1</b> / 30 gates awake</p></div>
