@@ -1411,6 +1411,24 @@ body.swim[data-state="playing"] #hudB, body.swim[data-state="playing"] #btnMap {
 .rw-chest .rg-ic { width: 3rem; height: 3rem; } .rw-chest .rc-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.25rem; }
 .rw-chest b { font-family: var(--display); font-size: 1.2rem; color: #fff; } .rw-chest small { font-weight: 700; font-size: 0.82rem; color: rgba(230, 245, 255, 0.78); line-height: 1.25; }
 .rw-chest .rg-bar { margin-top: 0.2rem; height: 0.55rem; }
+
+/* ===== Final polish: modern switches, real level photos, relic chip, leaderboard empty state ===== */
+html body .toggle, html body.ui-art .toggle { width: 3.1rem !important; height: 1.8rem !important; border-radius: 99px !important; background: rgba(255, 255, 255, 0.12) !important; border: 1px solid rgba(255, 255, 255, 0.16) !important; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35) !important; transition: background .25s ease, border-color .25s ease !important; }
+html body .toggle::after, html body.ui-art .toggle::after { display: block !important; content: "" !important; position: absolute; top: 0.18rem; left: 0.2rem; width: 1.36rem; height: 1.36rem; border-radius: 50%; background: #f4fbff; box-shadow: 0 2px 6px rgba(0, 10, 30, 0.4); transition: transform .25s cubic-bezier(.3,1.4,.5,1); }
+html body .toggle:checked, html body.ui-art .toggle:checked { background: linear-gradient(90deg, #2fc6e8, #5ee8c8) !important; border-color: rgba(120, 240, 230, 0.6) !important; }
+html body .toggle:checked::after { transform: translateX(1.3rem); }
+.ic-prev { padding: 0 !important; overflow: hidden; border: 1px solid rgba(120, 220, 255, 0.28) !important; box-shadow: 0 0.6rem 1.6rem rgba(0, 10, 40, 0.35), inset 0 0 0 1px rgba(255,255,255,0.04) !important; }
+.ic-prev canvas { border-radius: 0 !important; }
+@media (orientation: landscape) and (min-width: 760px) and (min-height: 560px) { .ic-prev canvas { height: 100% !important; object-fit: cover; } }
+.lvc-prev { box-shadow: 0 0.4rem 1rem rgba(0, 10, 40, 0.3) !important; border-color: rgba(120, 220, 255, 0.25) !important; } .lvc-prev canvas.locked { filter: none; }
+.goal.relic { background: linear-gradient(90deg, rgba(255, 200, 80, 0.12), rgba(255, 200, 80, 0.04)) !important; border: 1px solid rgba(255, 214, 110, 0.35) !important; color: #ffe3a0 !important; font-weight: 800; }
+.goal.relic.got { background: linear-gradient(90deg, rgba(90, 230, 170, 0.14), rgba(90, 230, 170, 0.04)) !important; border-color: rgba(110, 240, 190, 0.4) !important; color: #b8ffde !important; }
+.goal .rl, html body .stat .si.r { background: radial-gradient(circle at 35% 30%, #fff6c0, #f2b52c 55%, #a8650a) !important; box-shadow: 0 0 8px rgba(255, 200, 60, 0.6), inset 0 0 0 2px rgba(150, 90, 10, 0.5) !important; border-radius: 50% !important; }
+html body .stat .si.r::before { content: "\03A8" !important; display: grid; place-items: center; width: 100%; height: 100%; font: 900 0.95rem/1 var(--font); color: #7a4706; background: none !important; -webkit-mask: none !important; mask: none !important; }
+.lb-empty { list-style: none; display: grid; justify-items: center; gap: 0.35rem; margin-top: 1.2rem; padding: 1.6rem 1.2rem; border-radius: 1.2rem; text-align: center; background: rgba(255, 255, 255, 0.045); border: 1px dashed rgba(140, 220, 255, 0.25); }
+.lb-empty .lbe-art { width: 5.5rem; height: 5.5rem; background: var(--ui-trophy, none) center / contain no-repeat; filter: drop-shadow(0 0.5rem 1rem rgba(255, 200, 60, 0.3)); animation: lbeF 4s ease-in-out infinite; }
+.lb-empty b { font-family: var(--display); font-size: 1.25rem; color: #fff; } .lb-empty span { color: rgba(220, 240, 255, 0.75); font-weight: 700; font-size: 0.92rem; max-width: 22rem; line-height: 1.35; }
+@keyframes lbeF { 50% { transform: translateY(-0.35rem); } }
 </style>
 </head>
 <body data-state="splash">

@@ -616,3 +616,16 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   coins (result row "Star chest"), every 3rd chest also a rare item (`giftItem(300, 600)`). Shown in Rewards (`#rwChest`) and on the result.
 - **Result goals** (`#resGoals`, `renderGoals`): star chest bar (animates from the old fill; pops open with `chest_open` art), world progress
   ("Coral Caves · gates awake 4/10"), and on a fail "So close! 1 of 2 pearls in". Hidden on the Daily Dive. Debug: `__dc.save`.
+
+## Full audit pass (every screen, phone + computer)
+- **Real level photos:** `levelPhoto(cv, i, locked)` renders the level's actual tank through `world.tankShot` (cached per level + size in
+  `photoCache`) for the level card (`#introPrev`; the live level is shot directly), the level map panel (`#lvPrev`; locked = blurred + lock)
+  and the home card (now loaded as a normal level, `e.photo`, so worlds 2–3 show their own colours; it used `e.menu` = world 1 look).
+  The drawn map (`drawLevelPreview`) remains only for the Daily Dive and as a fallback. Wide level card canvas 560×490 (cover-fit).
+- **How to play:** the sand and stone icons are 3D renders (`World.iconShot('stone'|'sand')`: the real boulder, an extruded block with the
+  sand texture), made once when the screen first opens.
+- **Reef rock:** finer cobbles (texture scale 0.3 → 0.42), per-stone tint variation (greyer/warmer), a little algae on upper faces in
+  worlds 1–2. **Switches:** flat modern track (cyan when on) instead of the skeuomorphic toggle art. **Records:** relic stat icon is a gold Ψ
+  coin. **Leaderboard:** no "0" score column; an empty-state card (trophy art) when online ranks aren't available.
+- Headless-only artifacts (not bugs): level map not scrolled to the current level, swatch shop cards, empty shop stage, score "0" on
+  the result card — they all wait on rAF / idle timers that the tests freeze.
