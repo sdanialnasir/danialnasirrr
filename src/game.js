@@ -3616,8 +3616,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     tankShot(cv) { const e = this.e; if (!e || !MAIN_R) return false;
       this.update(0.016, performance.now()); this.update(0.016, performance.now() + 16); // place everything, settle sand/sprites
       const cam = new THREE.PerspectiveCamera(26, cv.width / cv.height, 0.5, 200), fov = cam.fov * Math.PI / 180;
-      const x0 = 0.5, x1 = e.w - 1.5, yT = -0.5, yB = -(e.h - 1.5), cx = (x0 + x1) / 2, cy = (yT + yB) / 2, hw = (x1 - x0) / 2 * 0.94, hh = (yT - yB) / 2 * 0.94;
-      const d = Math.min(hh / Math.tan(fov / 2), hw / Math.tan(fov / 2) / cam.aspect); // fill the card (crop the frame, never letterbox)
+      const x0 = 0.5, x1 = e.w - 1.5, yT = -0.5, yB = -(e.h - 1.5), cx = (x0 + x1) / 2, cy = (yT + yB) / 2, hw = (x1 - x0) / 2 * 1.04, hh = (yT - yB) / 2 * 1.04;
+      const d = Math.max(hh / Math.tan(fov / 2), hw / Math.tan(fov / 2) / cam.aspect); // the whole tank inside the card (diver, pearls and gate all visible); the reef fills any spare room
       cam.position.set(cx, cy + d * 0.08, d); cam.lookAt(cx, cy, 0); cam.updateMatrixWorld();
       const sd = new SharedDraw(cv, 1.5); try { sd.render(this.scene, cam); } finally { sd.dispose(); } return true; }
     render() {
@@ -3892,11 +3892,17 @@ window.__T = T;
   function openHome() { setPeekSafe(); Audio.setTension(0); Audio.music('menu'); setState('menu'); go('home'); showMenuScene(); reefProgress(); homeCard(); homeLayout(); idleThumbs(); }
   // phone portrait home (the owner's mockup): painted backdrop, waving diver, and a card with a photo of the next level's tank.
   // The 3D scene is hidden behind it there, so the frame loop holds instead of rendering.
-  const HM3 = matchMedia('(max-width: 760px) and (orientation: portrait)'); let cardKey = '';
-  function homeCard() { const n = Math.min(save.unlocked, LEVELS.length); if (!HM3.matches || cardKey === String(n)) return;
-    const prev = world.e; try { const e = new Engine(LEVELS[n - 1]); e.menu = true; e.time = e.oxygen = 1e9; world.loadLevel(e); world.onTick(e, performance.now()); if (world.tankShot($('#hmCardCv'))) cardKey = String(n); }
+  // the mockup home: phones in portrait, and computers / big landscape screens (laid out for width). Both cover the 3D scene.
+  const HM3P = matchMedia('(max-width: 760px) and (orientation: portrait)'), HM3D = matchMedia('(orientation: landscape) and (min-width: 760px) and (min-height: 521px)');
+  const HM3 = { get matches() { return HM3P.matches || HM3D.matches; } }; let cardKey = '';
+  function homeCard() { const n = Math.min(save.unlocked, LEVELS.length); if (!HM3.matches) return;
+    // the photo is drawn at the card's real pixel size (a small canvas looked soft on big monitors), in 160 px steps so resizes reuse it
+    const cv = $('#hmCardCv'), r = cv.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
+    const w = r.width > 10 ? Math.max(480, Math.min(1440, Math.ceil(r.width * dpr / 160) * 160)) : 480, h = Math.round(w * 2 / 3), key = n + ':' + w;
+    if (cardKey === key) return; if (cv.width !== w) { cv.width = w; cv.height = h; }
+    const prev = world.e; try { const e = new Engine(LEVELS[n - 1]); e.menu = true; e.time = e.oxygen = 1e9; world.loadLevel(e); world.onTick(e, performance.now()); if (world.tankShot(cv)) cardKey = key; }
     catch (er) {} finally { if (prev) { world.loadLevel(prev); world.onTick(prev, performance.now()); } } }
-  try { HM3.addEventListener('change', () => { if ($('#home').classList.contains('on')) homeCard(); }); } catch (er) {}
+  for (const mq of [HM3P, HM3D]) try { mq.addEventListener('change', () => { heldDirty = true; if ($('#home').classList.contains('on')) homeCard(); }); } catch (er) {}
   if (UI && UI.home_diver) $('#hmDiver').src = UI.home_diver; else $('#hmDiver').hidden = true;
   $('#hmCard').onclick = ev => $('#btnPlay').onclick(ev);
   // wide screens: the menu column sits on the left, so the menu camera moves the tank into the free space on the right
@@ -4826,7 +4832,7 @@ window.__T = T;
     if (TUT.on) tutPlace();
     { world.update(slowMo > 0 ? dt * 0.3 : dt, now); world.render(); if (!covered && gfxMode() === 'auto' && (state === 'playing' || state === 'menu' || state === 'cine')) world.autoQuality(realDt); }
   }
-  addEventListener('resize', () => { heldDirty = true; world.resize(); homeLayout(); if ($('#levels').classList.contains('on')) renderWorld(); });
+  addEventListener('resize', () => { heldDirty = true; world.resize(); homeLayout(); if (state === 'menu' && $('#home').classList.contains('on')) { clearTimeout(homeCard.t); homeCard.t = setTimeout(homeCard, 250); } if ($('#levels').classList.contains('on')) renderWorld(); });
   canvas.addEventListener('webglcontextlost', ev => { ev.preventDefault(); if (state === 'playing') pause(); }, false);
   canvas.addEventListener('webglcontextrestored', () => { try { const e = state === 'cine' ? cineEngine : state === 'menu' || state === 'splash' ? menuEngine : engine; if (e) { if (state === 'playing' || state === 'paused' || state === 'over') world.keepTreasures(); world.loadLevel(e); world.onTick(e, performance.now()); if (state === 'playing' || state === 'paused' || state === 'over' || state === 'cine') world.startPlay(); if (state === 'cine') world.cineCam = true; } } catch (er) { console.warn('context restore', er); } }, false);
   requestAnimationFrame(frame);

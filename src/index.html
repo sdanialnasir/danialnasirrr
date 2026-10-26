@@ -1140,6 +1140,100 @@ body:not([data-state="over"]) #clearStamp { display: none; }
 .item.r-premium .rib { background: linear-gradient(180deg, #ffe27a, #e0a514) !important; color: #3a2400 !important; }
 .shop-stage[data-rar="premium"] { background: radial-gradient(ellipse at 20% 40%, rgba(255, 200, 60, 0.45), rgba(20, 12, 40, 0.6) 72%) !important; }
 .set-grp.credits p { margin: 0.35rem 0.2rem 0.55rem; font-weight: 700; font-size: 0.82rem; line-height: 1.45; color: var(--ink-2); } .set-grp.credits b { color: #fff; font-weight: 800; }
+
+/* ===== Home v3 for computers: the phone mockup laid out for a wide screen. Same painted backdrop, rays, bubbles and corals; a left
+   column (logo · gold Continue pill on its rock ledge · Daily Dive · How to Play / Intro); the waving diver beside a big glowing
+   photo of the next level on the right; a floating navy 4-tab bar centred at the bottom. The 3D scene is covered, so it is held. ===== */
+@media (orientation: landscape) and (min-width: 760px) and (min-height: 521px) {
+  #home { background: #0a3f8a; }
+  #home::before { z-index: 1; background: linear-gradient(90deg, rgba(4, 22, 66, 0.42) 0%, rgba(4, 22, 66, 0.12) 40%, rgba(4, 22, 66, 0) 60%), linear-gradient(180deg, rgba(4, 24, 70, 0.35) 0%, rgba(4, 24, 70, 0) 18%); }
+  #home .hm3-bg { display: block; position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+    background: linear-gradient(180deg, rgba(6, 46, 120, 0.4) 0%, rgba(20, 150, 210, 0.06) 30%, rgba(8, 70, 150, 0.16) 60%, rgba(5, 28, 78, 0.72) 88%, rgba(4, 18, 56, 0.9) 100%),
+      var(--bgphoto, linear-gradient(180deg, #2fb4ef, #0a3f8a)) 50% 0% / cover no-repeat, #0a3f8a; }
+  #home .hm3-rays { position: absolute; left: -10%; right: -10%; top: -6%; height: 70%; background: repeating-linear-gradient(104deg, rgba(190, 245, 255, 0.12) 0 1.6rem, transparent 1.6rem 6.5rem);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,0.5) 45%, transparent 100%); mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,0.5) 45%, transparent 100%);
+    filter: blur(8px); mix-blend-mode: screen; animation: hm3raysD 16s ease-in-out infinite alternate; }
+  #home .hm3-bub { position: absolute; inset: 0; opacity: 0.75;
+    background-image: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.9) 0 1.5px, rgba(190,240,255,0.35) 2.5px, transparent 5px), radial-gradient(circle at 35% 30%, rgba(255,255,255,0.85) 0 2px, rgba(190,240,255,0.3) 3.5px, transparent 7px);
+    background-size: 13rem 17rem, 21rem 25rem; background-position: 2rem 0, 9rem 5rem; animation: hm3bubD 22s linear infinite; }
+  #home .hm3-coral { position: absolute; bottom: -2rem; width: 18vw; height: 12vw; max-height: 16rem; background: var(--ui-coral) center bottom / contain no-repeat; filter: blur(4px) saturate(0.95) brightness(0.9); opacity: 0.85; }
+  #home .hm3-coral.l { left: -6vw; transform: rotate(6deg); } #home .hm3-coral.r { right: -6vw; transform: scaleX(-1) rotate(6deg); }
+  @keyframes hm3raysD { from { transform: translateX(-2%) skewX(-2deg); opacity: 0.85; } to { transform: translateX(2%) skewX(2deg); opacity: 1; } }
+  @keyframes hm3bubD { from { background-position: 2rem 0, 9rem 5rem; } to { background-position: 3rem -17rem, 8rem -20rem; } }
+
+  /* top bar: navy glass pills, purple avatar with a gold ring */
+  #home .hm-chip, #home .hm-coins { background: linear-gradient(180deg, rgba(18, 36, 86, 0.9), rgba(10, 22, 60, 0.9)); border: 2px solid rgba(120, 160, 240, 0.45); box-shadow: 0 0.4rem 1rem rgba(0, 10, 40, 0.35), inset 0 1px 0 rgba(255,255,255,0.15); }
+  #home .hm-top { padding-left: max(3vw, var(--safe-l)); padding-right: max(3vw, var(--safe-r)); }
+
+  /* body: a two-column grid; the stage spans both rows on the right */
+  #home .hm-col { z-index: 2; top: calc(var(--safe-t) + 4.6rem); bottom: calc(var(--safe-b) + 7.8rem); left: max(4vw, var(--safe-l)); right: max(4vw, var(--safe-r)); width: auto;
+    display: grid; grid-template-columns: minmax(0, min(29rem, 36vw)) minmax(0, 1fr); grid-template-rows: auto auto; grid-template-areas: "logo stage" "cta stage";
+    align-content: center; align-items: center; column-gap: 3.5vw; row-gap: 1.6rem; }
+  #home .hm-logo { grid-area: logo; align-items: center; zoom: 1; margin: 0; }
+  #home .hm-kicker { display: none; }
+  .ui-art #home .hm-title, #home .hm-title { width: min(100%, 25rem); max-width: none; background-position: center; align-items: center; }
+  #home .hm3-stage { grid-area: stage; display: block; position: relative; align-self: stretch; min-height: 16rem; margin: 0; container-type: size; }
+  #home .hm3-card { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 66%; width: min(66cqw, 84cqh * 1.5); aspect-ratio: 3 / 2; height: auto; padding: 0.45rem; border-radius: 1.6rem; z-index: 1;
+    background: linear-gradient(180deg, rgba(40, 130, 230, 0.6), rgba(10, 40, 110, 0.75)); border: 4px solid #86e8ff;
+    box-shadow: 0 0 0 3px rgba(16, 50, 130, 0.85), 0 0 2rem rgba(90, 215, 255, 0.7), 0 1.2rem 2.4rem rgba(0, 15, 50, 0.5); transition: transform .18s cubic-bezier(.3, 1.6, .5, 1), box-shadow .2s; cursor: pointer; }
+  @media (hover: hover) { #home .hm3-card:hover { transform: translateY(-50%) scale(1.02); box-shadow: 0 0 0 3px rgba(16, 50, 130, 0.85), 0 0 2.8rem rgba(120, 230, 255, 0.95), 0 1.4rem 2.6rem rgba(0, 15, 50, 0.5); } }
+  #home .hm3-card:active { transform: translateY(-50%) scale(0.98); }
+  #home .hm3-shot { display: block; width: 100%; height: 100%; border-radius: 1.15rem; overflow: hidden; background: #0b3a7a; box-shadow: inset 0 0 0 1px rgba(0, 20, 60, 0.5); }
+  #home .hm3-shot canvas { display: block; width: 100%; height: 100%; object-fit: cover; }
+  #home .hm3-tab { position: absolute; top: -1.6rem; left: 50%; transform: translateX(-50%); z-index: 2; padding: 0.2rem 1.6rem 0.3rem; border-radius: 1rem; white-space: nowrap;
+    font-family: var(--display); font-size: 1.65rem; color: #fff; text-shadow: 0 2px 2px rgba(0, 10, 40, 0.6);
+    background: linear-gradient(180deg, #1d4496, #0d2766); border: 3px solid #86e8ff; box-shadow: 0 0 1rem rgba(90, 215, 255, 0.6); }
+  #home .hm3-diver { position: absolute; left: 0; top: 50%; width: 40%; width: min(40cqw, 92cqh / 1.26); right: auto; left: max(0px, calc(100cqw - min(66cqw, 84cqh * 1.5) - min(40cqw, 92cqh / 1.26) * 0.86)); height: auto; max-width: none; transform-origin: 30% 60%; object-fit: contain; object-position: left center; z-index: 2; pointer-events: none; transform: translateY(-50%);
+    filter: drop-shadow(0 1rem 1.6rem rgba(0, 18, 60, 0.5)); animation: hm3floatD 4.4s ease-in-out infinite; }
+  @keyframes hm3floatD { 0%, 100% { transform: translateY(-52%) rotate(-2deg); } 50% { transform: translateY(-47%) rotate(1.5deg); } }
+
+  /* left column buttons */
+  #home .hm-cta { grid-area: cta; position: relative; isolation: isolate; width: 100%; margin: 0; gap: 1rem; }
+  #home .hm-cta::before { content: ""; position: absolute; z-index: -1; left: 2%; right: 2%; top: 3.9rem; height: 3rem; border-radius: 1.6rem 1.6rem 50% 50% / 1.1rem 1.1rem 1.9rem 1.9rem; /* rock ledge under the pill */
+    background: radial-gradient(ellipse at 30% 30%, rgba(120, 150, 190, 0.5), transparent 40%), radial-gradient(ellipse at 75% 40%, rgba(110, 140, 180, 0.4), transparent 38%), linear-gradient(180deg, #4b5d80 0%, #2a3756 40%, #151d36 100%);
+    box-shadow: 0 0.6rem 1.2rem rgba(0, 8, 30, 0.55), inset 0 2px 0 rgba(170, 200, 240, 0.35); }
+  #home #btnPlay { align-self: center; width: 84%; min-height: 6rem; }
+  #home #btnPlay #playSub, #home #btnPlay .pl-arrow { display: none; }
+  #home #btnPlay .pl2 { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+  #home #btnPlay #playMain { font-family: var(--display); font-weight: 400; font-size: 2.8rem; color: #4a2604; letter-spacing: 0.01em; }
+  #home #btnPlay #playLv { margin-top: 0.2rem; font-family: var(--display); font-size: 1.15rem; color: #7a4510; letter-spacing: 0.02em; }
+  #home .hm-cta .kbd-hint { display: none; order: 9; margin: -0.2rem 0 0; align-self: center; }
+  #home .hm-daily { min-height: 4.4rem; margin-top: 0.7rem; }
+  #home .hm-daily small { color: rgba(214, 226, 255, 0.82); }
+  #home .hm-sec { display: grid; gap: 1rem; }
+  #home .sec-btn { min-height: 4rem; justify-content: flex-start; padding-left: 0.6rem; }
+  #home .sec-btn b { font-size: 1.3rem; white-space: nowrap; text-shadow: 0 2px 2px rgba(0, 10, 40, 0.45); }
+  #home .sec-btn .ic { width: 2.9rem; height: 2.9rem; border-radius: 0.75rem; flex: none; box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 2px 0 rgba(0,0,0,0.18); }
+  #home .sec-btn.c-how { background: linear-gradient(180deg, #a66bff, #6c2fe6); border: 2px solid rgba(214, 186, 255, 0.75); box-shadow: 0 0.3rem 0 #4b1aa6, 0 0.6rem 1.2rem rgba(30, 0, 80, 0.4); }
+  #home .sec-btn.c-how .ic { background: linear-gradient(180deg, #c49bff, #8a55f5); }
+  #home .sec-btn.c-intro { background: linear-gradient(180deg, #3fa6ff, #1c62e8); border: 2px solid rgba(176, 218, 255, 0.8); box-shadow: 0 0.3rem 0 #1546aa, 0 0.6rem 1.2rem rgba(0, 20, 80, 0.4); }
+  #home .sec-btn.c-intro .ic { background: linear-gradient(180deg, #ff9a66, #f0483a); }
+
+  /* floating tab bar: the same 4 tabs as the phone (How to / Intro live in the column now) */
+  #home .hm-nav { zoom: 1; left: 50%; right: auto; transform: translateX(-50%); width: min(44rem, 62vw); bottom: calc(var(--safe-b) + 1.1rem); grid-template-columns: repeat(4, 1fr);
+    padding: 0.6rem 0.4rem 0.5rem; border-radius: 1.8rem; background: linear-gradient(180deg, rgba(20, 34, 78, 0.95), rgba(10, 20, 54, 0.97)); border: 2px solid rgba(120, 155, 230, 0.4);
+    box-shadow: 0 0.9rem 2rem rgba(0, 8, 30, 0.5), inset 0 1px 0 rgba(255,255,255,0.12); }
+  #home .hm-nav .c-how, #home .hm-nav .c-intro { display: none; }
+  #home .hm-big .ic { width: 4.2rem; height: 3.7rem; } #home .hm-big b { font-size: 1.2rem; } #home .hm-big .dot { right: calc(50% - 2.3rem); }
+}
+@media (orientation: landscape) and (min-width: 760px) and (min-height: 1000px) { #home .hm-cta .kbd-hint { display: block; } }
+@media (orientation: landscape) and (min-width: 1800px) and (min-height: 1000px) { #home .hm-col { grid-template-columns: minmax(0, min(35rem, 34vw)) minmax(0, 1fr); } .ui-art #home .hm-title, #home .hm-title { width: min(100%, 29rem); } }
+@media (orientation: landscape) and (min-width: 760px) and (min-height: 821px) and (max-height: 999px) { #home .hm-col { bottom: calc(var(--safe-b) + 8.8rem); row-gap: 1.2rem; } #home .hm-cta { gap: 0.85rem; } }
+/* laptops (720–820 px tall): a notch smaller so the column never runs into the tab bar */
+@media (orientation: landscape) and (min-width: 760px) and (min-height: 521px) and (max-height: 820px) {
+  #home .hm-col { top: calc(var(--safe-t) + 4rem); bottom: calc(var(--safe-b) + 6.6rem); row-gap: 1rem; }
+  .ui-art #home .hm-title, #home .hm-title { width: min(100%, 19rem); }
+  #home .hm-cta { gap: 0.7rem; } #home .hm-cta::before { top: 3.2rem; height: 2.5rem; }
+  #home #btnPlay { min-height: 4.9rem; } #home #btnPlay #playMain { font-size: 2.3rem; } #home #btnPlay #playLv { font-size: 1rem; }
+  #home .hm-daily { min-height: 3.7rem; margin-top: 0.5rem; } #home .sec-btn { min-height: 3.3rem; } #home .sec-btn .ic { width: 2.4rem; height: 2.4rem; } #home .sec-btn b { font-size: 1.15rem; }
+  #home .hm-cta .kbd-hint { display: none; }
+  #home .hm-nav { padding: 0.4rem 0.3rem 0.35rem; } #home .hm-big .ic { width: 3.4rem; height: 3rem; } #home .hm-big b { font-size: 1.05rem; }
+}
+@media (orientation: landscape) and (min-width: 760px) and (min-height: 521px) and (max-height: 660px) {
+  .ui-art #home .hm-title, #home .hm-title { width: min(100%, 15rem); }
+  #home .hm-col { row-gap: 0.6rem; } #home .hm-sec { display: none; } #home .hm-nav { width: min(52rem, 74vw); grid-template-columns: repeat(6, 1fr); } #home .hm-nav .c-how, #home .hm-nav .c-intro { display: flex; }
+}
+@media (prefers-reduced-motion: reduce) { #home .hm3-rays, #home .hm3-bub, #home .hm3-diver { animation: none !important; } }
 </style>
 </head>
 <body data-state="splash">

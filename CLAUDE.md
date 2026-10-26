@@ -494,3 +494,15 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - Checked: 0 red cells stepped into along all 30 verified routes (no false alarms); random play: 83% of monster deaths and ~47%
   of crushes were warned on the fatal input. ≤ 6.5 ms per tick headless. Settings → Danger glow (`save.settings.danger`, default on).
   Debug: `__dc.danger()`.
+
+## Home v3 on computers (the phone mockup, laid out for wide screens)
+- `@media (orientation: landscape) and (min-width: 760px) and (min-height: 521px)` ("Home v3 for computers" block at the end of the
+  `<style>`): same painted backdrop / rays / bubbles / corals as the phone; `.hm-col` becomes a two-column grid (logo + CTA column on the
+  left: gold two-line Play/Continue pill on its rock ledge, navy Daily Dive, purple How to Play + blue Intro; the stage on the right:
+  waving diver beside a big glowing level card, sized with container units so it never overflows); a floating 4-tab bar centred at the
+  bottom (6 tabs on screens ≤ 660 px tall, where How to / Intro leave the column). Steps for ≤ 820 px, 821–999 px and ≥ 1800×1000 px.
+  The Enter hint only shows on ≥ 1000 px tall screens. Short landscape phones (≤ 520 px tall) keep the older column + live tank.
+- JS: `HM3` is now phone portrait (`HM3P`) OR this computer query (`HM3D`); both get the tank photo card and hold the frame loop.
+  `homeCard()` draws the photo at the card's real pixel size (160 px steps, up to 1440 wide; re-shot 250 ms after a resize).
+  `tankShot` now fits the whole tank in the card (diver, pearls and gate visible) instead of cropping.
+- `ui/home_diver.webp` cleaned: the see-through ghost hand (bottom right) removed; the cut air-tank edge on the left fades out.
