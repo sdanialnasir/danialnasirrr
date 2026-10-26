@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Lilita+One&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Outfit:wght@700&display=swap">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -1291,6 +1291,84 @@ input.vol::-moz-range-progress { background: linear-gradient(90deg, #5ff0ff, #ff
 .goal.relic { grid-column: 1 / -1; justify-content: center; display: inline-flex; align-items: center; gap: 0.4rem; color: #ffe08a; border-color: rgba(255, 210, 90, 0.5) !important; background: linear-gradient(180deg, rgba(90, 60, 10, 0.4), rgba(40, 26, 4, 0.35)) !important; }
 .goal.relic.got { color: #b8ffd9; border-color: rgba(90, 230, 160, 0.5) !important; background: rgba(10, 60, 40, 0.4) !important; }
 .goal .rl, .stat .si.r { display: inline-block; width: 1.1rem; height: 1.1rem; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff6c0, #f2b52c 55%, #a8650a); box-shadow: 0 0 6px rgba(255, 200, 60, 0.7), inset 0 0 0 2px rgba(122, 67, 2, 0.6); flex: none; }
+
+/* ===== Modern pass (owner: "it looks flashy; give it a modern touch") — one calm, premium visual language on top of the layout.
+   Deep ocean navy-teal, frosted cards with hairline borders and soft shadows (no neon glow), clean type (Outfit headings, Nunito
+   text; only Outfit 700 is loaded, so every display weight renders as 700), white titles without 3D drop shadows, flat warm-gold
+   primary buttons, translucent secondary buttons, glass HUD. The in-game HUD never uses backdrop blur (it sits over the live 3D). */
+:root {
+  --font: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif; --display: "Outfit", "Nunito", system-ui, sans-serif;
+  --surface: linear-gradient(180deg, rgba(15, 46, 78, 0.95) 0%, rgba(9, 32, 58, 0.97) 100%);
+  --surface-flat: #0b2742; --card: rgba(255, 255, 255, 0.055); --card-2: rgba(255, 255, 255, 0.1);
+  --line: rgba(255, 255, 255, 0.08); --line-2: rgba(255, 255, 255, 0.16);
+  --glass: rgba(7, 26, 48, 0.62); --glass-line: rgba(255, 255, 255, 0.14);
+  --ink-2: rgba(226, 240, 250, 0.76); --ink-3: rgba(226, 240, 250, 0.62);
+  --gold: #ffd45e; --cyan: #6fe7f2; --shadow: 0 1.6rem 3.2rem rgba(0, 8, 22, 0.5);
+}
+body { background: #08243f; font-weight: 700; }
+.title, .sheet.modal > .wrap .title, #resTitle, #introName { color: #fff !important; text-shadow: 0 2px 14px rgba(0, 12, 34, 0.35) !important; letter-spacing: -0.01em; -webkit-text-stroke: 0; }
+.kicker, .sheet.modal .kicker { color: rgba(160, 226, 240, 0.85) !important; letter-spacing: 0.18em; font-weight: 800; }
+h2, .sec-h, .grp-h { letter-spacing: -0.005em; }
+.sheet > .wrap { background: var(--surface); }
+.sheet.modal > .wrap { background: var(--surface) !important; border: 1px solid rgba(255, 255, 255, 0.12) !important; border-radius: 1.6rem;
+  box-shadow: 0 2rem 4rem rgba(0, 6, 18, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.07) !important; -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+#result.win > .wrap, #result.lose > .wrap, #ending > .wrap { background: var(--surface) !important; }
+.panel, .pause-hint, .pz-vol, .pz-stats span, .stat, .goal, .lvc-info, .day, .ach li, .lb-row, .item { box-shadow: none !important; }
+.panel, .pause-hint, .pz-vol { background: rgba(255, 255, 255, 0.045) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; }
+.pz-stats span, .goal { background: rgba(255, 255, 255, 0.06) !important; border: 1px solid rgba(255, 255, 255, 0.09) !important; }
+.tile { background: rgba(255, 255, 255, 0.07) !important; border: 1px solid rgba(255, 255, 255, 0.11) !important; box-shadow: none !important; font-family: var(--font); font-weight: 800; }
+.tile:hover { background: rgba(255, 255, 255, 0.11) !important; }
+/* primary: flat warm gold, no bevel art */
+.cta, .play-big, .ui-art .cta, .ui-art .play-big, .ui-art .ach .claim:not([disabled]) { border: 0 !important; border-image: none !important; filter: none !important; border-radius: 999px !important;
+  background: linear-gradient(180deg, #ffdd72 0%, #ffc043 100%) !important; color: #172235 !important;
+  box-shadow: 0 0.55rem 1.3rem rgba(255, 176, 40, 0.18), 0 0.25rem 0.7rem rgba(0, 10, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important; }
+.cta b, .play-big b, #home #btnPlay #playMain, .cta { color: #172235 !important; text-shadow: none !important; }
+#home #btnPlay #playLv { color: rgba(23, 34, 53, 0.65) !important; }
+.cta.green, .ui-art .cta.green, .ui-art .shop-act.owned { background: linear-gradient(180deg, #6ff0c0, #2fcf95) !important; }
+.ui-art .shop-act.equipped, .cta.ghost { background: rgba(255, 255, 255, 0.1) !important; color: #fff !important; box-shadow: none !important; }
+.hm-play::after { display: none; } /* no shine sweep */
+.pill-btn, .res-extra .pill-btn { background: rgba(255, 255, 255, 0.08) !important; border: 1px solid rgba(255, 255, 255, 0.14) !important; box-shadow: none !important; }
+.back, .lv-arrow, .hm-sq { background: rgba(255, 255, 255, 0.08) !important; border: 1px solid rgba(255, 255, 255, 0.14) !important; box-shadow: none !important; filter: none !important; color: #fff !important; }
+/* in-game HUD: translucent glass, white icons, no bevels */
+.hbtn, html body.ui-art .hbtn, html body.ui-art #hudB .hbtn, html body.ui-art #btnMap { background: rgba(7, 26, 48, 0.58) !important; border: 1px solid rgba(255, 255, 255, 0.16) !important; color: #fff !important; filter: none !important;
+  box-shadow: 0 0.3rem 0.9rem rgba(0, 8, 22, 0.32) !important; }
+html body.ui-art #btnMap.on { background: rgba(255, 212, 94, 0.9) !important; color: #172235 !important; }
+.prog, .air { background: rgba(7, 26, 48, 0.62) !important; border: 1px solid rgba(255, 255, 255, 0.14) !important; box-shadow: 0 0.3rem 0.9rem rgba(0, 8, 22, 0.3) !important; }
+.hb-l { font-family: var(--font); font-weight: 800; letter-spacing: 0.02em; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55); }
+/* stamps: clean white type, no strokes, no tilt */
+#clearStamp b, #comboStamp b { font-family: var(--display) !important; color: #fff !important; -webkit-text-stroke: 0 !important; text-shadow: 0 6px 28px rgba(0, 18, 40, 0.5) !important; letter-spacing: -0.02em; }
+#comboStamp b { font-size: clamp(2rem, 8vw, 3.2rem) !important; color: var(--cc) !important; }
+#comboStamp span { background: rgba(7, 26, 48, 0.7) !important; color: #fff !important; box-shadow: none !important; border: 1px solid rgba(255, 255, 255, 0.2); font-family: var(--font) !important; font-weight: 900; font-size: 1.1rem !important; }
+#comboStamp { transform: translate(-50%, -50%) !important; } #comboStamp.on { animation: comboIn2 1.3s cubic-bezier(.2, .9, .3, 1) forwards !important; }
+@keyframes comboIn2 { 0% { opacity: 0; transform: translate(-50%, -40%) scale(0.92); } 16% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 78% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -58%) scale(0.98); } }
+#lvlBanner #lbName, #lbName { font-family: var(--display); color: #fff !important; -webkit-text-stroke: 0 !important; text-shadow: 0 4px 22px rgba(0, 16, 40, 0.5) !important; }
+/* home: frosted pieces instead of neon frames and candy buttons */
+#home .hm-daily, #home .hm-nav, #home .hm-chip, #home .hm-coins { background: rgba(7, 28, 52, 0.64) !important; border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 0.8rem 2rem rgba(0, 8, 22, 0.35) !important; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+#home .hm-big + .hm-big::before { background: rgba(255, 255, 255, 0.1) !important; }
+#home .sec-btn.c-how, #home .sec-btn.c-intro { background: rgba(7, 28, 52, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.12) !important; box-shadow: 0 0.6rem 1.4rem rgba(0, 8, 22, 0.3) !important; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+#home .sec-btn b, #home .hm-daily b, #home .hm-big b { font-family: var(--font) !important; font-weight: 800; text-shadow: none !important; }
+#home .hm-cta::before { display: none !important; } /* the cartoon rock ledge under the pill */
+#home .hm3-card { border: 1px solid rgba(255, 255, 255, 0.28) !important; box-shadow: 0 1.2rem 2.8rem rgba(0, 8, 22, 0.45) !important; background: rgba(7, 28, 52, 0.5) !important; }
+#home .hm3-tab { background: rgba(7, 28, 52, 0.82) !important; border: 1px solid rgba(255, 255, 255, 0.22) !important; box-shadow: none !important; font-family: var(--display); }
+#home .hm3-rays { opacity: 0.55; }
+.set-ic { box-shadow: none !important; }
+/* toasts, cards */
+#toast { background: rgba(7, 26, 48, 0.86) !important; border: 1px solid rgba(255, 255, 255, 0.14) !important; box-shadow: 0 0.8rem 2rem rgba(0, 8, 22, 0.4) !important; font-weight: 800; }
+#fx.flash { animation: fxflash2 .45s ease-out; } @keyframes fxflash2 { from { background: rgba(200, 245, 255, 0.12); } to { background: rgba(200, 245, 255, 0); } } /* was a white flash */
+
+/* modern pass, part 2: the remaining bright-blue tiles become the same frosted cards */
+.item:not(.r-vip), .day, .stat, .lv-world, .res-coins, .lv-card, .lvc-prev, .tabs button, .seg button { background: rgba(255, 255, 255, 0.055) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; box-shadow: none !important; }
+.item.on, .item.sel, .day.today, .day.ready, .tabs button.on, .seg button.on { background: rgba(255, 212, 94, 0.14) !important; border-color: rgba(255, 212, 94, 0.55) !important; }
+.tabs button.on, .seg button.on { color: #ffe08a !important; }
+.res-coins { border-color: rgba(255, 212, 94, 0.35) !important; }
+.stat b, .day b, .res-coins b, .lv-wname b { font-family: var(--display) !important; }
+.rw-vip { background: linear-gradient(100deg, rgba(60, 40, 110, 0.75), rgba(40, 28, 80, 0.75)) !important; border: 1px solid rgba(255, 212, 94, 0.45) !important; box-shadow: none !important; }
+.rw-vip .rv-go { box-shadow: none !important; }
+.lv-card { -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); background: rgba(7, 28, 52, 0.7) !important; }
+.item .rib { box-shadow: none !important; }
+
+.ph { background: rgba(11, 36, 62, 0.92) !important; border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important; box-shadow: none !important; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
 </style>
 </head>
 <body data-state="splash">

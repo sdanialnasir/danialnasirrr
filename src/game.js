@@ -2391,13 +2391,13 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           if (lens > 0.0) { vec2 dv = (vUv - 0.5) * lens * 0.0012 * dot(vUv - 0.5, vUv - 0.5) * 4.0; c.r = safe(texture2D(tScene, vUv + dv).rgb).r; c.b = safe(texture2D(tScene, vUv - dv).rgb).b; } // faint chromatic fringe at the edges
           // the intro's night grade: mid-tones sink into deep blue, but bright lights (pearl-lights, lamp, lightning) keep shining
           if (night > 0.0) { vec3 hi = max(c - 1.15, 0.0); c = mix(c, c * vec3(0.12, 0.18, 0.4) + hi * 3.0, night); b *= 1.0 + night * 1.6; }
-          c += b * strength;
+          c += b * strength * 0.85;
           if (rays > 0.0) c += safe(texture2D(tRays, vUv).rgb) * rays;
           // gentle grade: a touch more contrast and saturation, cool shadows, warm highlights
           float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
-          c = mix(vec3(l), c, 1.24);
+          c = mix(vec3(l), c, 1.08); /* modern pass: was 1.24 (too candy) */
           c = mix(c * vec3(0.94, 0.99, 1.06), c * vec3(1.03, 1.0, 0.96), smoothstep(0.2, 0.8, l));
-          c = max(c, 0.0); vec3 cc = min(c, 1.0); c += (cc * cc * (3.0 - 2.0 * cc) - cc) * 0.62;
+          c = max(c, 0.0); vec3 cc = min(c, 1.0); c += (cc * cc * (3.0 - 2.0 * cc) - cc) * 0.42; /* softer filmic contrast (was 0.62) */
           // soft vignette
           vec2 d = vUv - 0.5; d.x *= aspect; float v = smoothstep(1.05, 0.3, length(d)); c *= mix(0.58 - 0.4 * night - 0.12 * vig, 1.0, v);
           gl_FragColor = vec4(c, 1.0);
@@ -3255,7 +3255,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     flashFx(cls) { if (!this.fx) return; this.fx.classList.remove(cls); void this.fx.offsetWidth; this.fx.classList.add(cls); }
     // little floating words for small wins ("+1", "Phew!", "Bonk!"): a canvas sprite that pops, rises and fades
     popText(x, y, text, col = '#ffd84a') { if (this.menuMode || (this.e && this.e.cine)) return; this.pops = this.pops || []; const c = document.createElement('canvas'); c.width = 256; c.height = 96; const g = c.getContext('2d');
-      g.font = '64px "Lilita One", "Baloo 2", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round'; g.lineWidth = 12; g.strokeStyle = '#0b2f6e'; g.strokeText(text, 128, 50); g.fillStyle = col; g.fillText(text, 128, 50);
+      g.font = '700 60px "Outfit", "Nunito", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round'; g.shadowColor = 'rgba(0, 12, 30, 0.55)'; g.shadowBlur = 10; g.shadowOffsetY = 3; g.fillStyle = col; g.fillText(text, 128, 50); /* modern: soft shadow, no thick outline */
       const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, depthTest: false, toneMapped: false }));
       sp.position.set(x, y + 0.3, 0.9); sp.renderOrder = 9; sp.scale.set(0.01, 0.01, 1); this.levelGroup.add(sp); this.pops.push({ sp, t: 0, y: y + 0.3 }); }
     // ---- intro cinematic effects, driven by the controller through this.cineFx = { glow, storm, lamp } (0..1 each)
@@ -3325,7 +3325,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           P.emit(x - dx * 1.35, y - 0.45, 0.4, 5, { color: new THREE.Color(0xd9b06a), speed: 0.4, life: 0.6, size: 0.07, kind: 1, spread: 0.15, vx: -dx * 0.9, vy: 0.5 });
           P.emit(x - dx * 0.45, y - 0.35, 0.44, 3, { color: new THREE.Color(0xf7e2b0), speed: 0.15, life: 0.7, size: 0.3, kind: 0, spread: 0.2 }); }
           this.playerAct = { k: 'push', t: 0 }; this.sfx('push'); if (this.time - (this.lastHup ?? -9) > 0.8) { this.lastHup = this.time; this.sfx('hup'); } break;
-        case 'land': { { const pl = e.player; if (pl && Math.abs(pl.x - ev.x) <= 1 && Math.abs(pl.y - ev.y) <= 1) { this.playerMood('flinch', 0.45); this.sfx('oof'); if (ev.t === T.ROCK && ev.y >= pl.y && (pl.px === ev.x || Math.abs(pl.x - ev.x) === 1 && pl.y === ev.y)) { this.popText(pl.x, -pl.y + 0.3, 'Phew!', '#9ff0ff'); this.sfx('eep'); } } } // a heavy thing lands right next to him
+        case 'land': { { const pl = e.player; if (pl && Math.abs(pl.x - ev.x) <= 1 && Math.abs(pl.y - ev.y) <= 1) { this.playerMood('flinch', 0.45); this.sfx('oof'); if (ev.t === T.ROCK && ev.y >= pl.y && (pl.px === ev.x || Math.abs(pl.x - ev.x) === 1 && pl.y === ev.y)) { this.sfx('eep'); } } } // a heavy thing lands right next to him
           this.shake = Math.max(this.shake, ev.t === T.ROCK ? 0.12 : 0.07); P.emit(x, y - 0.42, 0.4, 10, { color: SAND, speed: 1.2, life: 0.5, size: 0.1, kind: 1, spread: 0.7 }); this.sfx('land'); break; }
         case 'roll': this.sfx('roll'); break;
         case 'teeter': { const ent = this.entities.get(ev.id); if (ent) ent.teeter = 1; this.sfx('eep'); this.playerMood('surprise', 0.5); this.shake = Math.max(this.shake, 0.06); break; } // grace tick: the stone wobbles, the diver yelps
@@ -3333,7 +3333,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           const ent = this.entities.get(ev.id); if (ent) { ent.absorbing = { t: 0, from: new V3(ev.fromX, -ev.fromY, 0.05), to: new V3(x, y, 0.3) }; this.entities.delete(ev.id); this.absorbing.push(ent); } break; }
         case 'gateOpen': { this.ringAt(7); if (this.onGateOpen && !this.menuMode && !e.cine) this.onGateOpen(); this.playerMood('joy', 1.25); this.flashFx('flash'); P.emit(x, y, 0.5, 70, { color: new THREE.Color(0.55, 0.95, 1), speed: 3.5, life: 1.3, size: 0.16 }); P.bubbles(x, y, 0.2, 18, 0.12, 0.8); this.sfx('gateOpen'); this.shake = 0.18; break; }
         case 'gateLocked': if (this.onToast && this.time - (this.lastLockToast ?? -9) > 2.5) { this.lastLockToast = this.time; this.onToast(`Deliver all energy first (${e.ballsIn}/${e.ballsTotal})`); } this.sfx('gateLocked'); this.playerMood('bonk', 0.55); this.sfx('hmm'); break;
-        case 'monsterDeath': { P.bubbles(x, y, 0.2, 14, 0.1, 0.6); this.popText(x, y, 'Bonk!', '#ff8fd0'); P.emit(x, y, 0.4, 20, { color: new THREE.Color(1, 0.7, 0.4), speed: 2, life: 0.7, size: 0.12 }); this.sfx('monsterDeath'); this.shake = Math.max(this.shake, 0.12);
+        case 'monsterDeath': { P.bubbles(x, y, 0.2, 14, 0.1, 0.6); P.emit(x, y, 0.4, 20, { color: new THREE.Color(1, 0.7, 0.4), speed: 2, life: 0.7, size: 0.12 }); this.sfx('monsterDeath'); this.shake = Math.max(this.shake, 0.12);
           for (const ent of this.entities.values()) if (ent.o.x === ev.x && ent.o.y === ev.y && ent.o.t === ev.t) { ent.ghost = { t: 0, kind: 'monster' }; this.ghosts.push(ent); this.entities.delete(ent.o.id); } break; }
         case 'playerDeath': { if (this.warn) this.warn.visible = false; P.bubbles(x, y, 0.2, 36, 0.13, 0.8); this.shake = 0.4; this.sfx('death'); this.sfx('aww'); this.setFx('dead');
           if (ev.cause === 'crushed') { P.emit(x, y - 0.3, 0.45, 26, { color: SAND, speed: 1.6, life: 0.9, size: 0.1, kind: 1, spread: 0.5, vy: 0.4 }); P.emit(x, y, 0.5, 14, { color: new THREE.Color(1, 0.95, 0.6), speed: 2.4, life: 0.5, size: 0.13, spread: 0.2 }); this.shake = 0.55; }
@@ -3665,7 +3665,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         this.camGoal.set(fx, fy + lift, d); this.lookGoal.set(fx, fy, 0); cl = 1 - Math.pow(S === 'descent' ? 0.25 : 0.1, dt); // slower, filmic easing
       }
       this.camPos.lerp(this.camGoal, cl); this.camTarget.lerp(this.lookGoal, cl);
-      this.shake = Math.max(0, this.shake - dt * 1.4); const sh = REDUCED_MOTION ? 0 : this.shake * this.shake * 0.5;
+      this.shake = Math.max(0, this.shake - dt * 1.4); const sh = REDUCED_MOTION ? 0 : this.shake * this.shake * 0.25; /* modern: gentler shakes */
       const sx = (Math.random() - 0.5) * sh, sy = (Math.random() - 0.5) * sh;
       { // look down at the board from slightly above so blocks, sand walls and shadows read as real 3D
         const tl = this.menuMode ? this.tilt * 0.8 : this.tilt, d = this.camPos.z;
@@ -4020,7 +4020,7 @@ window.__T = T;
       toast(first ? `Ancient relic found! ${Object.keys(save.relics).length}/${LEVELS.length}` : 'Relic found again'); }
     // near miss: a monster came right next to him and moved on without catching him -> a quick dodge hop + "Close one!"
     for (const o of e.objects.values()) { if (o.t !== T.FISH && o.t !== T.JELLY && o.t !== T.CRAB) continue; const d = Math.abs(o.x - p.x) + Math.abs(o.y - p.y);
-      if (d <= 1) RUN.near.set(o.id, true); else if (RUN.near.get(o.id)) { RUN.near.delete(o.id); if (performance.now() - RUN.dodgeAt > 2500) { RUN.dodgeAt = performance.now(); world.dodge(); world.popText(p.x, -p.y + 0.5, 'Close one!', '#9ff0ff'); } } }
+      if (d <= 1) RUN.near.set(o.id, true); else if (RUN.near.get(o.id)) { RUN.near.delete(o.id); if (performance.now() - RUN.dodgeAt > 2500) { RUN.dodgeAt = performance.now(); world.dodge(); } } }
     world.lowAir = !e.relaxed && e.begun && e.oxygen < 10; }
   // the relic's cell: a sand cell the diver can dig to from the start, as far as possible from every cell the verified winning route
   // visits (so finding it is a detour, never on the way), not right under a stone/pearl. Computed once per level.

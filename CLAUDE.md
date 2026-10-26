@@ -585,3 +585,20 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   loudest effects −6.8 dB, peak −0.6 dBFS, no overs. Credits: docs/audio-credits.md (calm palette is original, no credit needed).
 - **Tunnel water** (`MAT.waterBack` shader): soft slanted sun shafts that sway slowly (strongest under the surface), tiny drifting motes,
   the tunnel floor a touch deeper. A few ALU ops, no extra draws. Measured headless (software GL, level 21): within noise of before.
+
+## Modern pass (owner: "it looks flashy; give it a modern touch, modern sound")
+- **Fonts:** Google Fonts now loads **Outfit 700** (display; only one weight is loaded, so every `font-family: var(--display)` renders as
+  700 even where rules say 400) and **Nunito 600–900** (text). Baloo 2 / Lilita One are gone. Canvas pop words use Outfit with a soft
+  shadow instead of a thick navy outline.
+- **"Modern pass" CSS blocks** (end of the `<style>`, they override everything above with `!important` where needed): deep navy-teal
+  `--surface`, frosted modal cards (hairline border, soft shadow, `backdrop-filter` only on menu cards over the held backdrop — never on
+  the in-game HUD), white titles without 3D shadows, muted kickers, **flat warm-gold primary buttons** (the 9-slice pill art is switched
+  off: `border-image: none`), translucent secondary buttons/tiles, glass HUD buttons with white icons, glass home pieces (Daily Dive,
+  tab bar, How to Play/Intro, avatar/coins), the rock ledge under Continue removed, level card with a hairline frame, shop items /
+  reward days / stats / world header / coin box / sticky sheet headers as frosted cards, selected items tinted gold. Clean stamps
+  (`comboIn2`: no tilt, no stroke).
+- **In-game calm-down:** the white screen flash is now a faint cyan breath (`fxflash2`), camera shake ×0.5 (`sh` factor 0.25),
+  no "Phew!" / "Bonk!" / "Close one!" pop words (stamps and the dodge still show), post grade saturation 1.24 → 1.08, filmic S-curve
+  0.62 → 0.42, bloom ×0.85.
+- **Sound:** UI and small cues are drier and tighter (hall wet 0.05–0.14, shorter tails); the click is a soft tactile tick
+  (rounded 1.15 kHz tap + 320 Hz body) instead of a water drop. Level clear / gate keep their gentle space.
