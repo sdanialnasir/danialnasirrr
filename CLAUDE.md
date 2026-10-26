@@ -453,3 +453,21 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   post is public or mentions the game: real checking needs a small server (e.g. X/Threads/Instagram/TikTok oEmbed answer only for
   public posts) once the game is hosted.
 - **Home spacing (phone):** bigger gaps between Continue, Daily Dive, How to Play/Intro and the tab bar (1–1.05 rem; tighter on short phones).
+
+## Share clips + premium outfits
+- **Clips** (`shareMoment` → `makeClip(lastRun)`): every finished run (win or fail, `lastRun` = level + `runLog` + cause) can become a
+  ~10 s 720×1280 video: the last ~4.5 s re-simulated from the move log (`simTo`) and played live, then an **INSTANT REPLAY** of the
+  ending at 0.35× with a tighter crop, then an end card. Fun captions per outcome (`CAPS`: crushed / monster / oxygen / win / bonk) so
+  fails are shareable, not braggy. State `'clip'` runs `clipFrame` from the frame loop; the world camera is held on the whole tank
+  (`world.peek`, `peekK = 1`) and `clipDraw` crops around the diver/gate (framed on the tank's screen rect). Recorded with
+  `canvas.captureStream(30)` + `MediaRecorder` (mp4 when supported, else webm) with the game sound from `Audio.capture()`
+  (MediaStreamDestination on the master bus). `#clipBox` shows the recording live with a progress bar and Cancel. The result opens the
+  share sheet with the video (`#shareVid`, "Save video", "More" shares the file). No MediaRecorder → picture card fallback.
+  The result screen's Share button reads "Share clip" / "Share this fail 😂" (shown on fails too).
+- **Premium outfits** (`vip: true`, rarity 'premium', unlock by sharing only — one public post link = one outfit, the player picks
+  which in the share sheet chips `#vipChips`; the shop's "Share to unlock" preselects it): VIP Black Gold, **Shark Suit**, **Merdiver**,
+  **Robo Diver**, **Kraken**, **Abyss Angler**. Each = recolour + real geometry from `makeKit(id)` glued to bones in `makeDiver`
+  (shark jaws/teeth framing the face + head fin + tail + side fins; mermaid tail + shell crown; jetpack with flickering flames + antenna +
+  shoulder lights; octopus hood with eyes + 6 swaying tentacles; angler lure with glowing bulb + glowing dots + fangs). Measured frame:
+  feet y −0.556, helmet −0.08…0.395, hips −0.23, Spine2 −0.12, face front x ≈ 0.2. **Animate an inner child, never the glued object**
+  (its rotation holds the bone-space offset). Head-piece outfits hide hats. The shop preview rebuilds the diver when the kit changes.

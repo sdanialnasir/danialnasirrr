@@ -1123,6 +1123,22 @@ body:not([data-state="over"]) #clearStamp { display: none; }
 @media (max-width: 760px) and (orientation: portrait) and (max-height: 760px) {
   #home .hm-col { bottom: calc(var(--safe-b) + 6.9rem); } #home .hm-cta { gap: 0.6rem; margin-top: 0.3rem; } #home .hm-sec { gap: 0.6rem; }
 }
+
+/* ===== share clips ===== */
+#clipBox { position: fixed; inset: 0; z-index: 31; display: none; place-items: center; background: rgba(2, 10, 30, 0.88); padding: 1rem; }
+#clipBox.on { display: grid; }
+#clipBox .cb-in { display: flex; flex-direction: column; align-items: center; gap: 0.7rem; color: #fff; }
+#clipBox .cb-t { font-family: var(--display); font-weight: 400; font-size: 1.5rem; color: #ffd23f; }
+#clipBox .cb-stage canvas { display: block; height: min(64vh, 34rem); width: auto; aspect-ratio: 9 / 16; border-radius: 1rem; box-shadow: 0 1rem 2.4rem rgba(0, 0, 0, 0.55); border: 2px solid rgba(130, 175, 255, 0.5); }
+#clipBox .cb-bar { width: min(70vw, 18rem); height: 0.55rem; border-radius: 999px; background: rgba(255,255,255,0.15); overflow: hidden; } #clipBox .cb-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #ffe46b, #ffb51e); }
+#shareBox video { display: block; max-height: 46vh; max-width: 100%; margin: 0 auto; border-radius: 1rem; background: #000; aspect-ratio: 9 / 16; }
+
+#shareBox .sv-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.65rem; }
+#shareBox .sv-chips .vc { padding: 0.32rem 0.7rem; border-radius: 999px; font-weight: 800; font-size: 0.8rem; color: #ffe9b0; background: rgba(0,0,0,0.3); border: 1.5px solid rgba(255, 210, 100, 0.45); }
+#shareBox .sv-chips .vc.on { color: #3a2400; background: linear-gradient(180deg, #ffe46b, #ffb51e); border-color: #ffe46b; } #shareBox .sv-chips .vc.own { opacity: 0.55; border-style: dashed; }
+.item.r-premium { background: linear-gradient(180deg, #2b2340, #120e1e) !important; border-color: #ffc933 !important; box-shadow: 0 0 0.9rem rgba(255, 200, 50, 0.35) !important; }
+.item.r-premium .rib { background: linear-gradient(180deg, #ffe27a, #e0a514) !important; color: #3a2400 !important; }
+.shop-stage[data-rar="premium"] { background: radial-gradient(ellipse at 20% 40%, rgba(255, 200, 60, 0.45), rgba(20, 12, 40, 0.6) 72%) !important; }
 </style>
 </head>
 <body data-state="splash">
@@ -1159,6 +1175,7 @@ body:not([data-state="over"]) #clearStamp { display: none; }
   <button class="sb-x" id="shareClose" aria-label="Close">✕</button>
   <h3 id="shareTitle">Share</h3>
   <img id="shareImg" alt="Your share card">
+  <video id="shareVid" playsinline loop muted controls hidden></video>
   <p id="shareTxt"></p>
   <div class="sb-soc" role="group" aria-label="Share to">
     <button data-net="x" aria-label="Share on X"><i>𝕏</i><span>X</span></button>
@@ -1171,11 +1188,13 @@ body:not([data-state="over"]) #clearStamp { display: none; }
   </div>
   <div class="sb-row"><a class="pill-btn" id="shareDl" download>Save picture</a><button class="pill-btn" id="shareCopy">Copy text</button></div>
   <div class="sb-vip" id="shareVip">
-    <div class="sv-head"><span class="sv-crown" aria-hidden="true">👑</span><span><b>Unlock the VIP Black Gold suit</b><small>Post about the game publicly on X, Facebook, Reddit, Threads, Instagram or TikTok, then paste the link to your post.</small></span></div>
+    <div class="sv-head"><span class="sv-crown" aria-hidden="true">👑</span><span><b id="vipHead">Unlock a premium outfit</b><small>Post your clip publicly on X, Facebook, Reddit, Threads, Instagram or TikTok, then paste the link to your post. One post unlocks one outfit.</small></span></div>
+    <div class="sv-chips" id="vipChips"></div>
     <div class="sv-row"><input id="vipLink" type="url" inputmode="url" autocomplete="off" placeholder="Paste the link to your public post"><button class="cta" id="vipClaim">Claim</button></div>
     <small id="vipMsg" aria-live="polite"></small>
   </div>
 </div></div>
+<div id="clipBox" role="dialog" aria-live="polite"><div class="cb-in"><b class="cb-t">🎬 Making your clip…</b><div class="cb-stage"></div><div class="cb-bar"><i id="clipBar"></i></div><button class="pill-btn ghost" id="clipCancel">Cancel</button></div></div>
 <div id="stuckCard" role="alertdialog" aria-live="assertive"><p id="stuckMsg"></p><div><button class="sc-act" id="stuckAct">Undo</button><button class="sc-x" id="stuckX" aria-label="Dismiss">Keep going</button></div></div>
 
 <div id="stick"><div class="ring"></div><div class="knob"></div></div>
@@ -1374,7 +1393,7 @@ body:not([data-state="over"]) #clearStamp { display: none; }
 <section id="rewards" class="screen sheet win-rw">
   <div class="wrap">
     <div class="ph"><button class="back" data-go="back" aria-label="Back"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h2>Rewards</h2><span class="pill coins-pill"><i class="coin" aria-hidden="true"></i><b class="coinCount">0</b></span></div>
-    <button class="rw-vip" id="rwVip" type="button"><span class="rv-ic" aria-hidden="true">👑</span><span class="rv-t"><b id="rwVipT">Share &amp; unlock VIP</b><small id="rwVipS">Post about the game publicly to get the VIP Black Gold suit</small></span><span class="rv-go">Share</span></button>
+    <button class="rw-vip" id="rwVip" type="button"><span class="rv-ic" aria-hidden="true">👑</span><span class="rv-t"><b id="rwVipT">Premium outfits</b><small id="rwVipS">Post about the game publicly to get the VIP Black Gold suit</small></span><span class="rv-go">Share</span></button>
     <div class="rw-grid">
       <div class="panel rw-daily">
         <h3 class="sec-h">Daily treasure <small class="streak" id="streakN"></small></h3>
@@ -2367,7 +2386,11 @@ const Audio = (() => {
   function setVolumes(music, sfx) { settings.music = music; settings.sfx = sfx; if (musicBus) musicBus.gain.value = musicOn ? music : 0; if (sfxBus) sfxBus.gain.value = sfx; try { localStorage.setItem('dc-audio', JSON.stringify(settings)); } catch {} }
   function pearl(n) { if (!ctx || muted) return; const t = ctx.currentTime + 0.05, f = 523 * Math.pow(2, (n - 1) * 4 / 12); note(f, t, 0.9, 'triangle', 0.13, sfxBus); note(f * 2, t + 0.07, 0.6, 'sine', 0.06, sfxBus); } // each pearl a step higher
   function star(i) { if (!ctx || muted) return; const t = ctx.currentTime, f = 784 * Math.pow(2, i * 5 / 12); note(f, t, 0.7, 'triangle', 0.14, sfxBus); note(f * 1.5, t + 0.03, 0.5, 'sine', 0.06, sfxBus); thump(110, 0.12, 0.18); }
-  return { init, resume, play, vo, stopVo, swell, setTension, setMuted, setMusic, setVolumes, settings, pearl, star, get ctx() { return ctx; }, get files() { return FILES; } };
+  // share clips: the mixed game sound as a MediaStream for the recorder
+  let capDest = null;
+  function capture() { if (!ctx || !master || !ctx.createMediaStreamDestination) return null; try { capDest = ctx.createMediaStreamDestination(); master.connect(capDest); return capDest.stream; } catch (er) { capDest = null; return null; } }
+  function release() { if (capDest) { try { master.disconnect(capDest); } catch (er) {} capDest = null; } }
+  return { init, resume, play, vo, stopVo, swell, setTension, setMuted, setMusic, setVolumes, settings, pearl, star, capture, release, get ctx() { return ctx; }, get files() { return FILES; } };
 })();
 
 // Deep Current — renderer v3: clean, bright, front-on puzzle board built from premium primitives.
@@ -3056,7 +3079,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const glue = (obj, bone, pos, sc) => { const want = new THREE.Matrix4().compose(pos, new THREE.Quaternion(), new V3(sc, sc, sc)), inv = new THREE.Matrix4().copy(bone.matrixWorld).invert();
       inv.multiply(g.matrixWorld).multiply(want).decompose(obj.position, obj.quaternion, obj.scale); bone.add(obj); };
     const top = 1.7 * GLB_K - 0.5 + (D.minY < 0 ? 0 : 0);
-    const hat = makeHat(SKIN.hat); if (hat) { const hg = new THREE.Group(); hat.position.set(0, 0, 0); hg.add(hat); glue(hg, headB, new V3(-0.02, top - 0.06, 0), 0.92); }
+    const hat = ['sharky', 'mermaid', 'kraken'].includes(skinOf('suit', SKIN.suit).kit) ? null : makeHat(SKIN.hat); if (hat) { const hg = new THREE.Group(); hat.position.set(0, 0, 0); hg.add(hat); glue(hg, headB, new V3(-0.02, top - 0.06, 0), 0.92); }
     const lampGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.dot, color: 0xfff0a0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.45 })); lampGlow.scale.setScalar(0.16);
     { const lg = new THREE.Group(); lg.add(lampGlow); glue(lg, headB, new V3(0.2, top - 0.07, 0.02), 1); }
     // the shop scarf: a knot round the neck and two tails streaming behind (same animation hooks as before)
@@ -3064,9 +3087,68 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const knot = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.03, 10, 28), MAT.dScarf); knot.rotation.x = Math.PI / 2; sg.add(knot);
       for (const [z, len] of [[0.07, 0.42], [-0.04, 0.34]]) { const gg = new THREE.PlaneGeometry(len, 0.1, 8, 1); gg.translate(-len / 2, 0, 0); const P = gg.attributes.position; for (let i = 0; i < P.count; i++) { const x = -P.getX(i) / len; P.setY(i, P.getY(i) * (1 - x * 0.45)); }
         const piv = new THREE.Group(); piv.position.set(-0.12, 0, z); sg.add(piv); piv.add(new THREE.Mesh(gg, MAT.dScarf)); scarf.push({ piv, geo: gg, base: Float32Array.from(P.array), len }); } }
+    { const kit = makeKit(skinOf('suit', SKIN.suit).kit); for (const [obj, bn, pos, sc] of kit) { const bone = B(bn); if (!bone) continue; if (pos) glue(obj, bone, pos, sc); else { obj.scale.setScalar(sc / GLB_K / D.rootScale); bone.add(obj); } } }
     const dummy = () => new THREE.Object3D();
     g.userData = { glb: { mixer, act, mesh, w: { stand: 1 } }, body, head: dummy(), armF: dummy(), armB: dummy(), legF: dummy(), legB: dummy(), finF: dummy(), finB: dummy(), lampGlow, scarf: scarf.length ? scarf : null, hat };
     return withShadow(g); }
+  // ---- premium outfit pieces: real geometry glued to bones so they ride every animation. Positions are in the diver's own frame
+  // (faces +x, feet at y -0.5, helmet top ~0.42, back = -x). Each entry: [object, bone name, position, scale]. Animated parts use onBeforeRender.
+  function makeKit(id) { if (!id) return []; const out = [], P = (o) => new THREE.MeshPhysicalMaterial(Object.assign({ roughness: 0.35, clearcoat: 0.7, envMapIntensity: 0.9 }, o));
+    const glow = (col, sc) => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.dot, color: col, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.85 })); sp.scale.setScalar(sc); return sp; };
+    const fin = (pts, depth, mat) => { const sh = new THREE.Shape(); sh.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i += 2) sh.quadraticCurveTo(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]); sh.closePath();
+      const g = new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: true, bevelThickness: depth * 0.5, bevelSize: depth * 0.6, bevelSegments: 3, curveSegments: 14 }); g.translate(0, 0, -depth / 2); return new THREE.Mesh(g, mat); };
+    const t = () => performance.now() / 1000;
+    if (id === 'sharky') { const grey = P({ color: 0x6d84a3, roughness: 0.4 }), white = P({ color: 0xffffff, roughness: 0.3 }), gum = P({ color: 0xff8fa8, roughness: 0.5 });
+      // a shark costume: the diver's face peeks out of the open jaws (upper + lower jaw with teeth), fin on top, eyes on the sides, tail
+      const jaw = new THREE.Group();
+      for (const [up, r] of [[1, 0.235], [-1, 0.2]]) { const arc = new THREE.Mesh(new THREE.TorusGeometry(r, 0.045, 12, 30, Math.PI * 0.9), grey); arc.rotation.set(0, Math.PI / 2, up > 0 ? Math.PI * 0.05 : Math.PI * 1.05); jaw.add(arc);
+        for (let k = 0; k < 7; k++) { const a = (up > 0 ? 0.25 : Math.PI + 0.25) + k / 6 * (Math.PI * 0.9 - 0.5), tooth = new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.055, 6), white);
+          tooth.position.set(0.02, Math.sin(a) * (r - 0.035), Math.cos(a) * (r - 0.035)); tooth.lookAt(0.02, 0, 0); tooth.rotateX(Math.PI / 2); jaw.add(tooth); } }
+      for (const z of [-1, 1]) { const eye = new THREE.Mesh(new THREE.SphereGeometry(0.032, 12, 8), P({ color: 0x0c0c12, roughness: 0.05 })); eye.position.set(-0.04, 0.2, z * 0.22); jaw.add(eye); const hl = new THREE.Mesh(new THREE.SphereGeometry(0.01, 6, 4), white); hl.position.set(-0.02, 0.215, z * 0.235); jaw.add(hl); }
+      out.push([jaw, 'Head', new V3(0.16, 0.12, 0), 1]);
+      const dorsal = fin([[-0.14, 0], [-0.04, 0.05], [0.0, 0.24], [0.06, 0.07], [0.11, 0]], 0.03, grey); out.push([dorsal, 'Head', new V3(-0.06, 0.34, 0), 1]);
+      const tg = new THREE.Group(), tail = fin([[0, 0], [-0.1, 0.04], [-0.17, 0.17], [-0.1, 0.02], [-0.05, 0], [-0.1, -0.02], [-0.15, -0.12], [-0.08, -0.03], [0, 0]], 0.03, grey); tg.add(tail);
+      tail.onBeforeRender = () => { tail.rotation.y = Math.sin(t() * 5) * 0.4; }; out.push([tg, 'Hips', new V3(-0.12, -0.25, 0), 1.1]);
+      for (const z of [-1, 1]) { const pf = fin([[0, 0], [-0.03, -0.03], [-0.12, -0.09], [-0.04, 0.01], [0, 0.02]], 0.018, grey); pf.rotation.x = z * 1.1; out.push([pf, 'Spine2', new V3(0.0, -0.15, z * 0.14), 1]); } }
+    if (id === 'mermaid') { const scaleTex = (() => { const [c, g] = canvas(128); g.fillStyle = '#127a9c'; g.fillRect(0, 0, 128, 128); for (let y = 0; y < 9; y++) for (let x = 0; x < 9; x++) { const cx = x * 16 + (y % 2) * 8, cy = y * 16; const gr = g.createRadialGradient(cx, cy - 4, 2, cx, cy, 12); gr.addColorStop(0, '#b8fff6'); gr.addColorStop(0.55, '#2ad6c6'); gr.addColorStop(1, '#16879f'); g.fillStyle = gr; g.beginPath(); g.arc(cx, cy, 10, 0, Math.PI); g.fill(); } const tx = tex(c); tx.wrapS = tx.wrapT = THREE.RepeatWrapping; tx.repeat.set(2, 2); return tx; })();
+      const tailMat = P({ map: scaleTex, color: 0xffffff, roughness: 0.25, clearcoat: 1, iridescence: 1, iridescenceIOR: 1.4, sheen: 0.6, sheenColor: 0xff9ad8 }), finMat = P({ color: 0xff7ac8, roughness: 0.3, transparent: true, opacity: 0.94, side: THREE.DoubleSide, sheen: 1, sheenColor: 0xffd0f0 });
+      // a mermaid tail sweeping down behind the legs to a big two-lobed fin
+      const tgo = new THREE.Group(), tg = new THREE.Group(); tgo.add(tg); const body = new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.04, 0.36, 18, 4), tailMat); body.rotation.z = -1.05; body.position.set(-0.15, -0.09, 0); tg.add(body);
+      const fl = fin([[0, 0], [0.02, 0.1], [-0.08, 0.2], [-0.06, 0.05], [-0.03, 0], [-0.06, -0.05], [-0.08, -0.2], [0.02, -0.1], [0, 0]], 0.018, finMat); const fp = new THREE.Group(); fp.position.set(-0.31, -0.18, 0); fp.rotation.z = -1.05 + Math.PI / 2; fp.add(fl); tg.add(fp);
+      body.onBeforeRender = () => { tg.rotation.z = Math.sin(t() * 2.6) * 0.1; fp.rotation.y = Math.sin(t() * 2.6 + 1) * 0.35; }; out.push([tgo, 'Hips', new V3(-0.05, -0.22, 0), 1.05]); /* the glued parent keeps its bone-space rotation; the swish lives on the child */
+      const crown = new THREE.Group(); for (let i = 0; i < 5; i++) { const a = (i - 2) * 0.34, sh = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.11, 6), P({ color: [0xffd6e8, 0xfff1d6][i % 2], roughness: 0.3, clearcoat: 1 })); sh.position.set(0, 0.05, Math.sin(a) * 0.13); sh.rotation.x = -a * 0.7; crown.add(sh); }
+      const band = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.015, 8, 28, Math.PI), P({ color: 0xffd6e8 })); band.rotation.set(Math.PI / 2, 0, Math.PI / 2); band.position.y = 0.0; crown.add(band);
+      const pearl = new THREE.Mesh(new THREE.SphereGeometry(0.035, 16, 12), P({ color: 0xffffff, roughness: 0.05, clearcoat: 1, iridescence: 1 })); pearl.position.set(0.02, 0.07, 0); crown.add(pearl); { const gl = glow(0xffd6f0, 0.18); gl.position.copy(pearl.position); crown.add(gl); }
+      out.push([crown, 'Head', new V3(0.0, 0.33, 0), 1.1]); }
+    if (id === 'robo') { const chrome = P({ color: 0xdfe8f5, metalness: 0.9, roughness: 0.18 }), dark = P({ color: 0x2a3144, metalness: 0.7, roughness: 0.3 }), neon = new THREE.MeshBasicMaterial({ color: 0x24f0ff });
+      const pack = new THREE.Group(); for (const z of [-0.07, 0.07]) { const c = new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 0.16, 6, 16), chrome); c.position.set(0, 0, z); pack.add(c);
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.062, 0.01, 6, 20), neon); ring.rotation.x = Math.PI / 2; ring.position.set(0, 0.04, z); pack.add(ring);
+        const flame = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.18, 12), new THREE.MeshBasicMaterial({ color: 0xffb03a, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false })); flame.rotation.x = Math.PI; flame.position.set(0, -0.19, z); pack.add(flame);
+        flame.onBeforeRender = () => { const k = 0.8 + Math.sin(t() * 40 + z * 50) * 0.2; flame.scale.set(k, 0.7 + Math.random() * 0.5, k); }; { const gl = glow(0xffa040, 0.3); gl.position.set(0, -0.05, 0); flame.add(gl); } }
+      const plate = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.18, 0.2), dark); plate.position.x = 0.05; pack.add(plate); out.push([pack, 'Spine2', new V3(-0.22, -0.12, 0), 1]);
+      const ant = new THREE.Group(); const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.012, 0.18, 8), dark); rod.position.y = 0.09; ant.add(rod); const tip = new THREE.Mesh(new THREE.SphereGeometry(0.028, 12, 8), neon); tip.position.y = 0.19; ant.add(tip); tip.add(glow(0x24f0ff, 0.25));
+      tip.onBeforeRender = () => { tip.scale.setScalar(0.85 + Math.sin(t() * 6) * 0.15); }; out.push([ant, 'Head', new V3(-0.06, 0.33, 0.1), 1]);
+      for (const z of [-1, 1]) { const pad = new THREE.Group(); const dome = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), chrome); pad.add(dome); const led = new THREE.Mesh(new THREE.SphereGeometry(0.016, 8, 6), neon); led.position.y = 0.05; pad.add(led); led.add(glow(0x24f0ff, 0.14)); out.push([pad, 'Spine2', new V3(0.0, -0.1, z * 0.17), 1]); } }
+    if (id === 'kraken') { const skin = P({ color: 0xb05cff, roughness: 0.45, sheen: 0.8, sheenColor: 0xffb0f0 }), spot = P({ color: 0xff7ad9, roughness: 0.4 });
+      // an octopus hat sitting on the back of the helmet (the face stays clear) + six swaying tentacles from the hips
+      const hood = new THREE.Group(); const dome = new THREE.Mesh(new THREE.SphereGeometry(0.2, 24, 16), skin); dome.scale.set(1.05, 1.15, 1.05); hood.add(dome);
+      for (let i = 0; i < 8; i++) { const a = i * 2.4, sp = new THREE.Mesh(new THREE.SphereGeometry(0.026 + (i % 3) * 0.008, 10, 8), spot); const n = new V3(Math.cos(a) * 0.8, 0.35 + (i % 3) * 0.2, Math.sin(a) * 0.8).normalize(); sp.position.copy(n).multiply(new V3(0.21, 0.23, 0.21)); sp.lookAt(n.clone().multiplyScalar(2)); sp.scale.set(1, 1, 0.4); hood.add(sp); }
+      for (const z of [-1, 1]) { const eye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 12, 8), P({ color: 0xffffff })); eye.position.set(0.12, 0.06, z * 0.12); hood.add(eye); const pu = new THREE.Mesh(new THREE.SphereGeometry(0.018, 8, 6), P({ color: 0x14102a })); pu.position.set(0.15, 0.06, z * 0.125); hood.add(pu); }
+      out.push([hood, 'Head', new V3(-0.07, 0.34, 0), 0.85]);
+      const ring = new THREE.Group(); for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2, pts = []; for (let k = 0; k <= 8; k++) { const f = k / 8; pts.push(new V3(-0.04 - f * 0.1 + Math.cos(a) * 0.05, -f * 0.28, Math.sin(a) * (0.07 + f * 0.09) + Math.sin(f * 5 + i) * 0.025)); }
+        const tub = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.024, 8), skin); const piv = new THREE.Group(); piv.add(tub); ring.add(piv);
+        const tipc = new THREE.Mesh(new THREE.SphereGeometry(0.024, 8, 6), skin); tipc.position.copy(pts[8]); piv.add(tipc);
+        tub.onBeforeRender = () => { piv.rotation.x = Math.sin(t() * 2.2 + i) * 0.22; piv.rotation.z = Math.cos(t() * 1.7 + i * 1.3) * 0.16; }; }
+      out.push([ring, 'Hips', new V3(-0.04, -0.24, 0), 1]); }
+    if (id === 'angler') { const dark = P({ color: 0x16224e, roughness: 0.3 }), bulbM = new THREE.MeshBasicMaterial({ color: 0xbffbff });
+      // an anglerfish lure arching from the top of the helmet to dangle a glowing bulb in front of the face, glowing dots, fangs
+      const lure = new THREE.Group(); const pts = [new V3(0, 0, 0), new V3(0.05, 0.14, 0), new V3(0.18, 0.2, 0), new V3(0.29, 0.13, 0)]; const stalk = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 20, 0.011, 8), dark); lure.add(stalk);
+      const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.04, 16, 12), bulbM); bulb.position.copy(pts[3]); bulb.position.y -= 0.03; lure.add(bulb); const bg = glow(0x7ff6ff, 0.5); bulb.add(bg);
+      bulb.onBeforeRender = () => { const k = 0.75 + Math.sin(t() * 3.2) * 0.25; bg.material.opacity = 0.55 + k * 0.4; bulb.position.y = pts[3].y - 0.03 + Math.sin(t() * 2) * 0.02; }; out.push([lure, 'Head', new V3(-0.02, 0.35, 0), 1]);
+      for (const [bone, pos] of [['Spine2', new V3(0.06, -0.14, 0.11)], ['Spine2', new V3(0.06, -0.18, -0.11)], ['Head', new V3(-0.14, 0.22, 0.17)], ['Head', new V3(-0.16, 0.12, -0.18)], ['Hips', new V3(0.02, -0.28, 0.1)], ['Hips', new V3(0.02, -0.3, -0.1)]]) {
+        const d = new THREE.Mesh(new THREE.SphereGeometry(0.018, 10, 8), new THREE.MeshBasicMaterial({ color: 0x7ff6ff })); d.add(glow(0x2bf0ff, 0.15)); out.push([d, bone, pos, 1]); }
+      const teeth = new THREE.Group(); for (let i = 0; i < 7; i++) { const z = (i - 3) * 0.04, tt = new THREE.Mesh(new THREE.ConeGeometry(0.014, 0.05, 6), P({ color: 0xffffff })); tt.position.set(0, 0.0, z); tt.rotation.z = Math.PI; teeth.add(tt); } out.push([teeth, 'Head', new V3(0.21, 0.0, 0), 1]); }
+    out.forEach(([o]) => o.traverse(c => { if (c.isMesh) { c.castShadow = true; c.userData.noOutline = true; } })); return out; }
   // per-frame: blend the clips from what the diver is doing (weights always add up to 1, so it never falls back to the T/A-pose)
   function glbDrive(u, dt, st) { const G = u.glb, A = G.act, W = G.w;
     const busy = Math.min(1, Math.max(st.reach, st.push, st.dig)), r = 1 - busy * 0.95, mv = st.swim * r, still = (1 - st.swim) * r;
@@ -3092,6 +3174,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       { id: 'galaxy', name: 'Galaxy', price: 1600, helm: 0x1a0b3a, suit: 0x2a1458, fin: 0xff4fd8, pat: 'galaxy', acc: 0xffffff, glow: true },
       { id: 'rainbow', name: 'Rainbow', price: 2000, helm: 0xff3d5e, suit: 0xffd23f, fin: 0x00c8ff, rainbow: true, pat: 'sprinkle', acc: 0xffffff },
       { id: 'vip', name: 'VIP Black Gold', price: 0, vip: true, helm: 0x15131f, suit: 0xffc933, fin: 0x15131f, pat: 'scales', acc: 0xffe27a, metal: true }, // unlocked by sharing a public post, never sold or gifted
+      // premium outfits: unlocked only by sharing (one public post = one outfit). Each adds real 3D pieces on the skeleton (makeKit)
+      { id: 'sharky', name: 'Shark Suit', price: 0, vip: true, kit: 'sharky', helm: 0x6d84a3, suit: 0xf2f6fa, fin: 0x3c4f6b, pat: 'gills', acc: 0x34445a },
+      { id: 'mermaid', name: 'Merdiver', price: 0, vip: true, kit: 'mermaid', helm: 0x7b3cff, suit: 0x23d3c4, fin: 0xff5fb0, pat: 'scales', acc: 0xffffff },
+      { id: 'robo', name: 'Robo Diver', price: 0, vip: true, kit: 'robo', helm: 0xc9d3de, suit: 0x7d8a99, fin: 0x24f0ff, pat: 'sprinkle', acc: 0x24f0ff, metal: true },
+      { id: 'kraken', name: 'Kraken', price: 0, vip: true, kit: 'kraken', helm: 0x7a2fd0, suit: 0xb05cff, fin: 0xff7ad9, pat: 'dots', acc: 0xffd6f2 },
+      { id: 'angler', name: 'Abyss Angler', price: 0, vip: true, kit: 'angler', helm: 0x16224e, suit: 0x0d1838, fin: 0x2bf0ff, pat: 'stars', acc: 0x7ff6ff, glow: true },
     ],
     scarf: [
       { id: 'pink', name: 'Bubble Pink', price: 0, col: 0xff1f6e }, { id: 'sky', name: 'Sky Blue', price: 120, col: 0x2fb6ff },
@@ -3118,7 +3206,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     ],
   };
   const skinOf = (cat, id) => SKINS[cat].find(x => x.id === id) || SKINS[cat][0];
-  const rarityOf = (it) => it.vip ? 'vip' : it.price >= 1200 ? 'legendary' : it.price >= 600 ? 'epic' : it.price >= 300 ? 'rare' : 'common';
+  const rarityOf = (it) => it.vip ? 'premium' : it.price >= 1200 ? 'legendary' : it.price >= 600 ? 'epic' : it.price >= 300 ? 'rare' : 'common';
   // painted suit patterns: one colour texture (and an optional glow texture) per suit + part, cached
   const PAT = {};
   function suitTex(s, part) { const key = s.id + part; if (PAT[key]) return PAT[key];
@@ -3258,8 +3346,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.rebuild(); this.mode = 'full'; }
     frame(mode) { this.mode = mode; const C = { full: [0, 0.55, 6.6, -0.2], trailCard: [-0.6, 0.4, 6.4, 0.05], card: [0, 0.45, 4.9, 0.05], mascot: [0.35, 0.35, 5.6, 0.05], head: [0.2, 1.35, 3.3, 1.1], trail: [-0.3, 0.45, 8.6, -0.05], pearl: [0, 0.2, 3.6, 0] }[mode] || [0, 0.55, 6.6, -0.2];
       this.cam.position.set(C[0], C[1], C[2]); this.cam.lookAt(C[0] * 0.5, C[3], 0); }
-    rebuild() { if (this.d) { this.scene.remove(this.d); this.d.traverse(o => { if (o.geometry) o.geometry.dispose(); }); } this.d = makeDiver(); this.d.scale.setScalar(2.3); this.d.position.y = 0.2; this.scene.add(this.d); this.hatId = SKIN.hat; this.scarfId = SKIN.scarf; }
-    render(t) { if (this.hatId !== SKIN.hat || (this.scarfId === 'none') !== (SKIN.scarf === 'none')) this.rebuild(); skinTick(t);
+    rebuild() { if (this.d) { this.scene.remove(this.d); this.d.traverse(o => { if (o.geometry) o.geometry.dispose(); }); } this.d = makeDiver(); this.d.scale.setScalar(2.3); this.d.position.y = 0.2; this.scene.add(this.d); this.hatId = SKIN.hat; this.scarfId = SKIN.scarf; this.kitId = skinOf('suit', SKIN.suit).kit || ''; }
+    render(t) { if (this.hatId !== SKIN.hat || (this.scarfId === 'none') !== (SKIN.scarf === 'none') || this.kitId !== (skinOf('suit', SKIN.suit).kit || '')) this.rebuild(); skinTick(t);
       const u = this.d.userData, pm = this.mode === 'pearl', tm = this.mode === 'trail' || this.mode === 'trailCard';
       this.d.visible = !pm; this.ped.visible = !pm && !tm && this.mode !== 'head' && this.mode !== 'mascot';
       this.d.rotation.y = tm ? -0.15 : this.mode === 'head' ? -0.75 : this.thumb ? -0.45 : -0.6 + Math.sin(t * 0.6) * 0.55; this.d.position.set(tm ? 0.9 : 0, (tm ? 0.25 : 0.2) + Math.sin(t * 1.2) * 0.06, 0); this.d.rotation.z = tm ? -0.25 : 0;
@@ -5024,7 +5112,7 @@ window.__T = T;
   const world = World.create(canvas); window.__dc = { world, aud: Audio, get engine() { return engine; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { skipTut = true; try { startLevel(i); beginPlay(); } finally { skipTut = false; } }, plan: (cb) => planFrom(engine, coachRefs(), COACH.route, cb), planCheck: (plan) => plSim(engine, plan).won, doomed: () => doomed(engine), undo: () => undo(), tut: (i) => { if (save.tutSeen) delete save.tutSeen[i]; startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), World, intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
   world.onSfx = n => Audio.play(n); world.onToast = m => toast(m);
   let gateOpenAt = 0, gateNudged = true;
-  world.onGateOpen = () => { if (state === 'replay') return; gateOpenAt = performance.now(); gateNudged = false; banner('The gate is awake!', 'Swim in!', 'Swim into the glowing gate to carry the light home.', 3200); };
+  world.onGateOpen = () => { if (state === 'replay' || state === 'clip') return; gateOpenAt = performance.now(); gateNudged = false; banner('The gate is awake!', 'Swim in!', 'Swim into the glowing gate to carry the light home.', 3200); };
   const isTouch = World.isMobile || navigator.maxTouchPoints > 0;
   document.body.classList.toggle('touch', isTouch);
 
@@ -5054,7 +5142,7 @@ window.__T = T;
   function syncCoins() { coinEls().forEach(el => { el.textContent = save.coins.toLocaleString(); }); }
   function addCoins(n, why) { if (!n) return; save.coins += n; persist(); syncCoins(); Audio.play('treasure');
     const t = document.createElement('div'); t.className = 'toast-coin'; t.innerHTML = '<i class="coin"></i>'; const b = document.createElement('b'); b.textContent = `+${n}` + (why ? `  ${why}` : ''); t.appendChild(b); document.body.appendChild(t); setTimeout(() => t.remove(), 1700); }
-  world.onStat = (k, id) => { if (replay) return; if (k === 'treasure') { if (id && runTreasureSet.has(id)) return; if (id) runTreasureSet.add(id); runTreasures++; save.stats.treasures++; weekBump('treasure'); } else if (k === 'pearl') { save.stats.pearls++; weekBump('pearls'); } };
+  world.onStat = (k, id) => { if (replay || CLIP) return; if (k === 'treasure') { if (id && runTreasureSet.has(id)) return; if (id) runTreasureSet.add(id); runTreasures++; save.stats.treasures++; weekBump('treasure'); } else if (k === 'pearl') { save.stats.pearls++; weekBump('pearls'); } };
   let runTreasures = 0; const runTreasureSet = new Set(); // a treasure re-dug after an undo doesn't count twice
   const dayKey = (d = new Date()) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
   // login streak: it keeps growing (coins rise each week of the streak) and every 7th day holds a guaranteed rare item
@@ -5156,10 +5244,10 @@ window.__T = T;
     makeThumbs(shopTab);
     const it = World.SKINS[shopTab].find(x => x.id === shopSel), own = owns(shopTab, it.id), eq = save.equip[shopTab] === it.id, act = $('#shopAct');
     $('#shop .shop-stage').dataset.rar = World.rarityOf(it); $('#shopRar').textContent = World.rarityOf(it);
-    $('#shopSelName').textContent = it.name; $('#shopSelSub').textContent = eq ? 'Equipped' : own ? 'Owned · tap to wear' : it.vip ? 'Share the game in a public post to unlock' : `${it.price.toLocaleString()} coins`;
+    $('#shopSelName').textContent = it.name; $('#shopSelSub').textContent = eq ? 'Equipped' : own ? 'Owned · tap to wear' : it.vip ? 'Premium · one public post unlocks it' : `${it.price.toLocaleString()} coins`;
     act.className = 'cta shop-act' + (eq ? ' equipped' : own ? ' owned' : it.vip ? ' vip' : save.coins < it.price ? ' cant' : '');
     act.innerHTML = eq ? 'Equipped ✓' : own ? 'Wear it' : it.vip ? 'Share to unlock' : `<i class="coin"></i> Buy ${it.price.toLocaleString()}`;
-    act.onclick = () => { if (eq) return; if (!own && it.vip) { click(); shareGame(); return; }
+    act.onclick = () => { if (eq) return; if (!own && it.vip) { click(); SHARE.target = it.id; shareGame(); return; }
       if (!own) { if (save.coins < it.price) { toast(`Need ${(it.price - save.coins).toLocaleString()} more coins: try Rewards or replay a level`); return; } save.coins -= it.price; save.owned[shopTab + ':' + it.id] = true; Audio.play('absorb'); buzz(30); }
       save.equip[shopTab] = it.id; persist(); World.applySkin(save.equip); syncCoins(); buildShop(); refreshHome(); };
     syncCoins(); }
@@ -5758,7 +5846,9 @@ window.__T = T;
   function shareLink() { if (PUBLIC_URL) return PUBLIC_URL; try { if (/^https?:$/.test(location.protocol) && !/claude|anthropic|usercontent|localhost|127\.0\.0\.1/.test(location.hostname)) return location.origin + location.pathname; } catch (er) {} return ''; }
   const SHARE = { text: '', blob: null, name: '', net: '' };
   function openShare(title, d) { SHARE.text = d.text; SHARE.blob = d.blob; SHARE.name = d.name; SHARE.net = '';
-    $('#shareTitle').textContent = title; const im = $('#shareImg'); if (d.blob) { const u = URL.createObjectURL(d.blob); im.src = u; $('#shareDl').href = u; $('#shareDl').download = d.name; im.hidden = false; } else im.hidden = true;
+    $('#shareTitle').textContent = title; const im = $('#shareImg'), vd = $('#shareVid'); im.hidden = vd.hidden = true; try { vd.pause(); } catch (er) {}
+    if (d.blob) { const u = URL.createObjectURL(d.blob); if (d.video) { vd.src = u; vd.hidden = false; vd.muted = true; vd.play().catch(() => {}); } else { im.src = u; im.hidden = false; } $('#shareDl').href = u; $('#shareDl').download = d.name; }
+    $('#shareDl').textContent = d.video ? 'Save video' : 'Save picture'; SHARE.type = d.video ? (d.blob.type || 'video/mp4') : 'image/png';
     shareCard.file = d.blob ? { name: d.name, blob: d.blob } : null; $('#shareTxt').textContent = d.text; vipState(); $('#shareBox').classList.add('on'); }
   async function shareCard() { if (!lastWin) return; click(); openShare('Share your dive', await drawCard(lastWin)); }
   async function shareGame() { openShare('Share Aqua Energizer', await drawCard(null)); }
@@ -5770,7 +5860,7 @@ window.__T = T;
       reddit: url ? `https://www.reddit.com/submit?url=${enc(url)}&title=${enc(t)}` : `https://www.reddit.com/submit?type=TEXT&title=${enc('Aqua Energizer: a cosy underwater puzzle')}&text=${enc(full)}`,
       threads: `https://www.threads.net/intent/post?text=${enc(full)}` }[net]; }
   async function shareTo(net) { click(); SHARE.net = net; const url = shareLink(), full = SHARE.text + (url ? ' ' + url : '') + ' #AquaEnergizer';
-    if (net === 'more') { try { const f = SHARE.blob && new File([SHARE.blob], SHARE.name, { type: 'image/png' });
+    if (net === 'more') { try { const f = SHARE.blob && new File([SHARE.blob], SHARE.name, { type: SHARE.type || 'image/png' });
         if (f && navigator.canShare && navigator.canShare({ files: [f] })) await navigator.share({ files: [f], text: full }); else if (navigator.share) await navigator.share({ text: full, url: url || undefined });
         else { await navigator.clipboard.writeText(full); toast('Text copied: save the picture and post it in any app'); } } catch (er) { if (!(er && er.name === 'AbortError')) toast('Save the picture, then post it in any app'); } return; }
     if (net === 'facebook' && !url) { try { await navigator.clipboard.writeText(full); } catch (er) {} toast('Text copied: paste it in your Facebook post (and add the picture)'); }
@@ -5778,27 +5868,98 @@ window.__T = T;
     if (!w) { try { await navigator.clipboard.writeText(full); toast("Couldn't open the app from here: the text is copied, paste it in your post"); } catch (er) { toast('Copy the text below into your post'); } }
     setTimeout(() => { if ($('#shareBox').classList.contains('on') && !owns('suit', 'vip')) $('#vipMsg').textContent = 'Posted? Paste the link to your post here to claim the VIP suit.'; }, 1200); }
   document.querySelectorAll('#shareBox .sb-soc button').forEach(b => b.onclick = () => shareTo(b.dataset.net));
+
+  // ---- share clips: the last moments of a run re-played from its move log, then an instant replay in slow motion with a fun
+  // caption, recorded (picture + game sound) into a ~10 s portrait video. Fails are as shareable as wins: nobody has to brag.
+  let lastRun = null, CLIP = null;
+  function setShareLabel(won) { const b = $('#btnShare'), t = [...b.childNodes].reverse().find(n => n.nodeType === 3); if (t) t.textContent = clipOk() ? (won ? 'Share clip' : 'Share this fail 😂') : 'Share'; }
+  const CAPS = { crushed: ['When the stone wins 🪨😵', 'Gravity: 1 · Me: 0', "I'm fine. Totally fine. 🫠"], monster: ['Nobody warned me about that fish 🐟', 'Got snacked on 😬', 'That was NOT in the plan'],
+    oxygen: ['Forgot to breathe 🫧', 'Just one more move… 🫧'], win: ['Pearl in. Gate awake. ✨', 'Smooth dive 😎', 'Swim in like a pro 🌊'], bonk: ['BONK! 🐟💥', 'Stone 1 · Fish 0 💥'] };
+  const pick = a => a[(Math.random() * a.length) | 0];
+  const clipOk = () => { try { return !!(window.MediaRecorder && HTMLCanvasElement.prototype.captureStream); } catch (er) { return false; } };
+  function simTo(R, upto, onTick) { const e = new Engine(R.lv); e.relaxed = !!R.relaxed; let i = 0; for (; i < upto && i < R.log.length; i++) { const c = R.log[i]; if (c !== '.') e.press(MV[c]); e.step(); if (onTick) onTick(e, i); if (e.state !== 'playing') { i++; break; } } e.events.length = 0; return { e, i }; }
+  async function shareMoment() { if (!lastRun) return; click();
+    if (!clipOk() || !lastRun.log || lastRun.log.length < 3) { if (lastWin) openShare('Share your dive', await drawCard(lastWin)); else shareGame(); return; }
+    makeClip(lastRun); }
+  function makeClip(R) {
+    let bonkAt = -1, endAt = R.log.length; simTo(R, R.log.length, (e, i) => { if (e.events.some(v => v.type === 'monsterDeath')) bonkAt = i; if (e.state !== 'playing') endAt = i; }); // find the moments
+    const pre = Math.round(4500 / 225), start = Math.max(0, endAt - pre), slowFrom = Math.max(0, endAt - 6);
+    const kind = R.won ? (bonkAt > endAt - 25 && bonkAt >= 0 ? 'bonk' : 'win') : (R.cause in CAPS ? R.cause : 'crushed');
+    const rc = document.createElement('canvas'); rc.width = 720; rc.height = 1280; const g = rc.getContext('2d');
+    let stream, rec, chunks = [], aud = null; try { stream = rc.captureStream(30); aud = Audio.capture(); if (aud) aud.getAudioTracks().forEach(t => stream.addTrack(t));
+      const mime = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'].find(t => { try { return MediaRecorder.isTypeSupported(t); } catch (er) { return false; } }) || '';
+      rec = new MediaRecorder(stream, Object.assign({ videoBitsPerSecond: 3500000 }, mime ? { mimeType: mime } : {})); rec.ondataavailable = ev => { if (ev.data && ev.data.size) chunks.push(ev.data); }; }
+    catch (er) { Audio.release(); toast("Clips aren't supported in this browser: sharing a picture instead"); if (lastWin) drawCard(lastWin).then(d => openShare('Share your dive', d)); return; }
+    const box = $('#clipBox'); box.querySelector('.cb-stage').replaceChildren(rc); box.classList.add('on'); $('#clipBar').style.width = '0%';
+    CLIP = { R, kind, cap: pick(CAPS[kind]), g, rc, rec, chunks, phase: 'play', t: 0, total: 0, speed: 1, zoom: 0.78, acc: 0, post: 0, i: 0, e: null, start, endAt, slowFrom, cx: null, cy: null, prevState: state };
+    clipLoad(start); hideStuck(); coachHand(null); world.setCoachTrail(null); show(null); setState('clip'); rec.start(250); }
+  function clipLoad(at) { const C = CLIP, { e, i } = simTo(C.R, at); C.e = e; C.i = i; C.acc = 0; C.post = 0; world.loadLevel(e); world.onTick(e, performance.now()); world.startPlay(); world.peek = true; world.peekK = 1; } /* the camera holds the whole tank; the clip zooms with its own crop */
+  function clipFrame(realDt, now) { const C = CLIP, e = C.e, dt = Math.min(0.05, realDt); C.t += realDt; C.total += realDt;
+    if (C.phase !== 'end') { C.acc += realDt * 1000 * C.speed;
+      while (C.acc >= e.tickMs) { C.acc -= e.tickMs; if (e.state === 'playing' && C.i < C.R.log.length) { const c = C.R.log[C.i++]; if (c !== '.') e.press(MV[c]); } e.step(); world.onTick(e, now); }
+      if (e.state !== 'playing') C.post += realDt;
+      const done = C.phase === 'play' ? C.post > (C.R.won ? 1.9 : 1.6) || (e.state === 'playing' && C.i >= C.R.log.length && C.t > 6) : C.post > (C.R.won ? 2.6 : 2.4);
+      if (done) { if (C.phase === 'play') { C.phase = 'replay'; C.speed = 0.35; C.zoom = 0.5; C.t = 0; clipLoad(C.slowFrom); Audio.play('riser'); } else { C.phase = 'end'; C.t = 0; } }
+      world.update(dt * C.speed, now); world.render(); }
+    clipDraw(); $('#clipBar').style.width = Math.min(100, C.total / 11 * 100) + '%';
+    if (C.phase === 'end' && C.t > 1.6) clipFinish(false); }
+  function clipDraw() { const C = CLIP, g = C.g, W = 720, H = 1280, D = '"Lilita One", "Baloo 2", sans-serif';
+    const txt = (t, x, y, size, col, al = 'center', lw = 0.16) => { g.font = `${size}px ${D}`; g.textAlign = al; g.textBaseline = 'alphabetic'; g.lineJoin = 'round'; g.lineWidth = size * lw; g.strokeStyle = 'rgba(3,14,44,0.92)'; g.strokeText(t, x, y); g.fillStyle = col; g.fillText(t, x, y); };
+    const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#0b4fa6'); bg.addColorStop(0.5, '#0a3a86'); bg.addColorStop(1, '#061f55'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    if (C.phase === 'end') { const k = Math.min(1, C.t / 0.35); g.globalAlpha = k; txt('AQUA', W / 2, 470, 150, '#ffd23f'); txt('ENERGIZER', W / 2, 600, 110, '#ffd23f');
+      txt(C.R.won ? 'Can you do it faster?' : 'Can you do better?', W / 2, 760, 58, '#ffffff'); txt('Play free · #AquaEnergizer', W / 2, 860, 40, '#9ff0ff'); g.globalAlpha = 1; return; }
+    // the game view: a crop of the live canvas that follows the diver (and the gate at the end of a win)
+    const src = world.renderer.domElement, sw = src.width, sh = src.height, k = sw / innerWidth, e = C.e; let fx = null, fy = null;
+    if (e.player && e.state === 'playing') { [fx, fy] = world.toScreen(e.player.x, e.player.y); } else if (C.R.won && e.gate) { [fx, fy] = world.toScreen(e.gate.x, e.gate.y); }
+    if (fx !== null) { fx *= k; fy *= k; if (C.cx === null) { C.cx = fx; C.cy = fy; } C.cx += (fx - C.cx) * 0.12; C.cy += (fy - C.cy) * 0.12; } else if (C.cx === null) { C.cx = sw / 2; C.cy = sh / 2; }
+    C.zv = (C.zv ?? C.zoom) + (C.zoom - (C.zv ?? C.zoom)) * 0.08; const vy = 200, vh = 900, asp = W / vh;
+    const [tx0, ty0] = world.toScreen(0.5, 0.5), [tx1, ty1] = world.toScreen(e.w - 1.5, e.h - 1.5), tw = Math.abs(tx1 - tx0) * k, th = Math.abs(ty1 - ty0) * k; /* the tank on screen */
+    let ch = Math.max(th * 1.25, tw * 1.05 / asp) * C.zv / 0.78, cw = ch * asp; if (ch > sh) { ch = sh; cw = ch * asp; } if (cw > sw) { cw = sw; ch = cw / asp; }
+    const sx = Math.max(0, Math.min(sw - cw, C.cx - cw / 2)), sy = Math.max(0, Math.min(sh - ch, C.cy - ch / 2));
+    try { g.drawImage(src, sx, sy, cw, ch, 0, vy, W, vh); } catch (er) {}
+    let sh2 = g.createLinearGradient(0, vy, 0, vy + 60); sh2.addColorStop(0, 'rgba(6,31,85,0.9)'); sh2.addColorStop(1, 'rgba(6,31,85,0)'); g.fillStyle = sh2; g.fillRect(0, vy, W, 60);
+    sh2 = g.createLinearGradient(0, vy + vh - 80, 0, vy + vh); sh2.addColorStop(0, 'rgba(6,31,85,0)'); sh2.addColorStop(1, 'rgba(6,31,85,0.95)'); g.fillStyle = sh2; g.fillRect(0, vy + vh - 80, W, 80);
+    txt('AQUA ENERGIZER', W / 2, 105, 74, '#ffd23f'); g.font = '800 30px "Baloo 2", sans-serif'; g.textAlign = 'center'; g.fillStyle = 'rgba(225,240,255,0.92)'; g.fillText(C.R.daily ? `Daily Dive · ${C.R.name}` : `Level ${C.R.n} · ${C.R.name}`, W / 2, 158);
+    if (C.phase === 'replay') { const blink = (C.t * 2) % 1 < 0.6; g.fillStyle = 'rgba(230,30,60,0.92)'; const bw = 330, bx = (W - bw) / 2, by = vy + 24; g.beginPath(); g.roundRect ? g.roundRect(bx, by, bw, 56, 28) : g.rect(bx, by, bw, 56); g.fill();
+      if (blink) { g.fillStyle = '#fff'; g.beginPath(); g.arc(bx + 30, by + 28, 9, 0, 7); g.fill(); } g.font = '800 30px "Baloo 2", sans-serif'; g.fillStyle = '#fff'; g.fillText('INSTANT REPLAY', W / 2 + 12, by + 39); }
+    const cy = vy + vh + 88; let size = 64; g.font = `${size}px ${D}`; while (g.measureText(C.cap).width > W - 60 && size > 36) { size -= 4; g.font = `${size}px ${D}`; } txt(C.cap, W / 2, cy, size, '#ffffff');
+    g.font = '800 30px "Baloo 2", sans-serif'; g.fillStyle = '#9ff0ff'; g.textAlign = 'center'; g.fillText('#AquaEnergizer', W / 2, cy + 58); }
+  async function clipFinish(cancel) { const C = CLIP; if (!C) return; CLIP = null; $('#clipBox').classList.remove('on');
+    const stopped = new Promise(r => { C.rec.onstop = r; }); try { C.rec.stop(); } catch (er) {} await stopped.catch(() => {}); Audio.release();
+    world.peek = false; world.peekK = 0; if (engine) { world.keepTreasures(); world.loadLevel(engine); world.onTick(engine, performance.now()); world.startPlay(); } setState('over'); show('result'); acc = 0;
+    if (cancel) return; const type = (C.rec.mimeType || 'video/webm').split(';')[0], ext = type.includes('mp4') ? 'mp4' : 'webm', blob = new Blob(C.chunks, { type });
+    if (!blob.size) { toast("Couldn't record the clip: sharing a picture instead"); if (lastWin) openShare('Share your dive', await drawCard(lastWin)); return; }
+    const R = C.R, text = R.daily ? `${C.cap} Today's Daily Dive in Aqua Energizer 🌊 Can you beat it?` : R.won ? `${C.cap} Level ${R.n} of Aqua Energizer 🌊 Can you do it faster?` : `${C.cap} Aqua Energizer, level ${R.n} 😂 Can you do better?`;
+    openShare(R.won ? 'Share your clip' : 'Share this fail 😂', { blob, name: `aqua-energizer-clip.${ext}`, text, video: true }); }
+  $('#clipCancel').onclick = () => { click(); clipFinish(true); };
   $('#rwVip').onclick = () => { click(); shareGame(); };
-  function syncVipBanner() { const has = owns('suit', 'vip'); $('#rwVip').classList.toggle('done', has); $('#rwVipT').textContent = has ? 'Share Aqua Energizer' : 'Share & unlock VIP'; $('#rwVipS').textContent = has ? 'VIP Black Gold unlocked 👑 Tell your friends anyway!' : 'Post about the game publicly to get the VIP Black Gold suit'; }
+  function syncVipBanner() { const left = lockedPremiums().length, all = premiums().length; $('#rwVip').classList.toggle('done', !left); $('#rwVipT').textContent = left ? `Premium outfits · ${all - left}/${all}` : 'Share Aqua Energizer';
+    $('#rwVipS').textContent = left ? 'Share a fun clip publicly: each post unlocks a premium outfit (Shark, Merdiver, Robo…)' : 'Every premium outfit unlocked 👑 Tell your friends anyway!'; }
   // a link to a single public post on a network where posts can be public (chats like WhatsApp/Telegram can't count)
   const POST_RX = [['X', /^https?:\/\/(www\.|mobile\.)?(x|twitter)\.com\/[A-Za-z0-9_]{1,15}\/status(es)?\/\d{6,}/i], ['Facebook', /^https?:\/\/(www\.|m\.|web\.)?facebook\.com\/(.+\/(posts|videos|photos)\/|permalink\.php\?|share\/(p|v|r)\/|story\.php\?|reel\/|watch\/?\?v=)/i],
     ['Facebook', /^https?:\/\/(fb\.watch|fb\.me)\/\w+/i], ['Reddit', /^https?:\/\/(www\.|old\.|new\.)?reddit\.com\/r\/\w+\/(comments|s)\/\w+/i], ['Reddit', /^https?:\/\/redd\.it\/\w+/i],
     ['Threads', /^https?:\/\/(www\.)?threads\.(net|com)\/@[\w.]+\/post\/[\w-]+/i], ['Instagram', /^https?:\/\/(www\.)?instagram\.com\/(p|reel|reels)\/[\w-]+/i],
     ['TikTok', /^https?:\/\/(www\.|m\.)?tiktok\.com\/@[\w.]+\/(video|photo)\/\d+/i], ['TikTok', /^https?:\/\/(vm|vt)\.tiktok\.com\/\w+/i], ['LinkedIn', /^https?:\/\/(www\.)?linkedin\.com\/(posts|feed\/update)\/[\w:%-]+/i]];
-  function vipState() { const has = owns('suit', 'vip'), box = $('#shareVip'); box.classList.toggle('done', has);
-    $('#vipMsg').textContent = has ? 'VIP Black Gold is yours. Thanks for sharing! 👑' : ''; $('#vipLink').hidden = $('#vipClaim').hidden = has; }
+  // premium outfits are unlocked one per public post; the player picks which one this post unlocks
+  const premiums = () => World.SKINS.suit.filter(x => x.vip), lockedPremiums = () => premiums().filter(x => !owns('suit', x.id));
+  function vipState() { const left = lockedPremiums(), box = $('#shareVip'), has = !left.length; box.classList.toggle('done', has);
+    if (!left.some(x => x.id === SHARE.target)) SHARE.target = left[0] ? left[0].id : null;
+    const chips = $('#vipChips'); chips.innerHTML = ''; premiums().forEach(x => { const b = document.createElement('button'); const own = owns('suit', x.id); b.type = 'button'; b.className = 'vc' + (own ? ' own' : '') + (x.id === SHARE.target ? ' on' : ''); b.textContent = (own ? '✓ ' : '') + x.name; b.disabled = own; b.onclick = () => { click(); SHARE.target = x.id; vipState(); }; chips.appendChild(b); });
+    $('#vipHead').textContent = has ? 'All premium outfits unlocked 👑' : `Unlock a premium outfit (${premiums().length - left.length}/${premiums().length})`;
+    $('#vipMsg').textContent = has ? 'Thanks for sharing! Wear them from Shop › Suits.' : ''; $('#vipLink').hidden = $('#vipClaim').hidden = has; }
   $('#vipClaim').onclick = () => { const v = ($('#vipLink').value || '').trim(), hit = POST_RX.find(([, rx]) => rx.test(v)), msg = $('#vipMsg');
     if (!v) { msg.textContent = 'Paste the link to your post first.'; return; }
     if (!hit) { msg.textContent = "That doesn't look like a link to a single public post. Open your post, tap Share › Copy link, and paste it here."; Audio.play('gateLocked'); return; }
     if (!Array.isArray(save.vipPosts)) save.vipPosts = []; if (save.vipPosts.includes(v.toLowerCase())) { msg.textContent = 'That post was already used.'; return; }
-    save.vipPosts = save.vipPosts.concat(v.toLowerCase()).slice(-5); save.owned['suit:vip'] = true; save.vip = { net: hit[0], at: Date.now() }; persist();
-    Audio.play('absorb'); buzz([20, 40, 20, 40, 60]); toast(`👑 VIP Black Gold unlocked! Thanks for sharing on ${hit[0]}`); vipState();
-    msg.textContent = 'Unlocked! Wear it from the Shop › Suits. 👑'; if ($('#shop').classList.contains('on')) buildShop(); syncVipBanner(); };
-  $('#btnShare').onclick = shareCard;
+    const it = World.SKINS.suit.find(x => x.id === SHARE.target && x.vip && !owns('suit', x.id)) || lockedPremiums()[0]; if (!it) { vipState(); return; }
+    save.vipPosts = save.vipPosts.concat(v.toLowerCase()).slice(-12); save.owned['suit:' + it.id] = true; save.vip = { net: hit[0], at: Date.now() }; persist(); $('#vipLink').value = '';
+    Audio.play('absorb'); buzz([20, 40, 20, 40, 60]); toast(`👑 ${it.name} unlocked! Thanks for sharing on ${hit[0]}`); vipState();
+    msg.textContent = `${it.name} unlocked! Wear it from Shop › Suits. 👑` + (lockedPremiums().length ? ' Share another post to unlock the next one.' : ''); if ($('#shop').classList.contains('on')) buildShop(); syncVipBanner(); };
+  $('#btnShare').onclick = shareMoment;
   // inside the claude.ai viewer a plain download link does nothing: save through the viewer's downloads permission when it's there
   $('#shareDl').onclick = async ev => { const f = shareCard.file, C = window.claude; if (!f || !C || !C.use) return; let dl = null; try { dl = await C.use('downloads'); } catch (er) {} if (!dl) return;
     ev.preventDefault(); try { await dl.save({ filename: f.name, data: f.blob }); } catch (er) { if (er && er.code !== 'declined') toast('Long-press the picture to save it'); } };
-  $('#shareClose').onclick = () => { click(); $('#shareBox').classList.remove('on'); };
+  $('#shareClose').onclick = () => { click(); $('#shareBox').classList.remove('on'); try { $('#shareVid').pause(); } catch (er) {} };
   $('#shareCopy').onclick = async () => { try { await navigator.clipboard.writeText($('#shareTxt').textContent); toast('Copied!'); } catch (er) { toast('Long-press the text to copy it'); } };
   // ---- Daily Dive: one puzzle a day (the same for everyone, picked from the date), raced against the clock with its own leaderboard
   let dive = null;
@@ -5810,7 +5971,7 @@ window.__T = T;
     $('#ddSub').textContent = locked ? (L ? `Unlocks after level ${DIVE_FROM - 1}` : 'Coming soon') : D.best ? `Today: ${D.best.t.toFixed(1)} s · beat it?` : `${L.name} · new today`; }
   function startDaily() { const L = todayDive(); if (!L) return; if (save.unlocked < DIVE_FROM) { toast(`Clear level ${DIVE_FROM - 1} to unlock the Daily Dive`); return; } click(); buzz(10); ddSave().tries++; persist(); startLevel(-1, L); }
   function finishDaily(won) { const D = ddSave(), L = dive; setState('over'); show('result'); const r = $('#result'); r.classList.toggle('win', won); r.classList.toggle('lose', !won);
-    $('#resKicker').textContent = `Daily Dive · ${L.name}`; $('#resStars').hidden = true; $('#resBest').hidden = true; $('#resExtra').hidden = !won; $('#btnWatch').hidden = true;
+    $('#resKicker').textContent = `Daily Dive · ${L.name}`; $('#resStars').hidden = true; $('#resBest').hidden = true; $('#resExtra').hidden = !won; $('#btnWatch').hidden = true; setShareLabel(true);
     { const el = $('#resScore'), total = engine.score, t0 = performance.now(); el.textContent = '0'; /* the score rolls up while the card pops in */
       const tick = (now) => { const k = Math.min(1, (now - t0 - 250) / 1000); if (k > 0) el.textContent = Math.round(total * (1 - Math.pow(1 - k, 3))).toLocaleString(); if (k < 1 && resultShown) requestAnimationFrame(tick); else el.textContent = total.toLocaleString(); };
       if (REDUCED_MOTION) el.textContent = total.toLocaleString(); else requestAnimationFrame(tick); } save.stats.dug += engine.dug || 0; weekBump('dig', engine.dug || 0);
@@ -5821,7 +5982,7 @@ window.__T = T;
       $('#resStats').innerHTML = `<div class="stat"><b>${t.toFixed(1)}s</b><span>dive time</span></div><div class="stat"><b>${air.toFixed(1)}s</b><span>air used</span></div><div class="stat"><b>${D.best.t.toFixed(1)}s</b><span>today's best</span></div>`;
       if (first) { const y = new Date(); y.setDate(y.getDate() - 1); D.streak = D.lastWin === dayKey(y) ? (D.streak || 0) + 1 : 1; D.lastWin = D.key; const c = 60 + Math.min(6, D.streak - 1) * 10; save.coins += c; $('#resCoins').hidden = false; $('#resCoinN').textContent = `+${c}`; $('#resCoinWhy').textContent = D.streak > 1 ? `daily dive · ${D.streak}-day dive streak` : 'daily dive'; Audio.play('treasure'); } else $('#resCoins').hidden = true;
       $('#btnNext').textContent = 'Leaderboard'; $('#btnNext').hidden = false; $('#btnNext').classList.add('green'); $('#btnRetry').lastChild.textContent = 'Race again';
-      lastWin = { n: 0, daily: true, stars: 3, secs: t, name: L.name }; pushDaily(); persist();
+      lastWin = { n: 0, daily: true, stars: 3, secs: t, name: L.name }; pushDaily(); persist(); lastRun = { lv: L, n: 0, daily: true, log: runLog, relaxed: false, won: true, name: L.name };
       setTimeout(() => { if (state === 'over') Audio.vo(['win1', 'win2', 'win3'][Math.random() * 3 | 0]); }, 700); }
     else { const cause = { crushed: 'Crushed!', monster: 'Gobbled!', oxygen: 'Out of air!', self: 'Restarted' }[engine.deathCause] || 'Dive over'; $('#resTitle').textContent = cause; $('#resCoins').hidden = true; lastWin = null;
       $('#resStats').innerHTML = `<div class="stat"><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>pearls</span></div><div class="stat"><b>${D.best ? D.best.t.toFixed(1) + 's' : '–'}</b><span>today's best</span></div>`;
@@ -5854,6 +6015,7 @@ window.__T = T;
       weekBump('wins'); weekBump('stars', stars); if (stars === 3) weekBump('perfect'); if (!runUndo) weekBump('noundo'); if (!runHint) weekBump('nohint'); weekBump('dig', engine.dug || 0);
       { const m = runLog.replace(/\.+$/, '') + '.', old = (save.runs || {})[n]; if ((!old || m.length < old.m.length) && checkRun(LEVELS[levelIdx], m, engine.relaxed)) { save.runs = save.runs || {}; save.runs[n] = { m, rx: engine.relaxed ? 1 : 0 }; } } // keep the fastest verified run
       lastWin = { n, stars, secs: Math.round(engine.wonAt * engine.tickMs / 1000), name: LEVELS[levelIdx].name, relaxed: engine.relaxed };
+      lastRun = { lv: LEVELS[levelIdx], n, log: runLog, relaxed: engine.relaxed, won: true, name: LEVELS[levelIdx].name };
       setTimeout(() => { if (state === 'over') Audio.vo(['win1', 'win2', 'win3'][Math.random() * 3 | 0]); }, 700);
       { const parts = [['clear', 20], ['stars', stars * 10], ['first clear', firstClear ? 30 : 0], ['new stars', Math.max(0, stars - prevStars) * 15 * (firstClear ? 0 : 1)], ['treasures', runTreasures * 2]].filter(p => p[1] > 0), total = parts.reduce((a, p) => a + p[1], 0);
         save.coins += total; $('#resCoins').hidden = false; $('#resCoinWhy').innerHTML = parts.map(p => `<span><i>${p[0][0].toUpperCase() + p[0].slice(1)}</i><b>+${p[1]}</b></span>`).join('');
@@ -5867,8 +6029,9 @@ window.__T = T;
       $('#resStats').innerHTML = engine.relaxed ? `<div class="stat"><i class="si t"></i><b>${Math.round(engine.wonAt * engine.tickMs / 1000)}s</b><span>dive time</span></div><div class="stat"><i class="si s"></i><b>★</b><span>air timer off for ★★★</span></div>` : `<div class="stat"><i class="si a"></i><b>${Math.ceil(engine.oxygen)}s</b><span>air left</span></div><div class="stat"><i class="si e"></i><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>pearls</span></div>`;
       $('#btnNext').textContent = n >= LEVELS.length ? 'The reef awakens ✨' : 'Next level'; $('#btnNext').hidden = false; $('#btnNext').classList.toggle('green', n >= LEVELS.length);
       $('#btnRetry').lastChild.textContent = 'Replay';
-      $('#resExtra').hidden = false; $('#btnWatch').hidden = !(save.runs && save.runs[n]);
-    } else { $('#resExtra').hidden = true;
+      $('#resExtra').hidden = false; $('#btnWatch').hidden = !(save.runs && save.runs[n]); setShareLabel(true);
+    } else { $('#resExtra').hidden = !clipOk() || engine.deathCause === 'self'; $('#btnWatch').hidden = true; /* a funny fail is shareable too */ setShareLabel(false);
+      lastRun = { lv: LEVELS[levelIdx], n, log: runLog, relaxed: engine.relaxed, won: false, cause: engine.deathCause, name: LEVELS[levelIdx].name };
       $('#resCoins').hidden = true; save.stats.dug += engine.dug || 0; weekBump('dig', engine.dug || 0); persist(); lastWin = null;
       setTimeout(() => { if (state === 'over') Audio.vo(['lose1', 'lose2'][Math.random() * 2 | 0]); }, 600);
       const cause = { crushed: 'Crushed!', monster: 'Gobbled!', oxygen: 'Out of air!', self: 'Restarted', spiked: 'Spiked!' }[engine.deathCause] || 'Dive over';
@@ -6044,6 +6207,7 @@ window.__T = T;
   function frame(now) {
     requestAnimationFrame(frame);
     const realDt = Math.max(0, (now - lastFrame) / 1000); const dt = Math.min(0.05, realDt); lastFrame = now;
+    if (state === 'clip' && CLIP) { frame.last = now; try { clipFrame(realDt, now); } catch (er) { console.warn('clip', er); clipFinish(true); } return; }
     if (save.settings.fps) { FPSM.n++; FPSM.t += realDt; if (FPSM.t >= 0.5) { $('#fpsMeter').textContent = `${Math.round(FPSM.n / FPSM.t)} fps · ${world.quality} · ${Math.round((world.resLock || world.resScale || 1) * 100)}% · ${world.renderer.domElement.width}×${world.renderer.domElement.height}`; FPSM.n = 0; FPSM.t = 0; } }
     if (engine && (state === 'playing' || state === 'over')) {
       if (state === 'playing') {

@@ -1123,6 +1123,22 @@ body:not([data-state="over"]) #clearStamp { display: none; }
 @media (max-width: 760px) and (orientation: portrait) and (max-height: 760px) {
   #home .hm-col { bottom: calc(var(--safe-b) + 6.9rem); } #home .hm-cta { gap: 0.6rem; margin-top: 0.3rem; } #home .hm-sec { gap: 0.6rem; }
 }
+
+/* ===== share clips ===== */
+#clipBox { position: fixed; inset: 0; z-index: 31; display: none; place-items: center; background: rgba(2, 10, 30, 0.88); padding: 1rem; }
+#clipBox.on { display: grid; }
+#clipBox .cb-in { display: flex; flex-direction: column; align-items: center; gap: 0.7rem; color: #fff; }
+#clipBox .cb-t { font-family: var(--display); font-weight: 400; font-size: 1.5rem; color: #ffd23f; }
+#clipBox .cb-stage canvas { display: block; height: min(64vh, 34rem); width: auto; aspect-ratio: 9 / 16; border-radius: 1rem; box-shadow: 0 1rem 2.4rem rgba(0, 0, 0, 0.55); border: 2px solid rgba(130, 175, 255, 0.5); }
+#clipBox .cb-bar { width: min(70vw, 18rem); height: 0.55rem; border-radius: 999px; background: rgba(255,255,255,0.15); overflow: hidden; } #clipBox .cb-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #ffe46b, #ffb51e); }
+#shareBox video { display: block; max-height: 46vh; max-width: 100%; margin: 0 auto; border-radius: 1rem; background: #000; aspect-ratio: 9 / 16; }
+
+#shareBox .sv-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.65rem; }
+#shareBox .sv-chips .vc { padding: 0.32rem 0.7rem; border-radius: 999px; font-weight: 800; font-size: 0.8rem; color: #ffe9b0; background: rgba(0,0,0,0.3); border: 1.5px solid rgba(255, 210, 100, 0.45); }
+#shareBox .sv-chips .vc.on { color: #3a2400; background: linear-gradient(180deg, #ffe46b, #ffb51e); border-color: #ffe46b; } #shareBox .sv-chips .vc.own { opacity: 0.55; border-style: dashed; }
+.item.r-premium { background: linear-gradient(180deg, #2b2340, #120e1e) !important; border-color: #ffc933 !important; box-shadow: 0 0 0.9rem rgba(255, 200, 50, 0.35) !important; }
+.item.r-premium .rib { background: linear-gradient(180deg, #ffe27a, #e0a514) !important; color: #3a2400 !important; }
+.shop-stage[data-rar="premium"] { background: radial-gradient(ellipse at 20% 40%, rgba(255, 200, 60, 0.45), rgba(20, 12, 40, 0.6) 72%) !important; }
 </style>
 </head>
 <body data-state="splash">
@@ -1159,6 +1175,7 @@ body:not([data-state="over"]) #clearStamp { display: none; }
   <button class="sb-x" id="shareClose" aria-label="Close">✕</button>
   <h3 id="shareTitle">Share</h3>
   <img id="shareImg" alt="Your share card">
+  <video id="shareVid" playsinline loop muted controls hidden></video>
   <p id="shareTxt"></p>
   <div class="sb-soc" role="group" aria-label="Share to">
     <button data-net="x" aria-label="Share on X"><i>𝕏</i><span>X</span></button>
@@ -1171,11 +1188,13 @@ body:not([data-state="over"]) #clearStamp { display: none; }
   </div>
   <div class="sb-row"><a class="pill-btn" id="shareDl" download>Save picture</a><button class="pill-btn" id="shareCopy">Copy text</button></div>
   <div class="sb-vip" id="shareVip">
-    <div class="sv-head"><span class="sv-crown" aria-hidden="true">👑</span><span><b>Unlock the VIP Black Gold suit</b><small>Post about the game publicly on X, Facebook, Reddit, Threads, Instagram or TikTok, then paste the link to your post.</small></span></div>
+    <div class="sv-head"><span class="sv-crown" aria-hidden="true">👑</span><span><b id="vipHead">Unlock a premium outfit</b><small>Post your clip publicly on X, Facebook, Reddit, Threads, Instagram or TikTok, then paste the link to your post. One post unlocks one outfit.</small></span></div>
+    <div class="sv-chips" id="vipChips"></div>
     <div class="sv-row"><input id="vipLink" type="url" inputmode="url" autocomplete="off" placeholder="Paste the link to your public post"><button class="cta" id="vipClaim">Claim</button></div>
     <small id="vipMsg" aria-live="polite"></small>
   </div>
 </div></div>
+<div id="clipBox" role="dialog" aria-live="polite"><div class="cb-in"><b class="cb-t">🎬 Making your clip…</b><div class="cb-stage"></div><div class="cb-bar"><i id="clipBar"></i></div><button class="pill-btn ghost" id="clipCancel">Cancel</button></div></div>
 <div id="stuckCard" role="alertdialog" aria-live="assertive"><p id="stuckMsg"></p><div><button class="sc-act" id="stuckAct">Undo</button><button class="sc-x" id="stuckX" aria-label="Dismiss">Keep going</button></div></div>
 
 <div id="stick"><div class="ring"></div><div class="knob"></div></div>
@@ -1374,7 +1393,7 @@ body:not([data-state="over"]) #clearStamp { display: none; }
 <section id="rewards" class="screen sheet win-rw">
   <div class="wrap">
     <div class="ph"><button class="back" data-go="back" aria-label="Back"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h2>Rewards</h2><span class="pill coins-pill"><i class="coin" aria-hidden="true"></i><b class="coinCount">0</b></span></div>
-    <button class="rw-vip" id="rwVip" type="button"><span class="rv-ic" aria-hidden="true">👑</span><span class="rv-t"><b id="rwVipT">Share &amp; unlock VIP</b><small id="rwVipS">Post about the game publicly to get the VIP Black Gold suit</small></span><span class="rv-go">Share</span></button>
+    <button class="rw-vip" id="rwVip" type="button"><span class="rv-ic" aria-hidden="true">👑</span><span class="rv-t"><b id="rwVipT">Premium outfits</b><small id="rwVipS">Post about the game publicly to get the VIP Black Gold suit</small></span><span class="rv-go">Share</span></button>
     <div class="rw-grid">
       <div class="panel rw-daily">
         <h3 class="sec-h">Daily treasure <small class="streak" id="streakN"></small></h3>
