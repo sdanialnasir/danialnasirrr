@@ -438,3 +438,18 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   (it started a level). `clickGuard` swallows exactly that one click.
 - **Water toward cyan:** `WORLD_STYLE` lo/hi shifted (shallows lo .04,.42,.64 / hi .2,.84,.97; caves and the deep a touch cyan too),
   scene background 0x138ccf, fog 0x0a5a8f.
+
+## Social sharing + VIP suit
+- **One share sheet** (`#shareBox`, `openShare(title, {blob, name, text})`): `drawCard(L)` draws the 1080×1350 picture (a result when `L`
+  is given, otherwise a "Can you wake all 30 gates?" card). Opened from the result screen (`shareCard`), the Rewards banner (`#rwVip`)
+  and the VIP shop card (`shareGame`). Brand buttons open each composer prefilled (`netUrl`: X intent, Facebook sharer, WhatsApp,
+  Telegram, Reddit submit, Threads intent; text + link + #AquaEnergizer); "More" = the phone's share menu with the picture (Instagram,
+  TikTok…). If a popup is blocked the text is copied instead. **`PUBLIC_URL`** (game.js, sharing section) must be set to the hosted
+  address once the game is public; until then shares carry no link (Facebook then copies the text and opens facebook.com).
+- **VIP Black Gold suit** (`SKINS.suit` id `vip`, `vip: true`, rarity 'vip'): never sold or gifted (`giftItem` skips it, `owns` doesn't
+  treat price 0 as owned). Claim = paste a link to a single post on a public network; `POST_RX` checks its shape (X status, Facebook
+  post/permalink/share/reel, Reddit comments, Threads post, Instagram p/reel, TikTok video, LinkedIn post). WhatsApp/Telegram chats
+  don't count. Stored as `save.owned['suit:vip']`, `save.vip`, `save.vipPosts` (no reuse of a link). A web page can't see whether a
+  post is public or mentions the game: real checking needs a small server (e.g. X/Threads/Instagram/TikTok oEmbed answer only for
+  public posts) once the game is hosted.
+- **Home spacing (phone):** bigger gaps between Continue, Daily Dive, How to Play/Intro and the tab bar (1–1.05 rem; tighter on short phones).

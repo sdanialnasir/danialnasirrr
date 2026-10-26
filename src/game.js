@@ -1623,6 +1623,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       { id: 'gold', name: 'Golden Diver', price: 1200, helm: 0xffc533, suit: 0xfff0b3, fin: 0xffd23f, pat: 'scales', acc: 0xc98a1a, metal: true },
       { id: 'galaxy', name: 'Galaxy', price: 1600, helm: 0x1a0b3a, suit: 0x2a1458, fin: 0xff4fd8, pat: 'galaxy', acc: 0xffffff, glow: true },
       { id: 'rainbow', name: 'Rainbow', price: 2000, helm: 0xff3d5e, suit: 0xffd23f, fin: 0x00c8ff, rainbow: true, pat: 'sprinkle', acc: 0xffffff },
+      { id: 'vip', name: 'VIP Black Gold', price: 0, vip: true, helm: 0x15131f, suit: 0xffc933, fin: 0x15131f, pat: 'scales', acc: 0xffe27a, metal: true }, // unlocked by sharing a public post, never sold or gifted
     ],
     scarf: [
       { id: 'pink', name: 'Bubble Pink', price: 0, col: 0xff1f6e }, { id: 'sky', name: 'Sky Blue', price: 120, col: 0x2fb6ff },
@@ -1649,7 +1650,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     ],
   };
   const skinOf = (cat, id) => SKINS[cat].find(x => x.id === id) || SKINS[cat][0];
-  const rarityOf = (it) => it.price >= 1200 ? 'legendary' : it.price >= 600 ? 'epic' : it.price >= 300 ? 'rare' : 'common';
+  const rarityOf = (it) => it.vip ? 'vip' : it.price >= 1200 ? 'legendary' : it.price >= 600 ? 'epic' : it.price >= 300 ? 'rare' : 'common';
   // painted suit patterns: one colour texture (and an optional glow texture) per suit + part, cached
   const PAT = {};
   function suitTex(s, part) { const key = s.id + part; if (PAT[key]) return PAT[key];
@@ -3579,7 +3580,7 @@ window.__T = T;
   // ================= economy: coins, skins, daily treasure, achievements =================
   save.coins = save.coins || 0; save.owned = save.owned || {}; save.equip = Object.assign({ suit: 'violet', scarf: 'pink', hat: 'none', trail: 'bubbles', pearl: 'ruby' }, save.equip || {});
   save.stats = Object.assign({ dug: 0, treasures: 0, pearls: 0, wins: 0, perfect: 0 }, save.stats || {}); save.ach = save.ach || {}; save.daily = save.daily || { last: '', streak: 0 };
-  const owns = (cat, id) => World.SKINS[cat].find(x => x.id === id)?.price === 0 || !!save.owned[cat + ':' + id];
+  const owns = (cat, id) => { const it = World.SKINS[cat].find(x => x.id === id); return (it && it.price === 0 && !it.vip) || !!save.owned[cat + ':' + id]; };
   World.applySkin(save.equip);
   const coinEls = () => document.querySelectorAll('.coinCount, #hmCoins');
   function syncCoins() { coinEls().forEach(el => { el.textContent = save.coins.toLocaleString(); }); }
@@ -3594,7 +3595,7 @@ window.__T = T;
   function dailyState() { const today = dayKey(), y = new Date(); y.setDate(y.getDate() - 1); const D = save.daily;
     const can = D.last !== today, streak = D.last === today ? D.streak : D.last === dayKey(y) ? D.streak : 0; return { can, streak, day: can ? streak : Math.max(0, streak - 1) }; } // day = today's 0-based streak day
   // a random item of the given rarity band the player doesn't own yet (null if they own them all)
-  function giftItem(minR, maxR) { const pool = []; for (const cat of Object.keys(World.SKINS)) for (const it of World.SKINS[cat]) if (it.price >= minR && it.price < maxR && !owns(cat, it.id)) pool.push([cat, it]);
+  function giftItem(minR, maxR) { const pool = []; for (const cat of Object.keys(World.SKINS)) for (const it of World.SKINS[cat]) if (!it.vip && it.price >= minR && it.price < maxR && !owns(cat, it.id)) pool.push([cat, it]);
     return pool.length ? pool[Math.random() * pool.length | 0] : null; }
   function grantItem(g, why) { const [cat, it] = g; save.owned[cat + ':' + it.id] = true; persist(); Audio.play('absorb'); buzz([20, 40, 20, 40, 60]);
     const nm = { suit: 'suit', hat: 'hat', scarf: 'scarf', trail: 'trail', pearl: 'pearl skin' }[cat] || cat; toast(`🎁 ${why}: ${it.name} (${World.rarityOf(it)} ${nm})!`); }
@@ -3682,15 +3683,15 @@ window.__T = T;
       const rib = document.createElement('span'); rib.className = 'rib'; rib.textContent = rar; b.appendChild(rib);
       const th = thumbs[shopTab + ':' + it.id]; if (th) { const im = document.createElement('img'); im.className = 'th'; im.src = th; im.alt = ''; b.appendChild(im); } else { const sw = swatch(shopTab, it); sw.classList.add('th'); b.appendChild(sw); }
       const nm = document.createElement('span'); nm.textContent = it.name; b.appendChild(nm);
-      const tg = document.createElement('span'); if (eq) { tg.className = 'tag eq'; tg.textContent = 'Equipped'; } else if (own) { tg.className = 'tag'; tg.textContent = 'Owned'; } else { tg.className = 'pr'; tg.innerHTML = `<i class="coin"></i>${it.price}`; } b.appendChild(tg);
+      const tg = document.createElement('span'); if (eq) { tg.className = 'tag eq'; tg.textContent = 'Equipped'; } else if (own) { tg.className = 'tag'; tg.textContent = 'Owned'; } else if (it.vip) { tg.className = 'pr vip'; tg.textContent = 'Share to unlock'; } else { tg.className = 'pr'; tg.innerHTML = `<i class="coin"></i>${it.price}`; } b.appendChild(tg);
       b.onclick = () => { click(); shopSel = it.id; tryOn(); buildShop(); }; grid.appendChild(b); });
     makeThumbs(shopTab);
     const it = World.SKINS[shopTab].find(x => x.id === shopSel), own = owns(shopTab, it.id), eq = save.equip[shopTab] === it.id, act = $('#shopAct');
     $('#shop .shop-stage').dataset.rar = World.rarityOf(it); $('#shopRar').textContent = World.rarityOf(it);
-    $('#shopSelName').textContent = it.name; $('#shopSelSub').textContent = eq ? 'Equipped' : own ? 'Owned · tap to wear' : `${it.price.toLocaleString()} coins`;
-    act.className = 'cta shop-act' + (eq ? ' equipped' : own ? ' owned' : save.coins < it.price ? ' cant' : '');
-    act.innerHTML = eq ? 'Equipped ✓' : own ? 'Wear it' : `<i class="coin"></i> Buy ${it.price.toLocaleString()}`;
-    act.onclick = () => { if (eq) return;
+    $('#shopSelName').textContent = it.name; $('#shopSelSub').textContent = eq ? 'Equipped' : own ? 'Owned · tap to wear' : it.vip ? 'Share the game in a public post to unlock' : `${it.price.toLocaleString()} coins`;
+    act.className = 'cta shop-act' + (eq ? ' equipped' : own ? ' owned' : it.vip ? ' vip' : save.coins < it.price ? ' cant' : '');
+    act.innerHTML = eq ? 'Equipped ✓' : own ? 'Wear it' : it.vip ? 'Share to unlock' : `<i class="coin"></i> Buy ${it.price.toLocaleString()}`;
+    act.onclick = () => { if (eq) return; if (!own && it.vip) { click(); shareGame(); return; }
       if (!own) { if (save.coins < it.price) { toast(`Need ${(it.price - save.coins).toLocaleString()} more coins: try Rewards or replay a level`); return; } save.coins -= it.price; save.owned[shopTab + ':' + it.id] = true; Audio.play('absorb'); buzz(30); }
       save.equip[shopTab] = it.id; persist(); World.applySkin(save.equip); syncCoins(); buildShop(); refreshHome(); };
     syncCoins(); }
@@ -3764,7 +3765,7 @@ window.__T = T;
   function go(id) {
     if (id === 'home' && state !== 'menu' && state !== 'splash' && !go.inHome) { go.inHome = true; try { openHome(); } finally { go.inHome = false; } return; }
     if (id === 'back') { id = screenStack.pop() || 'home'; } else { const cur = document.querySelector('.screen.on'); if (cur && cur.id !== id && id !== 'home') screenStack.push(cur.id); if (id === 'home') screenStack = []; }
-    if (id === 'shop') openShop(); if (id === 'rewards') buildRewards(); if (id === 'ranks') openRanks(lbTab); else if (LB.unsub) { LB.unsub(); LB.unsub = null; }
+    if (id === 'shop') openShop(); if (id === 'rewards') { buildRewards(); syncVipBanner(); } if (id === 'ranks') openRanks(lbTab); else if (LB.unsub) { LB.unsub(); LB.unsub = null; }
     if (id === 'profile') buildProfile(); if (id === 'settings') syncSettings(); if (id === 'home') refreshHome();
     if (id === 'name') { $('#nameInput').value = save.name || ''; setTimeout(() => $('#nameInput').focus(), 50); }
     show(id); if (id === 'home') { if (state === 'menu' || state === 'splash') homeCard(); homeLayout(); } if (id === 'levels') buildLevels();
@@ -4267,19 +4268,64 @@ window.__T = T;
   $('#btnWatch').onclick = () => { if (lastWin) startReplay(lastWin.n, 'result'); };
   $('#rpSkip').onclick = () => { click(); endReplay(); };
   // ---- share card: the tank as it looks right now + the result, as a 1080x1350 picture
-  async function shareCard() { if (!lastWin) return; click(); const W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+  // the 1080x1350 picture: the live tank + either this result (L) or, with no L, a general 'come play' card
+  async function drawCard(L) { const W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
     try { world.render(); const src = canvas, k = Math.max(W / src.width, H / src.height); g.drawImage(src, (W - src.width * k) / 2, (H - src.height * k) / 2, src.width * k, src.height * k); } catch (er) { g.fillStyle = '#0d63c2'; g.fillRect(0, 0, W, H); }
     let gr = g.createLinearGradient(0, 0, 0, 420); gr.addColorStop(0, 'rgba(4,20,60,0.9)'); gr.addColorStop(1, 'rgba(4,20,60,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, 420);
     gr = g.createLinearGradient(0, H - 560, 0, H); gr.addColorStop(0, 'rgba(4,20,60,0)'); gr.addColorStop(0.45, 'rgba(4,20,60,0.85)'); gr.addColorStop(1, 'rgba(4,20,60,0.97)'); g.fillStyle = gr; g.fillRect(0, H - 560, W, 560);
     try { await document.fonts.load('80px "Lilita One"'); } catch (er) {}
     const D = '"Lilita One", "Baloo 2", sans-serif', txt = (t, x, y, size, col, al = 'center') => { g.font = `${size}px ${D}`; g.textAlign = al; g.lineJoin = 'round'; g.lineWidth = size * 0.16; g.strokeStyle = 'rgba(3,14,44,0.9)'; g.strokeText(t, x, y); g.fillStyle = col; g.fillText(t, x, y); };
     txt('AQUA ENERGIZER', W / 2, 130, 92, '#ffd23f'); g.font = `800 34px "Baloo 2", sans-serif`; g.textAlign = 'center'; g.fillStyle = 'rgba(234,247,255,0.9)'; g.fillText('DIG · PUSH · BREATHE · ESCAPE', W / 2, 190);
-    const L = lastWin; txt(L.daily ? "Today's Daily Dive" : `I cleared Level ${L.n}`, W / 2, H - 360, L.daily ? 90 : 104, '#ffffff'); txt(L.name, W / 2, H - 270, 62, '#9ff0ff');
+    if (!L) { const woke = cleared(); txt('Can you wake all 30 gates?', W / 2, H - 330, 84, '#ffffff'); txt(woke ? `I've woken ${woke} so far 🌊` : 'A cosy underwater puzzle', W / 2, H - 230, 62, '#9ff0ff'); txt('Play free in your browser', W / 2, H - 100, 60, '#ffd23f'); }
+    else { txt(L.daily ? "Today's Daily Dive" : `I cleared Level ${L.n}`, W / 2, H - 360, L.daily ? 90 : 104, '#ffffff'); txt(L.name, W / 2, H - 270, 62, '#9ff0ff');
     if (L.daily) txt('☀ DAILY DIVE ☀', W / 2, H - 160, 84, '#ffd23f'); else txt('★★★'.slice(0, L.stars), W / 2 - (3 - L.stars) * 45, H - 160, 120, '#ffd23f'); if (!L.daily && L.stars < 3) txt('★'.repeat(3 - L.stars), W / 2 + L.stars * 45, H - 160, 120, 'rgba(255,255,255,0.25)');
-    txt(`in ${L.secs} s · can you beat it?`, W / 2, H - 70, 56, '#ffffff');
-    const blob = await new Promise(r => c.toBlob(r, 'image/png')); if (!blob) return; const name = L.daily ? `aqua-energizer-daily-${dayKey()}.png` : `aqua-energizer-level-${L.n}.png`, text = L.daily ? `I cleared today's Aqua Energizer Daily Dive (${L.name}) in ${L.secs} s 🌊 Can you beat it?` : `I cleared Level ${L.n} (${L.name}) in Aqua Energizer with ${'★'.repeat(L.stars)} in ${L.secs} s 🌊 Can you beat it?`;
-    try { const file = new File([blob], name, { type: 'image/png' }); if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text }); return; } } catch (er) { if (er && er.name === 'AbortError') return; }
-    const url = URL.createObjectURL(blob); $('#shareImg').src = url; $('#shareDl').href = url; $('#shareDl').download = name; shareCard.file = { name, blob }; $('#shareTxt').textContent = text; $('#shareBox').classList.add('on'); }
+    txt(`in ${L.secs} s · can you beat it?`, W / 2, H - 70, 56, '#ffffff'); }
+    const blob = await new Promise(r => c.toBlob(r, 'image/png')); if (!L) return { blob, name: 'aqua-energizer.png', text: "I'm diving in Aqua Energizer 🌊 a cosy underwater puzzle: dig tunnels, push glowing pearls into the gate and escape before your air runs out. Can you wake all 30 gates?" };
+    const name = L.daily ? `aqua-energizer-daily-${dayKey()}.png` : `aqua-energizer-level-${L.n}.png`, text = L.daily ? `I cleared today's Aqua Energizer Daily Dive (${L.name}) in ${L.secs} s 🌊 Can you beat it?` : `I cleared Level ${L.n} (${L.name}) in Aqua Energizer with ${'★'.repeat(L.stars)} in ${L.secs} s 🌊 Can you beat it?`;
+    return { blob, name, text }; }
+
+  // ---- sharing: one sheet for a result card or the game itself. Platform buttons open that app's composer already filled in;
+  // a public post link unlocks the VIP suit (the link's shape is checked here: a web page can't see whether the post is public)
+  const PUBLIC_URL = ''; // the game's public web address once it's hosted (itch.io / own site): every share then carries the link
+  function shareLink() { if (PUBLIC_URL) return PUBLIC_URL; try { if (/^https?:$/.test(location.protocol) && !/claude|anthropic|usercontent|localhost|127\.0\.0\.1/.test(location.hostname)) return location.origin + location.pathname; } catch (er) {} return ''; }
+  const SHARE = { text: '', blob: null, name: '', net: '' };
+  function openShare(title, d) { SHARE.text = d.text; SHARE.blob = d.blob; SHARE.name = d.name; SHARE.net = '';
+    $('#shareTitle').textContent = title; const im = $('#shareImg'); if (d.blob) { const u = URL.createObjectURL(d.blob); im.src = u; $('#shareDl').href = u; $('#shareDl').download = d.name; im.hidden = false; } else im.hidden = true;
+    shareCard.file = d.blob ? { name: d.name, blob: d.blob } : null; $('#shareTxt').textContent = d.text; vipState(); $('#shareBox').classList.add('on'); }
+  async function shareCard() { if (!lastWin) return; click(); openShare('Share your dive', await drawCard(lastWin)); }
+  async function shareGame() { openShare('Share Aqua Energizer', await drawCard(null)); }
+  const enc = encodeURIComponent;
+  function netUrl(net) { const url = shareLink(), t = SHARE.text, full = t + (url ? ' ' + url : '') + ' #AquaEnergizer';
+    return { x: `https://twitter.com/intent/tweet?text=${enc(t)}&hashtags=AquaEnergizer${url ? '&url=' + enc(url) : ''}`,
+      facebook: url ? `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}&quote=${enc(t)}` : 'https://www.facebook.com/',
+      whatsapp: `https://wa.me/?text=${enc(full)}`, telegram: `https://t.me/share/url?url=${enc(url || ' ')}&text=${enc(t + ' #AquaEnergizer')}`,
+      reddit: url ? `https://www.reddit.com/submit?url=${enc(url)}&title=${enc(t)}` : `https://www.reddit.com/submit?type=TEXT&title=${enc('Aqua Energizer: a cosy underwater puzzle')}&text=${enc(full)}`,
+      threads: `https://www.threads.net/intent/post?text=${enc(full)}` }[net]; }
+  async function shareTo(net) { click(); SHARE.net = net; const url = shareLink(), full = SHARE.text + (url ? ' ' + url : '') + ' #AquaEnergizer';
+    if (net === 'more') { try { const f = SHARE.blob && new File([SHARE.blob], SHARE.name, { type: 'image/png' });
+        if (f && navigator.canShare && navigator.canShare({ files: [f] })) await navigator.share({ files: [f], text: full }); else if (navigator.share) await navigator.share({ text: full, url: url || undefined });
+        else { await navigator.clipboard.writeText(full); toast('Text copied: save the picture and post it in any app'); } } catch (er) { if (!(er && er.name === 'AbortError')) toast('Save the picture, then post it in any app'); } return; }
+    if (net === 'facebook' && !url) { try { await navigator.clipboard.writeText(full); } catch (er) {} toast('Text copied: paste it in your Facebook post (and add the picture)'); }
+    let w = null; try { w = window.open(netUrl(net), '_blank'); if (w) w.opener = null; } catch (er) {}
+    if (!w) { try { await navigator.clipboard.writeText(full); toast("Couldn't open the app from here: the text is copied, paste it in your post"); } catch (er) { toast('Copy the text below into your post'); } }
+    setTimeout(() => { if ($('#shareBox').classList.contains('on') && !owns('suit', 'vip')) $('#vipMsg').textContent = 'Posted? Paste the link to your post here to claim the VIP suit.'; }, 1200); }
+  document.querySelectorAll('#shareBox .sb-soc button').forEach(b => b.onclick = () => shareTo(b.dataset.net));
+  $('#rwVip').onclick = () => { click(); shareGame(); };
+  function syncVipBanner() { const has = owns('suit', 'vip'); $('#rwVip').classList.toggle('done', has); $('#rwVipT').textContent = has ? 'Share Aqua Energizer' : 'Share & unlock VIP'; $('#rwVipS').textContent = has ? 'VIP Black Gold unlocked 👑 Tell your friends anyway!' : 'Post about the game publicly to get the VIP Black Gold suit'; }
+  // a link to a single public post on a network where posts can be public (chats like WhatsApp/Telegram can't count)
+  const POST_RX = [['X', /^https?:\/\/(www\.|mobile\.)?(x|twitter)\.com\/[A-Za-z0-9_]{1,15}\/status(es)?\/\d{6,}/i], ['Facebook', /^https?:\/\/(www\.|m\.|web\.)?facebook\.com\/(.+\/(posts|videos|photos)\/|permalink\.php\?|share\/(p|v|r)\/|story\.php\?|reel\/|watch\/?\?v=)/i],
+    ['Facebook', /^https?:\/\/(fb\.watch|fb\.me)\/\w+/i], ['Reddit', /^https?:\/\/(www\.|old\.|new\.)?reddit\.com\/r\/\w+\/(comments|s)\/\w+/i], ['Reddit', /^https?:\/\/redd\.it\/\w+/i],
+    ['Threads', /^https?:\/\/(www\.)?threads\.(net|com)\/@[\w.]+\/post\/[\w-]+/i], ['Instagram', /^https?:\/\/(www\.)?instagram\.com\/(p|reel|reels)\/[\w-]+/i],
+    ['TikTok', /^https?:\/\/(www\.|m\.)?tiktok\.com\/@[\w.]+\/(video|photo)\/\d+/i], ['TikTok', /^https?:\/\/(vm|vt)\.tiktok\.com\/\w+/i], ['LinkedIn', /^https?:\/\/(www\.)?linkedin\.com\/(posts|feed\/update)\/[\w:%-]+/i]];
+  function vipState() { const has = owns('suit', 'vip'), box = $('#shareVip'); box.classList.toggle('done', has);
+    $('#vipMsg').textContent = has ? 'VIP Black Gold is yours. Thanks for sharing! 👑' : ''; $('#vipLink').hidden = $('#vipClaim').hidden = has; }
+  $('#vipClaim').onclick = () => { const v = ($('#vipLink').value || '').trim(), hit = POST_RX.find(([, rx]) => rx.test(v)), msg = $('#vipMsg');
+    if (!v) { msg.textContent = 'Paste the link to your post first.'; return; }
+    if (!hit) { msg.textContent = "That doesn't look like a link to a single public post. Open your post, tap Share › Copy link, and paste it here."; Audio.play('gateLocked'); return; }
+    if (!Array.isArray(save.vipPosts)) save.vipPosts = []; if (save.vipPosts.includes(v.toLowerCase())) { msg.textContent = 'That post was already used.'; return; }
+    save.vipPosts = save.vipPosts.concat(v.toLowerCase()).slice(-5); save.owned['suit:vip'] = true; save.vip = { net: hit[0], at: Date.now() }; persist();
+    Audio.play('absorb'); buzz([20, 40, 20, 40, 60]); toast(`👑 VIP Black Gold unlocked! Thanks for sharing on ${hit[0]}`); vipState();
+    msg.textContent = 'Unlocked! Wear it from the Shop › Suits. 👑'; if ($('#shop').classList.contains('on')) buildShop(); syncVipBanner(); };
   $('#btnShare').onclick = shareCard;
   // inside the claude.ai viewer a plain download link does nothing: save through the viewer's downloads permission when it's there
   $('#shareDl').onclick = async ev => { const f = shareCard.file, C = window.claude; if (!f || !C || !C.use) return; let dl = null; try { dl = await C.use('downloads'); } catch (er) {} if (!dl) return;
