@@ -2644,7 +2644,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.disposeLevel(); this.levelGroup.clear(); this.entShadows = []; this.entities.clear(); this.particles.n = 0; this.particles.bub.n = 0;
       this.gateObj = null; this.gateFx = null; this.pops = []; this.coachCells = null; this.sandInst = null; this.treasures = []; this.digChunks = []; if (this.warn) this.warn.visible = false; this.ghosts = []; this.absorbing = []; this.deathTint = 0; this.setFx('');
     }
-    loadLevel(e) {
+    loadLevel(e) { if (this.dangerPool) { this.setDanger(null); this.dangerPool.forEach(sp => { sp.userData.k = 0; sp.visible = false; }); }
       this.clearLevel(); this.e = e; this.shadowDirty = true; this.mood = null; this.playerAct = null; this.lastHup = -9; const ART = ART_SETS[NEW_ART_LEVELS.has(e.name) || e.menu || e.daily ? 'new' : 'old']; this.newArt = ART === ART_SETS.new; MAT.sandNew.value = this.newArt ? 1 : 0; this.tickMs = e.tickMs; this.menuMode = !!e.menu; this.playing = false; this.lead.set(0, 0); this.lastMove = -99; this.zoomK = 1.12; this.playerPos = null;
       const W = e.w, H = e.h; this.particles.top = 1;
       const sand = [], blocks = [], cobbles = [], solid = [];
@@ -3165,6 +3165,17 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       for (const [id, ent] of this.entities) if (!e.objects.has(id) && !ent.ghost) { this.levelGroup.remove(ent.m); this.entities.delete(id); }
     }
     sfx(n) { if (this.onSfx) this.onSfx(n); }
+    // red glow on cells that would be fatal to step into this tick (see dangerScan in the controller)
+    setDanger(d) { this.lastDanger = d; this.dangerStay = !!(d && d.stay); const cells = (d && d.cells) || [];
+      if (!this.dangerPool) { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+        const gr = g.createRadialGradient(64, 64, 8, 64, 64, 62); gr.addColorStop(0, 'rgba(255,40,30,0.85)'); gr.addColorStop(0.6, 'rgba(235,20,30,0.6)'); gr.addColorStop(1, 'rgba(200,10,30,0)');
+        g.fillStyle = gr; g.fillRect(0, 0, 128, 128); g.strokeStyle = '#ff3b30'; g.lineWidth = 9; g.setLineDash([14, 8]); g.beginPath(); g.arc(64, 64, 42, 0, 7); g.stroke();
+        g.strokeStyle = 'rgba(255,240,230,0.95)'; g.lineWidth = 3; g.beginPath(); g.arc(64, 64, 42, 0, 7); g.stroke();
+        const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; this.dangerPool = [];
+        for (let i = 0; i < 4; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, depthTest: false, toneMapped: false })); sp.renderOrder = 19; sp.visible = false; sp.userData.k = 0; this.scene.add(sp); this.dangerPool.push(sp); } }
+      this.dangerPool.forEach((sp, i) => { const c = cells[i]; if (c) { if (!sp.userData.on || sp.userData.x !== c.x || sp.userData.y !== c.y) sp.userData.k = 0; sp.userData.on = true; sp.userData.x = c.x; sp.userData.y = c.y; sp.position.set(c.x, -c.y, 0.85); } else sp.userData.on = false; }); }
+    dangerUpdate(dt, t) { if (!this.dangerPool) return; for (const sp of this.dangerPool) { const u = sp.userData; u.k = Math.max(0, Math.min(1, u.k + (u.on ? dt * 8 : -dt * 6))); sp.visible = u.k > 0.01 && !this.menuMode;
+      if (sp.visible) { sp.material.opacity = u.k * (0.85 + Math.sin(t * 10) * 0.15); sp.scale.setScalar(0.95 * (0.7 + u.k * 0.3) * (1 + Math.sin(t * 10) * 0.04)); sp.material.rotation = t * 0.8; } } }
     // the diver's facial/body reaction of the moment (effort, surprise, joy, flinch, bonk); a stronger mood replaces a weaker one
     playerMood(k, dur) { const rank = { flinch: 1, bonk: 1, surprise: 2, joy: 3 }; if (this.mood && rank[this.mood.k] > rank[k] && this.mood.t < this.mood.dur * 0.7) return; this.mood = { k, t: 0, dur }; }
     setFx(cls) { if (this.fx) this.fx.className = cls; }
@@ -3402,7 +3413,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
               g2.fillStyle = '#ffffff'; g2.font = '900 84px Arial, sans-serif'; g2.textAlign = 'center'; g2.textBaseline = 'middle'; g2.fillText('!', 64, 70);
               this.warn = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthTest: false, toneMapped: false })); this.warn.renderOrder = 20; this.scene.add(this.warn); }
             let danger = false; for (let k = 1; k <= 2; k++) { const yy = o.y - k; if (yy < 0) break; const q = e.obj[yy * e.w + o.x]; if (q && (q.t === T.ROCK || q.t === T.BALL)) { danger = true; break; } if (e.get(o.x, yy) !== T.EMPTY) break; }
-            const show = danger && e.state === 'playing'; if (show && !this.warn.visible) { this.playerMood('surprise', 0.9); this.sfx('eep'); } this.warn.visible = show; if (danger) { const pz = 1 + Math.sin(t * 9) * 0.12; this.warn.scale.setScalar(0.42 * pz); this.warn.position.set(gx + 0.38, gy + 0.62, 0.9); } }
+            danger = danger || !!this.dangerStay; const show = danger && e.state === 'playing'; if (show && !this.warn.visible) { this.playerMood('surprise', 0.9); this.sfx('eep'); } this.warn.visible = show; if (danger) { const pz = 1 + Math.sin(t * 9) * 0.12; this.warn.scale.setScalar(0.42 * pz); this.warn.position.set(gx + 0.38, gy + 0.62, 0.9); } }
           // ---- turning (yaw spring) + a full happy spin on joy
           { const yo = u.glb ? 0.72 : 0.35, yt = dir > 0 ? -yo : -Math.PI + yo; /* the Meshy diver turns a little more toward the camera so its face reads */ if (ent.yaw === undefined) ent.yaw = yt; ent.yaw += (yt - ent.yaw) * (1 - Math.exp(-dt * 9));
             m.rotation.y = ent.yaw + (mk === 'joy' ? Math.PI * 2 * Math.min(1, Math.max(0, (mt - 0.15) / 0.75)) ** 0.8 * (1 - 0) : 0);
@@ -3466,7 +3477,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           m.rotation.z = moving ? Math.sin(t * 22) * 0.05 : 0;
         }
       }
-      this.syncEntityShadows();
+      this.syncEntityShadows(); this.dangerUpdate(dt, t);
       // ghosts
       this.ghosts = this.ghosts.filter(ent => { const g = ent.ghost, m = ent.m; g.t += dt;
         if (g.kind === 'win') { if (g.s0 === undefined) { g.s0 = m.scale.x; g.from = m.position.clone(); } /* a happy hop, then a spiral into the light, leaving sparkles */
@@ -3643,7 +3654,7 @@ window.__T = T;
     document.querySelectorAll('.ld-title, .gs-title, .hm-title, .cine-title .title').forEach(t => { t.classList.add('logo-art'); t.setAttribute('aria-label', 'Aqua Energizer'); });
   })();
   const canvas = $('#c');
-  const world = World.create(canvas); window.__dc = { world, aud: Audio, get engine() { return engine; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { skipTut = true; try { startLevel(i); beginPlay(); } finally { skipTut = false; } }, plan: (cb) => planFrom(engine, coachRefs(), COACH.route, cb), planCheck: (plan) => plSim(engine, plan).won, doomed: () => doomed(engine), undo: () => undo(), tut: (i) => { if (save.tutSeen) delete save.tutSeen[i]; startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), World, intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
+  const world = World.create(canvas); window.__dc = { world, aud: Audio, get engine() { return engine; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { skipTut = true; try { startLevel(i); beginPlay(); } finally { skipTut = false; } }, plan: (cb) => planFrom(engine, coachRefs(), COACH.route, cb), planCheck: (plan) => plSim(engine, plan).won, doomed: () => doomed(engine), danger: () => { dangerScan(); return world.lastDanger; }, undo: () => undo(), tut: (i) => { if (save.tutSeen) delete save.tutSeen[i]; startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), World, intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
   world.onSfx = n => Audio.play(n); world.onToast = m => toast(m);
   let gateOpenAt = 0, gateNudged = true;
   world.onGateOpen = () => { if (state === 'replay' || state === 'clip') return; gateOpenAt = performance.now(); gateNudged = false; banner('The gate is awake!', 'Swim in!', 'Swim into the glowing gate to carry the light home.', 3200); };
@@ -4156,7 +4167,7 @@ window.__T = T;
     save.tutSeen = save.tutSeen || {}; save.tutSeen[TUT.idx] = 1; save.tipsSeen = save.tipsSeen || {}; save.tipsSeen[TUT.idx] = 1; persist();
     setState('playing'); lastFrame = performance.now(); acc = 0; world.lastTick = performance.now(); banner(); } // like beginPlay: the frame loop keeps its own clock (frame.last)
   $('#tut').addEventListener('click', ev => { if (ev.target.closest('.tut-skip')) { click(); TUT.t0 = 0; endTut(); return; } tutNext(); });
-  function beginPlay() { if (state !== 'intro' && state !== 'paused') return; const fromIntro = state === 'intro'; setState('playing'); show(null); lastFrame = performance.now(); acc = 0; world.lastTick = performance.now(); if (fromIntro) { world.startPlay(); if (!startTut(levelIdx)) { banner(); if (World.isMobile && !skipTut) { world.peek = true; clearTimeout(beginPlay.pk); beginPlay.pk = setTimeout(() => { if (!mapBtn.classList.contains('on')) world.peek = false; }, 1500); } } } } // phones: a look at the whole tank first, then the camera glides down to the diver
+  function beginPlay() { if (state !== 'intro' && state !== 'paused') return; const fromIntro = state === 'intro'; setState('playing'); setTimeout(dangerScan, 0); show(null); lastFrame = performance.now(); acc = 0; world.lastTick = performance.now(); if (fromIntro) { world.startPlay(); if (!startTut(levelIdx)) { banner(); if (World.isMobile && !skipTut) { world.peek = true; clearTimeout(beginPlay.pk); beginPlay.pk = setTimeout(() => { if (!mapBtn.classList.contains('on')) world.peek = false; }, 1500); } } } } // phones: a look at the whole tank first, then the camera glides down to the diver
   let bannerTimer = null;
   // ---- level-1 coach: follows the verified winning route. When the player hesitates it shows a glowing trail to where the
   // diver should go next and, once there, an animated hand (key cap on computers) showing which way to swipe.
@@ -4328,6 +4339,31 @@ window.__T = T;
     for (const c of plan) { if (c !== '.') e.press(PLM[c]); e.step(); R.push({ key: objKey(e), p: e.player ? [e.player.x, e.player.y] : null }); if (e.state !== 'playing') break; }
     R.keys = new Set(R.map(r => r.key)); return R; }
   // undo lands somewhere you can survive: if staying put and every single move both die within ~1.5 s, step back further
+  // danger read-out (Settings → Danger glow): after every tick, each neighbouring cell the diver could move into is tried on a
+  // hidden copy of the board. If that move kills him, or leaves no way to survive the next 3 ticks whatever he does, the cell
+  // glows red. Staying put being fatal (while some move still saves him) lights the "!" over his head. Air is ignored.
+  function survives(c, n) { for (let i = 0; i < n; i++) { c.step(); if (c.state === 'dead') return false; if (c.state === 'won') return true; } return true; }
+  function dangerScan() {
+    if (!engine || !engine.player || engine.state !== 'playing' || state !== 'playing' || save.settings.danger === false) { world.setDanger(null); return; }
+    const p = engine.player, out = []; let anyThreat = false;
+    for (const o of engine.objects.values()) if (o.t === T.FISH || o.t === T.JELLY || o.t === T.CRAB || ((o.t === T.ROCK || o.t === T.BALL) && Math.abs(o.x - p.x) <= 2 && o.y <= p.y + 1 && o.y >= p.y - 6)) { anyThreat = true; break; }
+    if (!anyThreat) { world.setDanger(null); return; }
+    const fresh = () => { const c = cloneEngine(engine); c.oxygen = 1e6; c.relaxed = true; return c; };
+    // any way to live: a small breadth-first search (≤ 6 moves, waiting allowed, repeated boards skipped) for a spot where
+    // standing still is safe for 3 ticks. If the budget runs out it says "safe": a false alarm is worse than no alarm.
+    const escapes = c0 => { const seen = new Set(), q = [[c0, 0]]; let n = 0;
+      while (q.length) { const [c, d] = q.shift(); if (survives(cloneEngine(c), 3)) return true; if (d >= 6) continue;
+        for (const f of ['', 'U', 'D', 'L', 'R']) { if (++n > 400) return true; const k = cloneEngine(c); if (f) k.press(PLM[f]); k.step(); if (k.state === 'won') return true; if (k.state === 'dead') continue;
+          const key = k.key() + (k.player.x + ',' + k.player.y); if (seen.has(key)) continue; seen.add(key); q.push([k, d + 1]); } }
+      return false; };
+    let anySafe = false;
+    for (const d of ['U', 'D', 'L', 'R']) { const [dx, dy] = PLD[PLM[d]], nx = p.x + dx, ny = p.y + dy, t = engine.get(nx, ny);
+      if (t === T.WALL || t === T.STEEL || t === T.GATE) continue;
+      const c = fresh(); c.press(PLM[d]); c.step(); const moved = c.player && (c.player.x !== p.x || c.player.y !== p.y);
+      const bad = c.state === 'dead' || (c.state === 'playing' && !escapes(c));
+      if (!bad && moved) anySafe = true; if (bad && (moved || c.state === 'dead')) out.push({ x: nx, y: ny }); }
+    const stay = fresh(); const stayBad = !survives(stay, 2);
+    world.setDanger({ cells: out, stay: stayBad && anySafe }); }
   function doomed(e) { if (!e.player) return true;
     for (const first of ['', 'U', 'D', 'L', 'R']) { const c = cloneEngine(e); c.oxygen = Math.max(c.oxygen, 30); if (first) c.press(PLM[first]); let dead = false;
       for (let i = 0; i < 10; i++) { c.step(); if (c.state === 'dead') { dead = true; break; } if (c.state === 'won') break; } if (!dead) return false; }
@@ -4335,7 +4371,7 @@ window.__T = T;
   function undo() {
     if (!history.length || !engine || (state !== 'playing' && state !== 'over') || engine.state === 'won' || $('#ending').classList.contains('on')) { if (state === 'playing') toast('Nothing to undo yet'); return; }
     Audio.play('undo'); buzz(10); hideStuck(); stuckKey = ''; planJob++; COACH.plan = null; let snap = history.pop(), extra = 0; while (history.length && extra < 12 && doomed(snap)) { snap = history.pop(); extra++; } runUndo = true; if (snap.__log !== undefined) runLog = runLog.slice(0, snap.__log); const cp = world.camPos.clone(), ct = world.camTarget.clone();
-    engine = cloneEngine(snap); world.keepTreasures(); world.loadLevel(engine); world.onTick(engine, performance.now()); world.startPlay(); world.camPos.copy(cp); world.camTarget.copy(ct);
+    engine = cloneEngine(snap); world.keepTreasures(); world.loadLevel(engine); world.onTick(engine, performance.now()); world.startPlay(); world.camPos.copy(cp); world.camTarget.copy(ct); setTimeout(dangerScan, 0);
     held.clear(); heldOrder = []; endTouch(); acc = 0; overTimer = 0; resultShown = false; hudKey = ''; lastScore = -1;
     if (state !== 'playing') { setState('playing'); show(null); } updateHud(); undoHold = true;
     if (!REDUCED_MOTION) world.flashFx('rewind'); { const pl = engine.player; if (pl) world.particles.bubbles(pl.x, -pl.y, 0.4, 10, 0.08, 0.35); } /* time rewound: a cool blue blink + a puff of bubbles */
@@ -4705,7 +4741,7 @@ window.__T = T;
   function applyAudio() { Audio.setMusic(save.settings.music); Audio.setVolumes(Audio.settings.music, save.settings.sfx ? 0.9 : 0); }
   function syncSound() { const on = save.settings.music || save.settings.sfx; $('#sndLbl').textContent = on ? 'Sound on' : 'Muted'; const w = $('#sndWave'); if (w) w.style.display = on ? '' : 'none'; const ic = $('#btnSound .ico'); if (ic) ic.style.setProperty('--ico', `var(--ui-${on ? 'i_sound' : 'i_mute'})`); }
   function syncSettings() { $('#setMusic').checked = save.settings.music; $('#setSfx').checked = save.settings.sfx; $('#setVibe').checked = save.settings.vibe; $('#setFps').checked = !!save.settings.fps; $('#fpsMeter').hidden = !save.settings.fps;
-    $('#setRelax').checked = !!save.settings.relaxed; $('#setCb').checked = !!save.settings.cb; $('#setBig').checked = !!save.settings.bighud;
+    $('#setRelax').checked = !!save.settings.relaxed; $('#setCb').checked = !!save.settings.cb; $('#setBig').checked = !!save.settings.bighud; $('#setDanger').checked = save.settings.danger !== false;
     document.querySelectorAll('#setQuality button').forEach(b => b.classList.toggle('on', b.dataset.q === gfxMode()));
     document.querySelectorAll('#setRes button').forEach(b => b.classList.toggle('on', b.dataset.r === (save.settings.res || 'auto')));
     const rn = $('#resNow'); if (rn) rn.textContent = `Now: ${Math.round((world.resLock || world.resScale || 1) * 100)}% · ${world.renderer.domElement.width}×${world.renderer.domElement.height}`;
@@ -4715,6 +4751,7 @@ window.__T = T;
   $('#setVibe').onchange = e => { save.settings.vibe = e.target.checked; persist(); buzz(15); };
   function applyAccess() { World.setColorMarks(save.settings.cb); document.body.classList.toggle('cb', !!save.settings.cb); document.body.classList.toggle('bighud', !!save.settings.bighud); }
   $('#setRelax').onchange = e => { save.settings.relaxed = e.target.checked; persist(); toast(e.target.checked ? 'Relaxed mode: no air timer (1 star per level)' : 'Air timer back on'); };
+  $('#setDanger').onchange = e => { save.settings.danger = e.target.checked; persist(); dangerScan(); };
   $('#setCb').onchange = e => { save.settings.cb = e.target.checked; persist(); applyAccess(); };
   $('#setBig').onchange = e => { save.settings.bighud = e.target.checked; persist(); applyAccess(); };
   applyAccess();
@@ -4756,7 +4793,7 @@ window.__T = T;
           acc -= engine.tickMs;
           const pre = (engine.moveQueue.length || engine.held) && engine.player ? cloneEngine(engine) : null, px0 = engine.player && engine.player.x, py0 = engine.player && engine.player.y;
           if (pre) pre.__log = runLog.length;
-          engine.step(); tickWorld(engine, now - acc);
+          engine.step(); tickWorld(engine, now - acc); dangerScan();
           { const p = engine.player; runLog += p && p.x !== px0 ? (p.x > px0 ? 'R' : 'L') : p && p.y !== py0 ? (p.y > py0 ? 'D' : 'U') : '.'; }
           if (pre && engine.player && (engine.player.x !== px0 || engine.player.y !== py0)) { history.push(pre); if (history.length > 200) history.shift(); stuckTimer = 0; }
           if (engine.state !== 'playing') { overTimer = 0; if (engine.state === 'won') clearStamp(); setState('over'); hideStuck(); Audio.setTension(0); held.clear(); heldOrder = []; endTouch(); buzz(engine.state === 'won' ? 30 : [40, 40, 60]); break; }

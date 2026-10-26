@@ -485,3 +485,12 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   elements are primed on the first tap (`primeTracks`).
 - **Limiter** (DynamicsCompressor) after the master; share clips and tests capture *after* it (`outNode`). Measured on a level-2 run:
   peak −1.5 dBFS, no clipped samples, effects ~10 dB over the music.
+
+## Danger glow (fair deaths)
+- `dangerScan()` (controller) runs after every play tick when a monster, or a stone/pearl within 2 columns above the diver, is
+  near: each of the 4 neighbour cells is tried on a hidden copy of the board; the cell glows red (`world.setDanger`, pooled
+  sprites, `dangerUpdate`) if that move kills him or leaves no escape (`escapes`: breadth-first, ≤ 6 moves, waiting allowed,
+  ≤ 400 boards, budget out = "safe"). If standing still is fatal but a move saves him, the "!" over his head lights too. Air ignored.
+- Checked: 0 red cells stepped into along all 30 verified routes (no false alarms); random play: 83% of monster deaths and ~47%
+  of crushes were warned on the fatal input. ≤ 6.5 ms per tick headless. Settings → Danger glow (`save.settings.danger`, default on).
+  Debug: `__dc.danger()`.
