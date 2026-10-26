@@ -692,7 +692,10 @@ const Audio = (() => {
   let started = false, muted = false, musicOn = true;
   let musicTimer = null, musicStep = 0, sandBuf = null, padBus = null, padF = null, padLayer = null, tension = 0;
   const settings = { music: 0.6, sfx: 0.9 };
-  try { Object.assign(settings, JSON.parse(localStorage.getItem('dc-audio') || '{}')); } catch {}
+  // three player volumes (0..1, the sliders in Settings and on the pause screen): music = the songs, amb = the soft underwater bed
+  // (ocean swell, hum, pad, far bubbles), sfx = everything the game does. Squared so the slider feels even to the ear.
+  const vol = { music: 0.55, amb: 0.8, sfx: 1 };
+  const gMusic = () => musicOn ? 0.6 * vol.music * vol.music : 0, gAmb = () => 0.6 * vol.amb * vol.amb, gSfx = () => 0.9 * vol.sfx * vol.sfx;
 
   function init() {
     if (ctx) return;
@@ -705,9 +708,9 @@ const Audio = (() => {
       const sc = ctx.createWaveShaper(), N = 2048, cv = new Float32Array(N), K = 0.708; for (let i = 0; i < N; i++) { const x = i / (N - 1) * 2 - 1, a = Math.abs(x); cv[i] = Math.sign(x) * (a <= K ? a : K + (1 - K) * Math.tanh((a - K) / (1 - K))); }
       sc.curve = cv; sc.oversample = '2x'; lim.connect(sc); sc.connect(ctx.destination); outNode = sc; } // a limiter: stacked cues (pearl + gate + swell) never crackle on phone speakers
     catch (er) { master.connect(ctx.destination); }
-    musicBus = ctx.createGain(); musicBus.gain.value = settings.music; musicBus.connect(master);
-    sfxBus = ctx.createGain(); sfxBus.gain.value = settings.sfx; sfxBus.connect(master);
-    ambBus = ctx.createGain(); ambBus.gain.value = 0.5; ambBus.connect(master);
+    musicBus = ctx.createGain(); musicBus.gain.value = gMusic(); musicBus.connect(master);
+    sfxBus = ctx.createGain(); sfxBus.gain.value = gSfx(); sfxBus.connect(master);
+    ambBus = ctx.createGain(); ambBus.gain.value = gAmb(); ambBus.connect(master);
     // underwater space: a soft generated reverb (stereo decaying noise, darker as it fades) under every sound effect,
     // plus a faint short echo off the tank glass
     try { const n = Math.floor(ctx.sampleRate * 2.4), ir = ctx.createBuffer(2, n, ctx.sampleRate);
@@ -735,7 +738,7 @@ const Audio = (() => {
     const m = D.MUSIC && D.MUSIC.ambience; if (m) ctx.decodeAudioData(b64buf(m)).then(buf => { FILES.__amb = buf; if (started) startAmb(); }).catch(() => {});
     initTracks(); }
   function startAmb() { if (!FILES.__amb || ambSrc || !musicBus) return; ambSrc = ctx.createBufferSource(); ambSrc.buffer = FILES.__amb; ambSrc.loop = true;
-    const g = ctx.createGain(); g.gain.setValueAtTime(0, ctx.currentTime); g.gain.linearRampToValueAtTime(0.8, ctx.currentTime + 3); ambSrc.connect(g); g.connect(padF || musicBus); ambSrc.start();
+    const g = ctx.createGain(); g.gain.setValueAtTime(0, ctx.currentTime); g.gain.linearRampToValueAtTime(0.8, ctx.currentTime + 3); ambSrc.connect(g); g.connect(padF || ambBus); ambSrc.start();
     if (padLayer) padLayer.gain.setTargetAtTime(0, ctx.currentTime, 1.5); } /* the recording replaces the synth chords (swell / tension still shape it through padF) */
   function playFile(name, r, gain) { const L = FILES[name]; if (!L || !L.length) return false; const src = ctx.createBufferSource(); src.buffer = L[(Math.random() * L.length) | 0];
     src.playbackRate.value = r || (0.96 + Math.random() * 0.08); const g = ctx.createGain(); g.gain.value = 1.35 * (gain ?? 1) * (GAIN[name] ?? 0.6); src.connect(g); g.connect(sfxBus); src.start(); return true; }
@@ -784,14 +787,14 @@ const Audio = (() => {
     const swG = ctx.createGain(); swG.gain.value = 0.0; swG.gain.linearRampToValueAtTime(0.22 * bgK, t0 + 3);
     const waveL = ctx.createOscillator(); waveL.frequency.value = 0.11; const waveG = ctx.createGain(); waveG.gain.value = 0.09 * bgK; waveL.connect(waveG); waveG.connect(swG.gain); waveL.start();
     const cutL = ctx.createOscillator(); cutL.frequency.value = 0.045; const cutG = ctx.createGain(); cutG.gain.value = 160; cutL.connect(cutG); cutG.connect(swLp.frequency); cutL.start();
-    sw.connect(swLp); swLp.connect(swG); swG.connect(musicBus); sw.start();
+    sw.connect(swLp); swLp.connect(swG); swG.connect(ambBus); sw.start();
     // deep hum: what pressure sounds like
     const hum = ctx.createOscillator(); hum.type = 'sine'; hum.frequency.value = 49;
     const hum2 = ctx.createOscillator(); hum2.type = 'sine'; hum2.frequency.value = 73.5;
     const humG = ctx.createGain(); humG.gain.value = 0; humG.gain.linearRampToValueAtTime(0.06 * bgK, t0 + 4);
-    hum.connect(humG); hum2.connect(humG); humG.connect(musicBus); hum.start(); hum2.start();
+    hum.connect(humG); hum2.connect(humG); humG.connect(ambBus); hum.start(); hum2.start();
     // soft pad: pure sines through a dark filter, one chord fading into the next every ~14s
-    padBus = ctx.createGain(); padBus.gain.value = 1; padBus.connect(musicBus); padF = ctx.createBiquadFilter(); padF.type = 'lowpass'; padF.frequency.value = 12000; padF.connect(padBus); // mood layer: swells / thins with the game
+    padBus = ctx.createGain(); padBus.gain.value = 1; padBus.connect(ambBus); padF = ctx.createBiquadFilter(); padF.type = 'lowpass'; padF.frequency.value = 12000; padF.connect(padBus); // mood layer: swells / thins with the game
     padLayer = ctx.createGain(); padLayer.gain.value = 1; padLayer.connect(padF);
     const padLp = ctx.createBiquadFilter(); padLp.type = 'lowpass'; padLp.frequency.value = 700; padLp.Q.value = 0.3; padLp.connect(padLayer);
     const CH = [[0, 7, 15, 19], [-2, 5, 14, 17], [-4, 3, 12, 19], [-5, 7, 14, 17]], ROOT = 110;
@@ -808,14 +811,14 @@ const Audio = (() => {
     // now and then one soft, far-away chime from the current chord (single notes with long tails: colour, not a tune)
     const chime = (t) => { const st = lastChord[1 + (Math.random() * 3 | 0)] + 24, f = ROOT * Math.pow(2, st / 12);
       for (const [mul, a] of [[1, 0.02], [2.76, 0.005]]) { const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = f * mul; const g = ctx.createGain();
-        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0003, t + 4.5); o.connect(g); g.connect(padF || musicBus); o.start(t); o.stop(t + 4.6); } };
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0003, t + 4.5); o.connect(g); g.connect(padF || ambBus); o.start(t); o.stop(t + 4.6); } };
     let nextChime = t0 + 6;
     // distant bubble trail: a few soft rising blips, panned
-    const bubbleTrail = (t) => { const n = 3 + (Math.random() * 6 | 0); const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null; if (pan) { pan.pan.value = Math.random() * 1.6 - 0.8; pan.connect(musicBus); }
+    const bubbleTrail = (t) => { const n = 3 + (Math.random() * 6 | 0); const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null; if (pan) { pan.pan.value = Math.random() * 1.6 - 0.8; pan.connect(ambBus); }
       for (let i = 0; i < n; i++) { const tt = t + i * (0.06 + Math.random() * 0.12); const f = 300 + Math.random() * 500;
         const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(f, tt); o.frequency.exponentialRampToValueAtTime(f * 1.9, tt + 0.07);
         const g = ctx.createGain(); g.gain.setValueAtTime(0, tt); g.gain.linearRampToValueAtTime(0.018, tt + 0.01); g.gain.exponentialRampToValueAtTime(0.0005, tt + 0.12);
-        o.connect(g); g.connect(pan || musicBus); o.start(tt); o.stop(tt + 0.15); } };
+        o.connect(g); g.connect(pan || ambBus); o.start(tt); o.stop(tt + 0.15); } };
     let nextBub = t0 + 3;
     const tick = () => {
       if (!ctx) return;
@@ -914,20 +917,22 @@ const Audio = (() => {
   // Returns the clip length in seconds (0 when no clip exists yet, so the captions keep their own timing).
   let voEl = null;
   function vo(id) { const src = window.AQ_DATA && AQ_DATA.VO && AQ_DATA.VO[id]; if (!src || muted) return 0;
-    try { if (voEl) voEl.pause(); voEl = new window.Audio(src); voEl.volume = settings.sfx; voEl.play().catch(() => {});
-      if (musicBus && ctx) { musicBus.gain.setTargetAtTime(musicOn ? settings.music * 0.35 : 0, ctx.currentTime, 0.2); voEl.onended = () => musicBus.gain.setTargetAtTime(musicOn ? settings.music : 0, ctx.currentTime, 0.6); }
+    try { if (voEl) voEl.pause(); voEl = new window.Audio(src); voEl.volume = Math.min(1, vol.sfx * vol.sfx); voEl.play().catch(() => {});
+      if (musicBus && ctx) { musicBus.gain.setTargetAtTime(gMusic() * 0.35, ctx.currentTime, 0.2); ambBus.gain.setTargetAtTime(gAmb() * 0.35, ctx.currentTime, 0.2); voEl.onended = () => { musicBus.gain.setTargetAtTime(gMusic(), ctx.currentTime, 0.6); ambBus.gain.setTargetAtTime(gAmb(), ctx.currentTime, 0.6); }; }
       return voEl.duration || 0; } catch { return 0; } }
-  function stopVo() { if (voEl) { voEl.pause(); voEl = null; } if (musicBus && ctx) musicBus.gain.setTargetAtTime(musicOn ? settings.music : 0, ctx.currentTime, 0.4); }
+  function stopVo() { if (voEl) { voEl.pause(); voEl = null; } if (musicBus && ctx) { musicBus.gain.setTargetAtTime(gMusic(), ctx.currentTime, 0.4); ambBus.gain.setTargetAtTime(gAmb(), ctx.currentTime, 0.4); } }
   function setMuted(m) { muted = m; if (master) master.gain.value = m ? 0 : 1; }
-  function setMusic(on) { musicOn = on; if (musicBus && ctx) musicBus.gain.setTargetAtTime(on ? settings.music : 0, ctx.currentTime, 0.6); }
-  function setVolumes(music, sfx) { settings.music = music; settings.sfx = sfx; if (musicBus) musicBus.gain.value = musicOn ? music : 0; if (sfxBus) sfxBus.gain.value = sfx; try { localStorage.setItem('dc-audio', JSON.stringify(settings)); } catch {} }
+  function setMusic(on) { musicOn = on; if (musicBus && ctx) musicBus.gain.setTargetAtTime(gMusic(), ctx.currentTime, 0.6); }
+  function setVolumes(music, sfx) { if (sfx === 0) setVol('sfx', 0); }
+  function setVol(k, v) { if (!(k in vol)) return; vol[k] = Math.max(0, Math.min(1, +v || 0)); if (!ctx) return; const t = ctx.currentTime;
+    if (k === 'music' && musicBus) musicBus.gain.setTargetAtTime(gMusic(), t, 0.05); if (k === 'amb' && ambBus) ambBus.gain.setTargetAtTime(gAmb(), t, 0.05); if (k === 'sfx' && sfxBus) sfxBus.gain.setTargetAtTime(gSfx(), t, 0.05); }
   function pearl(n) { if (!ctx || muted) return; if (playFile('pearl', Math.pow(2, (n - 1) * 3 / 12))) return; const t = ctx.currentTime + 0.05, f = 523 * Math.pow(2, (n - 1) * 4 / 12); note(f, t, 0.9, 'triangle', 0.13, sfxBus); note(f * 2, t + 0.07, 0.6, 'sine', 0.06, sfxBus); } // each pearl a step higher
   function star(i) { if (!ctx || muted) return; if (playFile('star', Math.pow(2, i * 4 / 12))) return; const t = ctx.currentTime, f = 784 * Math.pow(2, i * 5 / 12); note(f, t, 0.7, 'triangle', 0.14, sfxBus); note(f * 1.5, t + 0.03, 0.5, 'sine', 0.06, sfxBus); thump(110, 0.12, 0.18); }
   // share clips: the mixed game sound as a MediaStream for the recorder
   let capDest = null;
   function capture() { if (!ctx || !master || !ctx.createMediaStreamDestination) return null; try { capDest = ctx.createMediaStreamDestination(); (outNode || master).connect(capDest); return capDest.stream; } catch (er) { capDest = null; return null; } }
   function release() { if (capDest) { try { (outNode || master).disconnect(capDest); } catch (er) {} capDest = null; } }
-  return { init, resume, play, vo, stopVo, swell, setTension, setMuted, setMusic, setVolumes, settings, pearl, star, capture, release, music, get musicOn() { return TR.on; }, get ctx() { return ctx; }, get files() { return FILES; } };
+  return { init, resume, play, vo, stopVo, swell, setTension, setMuted, setMusic, setVolumes, setVol, vol, settings, pearl, star, capture, release, music, get musicOn() { return TR.on; }, get ctx() { return ctx; }, get files() { return FILES; } };
 })();
 
 // Deep Current — renderer v3: clean, bright, front-on puzzle board built from premium primitives.
@@ -4131,7 +4136,7 @@ window.__T = T;
       const st = !dive && save.stars[i + 1], bb = $('#introBest'); bb.hidden = !st; if (st) bb.textContent = `Your best ${'★'.repeat(st)}${'☆'.repeat(3 - st)}`; }
     $('#introBalls').textContent = engine.ballsTotal === 1 ? '1 pearl' : `${engine.ballsTotal} pearls`; $('#introAir').textContent = engine.relaxed ? 'Relaxed: no air timer' : `${Math.round(engine.time)}s of air`;
     screenStack = []; setState('intro'); show('intro'); hudKey = ''; updateHud();
-    Audio.setMusic(save.settings.music);
+    applyAudio();
   }
   // ---- spotlight tutorial: the first time a level brings something new, the game waits, the screen dims and a ring of light
   // circles exactly the thing the words talk about (so a voice-over line always matches the picture). One short, plain line per
@@ -4722,7 +4727,7 @@ window.__T = T;
   // the title opens on finger-up; the browser's click that follows would land on whatever menu button is now under the finger
   // (it started a level straight from the title), so swallow clicks for a moment after it
   let clickGuard = false; document.addEventListener('click', ev => { if (clickGuard) { clickGuard = false; ev.stopPropagation(); ev.preventDefault(); } }, true);
-  function unlock() { if (state !== 'splash' || (typeof booting !== 'undefined' && booting)) return; clickGuard = true; setTimeout(() => { clickGuard = false; }, 0); /* the click is already queued behind this pointerup, so it runs before this timer */ Audio.init(); Audio.resume(); Audio.setMusic(save.settings.music); Audio.setMuted(false); tryFullscreen(); if (!save.introSeen) startCine(); else openHome(); }
+  function unlock() { if (state !== 'splash' || (typeof booting !== 'undefined' && booting)) return; clickGuard = true; setTimeout(() => { clickGuard = false; }, 0); /* the click is already queued behind this pointerup, so it runs before this timer */ Audio.init(); Audio.resume(); applyAudio(); tryFullscreen(); if (!save.introSeen) startCine(); else openHome(); }
   $('#splash').addEventListener('pointerup', unlock);
   $('#btnPlay').onclick = ev => { click(); buzz(10); wipeTo(() => startLevel(Math.min(save.unlocked, LEVELS.length) - 1), ev); };
   $('#btnDive').onclick = () => { click(); beginPlay(); };
@@ -4747,16 +4752,26 @@ window.__T = T;
   $('#btnResLevels').onclick = ev => { click(); wipeTo(() => { openHome(); go('levels'); }, ev); };
   function tryFullscreen(force) { const el = document.documentElement; if (!document.fullscreenElement && el.requestFullscreen && force) el.requestFullscreen().catch(() => {}); }
   // settings
-  function applyAudio() { Audio.setMusic(save.settings.music); Audio.setVolumes(Audio.settings.music, save.settings.sfx ? 0.9 : 0); }
-  function syncSound() { const on = save.settings.music || save.settings.sfx; $('#sndLbl').textContent = on ? 'Sound on' : 'Muted'; const w = $('#sndWave'); if (w) w.style.display = on ? '' : 'none'; const ic = $('#btnSound .ico'); if (ic) ic.style.setProperty('--ico', `var(--ui-${on ? 'i_sound' : 'i_mute'})`); }
-  function syncSettings() { $('#setMusic').checked = save.settings.music; $('#setSfx').checked = save.settings.sfx; $('#setVibe').checked = save.settings.vibe; $('#setFps').checked = !!save.settings.fps; $('#fpsMeter').hidden = !save.settings.fps;
+  // volumes: three sliders (music / ambience / sound effects), in Settings and on the pause screen, plus Mute on the pause screen.
+  // Older saves had on/off switches: "Ambience" off meant no music and no bed, "Sound effects" off meant no effects.
+  function vols() { const st = save.settings; if (!st.vol || typeof st.vol !== 'object') st.vol = { music: st.music === false ? 0 : 0.55, amb: st.music === false ? 0 : 0.8, sfx: st.sfx === false ? 0 : 1 };
+    for (const [k, d] of [['music', 0.55], ['amb', 0.8], ['sfx', 1]]) { const v = +st.vol[k]; st.vol[k] = isFinite(v) ? Math.max(0, Math.min(1, v)) : d; } return st.vol; }
+  function applyAudio() { const v = vols(); for (const k of ['music', 'amb', 'sfx']) Audio.setVol(k, v[k]); Audio.setMusic(true); Audio.setMuted(!!save.settings.mute); syncVolUI(); }
+  function syncVolUI() { const v = vols(); document.querySelectorAll('input.vol[data-vol]').forEach(el => { const k = el.dataset.vol, n = Math.round(v[k] * 100); if (+el.value !== n) el.value = n; el.style.setProperty('--p', n + '%');
+      const o = el.parentElement.querySelector('.vol-v'); if (o) o.textContent = n ? n + '%' : 'Off'; }); }
+  let volSave = 0;
+  document.querySelectorAll('input.vol[data-vol]').forEach(el => {
+    el.addEventListener('input', () => { const k = el.dataset.vol, v = Math.max(0, Math.min(1, el.value / 100)); vols()[k] = v; Audio.setVol(k, v);
+      if (save.settings.mute && v > 0) { save.settings.mute = false; Audio.setMuted(false); syncSound(); } syncVolUI(); clearTimeout(volSave); volSave = setTimeout(persist, 300); });
+    el.addEventListener('change', () => { if (el.dataset.vol === 'sfx') Audio.play('pearl'); persist(); }); // let them hear the new effects level
+    el.addEventListener('pointerdown', ev => ev.stopPropagation()); });
+  function syncSound() { const on = !save.settings.mute; $('#sndLbl').textContent = on ? 'Sound on' : 'Muted'; const w = $('#sndWave'); if (w) w.style.display = on ? '' : 'none'; const ic = $('#btnSound .ico'); if (ic) ic.style.setProperty('--ico', `var(--ui-${on ? 'i_sound' : 'i_mute'})`); }
+  function syncSettings() { syncVolUI(); $('#setVibe').checked = save.settings.vibe; $('#setFps').checked = !!save.settings.fps; $('#fpsMeter').hidden = !save.settings.fps;
     $('#setRelax').checked = !!save.settings.relaxed; $('#setCb').checked = !!save.settings.cb; $('#setBig').checked = !!save.settings.bighud; $('#setDanger').checked = save.settings.danger !== false;
     document.querySelectorAll('#setQuality button').forEach(b => b.classList.toggle('on', b.dataset.q === gfxMode()));
     document.querySelectorAll('#setRes button').forEach(b => b.classList.toggle('on', b.dataset.r === (save.settings.res || 'auto')));
     const rn = $('#resNow'); if (rn) rn.textContent = `Now: ${Math.round((world.resLock || world.resScale || 1) * 100)}% · ${world.renderer.domElement.width}×${world.renderer.domElement.height}`;
     const gn = $('#gfxNow'); if (gn) gn.textContent = gfxMode() === 'auto' ? `Now: ${world.quality[0].toUpperCase()}${world.quality.slice(1)}` : ''; }
-  $('#setMusic').onchange = e => { save.settings.music = e.target.checked; applyAudio(); persist(); };
-  $('#setSfx').onchange = e => { save.settings.sfx = e.target.checked; applyAudio(); persist(); };
   $('#setVibe').onchange = e => { save.settings.vibe = e.target.checked; persist(); buzz(15); };
   function applyAccess() { World.setColorMarks(save.settings.cb); document.body.classList.toggle('cb', !!save.settings.cb); document.body.classList.toggle('bighud', !!save.settings.bighud); }
   $('#setRelax').onchange = e => { save.settings.relaxed = e.target.checked; persist(); toast(e.target.checked ? 'Relaxed mode: no air timer (1 star per level)' : 'Air timer back on'); };
@@ -4773,7 +4788,7 @@ window.__T = T;
   document.querySelectorAll('#setRes button').forEach(b => b.onclick = () => { click(); save.settings.res = b.dataset.r; persist(); applyRes(); syncSettings(); });
   applyRes();
   world.onAutoTier = q => { if (gfxMode() === 'auto' && save.settings.aqTier !== q) { save.settings.aqTier = q; persist(); } }; // the next launch starts its tuning near here
-  $('#btnSound').onclick = () => { const on = !(save.settings.music || save.settings.sfx); save.settings.music = on; save.settings.sfx = on; applyAudio(); persist(); syncSound(); click(); };
+  $('#btnSound').onclick = () => { save.settings.mute = !save.settings.mute; Audio.setMuted(!!save.settings.mute); persist(); syncSound(); if (!save.settings.mute) click(); };
   $('#btnReset').onclick = () => { const b = $('#btnReset'); click();
     if (!b.classList.contains('sure')) { b.classList.add('sure'); b.dataset.t = b.textContent; b.textContent = document.body.classList.contains('touch') ? 'Sure? Tap again' : 'Sure? Click again'; buzz(20); clearTimeout(b.tm); b.tm = setTimeout(() => { b.classList.remove('sure'); b.textContent = b.dataset.t; }, 3500); return; }
     clearTimeout(b.tm); b.classList.remove('sure'); b.textContent = b.dataset.t; save.unlocked = 1; save.stars = {}; save.best = {}; persist(); refreshHome(); toast('Progress erased'); };
@@ -4781,7 +4796,7 @@ window.__T = T;
   // graphics: 'auto' (default) adapts to the frame rate; an older 'Battery saver' choice carries over as low
   function gfxMode() { if (!save.settings.gfx) save.settings.gfx = save.settings.quality === 'low' ? 'low' : 'auto'; return save.settings.gfx; }
   if (gfxMode() !== 'auto') world.setQuality(gfxMode());
-  if (!save.settings.sfx) Audio.setVolumes(Audio.settings.music, 0);
+  applyAudio();
 
   // ---- loop ----
   let heldFrame = false, heldDirty = false, lastHeld = 0;

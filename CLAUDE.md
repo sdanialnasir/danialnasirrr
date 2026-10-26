@@ -515,3 +515,13 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - Measured (raw samples after the clipper, level 1 menu → play music + a burst of effects + 6 big cues stacked ×3): music −17.7 → −23.0 dB
   RMS, loudest effects −10.0 → −6.9 dB, peak −0.6 dBFS, 0 samples over full scale. Script idea: tap `capture()`'s destination with a
   ScriptProcessor via an init script (Opus-encoded recordings show false overs).
+
+## Volume sliders (Settings + pause screen)
+- Three channels in `Audio`: **music** (the songs: `TR` tracks → `musicBus`), **amb** (the synth bed: ocean swell, hum, pad, chimes,
+  far bubble trails, the optional ambience file → `ambBus`), **sfx** (`sfxBus`). `Audio.setVol(k, 0..1)`; gains are squared
+  (`gMusic` 0.6·v², `gAmb` 0.6·v², `gSfx` 0.9·v²). Voice-over ducks music and amb.
+- Controller: `save.settings.vol = { music, amb, sfx }` (defaults 0.55 / 0.8 / 1; old saves map the "Ambience"/"Sound effects" switches
+  to 0), `applyAudio()`, `syncVolUI()`. Every `input.vol[data-vol]` slider (3 in Settings, 3 in the pause card's `.pz-vol`) stays in
+  sync; releasing the effects slider plays a pearl chime as a preview. The pause "Sound" tile is now Mute all (`save.settings.mute`);
+  moving any slider above 0 unmutes.
+- Default mix measured: music + bed −29 dB RMS (was −23 last pass, −17.7 originally), loudest effects −7.5 dB, peak −0.6 dBFS.
