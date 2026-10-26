@@ -463,16 +463,16 @@ const LEVELS = [
 '#W.                 E#',
 '######################',
 ]},
-{ name: "Trapdoor", time: 110, hint: "When the trapdoor opens, the stones beside it follow the pearl down. Decide where.", map: [
-'####################',
-'#P.................#',
-'#...RBR.WWWWWWWWW..#',
-'#WW.W.W.WWWWWWWWW..#',
-'#WW W WWWWWWWWWWW..#',
-'#WW W WWWWWBWWWWW..#',
-'#WWWW  ............#',
-'#WWWWE WWWWWWWWWWWW#',
-'####################',
+{ name: "Middle Pearl", time: 90, hint: "The middle pearl is closest to the gate. Send it in first, or the others jam against it.", map: [
+'############',
+'#. WRWP..  #',
+'#WWW.WWRRW #',
+'#W WWWWWWW.#',
+'#W  WWRW W #',
+'#W .. W .. #',
+'#W B B. B .#',
+'#WWWEWWWWW #',
+'############',
 ]},
 { name: "Crossfire", time: 115, hint: "The left well holds exactly two stones. Pick the right two before you drop any.", tip: "Twist: two piranhas at once", map: [
 '####################',
@@ -486,41 +486,26 @@ const LEVELS = [
 '#WWWWWWWWWWWWEWWWWW#',
 '####################',
 ]},
-{ name: "Avalanche", time: 190, hint: "Each stone needs a home of its own. Count them before you empty a silo.", map: [
-'####################',
-'#P.................#',
-'#........WWW.......#',
-'#WW.WWWW.WBW.WWWWWW#',
-'#WW.WWBW.WRW.WWWWWW#',
-'#WW.WWRW.WRW.WWWWWW#',
-'#W....R...R......WW#',
-'#WEW WWW WWWW WWWWW#',
-'####################',
+{ name: "Open Road", time: 85, hint: "Dig the whole floor road before you push anything. A pearl stopped by sand is hard to reach again.", map: [
+'###########',
+'#W W WW PW#',
+'#W RRRW.  #',
+'#RWWWWWW.W#',
+'#W.   W ..#',
+'#W B.. .B.#',
+'#.WWWWEWWW#',
+'###########',
 ]},
-{ name: "Vault", time: 140, hint: "The vault has two doors. Only one lets the stone out without sealing the gate.", map: [
-'####################',
-'#P...........R WWWW#',
-'#.....WWWWWWWW WWWW#',
-'#.WWW.W......W WWWW#',
-'#.WWW.W.BW...W WWWW#',
-'#.WWW.W.R....WJWWWW#',
-'#.....WWWW.W.W WWWW#',
-'#.....WWWW W   WWWW#',
-'#..B.....  WWW WWWW#',
-'#WWWWWWWWWEWWWWWWWW#',
-'####################',
-]},
-{ name: "Switchback", time: 140, hint: "Two holes in the road. Stones fill holes, but you can only push from behind.", map: [
-'####################',
-'#P..B         R   .#',
-'#.WWWWWWWW WWWWWW .#',
-'#.WWWWWWRWWWWWWWW .#',
-'#       .          #',
-'#. WWWWWWWWWWW WWWW#',
-'#. WWWWWWWWWWWWWWWW#',
-'#.                E#',
-'#WWWWWWWWWWWWWWWWWW#',
-'####################',
+{ name: "Rockfall", time: 94, hint: "Clear the floor from the gate outward. The last pearl needs a stone dropped beside it first.", map: [
+'############',
+'# .PWWWWWRR#',
+'#. WWW   RW#',
+'#.WW WWWWWW#',
+'#.   . WWRW#',
+'# R. W W ..#',
+'#R.B B B  W#',
+'#WW.WWWWWEW#',
+'############',
 ]},
 { name: "Crab Cave", time: 115, hint: "Crabs die under stones too. Watch its rhythm before you pull the plug.", tip: "Twist: stones crush crabs too", map: [
 '########################',
@@ -533,30 +518,39 @@ const LEVELS = [
 '#WWWWWWWWWWW WWWWWWW WW#',
 '########################',
 ]},
-{ name: "The Pit", time: 130, hint: "The shaft bends twice. Whatever drops first decides where the next one rolls.", map: [
-'####################',
-'#P.................#',
-'#.B.R.R....R....B..#',
-'#WWWWWWWW WWW WWWWW#',
-'#WWWWWWWW WWWWWWWWW#',
-'#WWWWWWW   WWWWWWWW#',
-'#WWWWWWW W WWWWWWWW#',
-'#WWWWWWWW   WWWWWWW#',
-'#WWWWWWWW W WWWWWWW#',
-'#WWWWWWWWWW WWWWWWW#',
-'#WWWWWWWWWWEWWWWWWW#',
-'####################',
+{ name: "Loose Stone", time: 93, hint: "Move the stone up top out of the way before you dig near it. Then deliver the middle pearl first.", map: [
+'############',
+'#PWW... W.W#',
+'#..R WW.W W#',
+'#W.WWW WWW #',
+'#  .  WWWWR#',
+'#W W WW   W#',
+'#W.B.B .B W#',
+'#.WWW.EWWW.#',
+'############',
 ]},
-{ name: "Lockstep", time: 180, hint: "Push the bottom pearl LEFT, out the back, so the stone drops in front of you.", map: [
-'####################',
-'#P.......... ......#',
-'#W.WWW.WBWWW WWWW.W#',
-'#W.WWW.WBWWWJWWWW.W#',
-'#W.WWW.WRWWW WWWW.W#',
-'#W......B.........E#',
-'#WWWWWWWWWW WWWWWWW#',
-'#WWWWWWWWWWWWWWWWWW#',
-'####################',
+{ name: "Long Floor", time: 92, hint: "Shift the top-left stone before anything else, then roll the pearls in, nearest the gate first.", map: [
+'##############',
+'# R.PWW. W.WW#',
+'#RW.WW. W.WR #',
+'#WW.WW..R. WW#',
+'#RW.  WWWWWW.#',
+'#.W  WW..WWW #',
+'# . . . W  .W#',
+'#WW .B  B B.W#',
+'# WWWWWW.EWW #',
+'##############',
+]},
+{ name: "Three in a Row", time: 104, hint: "Free the stone at the top left first. Then deliver from the gate outward: two pearls side by side can never be split.", map: [
+'#############',
+'#PR   W W WW#',
+'#.WWW  RW.W #',
+'# WWW WWRWW #',
+'# WWWWWWWW  #',
+'#.WW. ...W  #',
+'#. . B B B W#',
+'#WWWWWWWWWE.#',
+'#############',
 ]},
 { name: "Night Shoal", time: 170, hint: "Three piranhas, two stones. The pearl is a weapon too, and order is everything.", tip: "World 3: the Deep", map: [
 '########################',
@@ -569,18 +563,59 @@ const LEVELS = [
 '#WWW WWWWWWW WWWWWWWWWW#',
 '########################',
 ]},
-{ name: "Hourglass", time: 185, hint: "Open the gate-side valve first; the near pearl goes before any stone.", map: [
-'####################',
-'#P                 #',
-'#  R  B     R B  R #',
-'#.WWWWWWWW WWWWWWW.#',
-'#..WWWWWWWJWWWWWW..#',
-'#W..WWWWWW WWWWW..W#',
-'#WW..WWWWW WWWW..WW#',
-'#WWW...... .....WWW#',
-'#WWWWWWWW W WWWWWWW#',
-'#WWWWWWWW WEWWWWWWW#',
-'####################',
+{ name: "Step Back", time: 97, hint: "Sometimes a pearl has to move away from the gate so you can get behind the others.", map: [
+'############',
+'#W  WRW.P W#',
+'#W.WWW  R  #',
+'#WWWW  WR.R#',
+'# WWWW. WWW#',
+'#   W .    #',
+'#   B B. B.#',
+'#WWWWWWWEWW#',
+'############',
+]},
+{ name: "The Long Way", time: 97, hint: "The pearl beside the gate goes first. The left one has a long road; dig it before you push.", map: [
+'############',
+'#WWWP.  .  #',
+'#W W WWWWW.#',
+'#WW  W R.W #',
+'#WWWWWW.WW #',
+'#.  WWWW.. #',
+'#.B. . B B.#',
+'#W.WWWEWWWW#',
+'############',
+]},
+{ name: "Gauntlet", time: 150, hint: "Some shafts sink below the road. Not every stone has to fall where it starts.", map: [
+'######################',
+'#P                  W#',
+'#.WWR.WWWWWWR.WWR.W.W#',
+'#.WWWJWWW WWWJWWW W.W#',
+'#.WWW WWWJWWW WWWJW.W#',
+'# B                 E#',
+'#WWWW WWWWWWW WWWWWWW#',
+'#WWWW WWWWWWWWWWWWWWW#',
+'######################',
+]},
+{ name: "Two Steps Back", time: 95, hint: "Push a pearl away from the gate to make room behind it. Count the steps before you push.", map: [
+'###########',
+'#W RWRWPW #',
+'#  ..WW. R#',
+'# WWW.W.WW#',
+'# . .WW.  #',
+'#W.  B  B #',
+'#WWWWWWEWW#',
+'###########',
+]},
+{ name: "Keystone Drop", time: 112, hint: "Drop the top stone into the well in the middle first: it holds the road together.", map: [
+'#############',
+'#   RW. RP  #',
+'# WWWWWWW .W#',
+'#W       R .#',
+'#   WW WWWW.#',
+'#W .  WWW.  #',
+'#W.B B... B #',
+'#.E.W.WWWWWW#',
+'#############',
 ]},
 { name: "Deep Pressure", time: 40, hint: "Every capsule props up a stone: grab it, then step aside at once. Mind where it lands.", map: [
 '########################',
@@ -595,94 +630,39 @@ const LEVELS = [
 '#WWWWWWWWWWWWWWWWWWWWWW#',
 '########################',
 ]},
-{ name: "Gauntlet", time: 150, hint: "Some shafts sink below the road. Not every stone has to fall where it starts.", map: [
-'######################',
-'#P                  W#',
-'#.WWR.WWWWWWR.WWR.W.W#',
-'#.WWWJWWW WWWJWWW W.W#',
-'#.WWW WWWJWWW WWWJW.W#',
-'# B                 E#',
-'#WWWW WWWWWWW WWWWWWW#',
-'#WWWW WWWWWWWWWWWWWWW#',
-'######################',
+{ name: "Plugged Pit", time: 106, hint: "The pit beside the gate swallows pearls. Fill it with a stone before any pearl rolls over it.", map: [
+'############',
+'#WWWRWP. WW#',
+'#  RW.WW.WW#',
+'#WWW.WW.. .#',
+'#RWR.W WWW.#',
+'#RW.... ...#',
+'#. .B B  B.#',
+'#WE.WWWWWWW#',
+'############',
 ]},
-{ name: "Chain Reaction", time: 175, hint: "Count how deep each pit is. Leaning stones topple in after their neighbour.", map: [
-'######################',
-'#P                   #',
-'#.WWWW.WBW.WWWW.WWWWW#',
-'#.WRRW.WRW.WRRW.WWRWW#',
-'#.WRRW.WRW.WRRW.WWRWW#',
-'#........W.........WW#',
-'#.B       F         E#',
-'#WWW WWW WWW WWWWWWWW#',
-'#WWW WWW WWW WWWWWWWW#',
-'#WWW WWWWWWW WWWWWWWW#',
-'######################',
+{ name: "Long Haul", time: 126, hint: "Nearest pearl first, and never dig under the floor road: a pearl that drops can't come back up.", map: [
+'##############',
+'#WWW P W.W WW#',
+'# W  WWRWWW W#',
+'#   WW . WW R#',
+'#W.WW    WWRW#',
+'#W W .W . .WW#',
+'#  . .WWWW.W #',
+'# B.B B.   ..#',
+'#WWWWWWWWWWWE#',
+'##############',
 ]},
-{ name: "Citadel", time: 220, hint: "The vault tips left unless that side is sealed. Count every pit before a drop.", map: [
-'########################',
-'#P                     #',
-'#.WWBWW.WWWWWW.WWWWWWW.#',
-'#.WWRWW.WWWWWW.WWWWWWW.#',
-'#.WW....WWWWWW.WWWWWBW.#',
-'#... ...WRWWWW.W RWWRW.#',
-'#WW W W.WRWWWW.WRRWWRW.#',
-'#WW WWW...WWWW....WW...#',
-'#WWE   .. F ... C .   .#',
-'#WWWWWWWW WWWWWW WWW WW#',
-'#WWWWWWWW WWWWWW WWW WW#',
-'########################',
-]},
-{ name: "Undertow", time: 195, hint: "Whatever falls crushes what's below. Wait for the monster, then step out of the notch.", map: [
-'########################',
-'#P.....................#',
-'#............R.........#',
-'#.B......R...B.....R...#',
-'#.W WWWW.W WW.WWWW WWWW#',
-'#. C ..        .     FE#',
-'#WWWWWWWWW WWWWWWW WWWW#',
-'#WWWWWWWWWWWWWWWWWWWWWW#',
-'########################',
-]},
-{ name: "Abyss", time: 225, hint: "Two deep jellyfish shafts. Stones go down first, and count how deep each one is.", map: [
-'########################',
-'#P.....W........W......#',
-'#...B.. .R.R.B.. ...R..#',
-'#.WWWWW WWWWWWWW WWWWWW#',
-'#.WW  WJWW   WWW WW  WW#',
-'#.WWWWW WWWWWWWWJWWWWWW#',
-'#...... ........ ..... #',
-'#WWWWWW WWWWWWWW WWWWW #',
-'#WWWWWW WWWWWWWWWWWWWWE#',
-'########################',
-]},
-{ name: "The Energizer", time: 270, hint: "Everything you have learned. Ready the deep road before a single pearl drops.", map: [
-'########################',
-'#P.....................#',
-'#......................#',
-'#.B.........R....R...B.#',
-'#.W WWWWWWW WWWWWW W W.#',
-'#. C ..         .     F#',
-'#.WWWWWWWWW WWWWWW WWWW#',
-'#.WWWWWWWWWJWWWWWWWWWWW#',
-'#.WWWWWWWWW WWWWWWWWWWW#',
-'#.......... .....A....E#',
-'#WWWWWWWWWW WWWWWWWWWWW#',
-'########################',
-]},
-{ name: "Deep Current", time: 270, hint: "Three pearls, one shaft. Fill it to the road, free the vault, and mind the order.", map: [
-'######################',
-'#P...................#',
-'#.....R.B..R.R.R.B...#',
-'#W.WW WWWW.W WWWWWWWW#',
-'#W BC  ..W.W WWWWWWWW#',
-'#WWWW WW.W.WJWWWWWWWW#',
-'#WWWWWW..W.W WWWWWWWW#',
-'#WWWWWW..... ...A...E#',
-'#WWWWWWWWWWW WWWWWWWW#',
-'#WWWWWWWWWWW WWWWWWWW#',
-'#WWWWWWWWWWW WWWWWWWW#',
-'######################',
+{ name: "The Last Gate", time: 114, hint: "One stone, one hole. Fill the hole in the floor before a single pearl rolls over it.", map: [
+'#############',
+'#.W.  PWWWW #',
+'#WW WWW. .WW#',
+'#.. .W .W. W#',
+'#W WW..W WWW#',
+'#. .WWWW  .W#',
+'# B  R B B.W#',
+'#WWWW.WWEWWW#',
+'#############',
 ]},
 ];
 
@@ -3773,6 +3753,9 @@ window.__T = T;
   for (const k of ['stars', 'best', 'owned', 'stats', 'ach', 'daily', 'equip', 'tipsSeen', 'relics', 'relicPaid', 'chest']) if (save[k] !== undefined && (save[k] === null || typeof save[k] !== 'object' || Array.isArray(save[k]))) delete save[k];
   save.stars = save.stars || {}; save.best = save.best || {}; if (typeof save.coins !== 'number' || !isFinite(save.coins)) save.coins = 0; save.unlocked = Math.max(1, Math.min(30, +save.unlocked || 1));
   if ((save.v || 1) < 2) { const s1 = save.stars[1], b1 = save.best[1]; save.stars = s1 ? { 1: s1 } : {}; save.best = b1 ? { 1: b1 } : {}; save.tipsSeen = {}; save.v = 2; }
+  // v3: levels 13-30 were rebuilt as harder puzzles (progressive difficulty): their stars, scores, saved best runs and relic flags
+  // belonged to other maps, so they reset. Progress (unlocked), coins, outfits and everything else are kept.
+  if (save.v < 3) { for (let n = 13; n <= 30; n++) { delete save.stars[n]; delete save.best[n]; for (const k of ['runs', 'relics', 'relicPaid', 'tipsSeen']) if (save[k] && typeof save[k] === 'object') delete save[k][n]; } save.v = 3; }
   const persist = () => { try { localStorage.setItem('dc-save', JSON.stringify(save)); } catch {} };
   const totalStars = () => Object.values(save.stars).reduce((a, b) => a + b, 0);
   let hapEl = null, hapLast = 0;
@@ -4360,10 +4343,10 @@ window.__T = T;
   // verified winning route of every level (synced from tests/routes.json by tools/build.py): drives the level-1 coach and "Show me" hints
   // Daily Dive puzzles (verified with tools/solver; see tools/solver/daily/), one per day in a fixed shuffle
   const DAILY_LEVELS = /*daily*/[{"name":"Two Pockets","time":135,"hint":"The gate swallows pearls dropped from above, but there is room beside it for only two stones.","map":["###################","#P................#","#.B.R.R....R....B.#","#WWWWWWWW WWWW WWW#","#WWWWWWWW WWWWWWWW#","#WWWWWWWW WWWWWWWW#","#WWWWWWWW WWWWWWWW#","#WWWWWWWW WWWWWWWW#","#WWWWWWW   WWWWWWW#","#WWWWWWW E WWWWWWW#","###################"],"route":"RRRRRRRDRLLULLDRRR.........LLLULLDRRRRR.........LLLLLULLDRRRRRRR.......RRURRDRRLLULLDRRR..RRURRDLLLLLLL.......LDDDDDDD."},{"name":"Left First","time":85,"hint":"Falling pearls roll left first. Be the wall on the left when they land.","map":["################","#.............P#","#WWWW.WBWWWW.WW#","#WWWW.WBWWWW.WW#","#WWWW. . WWW.WW#","#WWWWW W WWW.WW#","#WWWWW       EW#","################"],"route":"LLLLLLLLLDDDRRL....DDRRRRRRUUUUULLLLLLLDDDRDDRRRRRRR."},{"name":"Siding","time":130,"hint":"A pearl drops first. Park it out of the way and let the stone through to fill the gap.","map":["#################","#P.........WWWWW#","#    B R B.WWWWW#","#WWWWWWWWW WWWWW#","#WWWWW.... .....#","#WWWWW          #","#WWWWWWWWWWW WW #","#WWWWWWWWWWWWWW #","#WWWWWWWWWWWWWWE#","#################"],"route":"RRRRRRRRRDU....DDDRDLLLRRUUUULLLLDRRR....RDDLDRR..LLLULLDRRRRRRRR...LLLLUUUULLLLLLDRRRRR....RDDLDRRRRR...RDDD."},{"name":"Stone Clock","time":120,"hint":"Pearls crush crabs too. Drop the right-hand pearl just as the crab walks under it.","map":["##################","#P...............#","#..W.BW.WBWWWWWWW#","#W.W..W...WWWWWWW#","#W.WW WWW WWWWWWW#","#W.WW WWW WWWWWWW#","#W.WW WWW WWWWWWW#","#W.         C   E#","#WWWWWWWWWWWWWWWW#","##################"],"route":"RRRRRRDDR....RL.....LUULLLLLDDDDDDRRRRRRRRRRRRRLLLLLLLLLLLLLUUUUUURRDDRL....UULLDDDDDDRRRRRRRRRRRRRR."},{"name":"Pedestal","time":90,"hint":"The pearl rides on a stone. Work it loose from the gate side, and keep its left side packed.","map":["##################","#P...............#","#................#","#................#","#.......B........#","#...B.. R       E#","#WWWWWW .WWWWWWWW#","##################"],"route":"RRRRRRRRRDDDDLLR.UULLDDRRRRRRRRLLLLLLLLLLULLDRRRRRRRRRRRRR."},{"name":"Glancing Blow","time":90,"hint":"Stones roll off pearls. Put a pearl under the drop before the stone comes down.","map":["###############","#P............#","#........R....#","#.............#","#.WWWWWWW   B.#","#.WWWWWW  WWWW#","#..B      EWWW#","#WWWWWWW .WWWW#","###############"],"route":"RRRRRRRRRRRRDDDLL....LULR......DLDLDRUUULLLLLLLLDDDRRRRRRRRR."},{"name":"Jelly Lift","time":115,"hint":"Whatever goes down the jelly shaft first clears the way. Make it the stone.","map":["##################","#P...............#","#  B     .   R   #","#WWWWWWWW WWWWWWW#","#WWWWWWWW WWWWWWW#","#WWWWWWWWJWWWWWWW#","#WWWWWWWW WWWWWWW#","#WWWWWW.  WWWWWWW#","#WWWWWW.        E#","#WWWWWWWWWWW WWWW#","##################"],"route":"RRRRRRRRDURRRRRDLLLL.......LDDDDDLDRRR..LLUUUUUULLLLLULLDRRRRRR...........RDDDDDLDRRRRRRRR."},{"name":"Stair Roll","time":110,"hint":"The stairs carry anything to the gate, but the pit halfway down keeps the first thing that rolls in.","map":["################","#P.............#","# B B  .R..R...#","#WWWWW  .......#","#WWWWWW  WW WWW#","#WWWWWWW  W WWW#","#WWWWWWW    WWW#","#WWWWWWWWW  WWW#","#WWWWWWWWWW WWW#","#WWWWWWWWWWEWWW#","################"],"route":"RRRRRRDDRL.....LUULLLDRR....................LLULLDRRRR....................RRDDRDRDRDRDD."},{"name":"Fish Trap","time":105,"hint":"Stones and pearls both crush piranhas. Fill the dip first, and catch the fish on the way.","map":["#################","#...B.R.P.......#","#...............#","#.WW.W WWWWWWWWW#","#.WW.W WWWWWWWWW#","#.WW.W WWWWWWWWW#","#.B        F   E#","#WWWWW WWWWWWWWW#","#################"],"route":"LDLR......LLLLUDRR.........LDDDDRRRRRRRRRRLLLLLLLLLLUUUULLLDDDDRRRRRRRRRRRRRR."},{"name":"Lead Weight","time":100,"hint":"Lead each stone down the chimney and step out on the side you will push from.","map":["################","#WWWWWWWBWWWWWW#","#WWWWWWW.WWWWWW#","#WWWWWWWRWWWWWW#","#WWWWWWW.WWWWWW#","#WWWWWWWBWWWWWW#","#WWWWWWW.WWWWWW#","#WWWWWWWRWWWWWW#","#P.......    EW#","#WW W WW.WWWWWW#","#WWWWWWWWWWWWWW#","################"],"route":"RRRRRRRR.LLL..RRUUDDL.RRRRRLLLLUUUUDDDDR.LLLLL..RRRRUUUUUUDDDDDDL.RRRRRR."},{"name":"Crab Crossing","time":105,"hint":"Only the right-hand shaft reaches the crab. Drop that stone as it walks underneath; the left one just fills a hole.","map":["####################","#P...R .....R .....#","#.WWW. WWWWW. WWWW.#","#.WWWW WWWWWW WWWW.#","#.B     .   C    ..#","#WWWWW WWWWWW WWWWE#","####################"],"route":"RRRR.RRRRRRRRRRLDDDLLLLLRRRRRRRRRRLLLLLUUULLLLLLLLLLLLDDDRRRRRRRRRRRRRRRRRRD."},{"name":"Twin Claws","time":85,"hint":"One stone, two crabs. Wait until both claws line up under the shaft.","map":["######################","#P.......R ..........#","#WWWWWWWW. WWWWWWWWW.#","#WC         B        #","#WWWWWWWWW WWWWWWWWW #","#W C        B        #","#WWWWWWWWW WWWWWWWWW #","#WWWWWWWWWWWWWWWWWWWE#","######################"],"route":"RRRRRRR.......RDDRRRRRRRRRRRLLLLLLLLLDDRRRRRRRRR..RDD."},{"name":"Jelly Bridge","time":80,"hint":"The shafts are too deep to fill. Push the pearl across as the jellyfish rises under the road, then step back.","map":["#######################","#P....................#","#.B                 B.#","#WWWWWWWW.   .WWWWWWWW#","#WWWWWWWWW EJWWWWWWWWW#","#WWWWWWWWWJW WWWWWWWWW#","#WWWWWWWWWWWWWWWWWWWWW#","#WWWWWWWWWWWWWWWWWWWWW#","#######################"],"route":"DRRRRRRR....R.RLURRRRRRRRRRRRDLLLLLLL....LLRLLDD."},{"name":"Rolling Plug","time":90,"hint":"A falling stone rolls left first. Dig the right pocket before the drop, and the left one only after.","map":["#############","#WWWWWW R..P#","#WWWWWW .WW.#","#WWWWWWJWWW.#","#WWWWWW WWW.#","#WWWWWW ....#","#WWWWW. . B.#","#WWWWW W WWW#","#WWWWWEWWWWW#","#############"],"route":"DDDDLLLDURRRUUUULLL........LDDDDDLRUUUUURRRRDDDDDLLLL..LDD."},{"name":"Crab Fence","time":80,"hint":"You don't have to crush the crab. Drop the stone when it's on the far side and fence it in.","map":["######################","#P...R ..............#","#WWW. WWW.W.WWWWWWWWW#","#WWWW WWW.W.WWWWWWWWW#","#WW  C    B R       E#","#WWWWWWWWWWWWWWW WWWW#","#WWWWWWWWWWWWWWWWWWWW#","######################"],"route":"RRR....R....RRRRRRDDDRRRRLLLLUUULLDDDRRRRRRRRRRR."},{"name":"Fish Hook","time":85,"hint":"A stone in the pond would block the road. Drop the pearl on the piranha when it swims up the chute.","map":["#####################","#P...............B .#","#.WWWWWWWWWWRWWWW. .#","#............WWWWW .#","#WWWWWWWWWWW WWWWW .#","#EF                .#","#WWWWWWWWWWWWWWWWWWW#","#####################"],"route":"RRRRRRRRRRRRRRR.............R.RRDDDDLLLLLLLLLLLLLLLLLL."},{"name":"Pit Count","time":95,"hint":"The deep pit takes two stones, the shallow one only one. The middle stone belongs to the deep pit.","map":["#####################","#P     R    R    R  #","#.WWWWWWWW WWWW WW.W#","#.WWWWWWWW WWWW WW.W#","#.B                E#","#WWWWWWWWW WWWW WWWW#","#WWWWWWWWWJWWWWWWWWW#","#####################"],"route":"RRRRRRRR...RDDDRRRRRRRRUUULL.LLLLL.LLLLLLLLLLDDDRRRRRRRRRRRRRRRRRR."},{"name":"Crab Bait","time":95,"hint":"The crab never leaves its den by itself. Dig through, let it chase you under the stone, then pull the plug.","map":["################","#P............W#","#.WWWWWWWWWWW.W#","#.WWWWWWWWWWR.W#","#.WWWWWWWWWW..W#","#.B C  .......E#","#WWWWWWWWWWW WW#","################"],"route":"RRRRRRRRRRRRDDDDLLLLL.LRRRRRRULRUUULLLLLLLLLLLLDDDDRRRRRRRRRRRRR."},{"name":"Crab Herding","time":105,"hint":"Push the pearl to herd the crab into the corner under the shaft, then drop the stone on it.","map":["#####################","#W R.........P......#","#W ..WWWWWWWW.WWWWW.#","#W W.WWWWWWWW.WWWWW.#","#W W.WWWWWWWW.WWWWW.#","#E    C     B     B.#","#W WWWWWWWWWWWWWWWWW#","#####################"],"route":"DDDDLL..L.L.L.L.L.L.LUUUUL....DRDDDLLUUUURRRRRRRRRRRRRRRRRDDDDLLLLLLLLLLLLLLLLLL."},{"name":"Fish Elevator","time":80,"hint":"The piranha rides up the shaft now and then. Drop the stone while it is inside.","map":["######################","#WWWWWWWWW R.......PW#","#WWW WWWWW .WWWWWW.WW#","#WWW WWWWW WWWWWWW.WW#","#WWW WWWWW WWWWWWW.WW#","#EF              B WW#","#WWWWWWWWW WWWWWWWWWW#","######################"],"route":"LLLLLLL.....L...RRRRRRRDDDDLLLLLLLLLLLLLLLLL."}]/*end*/;
-  const ROUTES = /*routes*/{"1":"DDDRRRL..DRRRRRRL..UULLLLDLDR..R..R..R..R..R..R","2":"RRRRDDDRRRRL...LLLLDDRRRRR.","3":"RRRRRRRRDLLULLLLDRR..RDDRDD.","4":"DDDRRRRRRRRRRLLLLUDL.RRRRRR.","5":"LLLLULLLLLLDD...LRURRRDDDLLUDL.RRRRRRRRRR.","6":"RRRRDR........RDRRRRRDDDLLLLLLLLLLL.","7":"RRRRDDRRUDL...RRLLLUULLLLDDRRRRRRRRRRRRR.","8":"LLULLLLLLLLLDRRRRRLLLLLLDDDDRRRRRRRRRRRR.","9":"LLLLLLLLLLDLLLLLD.......DRRRRRR.....R.RRDDRDLLLLLLLLLL.","10":"RRRDDDDRRRRLUUUDDDL.RRLRRRRRRUULLULLDDRDR...LLLLLLLLULLDRRRRRRRRRRRRRR.","11":"LLLLLLLLLLLLLDDRRRRRRRR.....LLLLLLLLDDRRRRRRLLLLLLUULLDDRRRRRRRRRRRRR.","12":"URRRDRRRRRRRRRRRRRLLLLLLLLLLLLLULLDRRRRRRRRRRRRRRRLLLLLLLLDURRRRRRRRRRRDDDDLLLLLLLLLLLLLLLLULLDDDRRRRRRRRRRRRRRRRRLLLLLLLLLLLLLLLLUURRRRRRRRRRRRRRUURUURRDDDDLLLLLLLUDLLLLLLLLLULLDDDRRRRRRRRRRRRRRRRRR.","13":"RRDDUU....RRRRRRRRRRRRRRDDDDDLLLLLLLLLLLLUUUDDDRR......LLUUUUURRRRRRRRRRRRDDDDDLLLLLLLLLLL.LD.","14":"RRRDDR....RRRRURRDLLLLRRRRRRRRUD...LRURRDLLLUDLLLLLLLLLLLULLDRRRRRRRRRRR.....RDDDDD.","15":"RRDDDDDLRRRLLUUUUURRRRRDDDDDLLL..LLUUUURRRRRDDDDUUUUULLLLLDDDDDRRRR..LLLLRRRRRUUUUURRRRDDDDDLRRRRRLLLLUUUUULLLLDDDDDRRRRUUUUULLLLDDDDDRRRRRRRLLLUUUUULLLLDDDDDRRRRRRLLLLLLLLLLL.LD.","16":"DDDDDDDRURRRDRRRLLLLULLDRRRRRRRLLLLUUUUUUURRRRRRRR....RDDDDDDLLUULLLRUULLLDDRRRRLDUUULLLDDRR....RDDDD.","17":"DDDRRRRRRRL.RRRRRR.RRRRRUUULLLLLLLRRRRRRRDDDLLLLLLLLLLLLLLLLLUUURRRRRRRRRRRRRRRLRRRDDDLLLLLLLLLLLLLLLRLLLDDDRRRRRRRRRRRRRRRRR.","18":"UUUUURRRRRRRRRRRRRRRRDDDDR..RL....DRLLLLLLLLLLLLUDL.RRRRRLLLLLLLUUDDL.RRRRRRRRRRRRRRRRRR.","19":"RRRRRRRRRRRRDLULLDRLLLLULLDRRLLULLDRRRRLLLLULLDRRRRRRURRRRRRRRDLURRRDLLLLLLU..........LLDDDDRDDRDDD.","20":"RRRRRDDDDLRRLUUUURRRRRRRRRRRDDDDLLLLLLLLLLLRRRR.RRRRRRRUUUU..LL...LLLLLLLLLDDDDRRRRRRRRRRRUUUULLLLLLLLLLLDDDDRRRRRRRRRRRUUUULLLLLLLLLLLLLLLDDDDRRRRRRRRRRRRRRRR.","21":"DDDDDLLLLLLLLLLLLLUUUULLULRRRR..........LDDDDDLLLLLLLRRRRRRRRRRRRRRRRRRRRUUUUULLLLLLRRRRRRDDDDDLLLLLLLLLLLLLLLLLLLLL.","22":"RRRRRRRRRRRRRRRRRDLRDDLDLDLDLLLLRRRRURURURUULULLLLLLLLLLLLDRR....RR...RURRLLDDDDDDLRUUUUUULLLLLLLLDRRRRRRURRRRRDL.........RURRDLLLULLDURDLDDDDDRDD.","23":"RUUURRRRRRRRRRRRRRRRRRRRDDDLLLLLLLLLLLLUDR..RRRRRRRRRRRUUULLLLLLLLLLLLLLLLLLLLDDDRRUDRRRRUDRRRRRUDRRRRRUDRRR.RUUULLLLLLLLLLLLLLLLLLLLLRDDDLDDDDRRRRRUDRRRRRRUDRRRRRUDRRRRR.","24":"RRRRDU......RRRRRRRR..DU.....RRRR...DU....RRDDDDLLLLLLLLLLLLL.LRRRRRRRRRRRRRRUUUULLLLLLLLLLLLLLLLLLDDDDRRRRR..RRRRRRRRRRRRRR.","25":"RRRRRDDD....DLLR......RUUUURRRRDDDDRRL......LUUUULLLLDDDDRRL....DRRRRRRRRRRRRLLLLLLLLLLLLULUUUULLLLLDDDDDRRRRRRRRRRRRRRRRRRR.","26":"RRRRRRDDDDLLRULLR....RRUUULLLLLLDDDDRRL...LUUUURRRRRRDDDDDDR....RL....DLUUUUUUURRRRRRRDDDDDDRR.L.....LDLLRRRRRRLLLLUUUUUUURRRRRRRRDDDDDDLLR....RDLLLLLLLLLLLLLLLLLLL.","27":"RRDD..U...RRRRRRRRRURRRRRRD....DU....LLLLULLLLDDU....DDDLLLLLRRRRRRRRRRLLLLLLLUUUULLLLLLLDDDDRRRRRRRRRRRRRRRRRRRRLLLLLLLLUDL.RRRRRRRRRR.","28":"RRRRRDRRURRDLLRRURRDLLLLRRRRURRRDRRRRURRDLLLL.....LLLLRLULLLLLLDLDDDDRRRRRRRRRRRRRRRDULLLLLLLLLLLLLLLUUUURRRRRRRRLLLLLLLLDDDDRRRRRRRRRRRRRRLLLLLLLLLLLLLLUUUULLRLULLDRRRLLLLLDDDDRRRRRRRRRRRRRRRRRRRR..RDD.","29":"RRDD......U...RRRRRRRRUDDU........RRRRRRRUD......DU....RRDU...LLLLLLLLLDDDLLLLLLRRRRRRRRRRRLLLLLDDDDRRRRRRRRRRLLLLLLLLLLLLLLLLLLLLUUUURRRRRRRRRLLLLLLLLLDDDDRRRRRRRRRRRRRRRRRRRRLLLLLLLLLLUUUUUURRRRRRRRRRRDDLLLLLLLLLLRLLLLLLLLLLLLDDDDRRRRRRRRRRRRRRRRRRRRR.","30":"RRRRDU....RRRRRRRDU..........RRDURRDLLLLLLLDDDDDRRRRRRRRRLLLLLLLLLLLUUULRDDDLRRRRRUUUUUULLLLLLLLLLDDDRRRRRLLLLLUUURRRRRRRRDDDDDDUUUUUULLLLLDDDRRRDDLDRRRRRRRRRRRRLLLLLLLUUUUUULLLDULLDRRLLLLLLLUDDDRRRRRRDDDRRRRRRRRRRRLLLLLLLUUUUUURRRRRRDLLLLLULLLDDDDDDRRRRRRRRRR."}/*end*/;
+  const ROUTES = /*routes*/{"1":"DDDRRRL..DRRRRRRL..UULLLLDLDR..R..R..R..R..R..R","2":"RRRRDDDRRRRL...LLLLDDRRRRR.","3":"RRRRRRRRDLLULLLLDRR..RDDRDD.","4":"DDDRRRRRRRRRRLLLLUDL.RRRRRR.","5":"LLLLULLLLLLDD...LRURRRDDDLLUDL.RRRRRRRRRR.","6":"RRRRDR........RDRRRRRDDDLLLLLLLLLLL.","7":"RRRRDDRRUDL...RRLLLUULLLLDDRRRRRRRRRRRRR.","8":"LLULLLLLLLLLDRRRRRLLLLLLDDDDRRRRRRRRRRRR.","9":"LLLLLLLLLLDLLLLLD.......DRRRRRR.....R.RRDDRDLLLLLLLLLL.","10":"RRRDDDDRRRRLUUUDDDL.RRLRRRRRRUULLULLDDRDR...LLLLLLLLULLDRRRRRRRRRRRRRR.","11":"LLLLLLLLLLLLLDDRRRRRRRR.....LLLLLLLLDDRRRRRRLLLLLLUULLDDRRRRRRRRRRRRR.","12":"URRRDRRRRRRRRRRRRRLLLLLLLLLLLLLULLDRRRRRRRRRRRRRRRLLLLLLLLDURRRRRRRRRRRDDDDLLLLLLLLLLLLLLLLULLDDDRRRRRRRRRRRRRRRRRLLLLLLLLLLLLLLLLUURRRRRRRRRRRRRRUURUURRDDDDLLLLLLLUDLLLLLLLLLULLDDDRRRRRRRRRRRRRRRRRR.","13":"RRRRDDDDLLLDLLULDRRRURRDLLLLULLLDRURRDRRRRRLLLLLLD.","14":"RRRDDR....RRRRURRDLLLLRRRRRRRRUD...LRURRDLLLUDLLLLLLLLLLLULLDRRRRRRRRRRR.....RDDDDD.","15":"DDDRDULLDLLLULLDRRRUDRRURRDLLURUULRDDDLLD.","16":"LDLDDRRDURRRDDRRLLUULLDDRRRRLLUULLLLLDRDRRRRRRLLLLRRRRRD.","17":"UUUUURRRRRRRRRRRRRRRRDDDDR..RL....DRLLLLLLLLLLLLUDL.RRRRRLLLLLLLUUDDL.RRRRRRRRRRRRRRRRRR.","18":"DRRLDDRLDDUURRDDRURRLLLUULLDDRRRURRURRDLLLLLUULLDDRRRDR.","19":"LLRDDDDDDRRURRDRURURRDULLDLLULLDRRRURURRDLLLLULLDRRRDR.","20":"RLDDDDDRRRURRRRDRLULLDRRRLULLLLDRRRRRLLLLLLLLUUUUURRUUUULLDDDDDRRRRRRRRRD.","21":"DDDDDLLLLLLLLLLLLLUUUULLULRRRR..........LDDDDDLLLLLLLRRRRRRRRRRRRRRRRRRRRUUUUULLLLLLRRRRRRDDDDDLLLLLLLLLLLLLLLLLLLLL.","22":"LDLDDDRDULLDLLRRURRRRRDLULLLLDRRLLLLULLDRRRRRRUULUURRLLDDDDRRD.","23":"RRRRRRDDDDDULLDLULLLLULLDRRRRURRRURRDLLLLLLLULLDRRRRLLLDURRRRD.","24":"RRRRDU......RRRRRRRR..DU.....RRRR...DU....RRDDDDLLLLLLLLLLLLL.LRRRRRRRRRRRRRRUUUULLLLLLLLLLLLLLLLLLDDDDRRRRR..RRRRRRRRRRRRRR.","25":"DDDDLLLULLDRRRRURURRDLLLLLULLDRRRRLLULLLUURRLUDLDDRDRRRRRD.","26":"LRDRDLLRRRDDLLDLLLRRRURRUULLLLLLLLDDLDURRDLUUURRRRRRRRDDLLDLLLLLLUDRRRRRRURRDLLLLLLLLDL.","27":"RUUURRRRRRRRRRRRRRRRRRRRDDDLLLLLLLLLLLLUDR..RRRRRRRRRRRUUULLLLLLLLLLLLLLLLLLLLDDDRRUDRRRRUDRRRRRUDRRRRRUDRRR.RUUULLLLLLLLLLLLLLLLLLLLLRDDDLDDDDRRRRRUDRRRRRRUDRRRRRUDRRRRR.","28":"RRDDRRDDDULLLLLLRDRULLLDRUDLDUUUUDRRRDLLLURRRRRDLLLLLURRRRRRRDLLLLLLLUURDDLLD.","29":"LDLDLDDDRDURRUURRDRRRDDRRLLLLLRRRUULLULLLDDDRRRRRRLLLLLLULLDRRRRRRRRLLLLLLULLLLDRRRRRRRRRRLUULLUULDDRUDRRDDRRD.","30":"LLLDDLDDLRRDRRDULUURRRURURRDULLDLLLLLULLDRRRRRRURURRDLLLLLLLULLDRRRRRRLLLLULUULRDDDRRRRRRD."}/*end*/;
   const COACH = { on: false, auto: false, hint: 0, route: '', lvl: null, refs: null, idle: 0, lastP: '', ck: '', undoShown: false };
   const objKey = (e) => { const a = []; for (const o of e.objects.values()) if (o.t === T.ROCK || o.t === T.BALL) a.push(o.x + ',' + o.y); return a.sort().join(';') + '|' + e.ballsIn; };
-  function coachStart(i, custom) { COACH.auto = i === 0 && !custom; COACH.hint = 0; COACH.plan = null; COACH.replanKey = ''; planJob++; HINT.busy = false; undoHold = false; COACH.on = COACH.auto; COACH.idle = 0; COACH.ck = ''; COACH.undoShown = false; world.setCoachTrail(null); coachHand(null);
+  function coachStart(i, custom) { COACH.auto = i === 0 && !custom; COACH.hint = 0; COACH.plan = null; COACH.replanKey = ''; planJob++; HINT.busy = false; undoHold = false; planHold = false; COACH.on = COACH.auto; COACH.idle = 0; COACH.ck = ''; COACH.undoShown = false; world.setCoachTrail(null); coachHand(null);
     const lv = custom || LEVELS[i], route = custom ? custom.route || '' : ROUTES[i + 1] || ''; if (COACH.lvl !== lv) { COACH.lvl = lv; COACH.route = route; COACH.refs = null; } }
   function coachRefs() { if (COACH.refs || !COACH.route) return COACH.refs;
     const e = new Engine(COACH.lvl); e.time = e.oxygen = 9999; const M = { U: 'up', D: 'down', L: 'left', R: 'right' }; const R = COACH.refs = [{ key: objKey(e), p: [e.player.x, e.player.y] }];
@@ -4420,9 +4403,9 @@ window.__T = T;
       if (!hintFree()) { save.coins -= HINT.cost; persist(); syncCoins(); toast(`Hint · −${HINT.cost} coins`); } else HINT.readyAt = performance.now() + HINT.every * 1000;
       runHint = true; COACH.plan = { route: plan, refs: planRefs(engine, plan) }; COACH.hint = 5; COACH.lastP = engine.player.x + ',' + engine.player.y; COACH.ck = ''; COACH.idle = 0; buzz(12); hintSync(); }); }
   // plan from the board as it is now (async); if the board moved on meanwhile, the answer is dropped
-  function findPlan(ok) { if (!engine || !engine.player) return; HINT.busy = true; const b = $('#btnHint'); b.classList.add('busy'); const key = plKey(engine), t0 = performance.now(); let told = false;
-    const tell = setTimeout(() => { told = true; toast('Finding a way from here…'); }, 350);
-    planFrom(engine, coachRefs(), COACH.route, (plan, proven) => { clearTimeout(tell); HINT.busy = false; b.classList.remove('busy');
+  function findPlan(ok) { if (!engine || !engine.player) return; HINT.busy = true; planHold = true; const b = $('#btnHint'); b.classList.add('busy'); const key = plKey(engine), t0 = performance.now(); let told = false;
+    const tell = setTimeout(() => { told = true; toast('Thinking… (the reef waits for you)'); }, 350);
+    planFrom(engine, coachRefs(), COACH.route, (plan, proven) => { clearTimeout(tell); HINT.busy = false; planHold = false; b.classList.remove('busy');
       if (state !== 'playing' || !engine || engine.state !== 'playing' || plKey(engine) !== key) return;
       if (plan === null) { noWayForward(proven); return; } ok(plan); }); }
   $('#btnHint').onclick = showMe;
@@ -4505,19 +4488,66 @@ window.__T = T;
     if (m.kind === 'dig' && pth.length) { const back = { up: 'down', down: 'up', left: 'right', right: 'left' }[pth[pth.length - 1]], bx = n.player.x + PLD[back][0], by = n.player.y + PLD[back][1]; if (plWalkable(n, bx, by)) { if (!plExec(n, [back], log)) return null; } }
     plSettle(n, log); if (n.state === 'dead') return null; return { e: n, log }; }
   function plH(e) { let s = (e.ballsTotal - e.ballsIn) * 60; const g = e.gate; for (const o of e.objects.values()) if (o.t === T.BALL && g) s += Math.abs(o.x - g.x) + Math.abs(o.y - g.y) * 1.5; if (g && g.open && e.player) s += Math.abs(e.player.x - g.x) + Math.abs(e.player.y - g.y); return s; }
+  // ---- exact hint search for rooms without monsters (same method as tools/gen/exact.js): while nothing falls, the diver can
+  // swim anywhere in his pocket of open water for free, so a resting board is one state per (board, pocket) and each step is
+  // "swim to a pocket cell + one move into something" (dig, push, take air, enter the gate). While anything falls, every tick
+  // is searched move by move. Complete: if a way exists it is found; if the search runs dry there is truly none.
+  const XD = { U: [0, -1], D: [0, 1], L: [-1, 0], R: [1, 0] };
+  const xHeavy = t => t === T.ROCK || t === T.BALL;
+  function xMoving(e) { for (const o of e.objects.values()) if (xHeavy(o.t) && o.falling) return true; return false; }
+  function xBearing(e) { const c = e.clone(), pc = c.player; c.obj[pc.y * c.w + pc.x] = null; c.set(pc.x, pc.y, T.EMPTY); c.objects.delete(pc.id); c.player = null;
+    const before = []; for (const o of c.objects.values()) if (xHeavy(o.t)) before.push(o.x * 1000 + o.y); c.tick++; c.physics(); let i = 0; for (const o of c.objects.values()) if (xHeavy(o.t) && o.x * 1000 + o.y !== before[i++]) return true; return false; }
+  function xGrid(e, skipP) { const g = e.grid; let s = ''; for (let i = 0; i < g.length; i++) s += String.fromCharCode(48 + (skipP && g[i] === T.PLAYER ? 0 : g[i])); return s; }
+  function xPocket(e) { const W = e.w, p = e.player, seen = new Uint8Array(e.grid.length), q = [p.y * W + p.x]; seen[q[0]] = 1;
+    for (let qi = 0; qi < q.length; qi++) { const c = q[qi], x = c % W, y = (c / W) | 0; for (const k in XD) { const n = (y + XD[k][1]) * W + x + XD[k][0]; if (seen[n]) continue; if (e.grid[n] === T.EMPTY) { seen[n] = 1; q.push(n); } } } return q; }
+  function xState(e) { if (xMoving(e) || xBearing(e)) { let s = 'p' + xGrid(e, false); for (const o of e.objects.values()) if (xHeavy(o.t)) s += o.falling ? (o.fallN || 0) + (o.graced ? 'g' : '') : '_'; return { key: s + e.ballsIn, mode: 'p' }; }
+    const pk = xPocket(e); let m = Infinity; for (const c of pk) if (c < m) m = c; return { key: 'r' + xGrid(e, true) + '@' + m + '|' + e.ballsIn, mode: 'r', pk }; }
+  function xEdges(e, st) { const out = [];
+    if (st.mode === 'p') { const o = ['U', 'D', 'L', 'R']; if (xMoving(e)) o.push('.'); for (const c of o) { const n = e.clone(); if (c !== '.') n.press(PLM[c]); n.step(); out.push([c, n]); } return out; }
+    const W = e.w, P = e.player, G = (x, y) => (x === P.x && y === P.y) ? T.EMPTY : e.get(x, y);
+    for (const c of st.pk) { const x = c % W, y = (c / W) | 0;
+      for (const k in XD) { const nx = x + XD[k][0], ny = y + XD[k][1], t = G(nx, ny);
+        if (t === T.EMPTY || t === T.STEEL || t === T.WALL) continue; if (t === T.GATE && !e.gate.open) continue;
+        if (xHeavy(t) && (XD[k][1] !== 0 || G(nx + XD[k][0], ny) !== T.EMPTY && !(t === T.BALL && G(nx + XD[k][0], ny) === T.GATE))) continue;
+        const n = e.clone(); if (n.player.x !== x || n.player.y !== y) n.moveObj(n.player, x, y); n.press(PLM[k]); n.step(); const q = n.player;
+        if (n.state === 'playing' && q && q.x === x && q.y === y && !xMoving(n)) continue; out.push([c + ':' + k, n]); } }
+    return out; }
+  function xExpand(e0, labs) { const e = e0.clone(); e.oxygen = 9999; let out = '';
+    for (const l of labs) { if (!l.includes(':')) { if (l !== '.') e.press(PLM[l]); e.step(); out += l; continue; }
+      const [c, k] = l.split(':'), W = e.w, target = +c, p = e.player, start = p.y * W + p.x, prev = new Map([[start, -1]]), q = [start];
+      for (let qi = 0; qi < q.length; qi++) { const cc = q[qi]; if (cc === target) break; const x = cc % W, y = (cc / W) | 0; for (const d in XD) { const n = (y + XD[d][1]) * W + x + XD[d][0]; if (prev.has(n) || e.grid[n] !== T.EMPTY) continue; prev.set(n, cc); q.push(n); } }
+      if (!prev.has(target)) return null; const path = []; for (let cc = target; cc !== start; cc = prev.get(cc)) path.push(cc); path.reverse();
+      let cx = start; for (const n of path) { const d = n === cx + 1 ? 'R' : n === cx - 1 ? 'L' : n > cx ? 'D' : 'U'; e.press(PLM[d]); e.step(); out += d; cx = n; if (e.state !== 'playing') return null; }
+      e.press(PLM[k]); e.step(); out += k; if (e.state === 'won') return out; if (e.state !== 'playing') return null; }
+    return e.state === 'won' ? out : null; }
+  const xMonsters = e => { for (const o of e.objects.values()) if (o.t === T.FISH || o.t === T.JELLY || o.t === T.CRAB) return true; return false; };
+  // best-first toward the goal (pearls left, distance to the gate), but it never drops a state, so it is still complete
+  function xPlan(e0, job, cb, budgetMs) { const s0e = e0.clone(); s0e.oxygen = 9999; const g = s0e.gate, t0 = performance.now();
+    const h = e => { let v = (e.ballsTotal - e.ballsIn) * 40; for (const o of e.objects.values()) if (o.t === T.BALL) v += Math.abs(o.x - g.x) * 1.2 + Math.abs(o.y - g.y) * 2; if (e.gate.open && e.player) v += (Math.abs(e.player.x - g.x) + Math.abs(e.player.y - g.y)) * 0.5; return v; };
+    const s0 = xState(s0e), seen = new Map([[s0.key, null]]), heap = [], push = n => { heap.push(n); let i = heap.length - 1; while (i > 0) { const p = (i - 1) >> 1; if (heap[p].f <= n.f) break; heap[i] = heap[p]; i = p; } heap[i] = n; },
+      pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < heap.length && heap[l].f < (m === i ? last.f : heap[m].f)) m = l; if (r < heap.length && heap[r].f < (m === i ? last.f : heap[m].f)) m = r; if (m === i) break; heap[i] = heap[m]; i = m; } heap[i] = last; } return top; };
+    push({ e: s0e, st: s0, f: h(s0e), d: 0, path: null }); let n = 0;
+    const chunk = () => { if (job !== planJob) return; const tEnd = performance.now() + (planHold ? 40 : 14);
+      while (heap.length && performance.now() < tEnd) { const cur = pop(); n++;
+        for (const [l, ne] of xEdges(cur.e, cur.st)) { const path = { l, up: cur.path };
+          if (ne.state === 'won') { const labs = []; for (let p = path; p; p = p.up) labs.push(p.l); const r = xExpand(e0, labs.reverse()); cb(r); return; }
+          if (ne.state !== 'playing') continue; const st = xState(ne); if (seen.has(st.key)) continue; seen.set(st.key, 1); push({ e: ne, st, f: h(ne) + (cur.d + 1) * 0.5, d: cur.d + 1, path }); } }
+      if (!heap.length) { cb(null, true); return; } if (performance.now() - t0 > budgetMs || seen.size > 120000) { cb(null, false); return; } setTimeout(chunk, 0); };
+    setTimeout(chunk, 0); }
   // async: a few milliseconds at a time so the game keeps drawing. cb(plan string | null)
   let planJob = 0;
-  function planFrom(e0, R, RT, cb, budgetMs = 4000) { const job = ++planJob, start = cloneEngine(e0); start.time = e0.time;
+  function planFrom(e0, R, RT, cb, budgetMs = 7000) { const job = ++planJob, start = cloneEngine(e0); start.time = e0.time; start.oxygen = Math.max(start.oxygen, 9999); /* a hint is about the path, not the clock */
     const quick = plRoute(start, R, RT); if (quick !== null) { cb(quick); return; }
+    if (!xMonsters(start)) { xPlan(start, job, cb, budgetMs); return; } // rooms without monsters: the complete search
     const seen = new Set([plKey(start)]), open = [{ e: start, log: '', f: plH(start) }], t0 = performance.now(); let exp = 0, pruned = false;
-    const chunk = () => { if (job !== planJob) return; const tEnd = performance.now() + 14;
+    const chunk = () => { if (job !== planJob) return; const tEnd = performance.now() + (planHold ? 40 : 14);
       while (open.length && performance.now() < tEnd) { open.sort((a, b) => a.f - b.f); const cur = open.shift(); exp++;
         for (const m of plMacros(cur.e)) { const r = plApply(cur.e, m); if (!r) continue; const log = cur.log + r.log.join('');
           if (r.e.state === 'won') { cb(log); return; }
           const back = R && R.keys && R.keys.has(objKey(r.e)) ? plRoute(r.e, R, RT) : null; if (back !== null) { cb(log + back); return; }
           const k = plKey(r.e); if (seen.has(k)) continue; seen.add(k); open.push({ e: r.e, log, f: plH(r.e) + log.length * 0.02 }); }
-        if (open.length > 4000) { open.sort((a, b) => a.f - b.f); open.length = 2000; pruned = true; } }
-      if (!open.length || performance.now() - t0 > budgetMs || exp > 20000) { cb(null, !open.length && !pruned); return; } setTimeout(chunk, 0); }; // 2nd arg: the search ran out of moves (truly stuck)
+        if (open.length > 9000) { open.sort((a, b) => a.f - b.f); open.length = 4500; pruned = true; } }
+      if (!open.length || performance.now() - t0 > budgetMs || exp > 60000) { cb(null, !open.length && !pruned); return; } setTimeout(chunk, 0); }; // 2nd arg: the search ran out of moves (truly stuck)
     setTimeout(chunk, 0); }
   // the coach follows a plan from the current board: reference states simulated along it
   function planRefs(e0, plan) { const e = cloneEngine(e0); e.time = e0.time; const R = [{ key: objKey(e), p: e.player ? [e.player.x, e.player.y] : null }];
@@ -4561,6 +4591,7 @@ window.__T = T;
     if (state !== 'playing') { setState('playing'); show(null); } updateHud(); undoHold = true;
     if (!REDUCED_MOTION) world.flashFx('rewind'); { const pl = engine.player; if (pl) world.particles.bubbles(pl.x, -pl.y, 0.4, 10, 0.08, 0.35); } /* time rewound: a cool blue blink + a puff of bubbles */
     if (extra) toast(`Rewound ${extra + 1} moves to a safe spot`); }
+  let planHold = false; // while a hint is being worked out the world holds still (nothing moves, air paused); any move cancels it
   let undoHold = false; // after an undo the world waits for the player's next move (a falling stone hangs until you act)
   $('#btnUndo').onclick = undo;
 
@@ -4998,6 +5029,7 @@ window.__T = T;
         if (banner.start && ((engine.moveQueue && engine.moveQueue.length) || engine.held)) { banner.start = false; $('#lvlBanner').classList.remove('on'); } // ...and the level-name banner (it sat over the tank)
         { const mv = (engine.moveQueue && engine.moveQueue.length) || engine.held || touch; if (mv) quietAt = now; const q = !!quietAt && now - quietAt < 1200 && (engine.relaxed || engine.oxygen > 15); if (q !== quietOn) { quietOn = q; document.body.classList.toggle('swim', q); } } // quiet HUD while swimming
         if (slowMo > 0) { slowMo = Math.max(0, slowMo - realDt); acc = 0; } // the world holds its breath for a moment
+        if (planHold) { if ((engine.moveQueue && engine.moveQueue.length) || engine.held) { planHold = false; planJob++; HINT.busy = false; $('#btnHint').classList.remove('busy'); } else acc = 0; }
         if (undoHold) { if ((engine.moveQueue && engine.moveQueue.length) || engine.held) undoHold = false; else acc = 0; }
         if (engine.moveQueue && engine.moveQueue.length && acc >= engine.tickMs * 0.6 && acc < engine.tickMs) acc = engine.tickMs; // a fresh tap moves now instead of waiting out the tick
         while (acc >= engine.tickMs) {
