@@ -525,3 +525,17 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   sync; releasing the effects slider plays a pearl chime as a preview. The pause "Sound" tile is now Mute all (`save.settings.mute`);
   moving any slider above 0 unmutes.
 - Default mix measured: music + bed −29 dB RMS (was −23 last pass, −17.7 originally), loudest effects −7.5 dB, peak −0.6 dBFS.
+
+## Push feel + round stones + cyan theme
+- **Pushing** (entity update, ROCK/BALL branch): a pushed pearl/stone now rides at the diver's spring position + 1 cell (`follow`), so the
+  gloves stay on it the whole way; switching between following and free motion is blended (`ent.offX` decays). It rolls exactly as far
+  as it travels (`spin.rotation.z -= dx / r`), no fixed-rate spin and no quarter-turn snapping. The landing squash only fires after a
+  real fall (`ent.fellRows`); before, every push ended in the same squash, so pearls looked like dented eggs ("distorted/broken").
+  A little sand dust rolls off under a pushed object. Diver push lean 0.31 → 0.2 (the helmet sank into the pearl).
+- **Stones** (`makeBoulder`): round outline (no 1.06×0.9 oval, gentler lumps, shallower chisel planes) and no baked dark underside
+  (it rolled round to the top); a rolling stone no longer wobbles or lifts off the floor.
+- **Cyan theme** ("Cyan theme" block at the end of the `<style>`): `--surface` runs blue → teal-cyan with a cyan sheen at the top,
+  cyan lines/glass edges, modal cards / tiles / panels / HUD pills / home dock + Daily Dive get cyan borders and glows; volume sliders
+  fill cyan → gold.
+- Test-harness note: don't name a page global `__T` (the game sets `window.__T`), and screenshot right after driving a frame (a pause
+  lets the browser drop the WebGL drawing buffer, which looks like a blank level).

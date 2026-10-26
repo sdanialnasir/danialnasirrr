@@ -1253,6 +1253,32 @@ input.vol:focus-visible { outline: 2px solid #86e8ff; outline-offset: 2px; borde
 @media (max-width: 560px) { .set-grp .vol-row { grid-template-columns: auto minmax(0, 1fr) auto; row-gap: 0.1rem; }
   .set-grp .vol-row input.vol { grid-column: 2 / 4; grid-row: 2; } .set-grp .vol-row .rt { white-space: nowrap; } }
 @media (max-height: 700px) { .pz-vol { margin-top: 0.6rem; padding: 0.25rem 0.7rem; } .pz-vol .vol-row { min-height: 2.2rem; } .pause-card .pause-hint { display: none; } }
+
+/* ===== Cyan theme (owner: "a bit of cyan in the blue, with gradients"): blue surfaces now run into teal-cyan, edges and glows are
+   cyan, the top of every window catches a soft cyan sheen. Layout untouched; this block only recolours. ===== */
+:root {
+  --surface: radial-gradient(ellipse 130% 55% at 50% -12%, rgba(120, 245, 255, 0.3), transparent 62%), linear-gradient(168deg, rgba(30, 108, 218, 0.96) 0%, rgba(18, 82, 186, 0.97) 46%, rgba(8, 112, 168, 0.97) 100%);
+  --surface-flat: #0c5294;
+  --ink-2: rgba(214, 248, 255, 0.86); --ink-3: rgba(206, 244, 255, 0.78);
+  --line: rgba(130, 235, 255, 0.16); --line-2: rgba(130, 235, 255, 0.34);
+  --glass: linear-gradient(180deg, rgba(10, 54, 116, 0.86), rgba(4, 62, 96, 0.88)); --glass-line: rgba(130, 238, 255, 0.5);
+  --cyan: #5ff0ff;
+}
+body { background: #0a5ea8; }
+.sheet.modal > .wrap { border-color: rgba(120, 234, 255, 0.78); box-shadow: 0 0 0 1px rgba(3, 24, 60, 0.6), 0 0 2.6rem rgba(70, 215, 255, 0.45), var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.32); }
+.sheet.modal .kicker { color: #aef4ff; }
+.panel { background: linear-gradient(180deg, rgba(120, 230, 255, 0.16), rgba(40, 150, 225, 0.08)); border-color: rgba(130, 232, 255, 0.4); }
+.tile { background: linear-gradient(180deg, #3088e6 0%, #1c5cbf 52%, #0e72aa 100%); border-color: rgba(140, 238, 255, 0.62); box-shadow: 0 0.3rem 0.8rem rgba(0, 20, 50, 0.32), 0 0 0.9rem rgba(70, 210, 255, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+.pz-vol { background: linear-gradient(180deg, rgba(6, 42, 100, 0.5), rgba(4, 70, 104, 0.45)); border-color: rgba(130, 232, 255, 0.32); }
+.pz-stats span { background: linear-gradient(180deg, rgba(8, 40, 96, 0.55), rgba(4, 64, 98, 0.55)); border-color: rgba(130, 232, 255, 0.3); }
+.prog, .air { box-shadow: 0 0.35rem 1rem rgba(0, 16, 46, 0.35), 0 0 0.9rem rgba(70, 215, 255, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.16); }
+#home .hm-daily { background: linear-gradient(100deg, rgba(20, 46, 108, 0.95), rgba(8, 74, 122, 0.95)); border-color: rgba(120, 228, 255, 0.52); box-shadow: 0 0.5rem 1.2rem rgba(0, 12, 40, 0.4), 0 0 1rem rgba(70, 210, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.16); }
+#home .hm-nav { background: linear-gradient(180deg, rgba(18, 44, 102, 0.95), rgba(6, 56, 94, 0.97)); border-color: rgba(120, 228, 255, 0.48); box-shadow: 0 0.9rem 2rem rgba(0, 8, 30, 0.5), 0 0 1.2rem rgba(70, 210, 255, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.14); }
+#home .hm-chip, #home .hm-coins { background: linear-gradient(180deg, rgba(16, 44, 100, 0.92), rgba(6, 58, 92, 0.92)); border-color: rgba(120, 228, 255, 0.5); }
+#home .hm-big + .hm-big::before { background: rgba(130, 235, 255, 0.3); }
+.set-ic.c-blue { background: linear-gradient(180deg, #4fb0ff, #1f6ae8); } .set-ic.c-teal { background: linear-gradient(180deg, #5cf2e6, #13a9b8); }
+input.vol::-webkit-slider-runnable-track { background: linear-gradient(90deg, #5ff0ff 0, #ffd23f var(--p), rgba(255, 255, 255, 0.18) var(--p) 100%); }
+input.vol::-moz-range-progress { background: linear-gradient(90deg, #5ff0ff, #ffd23f); }
 </style>
 </head>
 <body data-state="splash">

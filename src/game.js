@@ -1408,13 +1408,13 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     g.putImageData(im, 0, 0); const t = tex(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; }
   function makeBoulder() {
     if (!GEO.rockN) { const g = new THREE.SphereGeometry(0.43, 36, 26), P = g.attributes.position, v = new THREE.Vector3();
-      const planes = [[0.2, 0.9, 0.3, 0.33], [0.85, 0.2, 0.45, 0.35], [-0.8, 0.35, 0.5, 0.36], [0.1, 0.2, 1, 0.37], [-0.3, -0.5, 0.8, 0.38], [0.6, -0.4, -0.7, 0.36], [-0.6, 0.6, -0.5, 0.37]].map(([x, y, z, d]) => [new THREE.Vector3(x, y, z).normalize(), d]);
+      const planes = [[0.2, 0.9, 0.3, 0.405], [0.85, 0.2, 0.45, 0.41], [-0.8, 0.35, 0.5, 0.41], [0.1, 0.2, 1, 0.415], [-0.3, -0.5, 0.8, 0.415], [0.6, -0.4, -0.7, 0.41], [-0.6, 0.6, -0.5, 0.41], [0.3, -0.9, 0.2, 0.41], [-0.7, -0.6, -0.3, 0.41]].map(([x, y, z, d]) => [new THREE.Vector3(x, y, z).normalize(), d]);
       const col = new Float32Array(P.count * 3);
       for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); const n = Math.sin(v.x * 7.1 + v.y * 3.3) * 0.5 + Math.sin(v.y * 5.7 - v.z * 4.9) * 0.4 + Math.sin(v.z * 6.3 + v.x * 5.1) * 0.3;
-        v.multiplyScalar(1 + n * 0.06);
+        v.multiplyScalar(1 + n * 0.028); // gentle lumps: the outline stays round, so a rolling stone never wobbles or lifts off the floor
         for (const [pn, d] of planes) { const h = v.dot(pn); if (h > d) v.addScaledVector(pn, (d - h) * 0.85); } // chisel: flatten toward a few planes
-        v.y *= 0.9; v.x *= 1.06; P.setXYZ(i, v.x, v.y, v.z);
-        const ao = 0.78 + 0.22 * Math.min(1, Math.max(0, (v.y + 0.38) / 0.5)); col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = ao; } // underside sits in its own shade
+        P.setXYZ(i, v.x, v.y, v.z);
+        col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = 1; } // no baked underside shade (it rolled round to the top); the key light shades it
       g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
       // barnacles: small cream domes merged into the same geometry (vertex colour), on the upper front
       const parts = [g], bp = [[0.16, 0.25, 0.27, 0.032], [0.23, 0.19, 0.27, 0.022], [-0.24, 0.1, 0.31, 0.026]];
@@ -3361,15 +3361,26 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       for (const ent of this.entities.values()) {
         const o = ent.o, m = ent.m, moving = o.px !== o.x || o.py !== o.y;
         const k = (o.t === T.ROCK || o.t === T.BALL) && (o.falling || o.py !== o.y) ? a * a : ease;
-        const ix = o.px + (o.x - o.px) * k, iy = -(o.py + (o.y - o.py) * k);
+        let ix = o.px + (o.x - o.px) * k, iy = -(o.py + (o.y - o.py) * k);
         if (o.t === T.ROCK || o.t === T.BALL) {
+          // pushed along the floor: ride just in front of the diver's real (spring) position, so the gloves stay on it the whole way
+          // and it never runs ahead or lags behind him; switching between following and free motion is blended (offX decays)
+          const sg = Math.sign(o.x - o.px), pl = e.player, pe = pl && this.entities.get(pl.id);
+          const follow = sg !== 0 && o.py === o.y && !o.falling && pl && pl.y === o.y && pl.x === o.x - sg && pe && pe.sp;
+          if (follow) ix = Math.min(Math.max(pe.sp.x + sg, Math.min(o.x, o.x - sg * 1.5)), Math.max(o.x, o.x - sg * 1.5));
+          if (follow !== !!ent.follow && ent.lastIx !== undefined) ent.offX = (ent.lastIx + (ent.offX || 0) * 0) - ix; ent.follow = !!follow;
+          ent.offX = (ent.offX || 0) * Math.exp(-dt * 14); if (Math.abs(ent.offX) < 1e-3) ent.offX = 0; ix += ent.offX;
+          // roll exactly as far as it travels (no fixed-rate spin, no quarter-turn snapping)
+          if (ent.lastIx !== undefined) { const dx = ix - ent.lastIx; if (Math.abs(dx) < 0.5) m.userData.spin.rotation.z -= dx / (o.t === T.BALL ? 0.41 : 0.43); }
+          if (follow && ent.lastIx !== undefined && Math.abs(ix - ent.lastIx) > 0.004 && Math.random() < dt * 22 && e.get(o.x, o.y + 1) === T.SAND || (follow && Math.random() < dt * 9)) // a little sand dust rolls off the floor under a pushed pearl/stone
+            this.particles.emit(ix - sg * 0.18, iy - 0.42, 0.4, 1, { color: new THREE.Color(0.98, 0.86, 0.6), speed: 0.25, life: 0.55, size: 0.1, kind: 1, spread: 0.12, vy: 0.25, vx: -sg * 0.35 });
+          ent.lastIx = ix;
           m.position.set(ix, iy, 0.05);
-          if (moving && o.t === T.BALL) { m.userData.spin.rotation.z -= (o.x - o.px) * dt * 7; m.userData.spin.rotation.x += (o.y - o.py) * dt * 5; }
-          if (o.t === T.ROCK) { // a stone block tips a quarter turn per cell it rolls sideways
-            ent.roll = (ent.roll || 0); if (o.x !== o.px && ent.lastRollTick !== o.moved) { ent.lastRollTick = o.moved; ent.rollTarget = (ent.rollTarget || 0) - Math.sign(o.x - o.px) * Math.PI / 2; }
-            ent.roll += ((ent.rollTarget || 0) - ent.roll) * Math.min(1, dt * 14); m.userData.spin.rotation.z = ent.roll; }
-          if (ent.wasFalling && !o.falling && !moving) ent.squash = 1; ent.wasFalling = o.falling || moving;
-          const sq = ent.squash; m.scale.set(1 + sq * 0.12, 1 - sq * 0.14, 1 + sq * 0.12); ent.squash = Math.max(0, sq - dt * 7);
+          // squash only on a real landing after a fall (a push used to end in the same squash, so pearls looked like dented eggs)
+          if (ent.wasFalling && !o.falling && !moving && (ent.fellRows || 0) > 0) ent.squash = Math.min(1, 0.45 + ent.fellRows * 0.25);
+          if (o.falling && o.y > o.py) ent.fellRows = (ent.fallTick === o.moved ? ent.fellRows : (ent.fellRows || 0) + 1), ent.fallTick = o.moved; else if (!o.falling && !moving) ent.fellRows = 0;
+          ent.wasFalling = o.falling || moving;
+          const sq = ent.squash || 0, sqk = Math.sin(Math.min(1, 1 - sq) * Math.PI) * sq; m.scale.set(1 + sqk * 0.1, 1 - sqk * 0.1, 1 + sqk * 0.1); ent.squash = Math.max(0, sq - dt * 6);
           if (ent.teeter > 0) { ent.teeter = Math.max(0, ent.teeter - dt * 5); m.rotation.z = Math.sin(t * 60) * 0.12 * ent.teeter; m.position.y += Math.sin(t * 45) * 0.03 * ent.teeter; } else if (m.rotation.z) m.rotation.z = 0;
           m.userData.shadow.visible = e.get(o.x, o.y + 1) !== T.EMPTY && !o.falling;
           if (o.t === T.BALL) { const pulse = Math.sin(t * 4 + ent.phase); m.userData.glow.scale.setScalar(1.7 + pulse * 0.12); m.userData.core.material.opacity = 0.45 + pulse * 0.15;
@@ -3412,7 +3423,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           u.body.rotation.z = (ent.lean + sway + digE * (act && act.dir === 'down' ? 0.42 : act && act.dir === 'up' ? -0.32 : -0.2)) * (u.glb ? 0.4 : 1); /* the clips already lean */
           u.head.rotation.z = -ent.lean * 0.35 + Math.sin(t * 0.8 + ph + 1) * 0.04 * floatK + (mk === 'bonk' ? Math.sin(mt * 30) * 0.18 * Math.max(0, 1 - mt / 0.5) : 0) + (vyW > 0.4 ? 0.12 : vyW < -0.4 ? -0.18 : 0) * swimK;
           // body slides toward what it pushes so the gloves actually touch it
-          const lean2 = dir * (0.31 * Math.max(ent.reach, pushE) + 0.03 * pushE), hop = joy * 0.16 * Math.abs(Math.sin(mt * 6.5)) ;
+          const lean2 = dir * (0.2 * Math.max(ent.reach, pushE) + 0.02 * pushE), hop = joy * 0.16 * Math.abs(Math.sin(mt * 6.5)) ;
           m.position.set(gx0 + lean2, gy0 + fit.yOff + ent.lift + bob + hop, 0.14); this.playerPos = m.position; this.playerFacing = ent.facing || 1;
           const gx = gx0, gy = gy0;
           // danger cue: a heavy stone/pearl in the column right above the diver (it falls if he moves the wrong way)
