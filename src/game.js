@@ -1166,7 +1166,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
               float bl = sin(p.x * 0.62 + sin(p.y * 0.9) * 1.4) * sin(p.y * 0.75 + p.x * 0.28 + 1.3); base *= 1.0 + bl * 0.1; }
             c = base * mix(1.0, det, 0.58);
             if (uRef > 0.5 && uNew > 0.5) { float dd = clamp((-p.y - 0.5) / 10.0, 0.0, 1.0); // the reference's golden sand (with its rippling light lines), a touch deeper amber far down
-              c = texture2D(uSandRef, p * 0.62 + vec2(0.13, 0.37)).rgb * 1.3 * vec3(1.0, 1.08, 0.92) * mix(vec3(1.0), vec3(0.95, 0.85, 0.75), dd); c = mix(vec3(dot(c, vec3(0.3, 0.59, 0.11))), c, 0.8); } } // golden-yellow like the reference, not orange
+              c = texture2D(uSandRef, p * 0.62 + vec2(0.13, 0.37)).rgb * 1.5 * vec3(1.03, 1.06, 0.82) * mix(vec3(1.0), vec3(0.95, 0.85, 0.75), dd); c = mix(vec3(dot(c, vec3(0.3, 0.59, 0.11))), c, 0.92); } } // golden-yellow like the reference, not orange
           // sediment strata: soft wavy layers of slightly different sand, like a cut through the seabed
           float st = -p.y * 1.15 + sin(p.x * 0.45) * 0.28 + sin(p.x * 1.3 + 2.0) * 0.08;
           float band = floor(st), fb = fract(st), bh = fract(sin(band * 91.7) * 43758.5);
@@ -1939,22 +1939,23 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     if (!TEX.cobbleRock) { // reef rock in the owner's reference style: small and medium flat stones packed tightly, warm browns with a few grey-lavender
       // ones, soft low-contrast shading and thin warm mortar. Two canvases share every stone: a height map (bump) and a colour map.
       const N = 1024, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'); g.fillStyle = 'rgb(58,58,58)'; g.fillRect(0, 0, N, N);
-      const cc = document.createElement('canvas'); cc.width = cc.height = N; const gC = cc.getContext('2d'); gC.fillStyle = '#7a5439'; gC.fillRect(0, 0, N, N);
+      const cc = document.createElement('canvas'); cc.width = cc.height = N; const gC = cc.getContext('2d'); gC.fillStyle = '#5f412f'; gC.fillRect(0, 0, N, N);
       const PAL = [[160, 114, 84], [170, 124, 92], [148, 104, 78], [178, 134, 100], [140, 98, 74], [152, 126, 130], [162, 118, 86], [144, 102, 80], [182, 140, 106], [154, 110, 82], [136, 118, 128], [168, 126, 96]];
       let sd = 11; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647; const stones = []; for (let k = 0; k < 9000; k++) { gC.fillStyle = rnd() < 0.5 ? 'rgba(60,38,22,0.22)' : 'rgba(190,150,110,0.18)'; gC.fillRect(rnd() * N, rnd() * N, 2 + rnd() * 4, 2 + rnd() * 4); } // warm mottled earth between the stones
       const fits = (x, y, r) => { for (const q of stones) { let dx = Math.abs(q.x - x), dy = Math.abs(q.y - y); dx = Math.min(dx, N - dx); dy = Math.min(dy, N - dy); if (dx * dx + dy * dy < (q.r + r + 1.5) ** 2) return false; } return true; };
-      for (const [rmin, rmax, tries] of [[48, 70, 900], [30, 46, 1400], [16, 28, 2600], [8, 14, 700]]) for (let t = 0; t < tries; t++) { const r = rmin + rnd() * (rmax - rmin), x = rnd() * N, y = rnd() * N; if (fits(x, y, r)) stones.push({ x, y, r }); }
-      for (const q of stones) { const a = rnd() * 3.14, rx = q.r * (0.98 + rnd() * 0.12), ry = q.r * (0.8 + rnd() * 0.18), v = 0.72 + rnd() * 0.22, col = PAL[(rnd() * PAL.length) | 0], j = 0.92 + rnd() * 0.16;
+      for (const [rmin, rmax, tries] of [[62, 90, 700], [38, 58, 1200], [18, 34, 2600], [8, 15, 900]]) for (let t = 0; t < tries; t++) { const r = rmin + rnd() * (rmax - rmin), x = rnd() * N, y = rnd() * N; if (fits(x, y, r)) stones.push({ x, y, r }); }
+      for (const q of stones) { const bs = [...Array(14)].map(() => 0.9 + rnd() * 0.16), bp = (ctx, sx = 1) => { ctx.beginPath(); for (let i = 0; i <= 14; i++) { const t = i / 14 * Math.PI * 2, k = bs[i % 14] * sx; const px = Math.cos(t) * rx * k, py = Math.sin(t) * ry * k; if (!i) ctx.moveTo(px, py); else { const t0 = (i - 0.5) / 14 * Math.PI * 2, k0 = (bs[(i - 1) % 14] + bs[i % 14]) / 2 * sx * 1.03; ctx.quadraticCurveTo(Math.cos(t0) * rx * k0, Math.sin(t0) * ry * k0, px, py); } } ctx.closePath(); }; const a = rnd() * 3.14, rx = q.r * (0.98 + rnd() * 0.12), ry = q.r * (0.8 + rnd() * 0.18), v = 0.72 + rnd() * 0.22, col = PAL[(rnd() * PAL.length) | 0], j = 1.04 + rnd() * 0.18;
         for (const ox of [-N, 0, N]) for (const oy of [-N, 0, N]) { const X = q.x + ox, Y = q.y + oy; if (X < -80 || X > N + 80 || Y < -80 || Y > N + 80) continue;
           g.save(); g.translate(X, Y); g.rotate(a); const gr = g.createRadialGradient(-rx * 0.2, -ry * 0.25, 1, 0, 0, Math.max(rx, ry));
           const L = k => Math.round(255 * Math.min(1, v * k)); gr.addColorStop(0, `rgb(${L(1.05)},${L(1.05)},${L(1.05)})`); gr.addColorStop(0.7, `rgb(${L(0.95)},${L(0.95)},${L(0.95)})`); gr.addColorStop(0.92, `rgb(${L(0.75)},${L(0.75)},${L(0.75)})`); gr.addColorStop(1, 'rgb(70,70,70)');
-          g.fillStyle = gr; g.beginPath(); g.ellipse(0, 0, rx, ry, 0, 0, 7); g.fill(); g.restore();
-          gC.save(); gC.translate(X + 2, Y + 3); gC.rotate(a); gC.fillStyle = 'rgba(70,45,28,0.45)'; gC.beginPath(); gC.ellipse(0, 0, rx, ry, 0, 0, 7); gC.fill(); gC.restore(); // a soft shadow in the mortar
+          g.fillStyle = gr; bp(g); g.fill(); g.restore();
+          gC.save(); gC.translate(X + 3, Y + 5); gC.rotate(a); gC.fillStyle = 'rgba(38,22,15,0.62)'; bp(gC); gC.fill(); gC.restore(); // a soft shadow in the mortar
           gC.save(); gC.translate(X, Y); gC.rotate(a); const C = (k, al = 1) => `rgba(${Math.min(255, col[0] * k * j) | 0},${Math.min(255, col[1] * k * j) | 0},${Math.min(255, col[2] * k * j) | 0},${al})`, cg = gC.createRadialGradient(-rx * 0.3, -ry * 0.35, 1, 0, 0, Math.max(rx, ry));
-          cg.addColorStop(0, C(1.08)); cg.addColorStop(0.65, C(1.0)); cg.addColorStop(1, C(0.86)); gC.fillStyle = cg; gC.beginPath(); gC.ellipse(0, 0, rx, ry, 0, 0, 7); gC.fill();
-          gC.save(); gC.clip(); for (let k = 0; k < Math.max(6, q.r * 1.2); k++) { gC.fillStyle = rnd() < 0.5 ? C(1.22, 0.16) : C(0.7, 0.16); gC.beginPath(); gC.arc((rnd() - 0.5) * rx * 2, (rnd() - 0.5) * ry * 2, 1 + rnd() * q.r * 0.12, 0, 7); gC.fill(); } gC.restore(); // rough, mottled stone surface
-          gC.lineWidth = Math.max(1.5, q.r * 0.09); gC.strokeStyle = 'rgba(66,42,26,0.55)'; gC.beginPath(); gC.ellipse(0, 0, rx, ry, 0, 0, 7); gC.stroke(); // soft dark rim
-          gC.lineWidth = Math.max(1, q.r * 0.06); gC.strokeStyle = C(1.35, 0.5); gC.beginPath(); gC.ellipse(0, 0, rx * 0.9, ry * 0.9, 0, Math.PI * 0.95 - a, Math.PI * 1.6 - a); gC.stroke(); // light catch, top-left
+          cg.addColorStop(0, C(1.08)); cg.addColorStop(0.65, C(1.0)); cg.addColorStop(1, C(0.86)); gC.fillStyle = cg; bp(gC); gC.fill();
+          gC.save(); gC.clip(); for (let k = 0; k < Math.max(10, q.r * 5); k++) { gC.fillStyle = rnd() < 0.5 ? C(1.2, 0.2) : C(0.72, 0.22); gC.beginPath(); gC.arc((rnd() - 0.5) * rx * 2, (rnd() - 0.5) * ry * 2, 0.8 + rnd() * q.r * 0.07, 0, 7); gC.fill(); }
+            { gC.rotate(-a); const sg = gC.createLinearGradient(-rx * 0.8, -ry * 0.8, rx * 0.8, ry * 0.8); sg.addColorStop(0, 'rgba(255,240,220,0.2)'); sg.addColorStop(0.5, 'rgba(0,0,0,0)'); sg.addColorStop(1, 'rgba(30,16,8,0.32)'); gC.fillStyle = sg; gC.fillRect(-rx * 1.5, -ry * 1.5, rx * 3, ry * 3); gC.rotate(a); } gC.restore(); // rough, mottled stone surface, lit top-left and shaded bottom-right
+          gC.lineWidth = Math.max(1.5, q.r * 0.09); gC.strokeStyle = 'rgba(52,32,22,0.38)'; bp(gC); gC.stroke(); // soft dark rim
+          gC.lineWidth = Math.max(1, q.r * 0.06); gC.strokeStyle = 'rgba(236,214,192,0.5)'; gC.beginPath(); gC.ellipse(0, 0, rx * 0.9, ry * 0.9, 0, Math.PI * 0.95 - a, Math.PI * 1.6 - a); gC.stroke(); // light catch, top-left
           gC.restore(); } }
       { const im = g.getImageData(0, 0, N, N), d = im.data; for (let k = 0; k < d.length; k += 4) { const n = (rnd() - 0.5) * 14; d[k] = d[k + 1] = d[k + 2] = Math.max(0, Math.min(255, d[k] + n)); } g.putImageData(im, 0, 0); }
       TEX.cobbleRock = new THREE.CanvasTexture(c); TEX.cobbleRock.wrapS = TEX.cobbleRock.wrapT = THREE.RepeatWrapping; TEX.cobbleRock.colorSpace = THREE.NoColorSpace; TEX.cobbleRock.anisotropy = 4;
@@ -1970,9 +1971,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           vec3 tint = mix(uCol, vec3(dot(uCol, vec3(0.3333))) * vec3(0.94, 1.0, 1.06), smoothstep(0.4, 0.8, r3) * 0.5); // stones vary: some greyer, some warmer
           tint *= 0.88 + 0.24 * smoothstep(0.25, 0.8, r2 * 0.5 + r3 * 0.5);                                                // broad light and dark patches
           vec3 c = tint * (0.12 + 0.5 * r * r) * (0.82 + 0.3 * r2);
-          ${world === 0 ? '{ vec3 rc = texture2D(uRockC, pt * 0.3).rgb; rc = mix(vec3(dot(rc, vec3(0.3, 0.59, 0.11))), rc, 0.76) * vec3(1.06, 0.97, 0.94); c = rc * (0.92 + 0.16 * r2) * 0.95; }' : 'c = mix(c, texture2D(uRockC, pt * 0.3).rgb * tint * 1.6, 0.35);'} // the reference's warm cobbles (other worlds keep their colour, with a hint of the stone variety)
+          ${world === 0 ? '{ vec3 rc = texture2D(uRockC, pt * 0.3).rgb; rc = mix(vec3(dot(rc, vec3(0.3, 0.59, 0.11))), rc, 0.76) * vec3(1.06, 0.97, 0.94); rc = mix(vec3(dot(rc, vec3(0.3, 0.59, 0.11))), rc, 1.18) * vec3(1.0, 0.93, 0.88); c = max(rc, 0.0) * (0.92 + 0.16 * r2) * 0.88; }' : 'c = mix(c, texture2D(uRockC, pt * 0.3).rgb * tint * 1.6, 0.35);'} // the reference's warm cobbles (other worlds keep their colour, with a hint of the stone variety)
           { float ee = 0.009, hx = texture2D(uRock, (pt + vec2(ee, 0.0)) * 0.3).r - r, hy = texture2D(uRock, (pt + vec2(0.0, ee)) * 0.3).r - r; // bump: stones lit from the top-left like the key light
-            c *= clamp(1.0 + (-hx * 0.6 + hy * 0.75) * 6.0, 0.7, 1.35);
+            c *= clamp(1.0 + (-hx * 0.6 + hy * 0.75) * 9.5, 0.6, 1.5);
             if (uCol.r > 0.3 || uCol.g > 0.45) c = mix(c, vec3(0.2, 0.36, 0.22) * (0.5 + 0.7 * r), smoothstep(0.5, 0.85, r2) * smoothstep(0.0, 0.02, hy) * smoothstep(0.35, 0.6, r) * 0.32); } // a little algae on the upper faces
           vec2 cell = vec2(floor(p.x + 0.5), floor(-p.y + 0.5)); vec2 lc = vec2(p.x + 0.5, -p.y + 0.5) - cell;
           #define WB(o) texture2D(uMask, (cell + o + 0.5) / uSize).b
@@ -2450,7 +2451,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           c = mix(c * vec3(0.94, 0.99, 1.06), c * vec3(1.03, 1.0, 0.96), smoothstep(0.2, 0.8, l));
           c = max(c, 0.0); vec3 cc = min(c, 1.0); c += (cc * cc * (3.0 - 2.0 * cc) - cc) * 0.55; /* softer filmic contrast (was 0.62) */
           // soft vignette
-          vec2 d = vUv - 0.5; d.x *= aspect; float v = smoothstep(1.05, 0.3, length(d)); c *= mix(0.58 - 0.3 * night - 0.12 * vig, 1.0, v);
+          vec2 d = vUv - 0.5; d.x *= aspect; float v = smoothstep(1.05, 0.3, length(d)); c *= mix(0.74 - 0.46 * night - 0.12 * vig, 1.0, v); c *= 1.0 + 0.05 * (1.0 - night);
           gl_FragColor = vec4(c, 1.0);
           #include <colorspace_fragment>
           gl_FragColor.rgb += (fract(sin(dot(gl_FragCoord.xy + time, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0; }`);
@@ -2493,7 +2494,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   const DAILY_WORLD = new Map(); // Daily Dive puzzles borrow a world's look (set by the controller)
   const WORLD_TINT = [0xffffff, 0xcdb2ff, 0x6a80c4], WORLD_FOG = [0, 0.12, 0.32];
   // per-world identity inside the tank: frame lacquer, water colour, and the deep's glowing specks
-  const WORLD_STYLE = [{ trim: 0x18284f, lo: [0.06, 0.52, 0.78], hi: [0.3, 0.9, 1.0], glow: 0, crystals: 0 },
+  const WORLD_STYLE = [{ trim: 0x18284f, lo: [0.0, 0.4, 0.8], hi: [0.1, 0.76, 1.0], glow: 0, crystals: 0 },
     { trim: 0x3b1c74, lo: [0.12, 0.2, 0.52], hi: [0.34, 0.62, 0.96], glow: 0.25, crystals: 0xb57cff },
     { trim: 0x0c2f3a, lo: [0.02, 0.15, 0.3], hi: [0.07, 0.47, 0.66], glow: 1, crystals: 0x4ff0d8 }];
   const ART_SETS = {
@@ -2795,7 +2796,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     buildPhotoBg() {
       if (this.photo) return; const g = new THREE.Group(); this.scene.add(g);
       const tex = photoTex(PHOTO_IMG);
-      const AR = 1435 / 2560; const bg = new THREE.Mesh(new THREE.PlaneGeometry(1, AR), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, depthWrite: false, fog: false })); bg.renderOrder = -10; g.add(bg);
+      const AR = 1435 / 2560; const bgM = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, depthWrite: false, fog: false }); MAT.bgLift = MAT.bgLift || { value: 1 };
+      bgM.onBeforeCompile = (sh) => { sh.uniforms.uBgLift = MAT.bgLift; sh.fragmentShader = 'uniform float uBgLift;\n' + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+        { vec3 c = diffuseColor.rgb; float bl = clamp((c.b - max(c.r, c.g)) * 3.0, 0.0, 1.0) * uBgLift; float yy = vMapUv.y; // the reference's water: teal-cyan, sunlit toward the surface
+          c.g = mix(c.g, c.g * 1.18, bl); c.r = mix(c.r, c.r + c.b * 0.03, bl);
+          c += vec3(0.05, 0.22, 0.08) * pow(smoothstep(0.62, 1.0, yy), 1.6) * bl; diffuseColor.rgb = c; }`); };
+      const bg = new THREE.Mesh(new THREE.PlaneGeometry(1, AR), bgM); bg.renderOrder = -10; g.add(bg);
       const shimmer = new THREE.Mesh(new THREE.PlaneGeometry(1, AR), new THREE.ShaderMaterial({ uniforms: { uT: MAT.causticT }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, fog: false,
         vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
         fragmentShader: `uniform float uT; varying vec2 vUv; void main(){ if (vUv.y < 0.25) discard; vec2 p = vUv * vec2(9.0, 4.0);
@@ -2935,19 +2941,21 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             float cau = pow(max(0.0, 1.0 - abs(a + b) * 0.5), 6.0); c += vec3(0.55, 0.95, 1.0) * cau * (0.1 + 0.18 * k);            // moving caustic net on the back glass
             { float sx = vW.x * 0.34 + vW.y * 0.16 + sin(uT * 0.11) * 0.35, sh = pow(0.5 + 0.5 * sin(sx * 6.2832 + sin(sx * 2.1 + uT * 0.07) * 1.3), 6.0);
               c += uHi * sh * (0.05 + 0.16 * k * k); }                                                                              // soft slanted sun shafts, swaying slowly, strongest under the surface
-            { float x = vW.x; // hazy reef behind the tank (the reference shows blue rock pillars through the water): a far and a near layer
+            float silA = 0.0; { float x = vW.x; // hazy reef behind the tank (the reference shows blue rock pillars through the water): a far and a near layer
               float far = 0.66 + 0.13 * sin(x * 0.7 + 1.3) + 0.09 * sin(x * 1.9 + 0.4) + 0.05 * sin(x * 4.3) + 0.12 * smoothstep(0.55, 0.9, sin(x * 0.45 + 2.0));
               float nr = 0.45 + 0.08 * sin(x * 1.1 + 4.0) + 0.06 * sin(x * 2.7 + 1.0) + 0.03 * sin(x * 6.3) + 0.16 * smoothstep(0.6, 0.95, sin(x * 0.62 + 5.1));
               float fm = smoothstep(far + 0.012, far - 0.012, k), nm = smoothstep(nr + 0.01, nr - 0.01, k);
               float tex = 0.5 + 0.5 * sin(x * 9.0 + sin(vW.y * 5.0) * 1.5) * sin(vW.y * 7.0 + x * 2.0);
-              c = mix(c, mix(uLo, uHi, 0.42) * (0.86 + 0.06 * tex), fm * 0.7);
-              c = mix(c, uLo * (0.7 + 0.1 * tex) + uHi * 0.05, nm * 0.75);
+              c = mix(c, mix(mix(uLo, uHi, 0.3), vec3(0.36, 0.42, 0.9), 0.4) * (0.72 + 0.12 * tex), fm * 0.8); silA = max(fm * 0.75, nm * 0.9);
+              c = mix(c, mix(uLo, vec3(0.26, 0.24, 0.66), 0.5) * (0.62 + 0.14 * tex) + uHi * 0.04, nm * 0.88);
+              { float cx = floor(x * 2.6), hc = fract(sin(cx * 91.7) * 4375.5); vec2 q = vec2(fract(x * 2.6) - 0.5, (k - nr) * 9.0); float blob = smoothstep(0.32, 0.0, length(q - vec2((hc - 0.5) * 0.4, 0.1)));
+                c = mix(c, mix(vec3(1.0, 0.42, 0.62), vec3(1.0, 0.62, 0.25), step(0.5, hc)) * 0.75, blob * step(0.35, hc) * 0.65 * (1.0 - uGlow * 0.6)); } // coral tufts on the near ridge
               c += uHi * 0.16 * smoothstep(0.05, 0.0, far - k) * fm + uHi * 0.12 * smoothstep(0.04, 0.0, nr - k) * nm; } // sunlit rims on top of each layer
             c *= 0.9 + 0.1 * smoothstep(0.0, 0.5, k);                                                                               // the floor of a tunnel a touch deeper
             { vec2 q = vW.xy * 5.0 + vec2(sin(uT * 0.21 + vW.y) * 0.4, uT * 0.18); vec2 ci = floor(q); float h = fract(sin(dot(ci, vec2(91.7, 37.3))) * 43758.5);
               vec2 f = fract(q) - 0.5 - (vec2(fract(h * 5.7), fract(h * 9.1)) - 0.5) * 0.7; c += vec3(0.8, 0.95, 1.0) * step(0.93, h) * smoothstep(0.06, 0.0, length(f)) * 0.22; } // tiny motes drifting in the water
             { float d = length(vW.xy - uLamp.xy), pool = smoothstep(uLamp.z * 2.0, 0.0, d); c *= 1.0 - uLampAmb * 0.8 * (1.0 - pool); c += vec3(0.5, 0.42, 0.25) * pool * pool * uLamp.w * 0.35; }
-            gl_FragColor = vec4(pow(c, vec3(2.2)), 0.38 + 0.12 * (1.0 - k)); }` }))) : MAT.glassBack);
+            gl_FragColor = vec4(pow(c, vec3(2.2)), mix(0.5 + 0.12 * (1.0 - k), 0.92, silA)); }` }))) : MAT.glassBack);
         if (this.newArt) { const U = back.material.uniforms; U.uH.value.set(yB, yT); U.uLo.value.setRGB(...WS.lo); U.uHi.value.setRGB(...WS.hi); U.uGlow.value = WS.glow; }
         back.position.set(cx, cy, zB); back.renderOrder = 1; tank.add(back);
         for (const sx of [x0, x1]) { const p = new THREE.Mesh(new THREE.PlaneGeometry(zF - zB, h), MAT.glassSide); p.rotation.y = Math.PI / 2; p.position.set(sx, cy, (zF + zB) / 2); p.renderOrder = 2; tank.add(p); }
@@ -3050,8 +3058,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             for (const [x, y] of mass) { if (y < 1 || e.get(x, y - 1) !== T.EMPTY) continue; const hh = variant(x, y + 3); if (hh % 100 > 55) continue; // a few plants on exposed tops
               const nm = ART.ledge[hh % ART.ledge.length], sp = sprPlane(nm, 0.3 + (hh % 4) * 0.05, true, { dz: 0.25, op: 0.5 }); sp.position.set(x + ((hh >> 4) % 5 - 2) * 0.08, -y + 0.5, -0.2); if (hh & 1) sp.scale.x = -1; this.levelGroup.add(sp); }
             // the reference grows little coral clumps right out of the rock face (mostly along its foot, a few higher up)
-            for (const [x, y] of mass) { const hh = variant(x + 7, y * 3 + 1), foot = !mM(x, y + 1); if (hh % 100 > (foot ? 30 : 9)) continue;
-              const CF = ['coral1', 'coral2', 'coral3', 'coral4', 'coral5', 'weed2', 'weed5'], nm = CF[(hh >> 3) % CF.length], sp = sprPlane(nm, 0.26 + (hh % 5) * 0.035, true, { dz: 0.03, op: 0.5 });
+            for (const [x, y] of mass) { const hh = variant(x + 7, y * 3 + 1), foot = !mM(x, y + 1); if (hh % 100 > (foot ? 48 : 13)) continue;
+              const CF = ['coral1', 'coral2', 'coral3', 'coral4', 'coral5', 'weed2', 'weed5'], nm = CF[(hh >> 3) % CF.length], sp = sprPlane(nm, 0.3 + (hh % 5) * 0.045, true, { dz: 0.03, op: 0.5 });
               sp.position.set(x + ((hh >> 5) % 7 - 3) * 0.07, -y - 0.5 + (foot ? 0.02 : 0.18 + ((hh >> 2) % 4) * 0.08), zF + 0.015); if (hh & 2) sp.scale.x = -1; sp.userData.sway = [nm.startsWith('weed') ? 0.05 : 0.015, 1.2, (hh % 50) / 10]; this.levelGroup.add(sp); } } }
         const pol = new THREE.InstancedMesh(GEO.polyp, new THREE.MeshPhysicalMaterial({ roughness: 0.4, clearcoat: 0.6, sheen: 0.5, envMapIntensity: 0.5 }), runs.reduce((a, r) => a + (r[1] - r[0] + 1) * 8, 0));
         const br = new THREE.InstancedMesh(GEO.branch, new THREE.MeshPhysicalMaterial({ roughness: 0.4, clearcoat: 0.6, emissive: 0x220a10, emissiveIntensity: 1 }), runs.reduce((a, r) => a + (r[1] - r[0] + 1) * 3, 0));
@@ -3263,6 +3271,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       { const S = Math.max(W, H) * 0.62 + 2, c = this.key.shadow.camera; c.left = -S; c.right = S; c.top = S; c.bottom = -S; c.near = 1; c.far = 40; c.updateProjectionMatrix(); }
       this.rim.target.position.copy(this.key.target.position); this.rim.position.set((W - 1) / 2 + 4, -(H - 1) / 2 + 10, -6);
       this.positionReef();
+      if (MAT.bgLift) MAT.bgLift.value = e.menu ? 1 : [1, 0.45, 0.2][worldOf(e.name)] ?? 1;
       { const usePhoto = PHOTO_LEVELS.has(e.name) || !!e.menu || !!e.daily; this.photoMode = usePhoto; if (usePhoto) this.buildPhotoBg(); this.bgTint = new THREE.Color(e.menu ? 0xffffff : WORLD_TINT[worldOf(e.name)]); if (this.photo) { this.photo.bg.material.color.copy(this.bgTint); const im = PHOTO_W[e.menu ? 0 : worldOf(e.name)] || PHOTO_IMG; this.photo.bg.material.map = photoTex(im); if (im !== PHOTO_IMG) this.photo.bg.material.color.lerp(new THREE.Color(1, 1, 1), 0.7); } /* an own painting needs little tint */ if (this.photo) this.photo.group.visible = usePhoto;
         if (this.reef) this.reef.group.visible = !usePhoto; this.backdrop.visible = !usePhoto; this.rays.visible = !usePhoto; }
       this.bakeStatic(); this.aqHold = performance.now() + 3000;
@@ -3371,7 +3380,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           m.position.set(x0 + (i + 0.5) * w / n + 0.6, cy + 0.2, 0.47); m.rotation.z = 0.36; m.renderOrder = 4; tank.add(m); } }
       this.pump = { x: x0 + 0.28, y: yB + 0.15, z: -0.42, t: 0, top: ys };
       // a few more thin bubble streams rising behind the play plane (the reference tank fizzes everywhere)
-      this.streams = []; { const n = Math.max(2, Math.round(w / 4.5)); for (let i = 0; i < n; i++) this.streams.push({ x: x0 + (i + 0.5 + (((i * 53) % 10) / 10 - 0.5) * 0.6) * w / n, y: yB + 0.1, z: -0.44 + ((i * 31) % 5) * 0.012, t: i * 0.37, on: 0.18 + ((i * 17) % 7) * 0.03 }); }
+      this.streams = []; { const n = Math.max(3, Math.round(w / 2.6)); for (let i = 0; i < n; i++) this.streams.push({ x: x0 + (i + 0.5 + (((i * 53) % 10) / 10 - 0.5) * 0.6) * w / n, y: yB + 0.1, z: -0.44 + ((i * 31) % 5) * 0.012, t: i * 0.37, on: 0.18 + ((i * 17) % 7) * 0.03 }); }
     }
     // the diver's death: flattened under a stone, keeling over onto his back (out of air), or spun over (gobbled). He stays down
     // with X eyes and little stars circling until the result screen; nothing pops out of existence.
@@ -3892,7 +3901,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       { // stage lighting in play: the world outside the tank sinks into cooler shade (deeper worlds more), the diver's lamp warms the
         // sand/rock/water around them and the far corners of the tank fall gently into shadow. Never dark: it adds depth, not gloom.
         const e0 = this.e, play = !!(e0 && !this.menuMode && !this.cineCam), wl = e0 && !e0.menu && !e0.cine ? worldOf(e0.name) : 0;
-        const L = [[0.85, 0.24, 0.62], [1.0, 0.32, 0.52], [1.2, 0.4, 0.44]][wl] || [0.85, 0.24, 0.62], pp = this.playerPos;
+        const L = [[0.7, 0.1, 0.94], [0.95, 0.24, 0.7], [1.2, 0.36, 0.5]][wl] || [0.7, 0.1, 0.94], pp = this.playerPos;
         const goal = play && pp && e0.state !== 'won' ? 1 : 0; this.lampK = (this.lampK || 0) + (goal - (this.lampK || 0)) * Math.min(1, dt * 2.5);
         if (this.cineCam && this.cineFx && pp) { MAT.lamp.value.set(pp.x + 0.15, pp.y + 0.25, 2.8, this.cineFx.lamp * 1.1); MAT.lampAmb.value = 0; }
         else { if (pp) MAT.lamp.value.set(pp.x + 0.1, pp.y + 0.2, 3.3, L[0] * this.lampK); else MAT.lamp.value.w = 0; MAT.lampAmb.value = L[1] * this.lampK; }
