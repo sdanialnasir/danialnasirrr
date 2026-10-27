@@ -90,7 +90,8 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   dark-navy air timer with ★★★ preview top-right, white "Hold" map button bottom-right. Menu = live 3D tank
   behind a gold "Aqua Energizer" title, gold PLAY pill, cream tiles. Intro = in-engine cinematic of Level 1
   with captions (plays once; "Watch intro" replays).
-- **Camera:** computer = always the whole level, no zoom/drift. Phone = follows the diver with slight
+- **Camera:** computer = closer in (74% of the whole-level distance) and follows the diver; Map button / hold M shows the whole
+  level (owner reversed the old "no zoom on desktop" rule). Phone = follows the diver with slight
   look-ahead and smart zoom; hold the map button to see everything. Since the 3D-camera pass: a wider lens (38→46° FOV, closer) and a
   slight side angle (yaw) so the tank reads as 3D; no extra up/down tilt (owner: tilting looks bad).
 - **Gameplay helpers:** undo (↶ / Z, up to 200 moves, also from the "Crushed!" screen), instant restart
@@ -100,7 +101,7 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 ## Things the owner explicitly does NOT want
 - The old flat doodle / stickman style in levels or menu (tried, rejected). Notebook-doodle style: rejected.
 - Boxy blue tiles inside the tank; rocks that look like they should fall; melodic music; harsh dig sounds.
-- Camera zoom on desktop. Clutter crossing the playfield.
+- Clutter crossing the playfield. (Camera zoom on desktop used to be on this list; the owner now wants the closer, following camera.)
 - Inventing new mechanics without asking (spikes/crate exist in the engine but are unused in current levels).
 
 ## Hard constraints
@@ -734,3 +735,5 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - Fit: `dW` widens by `1 + 0.6·sin(yaw)`; the painted backdrop's reference camera (`placePhotoBg` → `refCam`) uses the same yaw.
 - Phones zoom in more: follow cells 58–76 px (`innerWidth / 5.6`), was 50–66. Near plane 2 → 1.2.
 - `tankShot` (level photos) still renders front-on. A gentler version (FOV 38, yaw 0.14/0.10) was tried first; the stronger one read better.
+- **Desktop closer too** (owner follow-up): `DESK_CLOSE = 0.74` × the whole-level distance, `follow` on, so the camera tracks the diver like
+  on phones (no breathing zoom on computers). Level start shows the whole tank for 1.5 s on every device (`beginPlay.pk`), Map / hold M = overview.

@@ -3016,7 +3016,7 @@ const REDUCED_MOTION = (() => { try { return matchMedia('(prefers-reduced-motion
 const World = (() => {
   // camera lens + angle: a wider lens closer in (real perspective: block sides and tank depth show) and a slight side angle instead of
   // dead-on, so the tank reads as a 3D object. No extra up/down tilt. Phones also swing gently with the diver (parallax).
-  const CAM_FOV = 46, CAM_YAW = isMobileUA() ? 0.15 : 0.22, CAM_SWING = 0.09;
+  const DESK_CLOSE = 0.74, CAM_FOV = 46, CAM_YAW = isMobileUA() ? 0.15 : 0.22, CAM_SWING = 0.09;
   function isMobileUA() { return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && innerWidth < 1100); }
   const V3 = THREE.Vector3;
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && innerWidth < 1100);
@@ -5456,7 +5456,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const cellPx = aspect < 0.75 ? Math.max(58, Math.min(76, innerWidth / 5.6)) : 52, dFollow = innerHeight / (2 * Math.tan(fov / 2) * cellPx);
       this.camDist = wholeLevel || pxPerCell(dFull) >= 34 ? dFull : Math.min(dFull, dFollow);
       this.follow = this.camDist < dFull - 0.01;
-      if (!isMobile) { this.camDist = dFull; this.follow = false; } // computers: always the whole level, no follow/zoom
+      if (!isMobile) { this.camDist = wholeLevel ? dFull : dFull * DESK_CLOSE; this.follow = this.camDist < dFull - 0.01; } // computers: closer in, following the diver (Map / hold M shows the whole level)
       // on the home screen, pull back so the menu has room and the reef shows around the board
       if (this.menuMode) { this.camDist = dFull * (aspect > 1 ? (this.menuShift ? 1.4 : 1.75) : 0.98); this.follow = false; }
       if (snap) { this.updateCameraTarget(); this.camPos.copy(this.camGoal); this.camTarget.copy(this.lookGoal); }
@@ -6473,7 +6473,7 @@ window.__T = T;
     save.tutSeen = save.tutSeen || {}; save.tutSeen[TUT.idx] = 1; save.tipsSeen = save.tipsSeen || {}; save.tipsSeen[TUT.idx] = 1; persist();
     setState('playing'); lastFrame = performance.now(); acc = 0; world.lastTick = performance.now(); banner(); } // like beginPlay: the frame loop keeps its own clock (frame.last)
   $('#tut').addEventListener('click', ev => { if (ev.target.closest('.tut-skip')) { click(); TUT.t0 = 0; endTut(); return; } tutNext(); });
-  function beginPlay() { if (state !== 'intro' && state !== 'paused') return; const fromIntro = state === 'intro'; setState('playing'); setTimeout(dangerScan, 0); show(null); lastFrame = performance.now(); acc = 0; world.lastTick = performance.now(); if (fromIntro) { world.startPlay(); if (!startTut(levelIdx)) { banner(); levelReveal(); if (World.isMobile && !skipTut) { world.peek = true; clearTimeout(beginPlay.pk); beginPlay.pk = setTimeout(() => { if (!mapBtn.classList.contains('on')) world.peek = false; }, 1500); } } } } // phones: a look at the whole tank first, then the camera glides down to the diver
+  function beginPlay() { if (state !== 'intro' && state !== 'paused') return; const fromIntro = state === 'intro'; setState('playing'); setTimeout(dangerScan, 0); show(null); lastFrame = performance.now(); acc = 0; world.lastTick = performance.now(); if (fromIntro) { world.startPlay(); if (!startTut(levelIdx)) { banner(); levelReveal(); if (!skipTut) { world.peek = true; clearTimeout(beginPlay.pk); beginPlay.pk = setTimeout(() => { if (!mapBtn.classList.contains('on')) world.peek = false; }, 1500); } } } } // phones: a look at the whole tank first, then the camera glides down to the diver
   let bannerTimer = null;
   function levelReveal() { if (!engine || replay || CLIP) return; const pts = []; for (const o of engine.objects.values()) if (o.t === T.BALL) pts.push({ x: o.x, y: o.y }); pts.sort((a, b) => a.x - b.x || a.y - b.y);
     if (engine.gate) pts.push({ x: engine.gate.x, y: engine.gate.y, gate: true }); let k = 0; world.onReveal = p => { if (p.gate) { Audio.play('hint'); world.popText(p.x, -p.y + 0.62, 'Gate', '#8ff4ff'); } else Audio.pearl(++k); }; world.reveal(pts); }
