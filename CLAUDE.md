@@ -718,3 +718,10 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   air < 10 s once per try, undo) only if the clip exists, ≤ 1 per 6 s, pearl/phew/undo by chance. Narrator: `n_world2`/`n_world3` with the
   world intro cards (levels 11, 21), `n_daily` at Daily Dive start, `n_fin1`/`n_fin2` in the finale. Tutorial `t1e` has a computer
   variant `t1e_k`. Full table: docs/voiceover-script.md (generated from voices.json).
+- **The owner's clips are in** (`src/assets/vo/*.mp3`, 46 files, 1.3 MB): imported with `python3 tools/import_voices.py <voiceovers.zip|folder>`
+  (trims silence, evens loudness to about −19 dB speech RMS, soft-limits peaks below −1.5 dBFS, 64 kbps mono). The raw ElevenLabs
+  files varied by 22 dB. The voice maker also runs standalone from a zip (`Make_Voices.bat` + `make_voices.ps1` + `voices.json` side by side,
+  key in `elevenlabs-key.txt`, output `voiceovers/` + `voiceovers.zip`).
+- **Film timing with real clips:** `Audio.vo(id, max)` speeds a clip up to 12% (pitch kept) when it's longer than its slot (`CINE_MAX`, the gap to
+  the next line); `say()` lets the previous line finish when it has < 1.6 s left (`Audio.voLeft()`), otherwise cuts. Clip lengths are read
+  up front (`voDur`, metadata of every embedded clip). vo3 (4.6 s) and vo6 (4.0 s) are the long ones.

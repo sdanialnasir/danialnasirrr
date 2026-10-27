@@ -920,11 +920,15 @@ const Audio = (() => {
   function play(name) { if (!ctx || muted) return; try { if (!playFile(name) && !(VOICE.has(name) && FILES.click)) SFX[name] && SFX[name](); } catch {} }
   // voice-over: plays an embedded clip (src/assets/vo/<id>.mp3, baked in by build_assets.py) and ducks the ambience under it.
   // Returns the clip length in seconds (0 when no clip exists yet, so the captions keep their own timing).
-  let voEl = null;
-  function vo(id) { const src = window.AQ_DATA && AQ_DATA.VO && AQ_DATA.VO[id]; if (!src || muted) return 0;
-    try { if (voEl) voEl.pause(); voEl = new window.Audio(src); voEl.volume = Math.min(1, vol.sfx * vol.sfx); voEl.play().catch(() => {});
+  // `max` (seconds): a clip longer than its slot plays up to 12% faster (pitch kept), so a timed line ends before the next one.
+  let voEl = null; const voDur = {};
+  try { const V = (window.AQ_DATA && AQ_DATA.VO) || {}; for (const id in V) { const a = new window.Audio(); a.preload = 'metadata'; a.onloadedmetadata = () => { voDur[id] = a.duration; }; a.src = V[id]; } } catch (er) {} // clip lengths, known up front
+  function voLeft() { return voEl && !voEl.paused && !voEl.ended && isFinite(voEl.duration) ? Math.max(0, (voEl.duration - voEl.currentTime) / (voEl.playbackRate || 1)) : 0; }
+  function vo(id, max) { const src = window.AQ_DATA && AQ_DATA.VO && AQ_DATA.VO[id]; if (!src || muted) return 0;
+    try { if (voEl) voEl.pause(); voEl = new window.Audio(src); voEl.volume = Math.min(1, vol.sfx * vol.sfx); const d = voDur[id] || 0;
+      if (max && d > max) { voEl.playbackRate = Math.min(1.12, d / max); try { voEl.preservesPitch = true; } catch (er) {} } voEl.play().catch(() => {});
       if (musicBus && ctx) { musicBus.gain.setTargetAtTime(gMusic() * 0.35, ctx.currentTime, 0.2); ambBus.gain.setTargetAtTime(gAmb() * 0.35, ctx.currentTime, 0.2); voEl.onended = () => { musicBus.gain.setTargetAtTime(gMusic(), ctx.currentTime, 0.6); ambBus.gain.setTargetAtTime(gAmb(), ctx.currentTime, 0.6); }; }
-      return voEl.duration || 0; } catch { return 0; } }
+      return d / (voEl.playbackRate || 1); } catch { return 0; } }
   function stopVo() { if (voEl) { voEl.pause(); voEl = null; } if (musicBus && ctx) { musicBus.gain.setTargetAtTime(gMusic(), ctx.currentTime, 0.4); ambBus.gain.setTargetAtTime(gAmb(), ctx.currentTime, 0.4); } }
   function setMuted(m) { muted = m; if (master) master.gain.value = m ? 0 : 1; }
   function setMusic(on) { musicOn = on; if (musicBus && ctx) musicBus.gain.setTargetAtTime(gMusic(), ctx.currentTime, 0.6); }
@@ -937,7 +941,7 @@ const Audio = (() => {
   let capDest = null;
   function capture() { if (!ctx || !master || !ctx.createMediaStreamDestination) return null; try { capDest = ctx.createMediaStreamDestination(); (outNode || master).connect(capDest); return capDest.stream; } catch (er) { capDest = null; return null; } }
   function release() { if (capDest) { try { (outNode || master).disconnect(capDest); } catch (er) {} capDest = null; } }
-  return { init, resume, play, vo, stopVo, swell, setTension, muffle, setMuted, setMusic, setVolumes, setVol, vol, settings, pearl, star, capture, release, music, get musicOn() { return TR.on; }, get ctx() { return ctx; }, get files() { return FILES; } };
+  return { init, resume, play, vo, voLeft, stopVo, swell, setTension, muffle, setMuted, setMusic, setVolumes, setVol, vol, settings, pearl, star, capture, release, music, get musicOn() { return TR.on; }, get ctx() { return ctx; }, get files() { return FILES; } };
 })();
 
 // Deep Current — renderer v3: clean, bright, front-on puzzle board built from premium primitives.
@@ -4149,7 +4153,10 @@ window.__T = T;
     vo7: '…and push it to the gate!',                                      // the first push
     vo8: 'The gate wakes up, and the light comes back!',                   // gate opens: shockwave, light pours back
     vo9: 'Twenty-nine gates are still dark. Can you wake them all?' };     // wide shot + the row of 30 gates, one lit
-  function say(id) { cap(CINE_LINES[id] || ''); Audio.vo(id); }
+  // each film line gets the time until the next one (CINE_MAX, seconds); if the previous line is nearly done it finishes first
+  const CINE_MAX = { vo1: 4.5, vo2: 3.35, vo3: 3.85, vo4: 4.4, vo5: 3.35, vo6: 3.45, vo7: 1.9, vo8: 3.6, vo9: 4.3 };
+  function say(id) { clearTimeout(say.w); const left = Audio.voLeft(); if (left > 0.05 && left < 1.6) { say.w = setTimeout(() => { if (cineRunning) say(id); }, left * 1000 + 120); return; }
+    cap(CINE_LINES[id] || ''); Audio.vo(id, CINE_MAX[id]); }
   const ramp = (from, to, t0, dur, T) => from + (to - from) * Math.min(1, Math.max(0, (T - t0) / dur));
   function startCine() {
     if (cineRunning) return; cineRunning = true; Audio.music(null);
@@ -4199,7 +4206,7 @@ window.__T = T;
   }
   function flash() { if (REDUCED_MOTION) return; const f = $('#cineFlash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); }
   function endCine() {
-    if (!cineRunning) return; cineRunning = false; cine = null; world.cineCam = false; world.storyDim = 0; world.cineFx = null; world.flashK = 0; $('#cineDark').style.opacity = 0; cap(''); Audio.stopVo(); $('#cineTitle').classList.remove('on'); $('#cineGates').classList.remove('on');
+    if (!cineRunning) return; cineRunning = false; clearTimeout(say.w); cine = null; world.cineCam = false; world.storyDim = 0; world.cineFx = null; world.flashK = 0; $('#cineDark').style.opacity = 0; cap(''); Audio.stopVo(); $('#cineTitle').classList.remove('on'); $('#cineGates').classList.remove('on');
     $('#cineFade').classList.add('on'); setTimeout(() => $('#cineFade').classList.remove('on'), 60); // the menu fades up out of black
     menuEngine = cineEngine; cineEngine.menu = true; world.menuMode = true; world.playing = false; world.fitCamera(false); menuKeep = true; // the intro's tank becomes the menu backdrop as-is
     $('#skipIntro').hidden = true; save.introSeen = true; persist(); openHome();
