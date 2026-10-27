@@ -3014,6 +3014,10 @@ const Audio = (() => {
 /* global THREE, T */
 const REDUCED_MOTION = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (er) { return false; } })(); // players who ask for less motion: no shake, no lightning
 const World = (() => {
+  // camera lens + angle: a wider lens closer in (real perspective: block sides and tank depth show) and a slight side angle instead of
+  // dead-on, so the tank reads as a 3D object. No extra up/down tilt. Phones also swing gently with the diver (parallax).
+  const CAM_FOV = 46, CAM_YAW = isMobileUA() ? 0.15 : 0.22, CAM_SWING = 0.09;
+  function isMobileUA() { return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && innerWidth < 1100); }
   const V3 = THREE.Vector3;
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && innerWidth < 1100);
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
@@ -4560,7 +4564,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.pixelRatio = Math.min(devicePixelRatio || 1, isMobile ? 2 : 2);
       buildTextures(); buildMaterials(); buildGeometry();
       this.scene = new THREE.Scene(); this.scene.background = new THREE.Color(0x138ccf);
-      this.camera = new THREE.PerspectiveCamera(28, 1, 2, 400); this.tilt = isMobile ? 0.05 : 0.1; // camera pitch: a little from above, flatter on phones so less floor shows
+      this.camera = new THREE.PerspectiveCamera(CAM_FOV, 1, 1.2, 400); this.tilt = isMobile ? 0.05 : 0.1; this.yawNow = CAM_YAW; // camera pitch: a little from above, flatter on phones so less floor shows
       this.camTarget = new V3(); this.camPos = new V3(0, 0, 30); this.shake = 0;
       this.moveDir = new THREE.Vector2(); this.lead = new THREE.Vector2(); this.zoomK = 1.12; this.lastMove = -99;
       this.particles = new Particles(this.scene);
@@ -4708,7 +4712,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (P.key !== key) { P.key = key;
         const g0 = this.camGoal.clone(), l0 = this.lookGoal.clone(); this.updateCameraTarget(true); const cg = this.camGoal.clone(), lg = this.lookGoal.clone(); this.camGoal.copy(g0); this.lookGoal.copy(l0);
         const rc = P.refCam || (P.refCam = new THREE.PerspectiveCamera()); rc.fov = cam.fov; rc.aspect = cam.aspect; rc.near = cam.near; rc.far = cam.far; rc.updateProjectionMatrix();
-        const d = cg.z; rc.position.set(cg.x, lg.y + d * Math.sin(this.tilt) - (lg.y - cg.y), d * Math.cos(this.tilt)); rc.lookAt(lg.x, lg.y, 0); rc.updateMatrixWorld(true);
+        const d = cg.z; rc.position.set(cg.x + d * Math.cos(this.tilt) * Math.sin(CAM_YAW), lg.y + d * Math.sin(this.tilt) - (lg.y - cg.y), d * Math.cos(this.tilt) * Math.cos(CAM_YAW)); rc.lookAt(lg.x, lg.y, 0); rc.updateMatrixWorld(true);
         P.fixed = this.photoFit(rc, AR); }
       let { pos, q, sc } = this.menuMode || this.cineCam ? this.photoFit(cam, AR) : P.fixed; // menu + intro fly-in: always fill the screen
             for (const m of [P.bg, P.shimmer]) { m.scale.set(sc, sc, 1); m.position.copy(pos); m.quaternion.copy(q); }
@@ -5445,11 +5449,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const W = this.e.w, H = this.e.h, aspect = this.camera.aspect, fov = this.camera.fov * Math.PI / 180;
       const padTop = innerWidth < 560 ? 66 : 76, padBottom = (document.body.classList.contains('touch') ? (innerHeight < 500 && innerWidth > innerHeight ? 96 : 76) : 12) + (this.photoMode ? Math.round(innerHeight * (isMobile ? 0.03 : 0.08)) : 0);
       const freeFrac = Math.max(0.3, 1 - (padTop + padBottom) / innerHeight);
-      const dH = (H / 2 + (isMobile ? 0.3 : 0.15)) / Math.tan(fov / 2) / freeFrac, dW = (W / 2 + (isMobile ? 0.4 : 0.1)) / Math.tan(fov / 2) / aspect; // computers: frame the playfield tighter
+      const dH = (H / 2 + (isMobile ? 0.3 : 0.15)) / Math.tan(fov / 2) / freeFrac, dW = (W / 2 * (1 + 0.6 * Math.sin(CAM_YAW)) + (isMobile ? 0.4 : 0.15)) / Math.tan(fov / 2) / aspect; // computers: frame the playfield tighter
       const dFull = Math.max(dH, dW); this.dFull = dFull;
       // show the whole board unless that makes cells smaller than ~34px; then follow the diver at ~46px cells
       const pxPerCell = d => innerHeight / (2 * Math.tan(fov / 2) * d);
-      const cellPx = aspect < 0.75 ? Math.max(50, Math.min(66, innerWidth / 6.4)) : 46, dFollow = innerHeight / (2 * Math.tan(fov / 2) * cellPx);
+      const cellPx = aspect < 0.75 ? Math.max(58, Math.min(76, innerWidth / 5.6)) : 52, dFollow = innerHeight / (2 * Math.tan(fov / 2) * cellPx);
       this.camDist = wholeLevel || pxPerCell(dFull) >= 34 ? dFull : Math.min(dFull, dFollow);
       this.follow = this.camDist < dFull - 0.01;
       if (!isMobile) { this.camDist = dFull; this.follow = false; } // computers: always the whole level, no follow/zoom
@@ -5765,7 +5769,10 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const sx = (Math.random() - 0.5) * sh, sy = (Math.random() - 0.5) * sh;
       { // look down at the board from slightly above so blocks, sand walls and shadows read as real 3D
         const tl = this.menuMode ? this.tilt * 0.8 : this.tilt, d = this.camPos.z;
-        this.camera.position.set(this.camPos.x + sx, this.camTarget.y + sy + d * Math.sin(tl) - (this.camTarget.y - this.camPos.y), d * Math.cos(tl));
+        let yw = CAM_YAW; // phones: the angle swings a little with the diver's place in the tank, so moving shows depth (computers stay still)
+        if (isMobile && this.playing && !this.menuMode && !this.cineCam && this.playerPos && this.e && this.e.w > 1) yw += CAM_SWING * ((this.playerPos.x / (this.e.w - 1)) - 0.5);
+        if (this.menuMode) yw *= 0.7; this.yawNow += (yw - this.yawNow) * (1 - Math.pow(0.02, dt));
+        this.camera.position.set(this.camPos.x + sx + d * Math.cos(tl) * Math.sin(this.yawNow), this.camTarget.y + sy + d * Math.sin(tl) - (this.camTarget.y - this.camPos.y), d * Math.cos(tl) * Math.cos(this.yawNow));
         this.camera.lookAt(this.camTarget.x + sx, this.camTarget.y + sy, 0); }
       this.placeBackdrop(); this.placePhotoBg(t);
       if (this.fg && this.fg.box) { const b = this.fg.box; this.fg.update(t, dt, 0, b.top, b.bot, b.span); this.fg.mat.uniforms.scale.value = innerHeight * this.pixelRatio * 0.9; }

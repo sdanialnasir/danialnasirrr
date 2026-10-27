@@ -91,7 +91,8 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   behind a gold "Aqua Energizer" title, gold PLAY pill, cream tiles. Intro = in-engine cinematic of Level 1
   with captions (plays once; "Watch intro" replays).
 - **Camera:** computer = always the whole level, no zoom/drift. Phone = follows the diver with slight
-  look-ahead and smart zoom; hold the map button to see everything.
+  look-ahead and smart zoom; hold the map button to see everything. Since the 3D-camera pass: a wider lens (38→46° FOV, closer) and a
+  slight side angle (yaw) so the tank reads as 3D; no extra up/down tilt (owner: tilting looks bad).
 - **Gameplay helpers:** undo (↶ / Z, up to 200 moves, also from the "Crushed!" screen), instant restart
   (⟲ / R), star thresholds on the air bar, hint on the pause screen, "stuck?" tip after 22 s, red "!" when a
   stone/pearl sits right above the diver.
@@ -725,3 +726,11 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - **Film timing with real clips:** `Audio.vo(id, max)` speeds a clip up to 12% (pitch kept) when it's longer than its slot (`CINE_MAX`, the gap to
   the next line); `say()` lets the previous line finish when it has < 1.6 s left (`Audio.voLeft()`), otherwise cuts. Clip lengths are read
   up front (`voDur`, metadata of every embedded clip). vo3 (4.6 s) and vo6 (4.0 s) are the long ones.
+
+## 3D camera (owner: "the scene looks very 2D… no big up/down tilt… a bit more zoomed in")
+- `CAM_FOV = 46` (was 28: a telephoto lens flattened everything), camera closer to match; `CAM_YAW` = 0.22 rad on computers, 0.15 on phones:
+  the camera orbits sideways around its look target, so the left faces of sand blocks / rock and the tank's depth show. Pitch (`tilt`) unchanged.
+- Phones: the yaw swings ±`CAM_SWING`/2 (0.09) with the diver's x across the tank (eased, `yawNow`) — parallax while moving. Computers stay still.
+- Fit: `dW` widens by `1 + 0.6·sin(yaw)`; the painted backdrop's reference camera (`placePhotoBg` → `refCam`) uses the same yaw.
+- Phones zoom in more: follow cells 58–76 px (`innerWidth / 5.6`), was 50–66. Near plane 2 → 1.2.
+- `tankShot` (level photos) still renders front-on. A gentler version (FOV 38, yaw 0.14/0.10) was tried first; the stronger one read better.
