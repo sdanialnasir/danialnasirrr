@@ -8,6 +8,12 @@
 <meta name="theme-color" content="#0b5fc4">
 <meta property="og:title" content="Aqua Energizer">
 <meta property="og:description" content="Dig, push energy pearls into the gate and escape before your air runs out.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Aqua Energizer">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Aqua Energizer — wake all 30 gates">
+<meta name="twitter:description" content="A cosy underwater dig-and-push puzzle. Roll glowing pearls into the gate before your air runs out.">
+<meta name="apple-mobile-web-app-title" content="Aqua Energizer">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
@@ -669,7 +675,7 @@ body:not([data-state="cine"]) .cine-title { opacity: 0 !important; }
 .dd-skip { position: fixed; top: calc(var(--safe-t) + 0.9rem); right: max(1rem, var(--safe-r)); z-index: 27; min-height: 2.5rem; padding: 0 1.2rem; border-radius: 999px; font-weight: 800; color: #3a2a1a; background: linear-gradient(180deg, #fffaf0, #f3e3c3); box-shadow: 0 3px 0 #c9b28a; }
 #cineFlash { position: fixed; inset: 0; z-index: 24; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at 30% 10%, rgba(230,245,255,0.95), rgba(170,210,255,0.55) 45%, rgba(120,160,255,0.2)); }
 #cineFlash.go { animation: cineFlash 1.1s ease-out; } @keyframes cineFlash { 0% { opacity: 0; } 6% { opacity: 1; } 14% { opacity: 0.15; } 22% { opacity: 0.85; } 100% { opacity: 0; } }
-#cineDark { position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: 0; mix-blend-mode: multiply; background: radial-gradient(ellipse at 50% 45%, #2c4d9a, #0b1a4a 60%, #030a24); } /* multiply: night darkens and tints blue instead of greying the scene */
+#cineDark { position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: 0; mix-blend-mode: multiply; background: radial-gradient(ellipse at 50% 45%, #5a7ccc, #22407e 60%, #0c1c48); } /* multiply: night darkens and tints blue instead of greying the scene */
 
 /* ================= owner's UI art (body.ui-art is set when AQ_DATA.UI exists; images are CSS variables --ui-<key>) ================= */
 .ico { display: inline-block; flex: none; width: 1.4rem; height: 1.4rem; background: currentColor; -webkit-mask: var(--ico) center / contain no-repeat; mask: var(--ico) center / contain no-repeat; }
@@ -1525,7 +1531,7 @@ html body:is(.ui-art, :not(.ui-art)) #lvlBanner.has-card em { display: none; }
 html body:is(.ui-art, :not(.ui-art)) .lb-card { display: flex; align-items: center; gap: 0.9rem; width: min(88vw, 25rem); margin: 0.8rem auto 0; padding: 0.75rem 1rem 0.75rem 0.75rem; text-align: left; border-radius: 1.4rem;
   background: var(--gp); border: 0.2rem solid var(--rim); box-shadow: var(--gsh), 0 1rem 2rem rgba(0, 8, 30, 0.45); pointer-events: none; }
 html body:is(.ui-art, :not(.ui-art)) .lb-card[hidden] { display: none; }
-html body:is(.ui-art, :not(.ui-art)) #lvlBanner.on .lb-card { animation: lbcIn .6s .25s cubic-bezier(.2, 1.4, .4, 1) both; } @keyframes lbcIn { from { opacity: 0; transform: translateY(0.8rem) scale(0.9); } }
+html body:is(.ui-art, :not(.ui-art)) #lbWrap.on .lb-card { animation: lbcIn .6s .25s cubic-bezier(.2, 1.4, .4, 1) both; } @keyframes lbcIn { from { opacity: 0; transform: translateY(0.8rem) scale(0.9); } }
 html body:is(.ui-art, :not(.ui-art)) .lbc-ic { flex: none; width: 4.4rem; height: 4.4rem; border-radius: 1.1rem; background: var(--ic, none) center / 88% no-repeat, radial-gradient(circle at 50% 40%, rgba(150, 230, 255, 0.55), rgba(20, 60, 150, 0.2) 70%);
   box-shadow: inset 0 0 0 0.12rem rgba(150, 220, 255, 0.45); }
 html body:is(.ui-art, :not(.ui-art)) .lb-card[data-ic="world2"] .lbc-ic { background: var(--ui-coral, none) center / 80% no-repeat, radial-gradient(circle at 50% 40%, rgba(220, 160, 255, 0.55), rgba(60, 20, 140, 0.25) 70%); }
@@ -1547,15 +1553,130 @@ html body:is(.ui-art, :not(.ui-art)) .tut-foot { display: flex; align-items: cen
 html body:is(.ui-art, :not(.ui-art)) .tut-dots { display: inline-flex; gap: 0.3rem; } html body:is(.ui-art, :not(.ui-art)) .tut-dots i { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: rgba(160, 210, 255, 0.35); } html body:is(.ui-art, :not(.ui-art)) .tut-dots i.done { background: rgba(255, 216, 106, 0.6); } html body:is(.ui-art, :not(.ui-art)) .tut-dots i.on { width: 1.2rem; border-radius: 99px; background: #ffd86a; }
 html body:is(.ui-art, :not(.ui-art)) .tut-next { animation: none !important; padding: 0.3rem 0.95rem; border-radius: 999px; background: var(--gold-g); color: #13235a !important; font-family: var(--display); font-weight: 700 !important; font-size: 0.92rem !important; box-shadow: 0 0 0 0.12rem #9c4d00, inset 0 0.2rem 0.1rem rgba(255, 255, 255, 0.55); }
 html body:is(.ui-art, :not(.ui-art)) .tut-next::after { content: " ›"; }
-html body:is(.ui-art, :not(.ui-art)) #lvlBanner .lbc-t p b { display: inline; margin: 0; font-family: var(--font) !important; font-size: inherit !important; line-height: inherit; color: #ffd86a !important; -webkit-text-stroke: 0 !important; text-shadow: none !important; animation: none !important; }
-html body:is(.ui-art, :not(.ui-art)) #lvlBanner .lb-card { margin-top: 1rem; }
+html body:is(.ui-art, :not(.ui-art)) #lbWrap .lbc-t p b { display: inline; margin: 0; font-family: var(--font) !important; font-size: inherit !important; line-height: inherit; color: #ffd86a !important; -webkit-text-stroke: 0 !important; text-shadow: none !important; animation: none !important; }
+/* the intro card sits at the bottom, above the round buttons, so it never covers the board; the first move clears it */
+#lbWrap { position: fixed; left: 50%; bottom: calc(var(--safe-b, 0px) + 6.4rem); z-index: 6; transform: translate(-50%, 1rem); opacity: 0; pointer-events: none; transition: opacity .35s, transform .45s cubic-bezier(.2,1.3,.4,1); }
+#lbWrap.on { opacity: 1; transform: translate(-50%, 0); }
+html body:is(.ui-art, :not(.ui-art)) #lbWrap .lb-card { margin: 0; }
+@media (orientation: landscape) and (min-width: 760px) { #lbWrap { bottom: calc(var(--safe-b, 0px) + 1.4rem); } }
+
+/* ===== Expert pass ===== */
+html body:is(.ui-art, :not(.ui-art)) #btnNext { white-space: nowrap; }
+
+/* loader: the painted reef, the logo, a glossy bar with the diver swimming along it, rotating tips */
+#loader { background: linear-gradient(180deg, rgba(6, 46, 120, 0.35) 0%, rgba(20, 150, 210, 0.05) 30%, rgba(5, 28, 78, 0.75) 88%), var(--bgphoto, none) 50% 0% / cover no-repeat, radial-gradient(ellipse at 50% 0%, #4fc3ff 0%, #1477cf 38%, #06336f 80%, #031d45 100%) !important; }
+#loader::before { display: none; }
+.ld-bg, .ts-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.ld-rays { position: absolute; left: -20%; right: -20%; top: -6%; height: 70%; background: repeating-linear-gradient(103deg, rgba(190, 245, 255, 0.14) 0 1.3rem, transparent 1.3rem 5rem);
+  -webkit-mask-image: linear-gradient(180deg, #000, transparent); mask-image: linear-gradient(180deg, #000, transparent); filter: blur(6px); mix-blend-mode: screen; animation: hm3rays 14s ease-in-out infinite alternate; }
+@keyframes hm3rays { from { transform: translateX(-3%) skewX(-2deg); opacity: 0.85; } to { transform: translateX(3%) skewX(2deg); opacity: 1; } }
+.ld-coral { position: absolute; bottom: -1.5rem; width: min(46vw, 22rem); height: min(30vw, 14rem); background: var(--ui-coral, none) center bottom / contain no-repeat; filter: blur(2.5px) saturate(1.1); opacity: 0.9; }
+.ld-coral.l { left: -8vw; transform: rotate(8deg); } .ld-coral.r { right: -8vw; transform: scaleX(-1) rotate(8deg); }
+.ld-bubbles i { border: 0 !important; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95) 0 12%, rgba(190,240,255,0.35) 30%, rgba(190,240,255,0.08) 62%, transparent 70%); }
+.ld-mid { z-index: 1; gap: 1.1rem !important; }
+.ld-track { position: relative; width: 100%; padding-top: 3.6rem; }
+.ld-bar { position: relative; height: 1.15rem !important; background: linear-gradient(180deg, #0c2160, #142f7e) !important; border: 0 !important; box-shadow: 0 0 0 0.16rem #0a1a4c, 0 0 0 0.32rem #58bbff, 0 0.5rem 1rem rgba(0, 10, 45, 0.45), inset 0 0.2rem 0.3rem rgba(0,0,0,0.4); }
+.ld-bar i { position: relative; background: linear-gradient(180deg, #fff6a8 0%, #ffe23d 30%, #ffc61a 60%, #ff9d0a 100%) !important; box-shadow: 0 0 0.9rem rgba(255, 210, 60, 0.7); overflow: hidden; }
+.ld-bar i::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(115deg, rgba(255,255,255,0.35) 0 0.45rem, transparent 0.45rem 0.9rem); animation: ldStripes 0.9s linear infinite; }
+@keyframes ldStripes { to { background-position: 1.98rem 0; } }
+.ld-diver { position: absolute; top: 0; left: var(--ldp, 3%); width: 3.6rem; height: 3.6rem; margin-left: -1.8rem; background: var(--ui-home_diver, none) center bottom / contain no-repeat; filter: drop-shadow(0 0.3rem 0.4rem rgba(0, 10, 40, 0.5)); transition: left .35s ease; animation: ldSwim 1.4s ease-in-out infinite; }
+@keyframes ldSwim { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-0.35rem) rotate(4deg); } }
+.ld-tip { font-family: var(--display); font-weight: 700 !important; font-size: 1.05rem; color: #fff !important; text-shadow: 0 0.12rem 0 #0a1a4c, 0 0.3rem 0.8rem rgba(0, 10, 40, 0.6); }
+.ld-hint { margin: 0; min-height: 2.6em; max-width: 22rem; text-align: center; font-weight: 700; font-size: 0.9rem; line-height: 1.35; color: #d8ecff; text-shadow: 0 0.15rem 0.5rem rgba(0, 10, 40, 0.8); transition: opacity .35s; }
+.ld-hint b { color: #ffd86a; }
+.ld-hint.out { opacity: 0; }
+
+/* title: painted reef, logo, the waving diver in front of a slow light burst with glowing pearls, a breathing "Tap to dive" */
+#splash::before { z-index: 0; } #splash::after { z-index: 1; }
+#splash .ts-bg { z-index: 0; background: linear-gradient(180deg, rgba(6, 46, 120, 0.35) 0%, rgba(20, 150, 210, 0.04) 30%, rgba(8, 70, 150, 0.15) 60%, rgba(4, 18, 56, 0.85) 100%), var(--bgphoto, none) 50% 0% / cover no-repeat, linear-gradient(180deg, #2fb4ef, #0a3f8a); }
+#splash .ts-bub { position: absolute; inset: 0; opacity: 0.75; background-image: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.9) 0 1px, rgba(190,240,255,0.35) 2px, transparent 4px), radial-gradient(circle at 35% 30%, rgba(255,255,255,0.85) 0 1.5px, rgba(190,240,255,0.3) 3px, transparent 6px);
+  background-size: 9rem 13rem, 14rem 19rem; background-position: 1rem 0, 6rem 4rem; animation: tsBub 18s linear infinite; }
+@keyframes tsBub { to { background-position: 1rem -13rem, 6rem -15rem; } }
+#splash .gs-center { position: absolute !important; top: 0; bottom: 0; transform: none; z-index: 2; justify-content: center; gap: 0; padding: calc(var(--safe-t, 0px) + 1rem) 1rem calc(var(--safe-b, 0px) + 1.5rem); }
+#splash .gs-title { width: min(78vw, 26rem) !important; margin: 0; }
+#splash .kicker { margin: 0.2rem 0 0; font-family: var(--display); font-weight: 700; letter-spacing: 0.18em; color: #eaf7ff; }
+.ts-hero { position: relative; width: min(74vw, 20rem); aspect-ratio: 1; margin: 0.4rem 0 -0.6rem; }
+.ts-burst { position: absolute; inset: -18%; background: radial-gradient(circle, rgba(255, 245, 190, 0.55) 0%, rgba(120, 220, 255, 0.25) 35%, transparent 68%); }
+.ts-burst::after { content: ""; position: absolute; inset: 0; background: repeating-conic-gradient(from 0deg, rgba(255, 250, 210, 0.22) 0deg 7deg, transparent 7deg 22deg); -webkit-mask-image: radial-gradient(circle, #000 18%, transparent 66%); mask-image: radial-gradient(circle, #000 18%, transparent 66%); animation: tsSpin 40s linear infinite; }
+@keyframes tsSpin { to { transform: rotate(360deg); } }
+.ts-diver { position: absolute; inset: 4% 6% 0; background: var(--ui-home_diver, none) center / contain no-repeat; filter: drop-shadow(0 1rem 1.4rem rgba(0, 12, 50, 0.45)); animation: tsFloat 4.6s ease-in-out infinite; }
+@keyframes tsFloat { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-0.7rem) rotate(2deg); } }
+.ts-pearl { position: absolute; width: 2.1rem; height: 2.1rem; border-radius: 50%; background: radial-gradient(circle at 34% 28%, #fff 0 9%, #ffb0a0 18%, #ff3d4a 42%, #b8001c 74%, #5a0010 100%);
+  box-shadow: 0 0 1.2rem 0.3rem rgba(255, 70, 90, 0.55), 0 0 0 0.12rem rgba(255, 220, 220, 0.25); animation: tsOrb 5s ease-in-out infinite; }
+.ts-pearl.a { left: 2%; top: 22%; } .ts-pearl.b { right: 0; top: 8%; width: 1.6rem; height: 1.6rem; animation-delay: -1.6s; } .ts-pearl.c { right: 6%; bottom: 18%; width: 1.3rem; height: 1.3rem; animation-delay: -3.2s; }
+@keyframes tsOrb { 0%, 100% { transform: translate(0, 0); } 33% { transform: translate(0.4rem, -0.8rem); } 66% { transform: translate(-0.3rem, -0.3rem); } }
+#splash .gs-tap { min-width: 16rem !important; min-height: 4rem !important; margin-top: 0.4rem !important; font-size: 1.6rem !important; position: relative; z-index: 2; }
+#splash .gs-note { display: flex; align-items: center; gap: 0.45rem; margin-top: 0.9rem; font-weight: 800; color: #d8ecff; }
+.ts-snd { width: 1rem; height: 1rem; background: currentColor; -webkit-mask: var(--ui-i_sound, none) center / contain no-repeat; mask: var(--ui-i_sound, none) center / contain no-repeat; }
+#splash .gs-center > *:not(.ts-hero) { opacity: 0; animation: tsIn .7s cubic-bezier(.2, 1.2, .4, 1) forwards; } #splash .gs-title { animation: tsIn .7s cubic-bezier(.2, 1.2, .4, 1) forwards, gsFloat 4.2s 0.7s ease-in-out infinite !important; }
+#splash .kicker { animation-delay: .15s !important; } #splash .gs-tap { animation: tsIn .7s .45s cubic-bezier(.2, 1.2, .4, 1) forwards, gsPulse 1.6s 1.2s ease-in-out infinite !important; } #splash .gs-note { animation-delay: .6s !important; }
+.ts-hero { animation: tsHero .9s .2s cubic-bezier(.2, 1.3, .4, 1) both; }
+@keyframes tsIn { from { opacity: 0; transform: translateY(1rem) scale(0.94); } to { opacity: 1; transform: none; } }
+@keyframes tsHero { from { opacity: 0; transform: scale(0.7); } }
+@media (orientation: landscape) and (max-height: 620px) { .ts-hero { width: min(34vh, 13rem); margin: 0; } #splash .gs-title { width: min(40vh, 20rem) !important; } #splash .gs-tap { min-height: 3.2rem !important; font-size: 1.3rem !important; } }
+@media (orientation: landscape) and (min-width: 760px) and (min-height: 621px) { .ts-hero { width: min(42vh, 22rem); } #splash .gs-title { width: min(44vh, 30rem) !important; } }
+@media (prefers-reduced-motion: reduce) { .ts-burst::after, .ts-diver, .ts-pearl, .ts-bub, .ld-rays, .ld-diver, .ld-bar i::after { animation: none !important; } }
+
+/* intro film: frosted caption pill with words fading in, sliding letterbox, glossy Skip with a progress ring */
+html body:is(.ui-art, :not(.ui-art)) .cine-cap { bottom: calc(var(--safe-b) + 12.5vh); padding: 0.7rem 1.4rem 0.75rem; border-radius: 1.3rem; font-family: var(--display); font-weight: 600; font-size: clamp(1.25rem, 5vw, 1.9rem); line-height: 1.3; letter-spacing: 0.01em;
+  background: linear-gradient(180deg, rgba(8, 24, 70, 0.62), rgba(4, 14, 46, 0.72)); border: 1px solid rgba(140, 210, 255, 0.35); box-shadow: 0 0.8rem 2rem rgba(0, 0, 20, 0.45); text-shadow: 0 0.1rem 0.4rem rgba(0, 0, 0, 0.6); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); width: max-content; max-width: min(88vw, 44rem); }
+.cine-cap span { display: inline; opacity: 0; filter: blur(4px); }
+.cine-cap.on span { animation: capWord .5s ease forwards; }
+@keyframes capWord { to { opacity: 1; filter: blur(0); } }
+body[data-state="cine"]::before, body[data-state="cine"]::after { height: 8vh !important; animation: lbox 1.2s cubic-bezier(.2, .8, .2, 1) both; }
+body[data-state="cine"]::after { animation-name: lboxB; }
+@keyframes lbox { from { transform: translateY(-100%); } } @keyframes lboxB { from { transform: translateY(100%); } }
+html body:is(.ui-art, :not(.ui-art)) #skipIntro.dd-skip { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.7rem; padding: 0 0.5rem 0 1.15rem; color: #fff; font-family: var(--display); font-weight: 700; font-size: 1rem;
+  background: linear-gradient(180deg, rgba(30, 70, 170, 0.85), rgba(14, 36, 104, 0.9)); border: 0; box-shadow: 0 0 0 0.14rem var(--out, #0a1a4c), 0 0 0 0.28rem rgba(88, 187, 255, 0.7), 0 0.5rem 1rem rgba(0, 10, 45, 0.45), inset 0 0.14rem 0 rgba(255,255,255,0.3); }
+#skipIntro::after { content: ""; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: radial-gradient(circle, #13306f 52%, transparent 54%), conic-gradient(#ffd23d calc(var(--sp, 0) * 360deg), rgba(255, 255, 255, 0.18) 0);
+  -webkit-mask: radial-gradient(circle, transparent 0 46%, #000 48%); mask: radial-gradient(circle, transparent 0 46%, #000 48%); }
+#skipIntro[hidden] { display: none !important; }
+
+/* finale after level 30: the 30 gates light up one by one, fireworks, the title, the diver, a credits roll, then the end card */
+#finale { position: fixed; inset: 0; z-index: 40; overflow: hidden; color: #fff; text-align: center; cursor: pointer;
+  background: radial-gradient(ellipse at 50% 30%, rgba(40, 110, 200, 0.2), rgba(2, 10, 34, 0.9) 75%), var(--bgphoto, none) 50% 0% / cover no-repeat, #04122e; }
+#finale[hidden] { display: none; }
+#finale .fin-sky { position: absolute; inset: 0; opacity: 0; transition: opacity 2.4s ease; background: radial-gradient(ellipse at 50% 35%, rgba(255, 220, 120, 0.4), rgba(60, 190, 255, 0.18) 40%, transparent 70%); }
+#finale.lit .fin-sky { opacity: 1; }
+#finale::before { content: ""; position: absolute; inset: 0; background: rgba(2, 8, 30, 0.72); transition: opacity 2.6s ease; } #finale.lit::before { opacity: 0.15; }
+#finCv { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; }
+.fin-top { position: absolute; left: 50%; top: 22%; z-index: 2; width: min(88vw, 34rem); transform: translateX(-50%); transform-origin: 50% 0; transition: transform 1.2s cubic-bezier(.2,.8,.2,1), top 1.2s cubic-bezier(.2,.8,.2,1), opacity 1s; }
+#finale.title .fin-top { top: calc(var(--safe-t, 0px) + 4.2rem); transform: translateX(-50%) scale(0.62); }
+.fin-gates { display: grid; grid-template-columns: repeat(10, 1fr); gap: min(2.4vw, 1rem); }
+.fin-gates i { aspect-ratio: 0.8; border-radius: 0.5rem 0.5rem 0.2rem 0.2rem; background: linear-gradient(180deg, #1a2d5c, #0d1a3c); box-shadow: inset 0 0 0 0.12rem rgba(120, 160, 230, 0.35); transition: background .3s, box-shadow .3s, transform .3s; }
+.fin-gates i.on { background: radial-gradient(circle at 50% 45%, #fff 0 14%, #9ff4ff 30%, #1fb8ff 60%, #0c5ad0); box-shadow: 0 0 1rem 0.2rem rgba(80, 220, 255, 0.85), inset 0 0 0 0.12rem #c9f6ff; transform: scale(1.12); }
+.fin-count { margin: 1rem 0 0; font-family: var(--display); font-weight: 700; font-size: 1.15rem; color: #cfe8ff; letter-spacing: 0.04em; transition: opacity .8s; }
+.fin-count b { color: #8ff0ff; font-size: 1.5em; }
+.fin-title { position: absolute; left: 0; right: 0; top: 33%; z-index: 4; opacity: 0; transform: scale(0.7); transition: opacity .9s ease, transform 1.1s cubic-bezier(.2, 1.5, .4, 1); }
+#finale.title .fin-title { opacity: 1; transform: none; }
+.fin-title .kicker { margin: 0 0 0.4rem; font-family: var(--display); letter-spacing: 0.24em; color: #ffe27a; }
+.fin-title h1 { margin: 0; font-family: var(--display); font-weight: 700; font-size: clamp(2.4rem, 9vw, 4.4rem); line-height: 1.02; color: #fff; text-shadow: 0 0.25rem 0 #0a1a4c, 0 0 2.5rem rgba(255, 210, 90, 0.75); }
+.fin-diver { position: absolute; left: 50%; bottom: -2%; z-index: 4; width: min(62vw, 22rem); aspect-ratio: 1; background: var(--ui-home_diver, none) center bottom / contain no-repeat; transform: translate(-50%, 110%); transition: transform 1.4s cubic-bezier(.2, 1.2, .4, 1); filter: drop-shadow(0 1rem 2rem rgba(0, 10, 40, 0.5)); }
+#finale.title .fin-diver { transform: translate(-50%, 0); }
+#finale.roll .fin-title, #finale.roll .fin-diver, #finale.roll .fin-top { opacity: 0; transition: opacity 1s; }
+.fin-credits { position: absolute; inset: 0; z-index: 4; overflow: hidden; opacity: 0; transition: opacity 1s; -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 82%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 82%, transparent 100%); }
+#finale.roll .fin-credits { opacity: 1; }
+.fc-roll { position: absolute; left: 0; right: 0; top: 100%; padding: 0 1.5rem; }
+#finale.roll .fc-roll { animation: fcRoll 17s linear forwards; }
+@keyframes fcRoll { to { transform: translateY(calc(-100% - 60vh)); } }
+.fc-roll h2 { margin: 0 0 0.3rem; font-family: var(--display); font-weight: 700; font-size: 2.2rem; color: #ffe27a; text-shadow: 0 0.2rem 0 #0a1a4c; }
+.fc-roll p { margin: 0.15rem 0; font-weight: 800; font-size: 1.15rem; }
+.fc-roll .fc-k { margin-top: 2.2rem; font-family: var(--display); font-size: 0.85rem; letter-spacing: 0.2em; text-transform: uppercase; color: #8fd8ff; }
+.fc-roll .fc-s { font-size: 0.8rem; color: #9ab7dd; } .fc-roll .fc-end { margin-top: 3.5rem; }
+.fin-skip { position: absolute; z-index: 6; top: calc(var(--safe-t, 0px) + 0.9rem); right: max(1rem, var(--safe-r, 0px)); padding: 0.55rem 1.2rem; border-radius: 999px; border: 0; color: #fff; font-family: var(--display); font-weight: 700; font-size: 1rem;
+  background: linear-gradient(180deg, rgba(30, 70, 170, 0.85), rgba(14, 36, 104, 0.9)); box-shadow: 0 0 0 0.14rem #0a1a4c, 0 0 0 0.28rem rgba(88, 187, 255, 0.7); cursor: pointer; }
+@media (orientation: landscape) and (max-height: 620px) { .fin-top { top: 10%; width: min(60vw, 30rem); } #finale.title .fin-top { top: 0.6rem; transform: translateX(-50%) scale(0.5); } .fin-title { top: 30%; } .fin-diver { width: min(40vh, 14rem); } }
+@media (orientation: landscape) and (min-width: 760px) { .fin-title { top: 36%; } .fin-diver { left: 82%; width: min(46vh, 24rem); } }
+#ending .panel .msg { padding: 0.6rem 0.8rem 0; }
 </style>
 </head>
 <body data-state="splash">
 <div id="loader" role="progressbar" aria-label="Loading">
   <div class="ld-bubbles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="ld-bg" aria-hidden="true"><i class="ld-rays"></i><i class="ld-coral l"></i><i class="ld-coral r"></i></div>
   <div class="ld-mid"><h1 class="title ld-title"><span>Aqua</span><span>Energizer</span></h1>
-    <div class="ld-bar"><i id="loadBar"></i></div><p class="ld-tip" id="loadTip">Loading…</p></div>
+    <div class="ld-track"><div class="ld-bar"><i id="loadBar"></i></div><i class="ld-diver" aria-hidden="true"></i></div><p class="ld-tip" id="loadTip">Loading…</p>
+    <p class="ld-hint" id="ldHint"></p></div>
 </div>
 <canvas id="c"></canvas>
 <div id="fx"></div>
@@ -1612,20 +1733,23 @@ html body:is(.ui-art, :not(.ui-art)) #lvlBanner .lb-card { margin-top: 1rem; }
 <div id="fpsMeter" hidden></div>
 <div id="coachHand" aria-hidden="true"><div class="ch-in"><svg class="ch-finger" viewBox="0 0 64 64"><path d="M26 6c3 0 5 2 5 5v17l2-1c3-1 6 1 6 4v1l2-1c3-1 6 1 6 4v1l1-.5c3-1 6 1 6 4V48c0 7-6 12-13 12H32c-5 0-9-2-12-6L9 40c-2-2-1-5 1-6 2-2 5-2 7 0l4 4V11c0-3 2-5 5-5z" fill="#fff" stroke="#1b2a4a" stroke-width="3" stroke-linejoin="round"/></svg><span class="ch-key"></span></div><span class="ch-arrow"></span><span class="ch-say"></span></div>
 
-<div id="lvlBanner" aria-live="polite"><small id="lbNum">Level 1</small><b id="lbName">First Light</b><em id="lbTip"></em><div class="lb-card" id="lbCard" hidden><i class="lbc-ic" aria-hidden="true"></i><div class="lbc-t"><span class="lbc-k" id="lbK">New</span><b id="lbT"></b><p id="lbD"></p></div></div></div>
+<div id="lvlBanner" aria-live="polite"><small id="lbNum">Level 1</small><b id="lbName">First Light</b><em id="lbTip"></em></div>
+<div id="lbWrap" aria-live="polite"><div class="lb-card" id="lbCard" hidden><i class="lbc-ic" aria-hidden="true"></i><div class="lbc-t"><span class="lbc-k" id="lbK">New</span><b id="lbT"></b><p id="lbD"></p></div></div></div>
 <button id="btnMap" aria-label="Hold to view the whole map"><svg class="i" viewBox="0 0 24 24"><path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/></svg><span class="hb-l">Map</span></button>
 <div id="mapTag">Map view</div>
 
 
 
-<button id="skipIntro" class="dd-skip" hidden>Skip ▸▸</button>
+<button id="skipIntro" class="dd-skip" hidden>Skip</button>
 
 <section id="splash" class="screen on gs-screen">
+  <div class="ts-bg" aria-hidden="true"><i class="ld-rays"></i><i class="ts-bub"></i><i class="ld-coral l"></i><i class="ld-coral r"></i><i class="caus"></i><i class="caus b"></i></div>
   <div class="gs-center">
-    <p class="kicker">Dig. Push. Breathe. Escape.</p>
     <h1 class="title gs-title">Aqua<br>Energizer</h1>
-    <button class="cta gs-tap"><span class="touch-only">Tap to start</span><span class="desk-only">Click to start</span></button>
-    <small class="gs-note">Sound on for the full dive</small>
+    <p class="kicker">Dig · Push · Breathe · Escape</p>
+    <div class="ts-hero" aria-hidden="true"><i class="ts-burst"></i><i class="ts-pearl a"></i><i class="ts-pearl b"></i><i class="ts-pearl c"></i><i class="ts-diver"></i></div>
+    <button class="cta gs-tap"><span class="touch-only">Tap to dive</span><span class="desk-only">Click to dive</span></button>
+    <small class="gs-note"><i class="ts-snd"></i>Sound on for the full dive</small>
   </div>
 </section>
 
@@ -1867,6 +1991,24 @@ html body:is(.ui-art, :not(.ui-art)) #lvlBanner .lb-card { margin-top: 1rem; }
   </div>
 </section>
 
+<section id="finale" aria-live="polite" hidden>
+  <canvas id="finCv"></canvas>
+  <div class="fin-sky" aria-hidden="true"><i class="ld-rays"></i></div>
+  <div class="fin-top"><div class="fin-gates" id="finGates" aria-hidden="true"></div>
+  <p class="fin-count" id="finCount"><b>0</b> / 30 gates awake</p></div>
+  <div class="fin-title"><p class="kicker">You did it</p><h1>The Glow Reef<br>shines again!</h1></div>
+  <i class="fin-diver" aria-hidden="true"></i>
+  <div class="fin-credits" aria-hidden="true"><div class="fc-roll">
+    <h2>Aqua Energizer</h2><p class="fc-k">A cosy dig-and-push adventure</p>
+    <p class="fc-k">Created by</p><p>Noor</p>
+    <p class="fc-k">Music</p><p>“Chill Wave” · Kevin MacLeod</p><p>“Meadow”, “Soundscape Dark” · Gravity Sound</p><p class="fc-s">CC BY 4.0</p>
+    <p class="fc-k">Sound effects</p><p>Kenney · uiSFX</p>
+    <p class="fc-k">3D engine</p><p>three.js</p>
+    <p class="fc-k">Starring</p><p>One brave little diver</p><p>Thirty sleepy gates</p><p>Lots of very grumpy crabs</p>
+    <h2 class="fc-end">Thank you for playing!</h2>
+  </div></div>
+  <button class="fin-skip" id="finSkip" type="button">Skip</button>
+</section>
 <section id="ending" class="screen sheet modal">
   <div class="end-glow" aria-hidden="true"></div><div class="end-spark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   <div class="wrap" style="text-align:center">

@@ -1200,7 +1200,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             c *= 0.95 + g1 * 0.06 + (g2 - 0.5) * 0.05; }
           c = mix(c, c * vec3(0.72, 0.62, 0.5), vWet * 0.75); c += vec3(0.25, 0.2, 0.12) * smoothstep(0.03, 0.0, abs(vWet - 0.75)) * vWet;
           if (uNew > 0.5) { float l = dot(c, vec3(0.299, 0.587, 0.114)); c = max(vec3(0.0), mix(vec3(l), c, 1.3)); } // richer, warmer sand (the lights were greying it out)
-          c = mix(c, c * vec3(0.16, 0.22, 0.42), uNight); // the intro's night
+          c = mix(c, c * vec3(0.27, 0.34, 0.58), uNight); // the intro's night (moonlit, still readable)
           { float d = length(vWp.xy - uLamp.xy), pool = smoothstep(uLamp.z * 1.9, 0.0, d), core = smoothstep(uLamp.z, 0.0, d); // the diver's lamp
             c *= 1.0 - uLampAmb * (1.0 - pool); c += c * vec3(0.75, 0.5, 0.22) * core * uLamp.w; }
           diffuseColor.rgb = c; }`)
@@ -1942,8 +1942,10 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWm; varying vec3 vNm;').replace('#include <project_vertex>', '#include <project_vertex>\n{ vec4 wp4 = vec4(transformed, 1.0);\n#ifdef USE_INSTANCING\n wp4 = instanceMatrix * wp4;\n#endif\n vWm = (modelMatrix * wp4).xyz; vNm = normal; }');
       sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform sampler2D uMask, uRock; uniform vec2 uSize; uniform vec3 uCol; uniform float uCausticT, uLampAmb; uniform vec4 uLamp; varying vec3 vWm; varying vec3 vNm;')
         .replace('#include <color_fragment>', `#include <color_fragment>
-        { vec2 p = vWm.xy; vec2 pt = abs(vNm.y) > 0.5 ? vWm.xz * vec2(1.0, 1.6) : abs(vNm.x) > 0.5 ? vWm.zy * vec2(1.6, 1.0) : vWm.xy; float r = texture2D(uRock, pt * 0.42).r; float r2 = texture2D(uRock, pt * 0.13 + 0.37).r, r3 = texture2D(uRock, pt * 0.07 + 0.71).r;
+        { vec2 p = vWm.xy; vec2 pt = abs(vNm.y) > 0.5 ? vWm.xz * vec2(1.0, 1.6) : abs(vNm.x) > 0.5 ? vWm.zy * vec2(1.6, 1.0) : vWm.xy; float r2 = texture2D(uRock, pt * 0.13 + 0.37).r, r3 = texture2D(uRock, pt * 0.07 + 0.71).r;
+          float r = texture2D(uRock, pt * 0.42).r;
           vec3 tint = mix(uCol, vec3(dot(uCol, vec3(0.3333))) * vec3(0.94, 1.0, 1.06), smoothstep(0.4, 0.8, r3) * 0.5); // stones vary: some greyer, some warmer
+          tint *= 0.88 + 0.24 * smoothstep(0.25, 0.8, r2 * 0.5 + r3 * 0.5);                                                // broad light and dark patches
           vec3 c = tint * (0.12 + 0.5 * r * r) * (0.82 + 0.3 * r2);
           { float ee = 0.009, hx = texture2D(uRock, (pt + vec2(ee, 0.0)) * 0.42).r - r, hy = texture2D(uRock, (pt + vec2(0.0, ee)) * 0.42).r - r; // bump: stones lit from the top-left like the key light
             c *= clamp(1.0 + (-hx * 0.6 + hy * 0.75) * 8.0, 0.55, 1.5);
@@ -1952,9 +1954,20 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           #define WB(o) texture2D(uMask, (cell + o + 0.5) / uSize).b
           float oU = 1.0 - step(0.5, WB(vec2(0.0, -1.0))), oD = 1.0 - step(0.5, WB(vec2(0.0, 1.0))), oL = 1.0 - step(0.5, WB(vec2(-1.0, 0.0))), oR = 1.0 - step(0.5, WB(vec2(1.0, 0.0)));
           if (cell.y < 0.5) oU = 0.0;
-          float ed = max(max(oL * smoothstep(0.22, 0.0, lc.x), oR * smoothstep(0.22, 0.0, 1.0 - lc.x)), oD * smoothstep(0.26, 0.0, 1.0 - lc.y));
-          c *= 1.0 - ed * 0.6;                                                      // edges facing open water fall into shade
-          c = mix(c, uCol * 0.95 + 0.05, oU * smoothstep(0.14, 0.03, lc.y) * 0.85); // sunlit lip on exposed tops
+          // depth: distance to the nearest open water (up to 2 cells away). Rock near the water is lit, deep inside a mass it sinks into shade,
+          // so thick walls read as solid reef with volume instead of a flat tiled panel
+          float dE = 2.0;
+          if (oL > 0.5) dE = min(dE, lc.x); if (oR > 0.5) dE = min(dE, 1.0 - lc.x); if (oU > 0.5) dE = min(dE, lc.y); if (oD > 0.5) dE = min(dE, 1.0 - lc.y);
+          if (WB(vec2(-1.0, -1.0)) < 0.5) dE = min(dE, length(lc)); if (WB(vec2(1.0, -1.0)) < 0.5) dE = min(dE, length(lc - vec2(1.0, 0.0)));
+          if (WB(vec2(-1.0, 1.0)) < 0.5) dE = min(dE, length(lc - vec2(0.0, 1.0))); if (WB(vec2(1.0, 1.0)) < 0.5) dE = min(dE, length(lc - vec2(1.0, 1.0)));
+          if (WB(vec2(-2.0, 0.0)) < 0.5) dE = min(dE, lc.x + 1.0); if (WB(vec2(2.0, 0.0)) < 0.5) dE = min(dE, 2.0 - lc.x);
+          if (WB(vec2(0.0, 1.0)) > 0.5 && WB(vec2(0.0, 2.0)) < 0.5) dE = min(dE, 2.0 - lc.y); if (cell.y > 1.5 && WB(vec2(0.0, -2.0)) < 0.5) dE = min(dE, lc.y + 1.0);
+          float dk = smoothstep(0.05, 1.7, dE);
+          c = mix(c, tint * 0.3, dk * 0.18) * mix(1.1, 0.6, dk);                     // deep inside: darker and calmer
+          float bev = oU * smoothstep(0.13, 0.02, lc.y) + oL * smoothstep(0.1, 0.0, lc.x) * 0.55; // bevel: bright rim on edges that face the light...
+          float crease = max(oR * smoothstep(0.16, 0.0, 1.0 - lc.x), oD * smoothstep(0.22, 0.0, 1.0 - lc.y));
+          c *= 1.0 - crease * 0.45;                                                  // ...and a soft shaded crease on the far side
+          c = mix(c, uCol * 0.95 + 0.06, min(1.0, bev) * 0.8);
           float a = sin(p.x * 3.1 + uCausticT * 0.9 + sin(p.y * 2.3 + uCausticT * 0.6) * 1.5), b = sin(p.y * 2.7 - uCausticT * 0.7 + sin(p.x * 2.9 - uCausticT * 0.8) * 1.5);
           c += vec3(0.6, 0.85, 0.9) * pow(max(0.0, 1.0 - abs(a + b) * 0.5), 8.0) * 0.08;
           if (vNm.y > 0.5) c = mix(uCol * 0.5, uCol * 0.85 + 0.04, 0.6) * (0.85 + 0.3 * r2) * (0.92 + 0.08 * sin(vWm.x * 9.0 + vWm.z * 5.0)); // ledge top: sunlit, calm
@@ -1964,8 +1977,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (world === 2) sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         { /* the Deep: sparse spots of glowing lichen on the rock faces, each breathing at its own pace */
           vec2 q = vWm.xy * 2.3, ci = floor(q), f = fract(q); float h = fract(sin(dot(ci, vec2(12.9898, 78.233))) * 43758.5453), h2 = fract(h * 17.31), h3 = fract(h * 41.7), gl = 0.0;
-          if (h < 0.26) { float rr = 0.05 + 0.06 * h2, d = length(f - vec2(0.25 + 0.5 * h2, 0.25 + 0.5 * h3)); gl = smoothstep(rr, rr * 0.25, d) + 0.3 * smoothstep(rr * 2.8, rr, d); gl *= 0.55 + 0.45 * sin(uCausticT * 1.2 + h * 40.0); }
-          totalEmissiveRadiance += vec3(0.22, 0.92, 1.0) * gl * 0.6 * step(0.5, vNm.z); }`); };
+          if (h < 0.11) { float rr = 0.04 + 0.05 * h2, d = length(f - vec2(0.25 + 0.5 * h2, 0.25 + 0.5 * h3)); gl = smoothstep(rr, rr * 0.25, d) + 0.3 * smoothstep(rr * 2.8, rr, d); gl *= 0.55 + 0.45 * sin(uCausticT * 1.2 + h * 40.0); }
+          totalEmissiveRadiance += vec3(0.22, 0.92, 1.0) * gl * 0.5 * step(0.5, vNm.z); }`); };
     m.customProgramCacheKey = () => 'mass' + world;
     return (MAT.mass[world] = m); }
   // ---- monsters, in the diver's toy style: glossy bodies with a soft rim glow, big readable eyes, clear "danger" faces
@@ -2397,7 +2410,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         void main(){ vec3 c = safe(texture2D(tScene, vUv).rgb); vec3 b = safe(texture2D(tBloom, vUv).rgb);
           if (lens > 0.0) { vec2 dv = (vUv - 0.5) * lens * 0.0012 * dot(vUv - 0.5, vUv - 0.5) * 4.0; c.r = safe(texture2D(tScene, vUv + dv).rgb).r; c.b = safe(texture2D(tScene, vUv - dv).rgb).b; } // faint chromatic fringe at the edges
           // the intro's night grade: mid-tones sink into deep blue, but bright lights (pearl-lights, lamp, lightning) keep shining
-          if (night > 0.0) { vec3 hi = max(c - 1.15, 0.0); c = mix(c, c * vec3(0.12, 0.18, 0.4) + hi * 3.0, night); b *= 1.0 + night * 1.6; }
+          if (night > 0.0) { vec3 hi = max(c - 1.15, 0.0); c = mix(c, c * vec3(0.24, 0.32, 0.6) + hi * 3.0, night); b *= 1.0 + night * 1.6; }
           c += b * strength * 0.85;
           if (rays > 0.0) c += safe(texture2D(tRays, vUv).rgb) * rays;
           // gentle grade: a touch more contrast and saturation, cool shadows, warm highlights
@@ -2406,7 +2419,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           c = mix(c * vec3(0.94, 0.99, 1.06), c * vec3(1.03, 1.0, 0.96), smoothstep(0.2, 0.8, l));
           c = max(c, 0.0); vec3 cc = min(c, 1.0); c += (cc * cc * (3.0 - 2.0 * cc) - cc) * 0.42; /* softer filmic contrast (was 0.62) */
           // soft vignette
-          vec2 d = vUv - 0.5; d.x *= aspect; float v = smoothstep(1.05, 0.3, length(d)); c *= mix(0.58 - 0.4 * night - 0.12 * vig, 1.0, v);
+          vec2 d = vUv - 0.5; d.x *= aspect; float v = smoothstep(1.05, 0.3, length(d)); c *= mix(0.58 - 0.3 * night - 0.12 * vig, 1.0, v);
           gl_FragColor = vec4(c, 1.0);
           #include <colorspace_fragment>
           gl_FragColor.rgb += (fract(sin(dot(gl_FragCoord.xy + time, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0; }`);
@@ -3116,8 +3129,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       { // the waterline seen through the front glass: a bright wavering edge with a soft glow below it
         const m = new THREE.Mesh(new THREE.PlaneGeometry(w, 0.5), new THREE.ShaderMaterial({ ...add, uniforms: { uT: MAT.causticT }, vertexShader: vs,
           fragmentShader: `uniform float uT; varying vec2 vUv; varying vec3 vW; void main(){ float wave = 0.72 + sin(vW.x * 2.3 + uT * 1.6) * 0.035 + sin(vW.x * 5.1 - uT * 2.2) * 0.02;
-            float d = vUv.y - wave; float line = smoothstep(0.045, 0.0, abs(d)); float glow = smoothstep(-0.7, 0.0, d) * step(d, 0.0) * 0.22;
-            float a = line * 0.75 + glow; gl_FragColor = vec4(vec3(0.75, 0.97, 1.0) * a, a); }` }));
+            float d = vUv.y - wave; float soft = smoothstep(0.09, 0.0, abs(d)), glint = smoothstep(0.02, 0.0, abs(d)) * (0.55 + 0.45 * sin(vW.x * 11.0 + uT * 3.0) * sin(vW.x * 4.3 - uT * 1.7));
+            float glow = smoothstep(-0.7, 0.0, d) * step(d, 0.0) * 0.26; float a = soft * soft * 0.42 + glint * 0.38 + glow; // a soft meniscus with moving glints, not a hard ruled line gl_FragColor = vec4(vec3(0.75, 0.97, 1.0) * a, a); }` }));
         m.position.set(cx, ys - 0.12, zF + 0.004); m.renderOrder = 6; tank.add(m); }
       { // the surface itself, rippling (seen at a grazing angle)
         const m = new THREE.Mesh(new THREE.PlaneGeometry(w, zF - zB), new THREE.ShaderMaterial({ ...add, side: THREE.DoubleSide, uniforms: { uT: MAT.causticT }, vertexShader: vs,
@@ -3646,7 +3659,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (this.menuMode) { this.camGoal.x += Math.sin(t * 0.15) * (this.menuShift ? 0.6 : 1.2); this.lookGoal.x = this.camGoal.x; const lift = this.menuLift !== undefined ? this.menuLift * 2 * Math.abs(this.camGoal.z) * Math.tan(this.camera.fov * Math.PI / 360) : this.camGoal.z * (innerHeight > innerWidth ? 0.026 : -0.045); // centre the tank in the free space the home screen leaves this.camGoal.y -= lift; this.lookGoal.y -= lift;
         if (this.menuShift) { const vw = 2 * Math.abs(this.camGoal.z) * Math.tan(this.camera.fov * Math.PI / 360) * this.camera.aspect; this.camGoal.x -= this.menuShift * vw; this.lookGoal.x -= this.menuShift * vw; } } // computer home: the tank sits right of the menu column // menu: board sits between the logo and PLAY
       let cl = 1 - Math.pow(0.012, dt);
-      { const dim = this.cineCam ? (this.storyDim || 0) : 0; this.nightK = this.cineCam ? Math.min(1, Math.max(0, (dim - 0.2) / 0.9)) : 0; MAT.sandNight.value = this.nightK; if (this.groundTint) this.groundTint.value.copy(this.groundTint0).lerp(new THREE.Color(0.05, 0.09, 0.22), this.nightK * 0.85); if (this.post && this.post.compMat) this.post.compMat.uniforms.night.value = this.nightK; this.renderer.toneMappingExposure = Math.max(0.12, 1 - 0.62 * dim) + (this.cineCam ? (this.flashK || 0) * 1.4 : 0); if (this.photo) this.photo.bg.material.color.copy(this.bgTint || new THREE.Color(1, 1, 1)).lerp(new THREE.Color(0.08, 0.14, 0.32), Math.min(1, 0.78 * dim)); } // the story's dark reef, lit again when the gate wakes
+      { const dim = this.cineCam ? (this.storyDim || 0) : 0; this.nightK = this.cineCam ? Math.min(1, Math.max(0, (dim - 0.2) / 0.9)) : 0; MAT.sandNight.value = this.nightK; if (this.groundTint) this.groundTint.value.copy(this.groundTint0).lerp(new THREE.Color(0.05, 0.09, 0.22), this.nightK * 0.85); if (this.post && this.post.compMat) this.post.compMat.uniforms.night.value = this.nightK; this.renderer.toneMappingExposure = Math.max(0.36, 1 - 0.46 * dim) + (this.cineCam ? (this.flashK || 0) * 1.4 : 0); if (this.photo) this.photo.bg.material.color.copy(this.bgTint || new THREE.Color(1, 1, 1)).lerp(new THREE.Color(0.14, 0.24, 0.48), Math.min(1, 0.7 * dim)); } // the story's dark reef, lit again when the gate wakes
       { // stage lighting in play: the world outside the tank sinks into cooler shade (deeper worlds more), the diver's lamp warms the
         // sand/rock/water around them and the far corners of the tank fall gently into shadow. Never dark: it adds depth, not gloom.
         const e0 = this.e, play = !!(e0 && !this.menuMode && !this.cineCam), wl = e0 && !e0.menu && !e0.cine ? worldOf(e0.name) : 0;
@@ -4053,7 +4066,7 @@ window.__T = T;
   function runReset() { RUN.combos = []; RUN.keys.clear(); RUN.lastAbsorb = -99; RUN.relicGot = false; RUN.near.clear(); RUN.dodgeAt = -9; }
   function combo(key, label, coins, word, col) { if (RUN.keys.has(key)) return; RUN.keys.add(key); RUN.combos.push([label, coins]);
     slowMo = Math.max(slowMo, 0.4); comboStamp(word, '+' + coins, col); buzz([20, 40, 20, 40, 60]); Audio.play('star'); }
-  function comboStamp(word, sub, col) { const el = $('#comboStamp'); if (!el || REDUCED_MOTION && false) return; $('#lvlBanner').classList.remove('on'); el.querySelector('b').textContent = word; el.querySelector('span').textContent = sub; el.style.setProperty('--cc', col || '#ff8fd0');
+  function comboStamp(word, sub, col) { const el = $('#comboStamp'); if (!el || REDUCED_MOTION && false) return; bannerOff(); el.querySelector('b').textContent = word; el.querySelector('span').textContent = sub; el.style.setProperty('--cc', col || '#ff8fd0');
     el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); clearTimeout(comboStamp.t); comboStamp.t = setTimeout(() => el.classList.remove('on'), 1400); }
   function fun(e) { if (replay || CLIP || e !== engine || !e.player && !e.events.some(v => v.type === 'monsterDeath' || v.type === 'absorb')) return;
     for (const v of e.events) {
@@ -4106,7 +4119,8 @@ window.__T = T;
   let menuKeep = false; // after the intro, its finished tank stays on as the menu backdrop (no reload, no jump)
   const CINE_ROUTE = 'RRRRDDRRRRRDULLLLLULLDRRRRRRRDD';
   const T_BALL = T.BALL; // cineTick uses T for its clock
-  function cap(text) { const el = $('#cineCap'); el.classList.remove('on'); clearTimeout(cap.tm); cap.tm = setTimeout(() => { el.textContent = text; el.classList.toggle('on', !!text); }, text ? 260 : 0); }
+  function cap(text) { const el = $('#cineCap'); el.classList.remove('on'); clearTimeout(cap.tm); cap.tm = setTimeout(() => { el.innerHTML = ''; // the words fade in one after another, like a storyteller
+      (text || '').split(' ').forEach((w, i) => { const sp = document.createElement('span'); sp.textContent = w + ' '; sp.style.animationDelay = (i * 0.07).toFixed(2) + 's'; el.appendChild(sp); }); el.classList.toggle('on', !!text); }, text ? 260 : 0); }
   // ---- the intro: a short in-engine film in seven beats. Every spoken line has an id (vo1…vo7) so ElevenLabs clips dropped in
   // src/assets/vo/<id>.mp3 play automatically (see docs/voiceover-script.md); without clips the subtitles carry the story.
   // every line is spoken at the moment the picture shows it: lines 1-4 on the film's clock, 5-9 on real events in the tank
@@ -4155,7 +4169,7 @@ window.__T = T;
     // 5. the gate wakes: a ring of light, the pearl-lights pour back, the reef relights
     if (E.gate && E.gate.open && c.gateAt === null) { c.gateAt = T; shot('gate'); Audio.play('wake'); world.cineWake(); world.cineFlash(0.7); say('vo8'); }
     if (c.gateAt !== null) { const k = T - c.gateAt; world.storyDim = ramp(1.3, 0, 0.2, 2.2, k); F.glow = ramp(0, 1, 0.3, 2.4, k); F.lamp = ramp(1, 0, 0.6, 1.6, k); }
-    $('#cineDark').style.opacity = world.post && world.post.enabled ? 0 : (world.nightK || 0) * 0.92; // low tier: no post pass, darken with an overlay
+    $('#cineDark').style.opacity = world.post && world.post.enabled ? 0 : (world.nightK || 0) * 0.62; $('#skipIntro').style.setProperty('--sp', Math.min(1, T / 48).toFixed(3)); // low tier: no post pass, darken with an overlay
     acc += Math.min(250, realDt * 1000);
     while (acc >= E.tickMs) { acc -= E.tickMs; E.step();
       for (const v of E.events) { if (v.type === 'dig') once('v5', () => say('vo5')); if (v.type === 'push' && v.t === T_BALL) once('v7', () => say('vo7')); }
@@ -4253,9 +4267,9 @@ window.__T = T;
     box.addEventListener('wheel', ev => { if (LV.horiz && Math.abs(ev.deltaY) > Math.abs(ev.deltaX)) { box.scrollLeft += ev.deltaY; ev.preventDefault(); } }, { passive: false }); }
   // a real photo of a level's tank (same renderer as the game), cached per level and size; the drawn map is the fallback
   const photoCache = new Map();
-  function levelPhoto(cv, i, locked) { if (!cv) return; const lv = LEVELS[i], g = cv.getContext('2d'), key = i + ':' + cv.width + 'x' + cv.height; let off = photoCache.get(key);
+  function levelPhoto(cv, i, locked, live) { if (!cv) return; const lv = live ? dive : LEVELS[i], g = cv.getContext('2d'), key = (live ? 'd' + dayNum() : i) + ':' + cv.width + 'x' + cv.height; let off = photoCache.get(key);
     if (!off) { off = document.createElement('canvas'); off.width = cv.width; off.height = cv.height; let ok = false; const prev = world.e;
-      try { if (prev && prev === engine && levelIdx === i && !dive) ok = world.tankShot(off); // the level is already loaded (level card)
+      try { if (prev && prev === engine && (live ? !!dive : levelIdx === i && !dive)) ok = world.tankShot(off); // the level is already loaded (level card)
         else { const e = new Engine(lv); e.photo = true; world.loadLevel(e); world.onTick(e, performance.now()); ok = world.tankShot(off); } } catch (er) { ok = false; }
       finally { if (prev && world.e !== prev) { world.loadLevel(prev); world.onTick(prev, performance.now()); } heldDirty = true; }
       if (!ok) return drawLevelPreview(cv, lv, locked); photoCache.set(key, off); }
@@ -4309,7 +4323,7 @@ window.__T = T;
     held.clear(); heldOrder = []; acc = 0; overTimer = 0; lowAirBeep = 0; resultShown = false; endTouch();
     $('#introNum').textContent = dive ? `Daily Dive · ${new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}` : `Level ${i + 1} of ${LEVELS.length}`; $('#introName').textContent = lv.name; $('#introHint').innerHTML = rich(lv.hint);
     { const cv = $('#introPrev'), wide = matchMedia('(orientation: landscape) and (min-width: 760px) and (min-height: 560px)').matches, w = wide ? 560 : 620, h = wide ? 490 : 340; if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
-      if (dive) drawLevelPreview(cv, lv, false); else levelPhoto(cv, i, false); }
+      levelPhoto(cv, i, false, !!dive); }
     { const g = $('#introGoals'), t = engine.time; if (engine.relaxed || dive) { g.innerHTML = dive ? '<span class="goal dd">☀ Race the clock: fastest time wins today</span>' : '<span class="goal">Relaxed mode: no air timer</span>'; }
       else g.innerHTML = `<span class="goal g3"><b>★★★</b>${Math.ceil(t * 0.6)}s+ air left</span><span class="goal g2"><b>★★<i>★</i></b>${Math.ceil(t * 0.3)}s+</span><span class="goal g1"><b>★<i>★★</i></b>finish</span>`;
       if (!dive && relicCell(i)) g.insertAdjacentHTML('beforeend', (save.relics || {})[i + 1] ? '<span class="goal relic got"><i class="rl"></i>Hidden relic found</span>' : '<span class="goal relic"><i class="rl"></i>A relic is hidden somewhere here</span>');
@@ -4420,7 +4434,8 @@ window.__T = T;
     { const c = $('#lbCard'); c.hidden = !card; if (card) { if (!/^world/.test(card.ic)) needIcons([card.ic]); c.dataset.ic = card.ic; c.style.setProperty('--ic', /^world/.test(card.ic) ? 'none' : `var(--ic-${card.ic})`);
         $('#lbK').textContent = card.k; $('#lbT').textContent = card.t; $('#lbD').innerHTML = rich(card.d); } }
     $('#lbNum').textContent = small; $('#lbName').textContent = big; $('#lbTip').textContent = tip; b.classList.toggle('go', big === 'Swim in!');
-    b.classList.add('on'); b.classList.toggle('has-card', !!card); banner.start = small === `Level ${levelIdx + 1}` && !tip && !card; clearTimeout(bannerTimer); bannerTimer = setTimeout(() => b.classList.remove('on'), ms || 1900); }
+    b.classList.add('on'); $('#lbWrap').classList.toggle('on', !!card); banner.start = small === `Level ${levelIdx + 1}` && !tip; clearTimeout(bannerTimer); bannerTimer = setTimeout(bannerOff, ms || 1900); }
+  function bannerOff() { $('#lvlBanner').classList.remove('on'); $('#lbWrap').classList.remove('on'); } // the first move clears the name and the intro card (it covered the board)
   let toastTimer = null;
   function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 2200); }
   // ---- "Show me" hints: the coach walks the next 5 moves of the level's verified route. One free hint every 90 s, or pay coins now.
@@ -4813,7 +4828,7 @@ window.__T = T;
   function pushDaily() { const D = ddSave(); if (!D.best) return; ddWriting = ddWriting.then(async () => { await LB.ready; if (!LB.db || !LB.uid) return;
     try { await LB.db.doc('daily/' + LB.uid).set({ day: D.key, t: D.best.t, air: D.best.air, nick: (save.name || 'Diver').slice(0, 16), suit: save.equip.suit, updatedAt: Date.now() }); } catch (er) { if (er && er.code === 'invalid_argument') LB.readOnly = true; } }); }
   $('#btnDaily').onclick = startDaily;
-  function clearStamp() { const el = $('#clearStamp'); if (!el) return; clearTimeout(bannerTimer); $('#lvlBanner').classList.remove('on'); /* the stamp takes the stage: no 'Swim in!' banner under it */ const won = engine.state === 'won', frac = engine.oxygen / engine.time;
+  function clearStamp() { const el = $('#clearStamp'); if (!el) return; clearTimeout(bannerTimer); bannerOff(); /* the stamp takes the stage: no 'Swim in!' banner under it */ const won = engine.state === 'won', frac = engine.oxygen / engine.time;
     const stars = dive ? 0 : engine.relaxed ? 1 : frac >= 0.6 ? 3 : frac >= 0.3 ? 2 : 1; el.querySelector('b').textContent = dive ? 'Dive complete!' : stars === 3 ? 'Perfect!' : 'Level clear!';
     const st = [...el.querySelectorAll('.cs-stars i')]; st.forEach(s => s.className = ''); el.querySelector('.cs-stars').hidden = !!dive;
     el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
@@ -4863,7 +4878,7 @@ window.__T = T;
       starEls.forEach((s, i) => setTimeout(() => { s.classList.add('show'); if (i < stars) { s.classList.add('on'); buzz(12); } /* the clear stamp already chimed the stars: no second set of chimes here */ }, 250 + i * 260));
       $('#resBest').hidden = !(engine.score > prevBest && prevBest > 0);
       $('#resStats').innerHTML = engine.relaxed ? `<div class="stat"><i class="si t"></i><b>${Math.round(engine.wonAt * engine.tickMs / 1000)}s</b><span>dive time</span></div><div class="stat"><i class="si s"></i><b>★</b><span>air timer off for ★★★</span></div>` : `<div class="stat"><i class="si a"></i><b>${Math.ceil(engine.oxygen)}s</b><span>air left</span></div><div class="stat"><i class="si e"></i><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>pearls</span></div>`;
-      $('#btnNext').textContent = n >= LEVELS.length ? 'The reef awakens ✨' : 'Next level'; $('#btnNext').hidden = false; $('#btnNext').classList.toggle('green', n >= LEVELS.length);
+      $('#btnNext').textContent = n >= LEVELS.length ? 'Wake the reef ✨' : 'Next level'; $('#btnNext').hidden = false; $('#btnNext').classList.toggle('green', n >= LEVELS.length);
       $('#btnRetry').lastChild.textContent = 'Replay';
       $('#resExtra').hidden = false; $('#btnWatch').hidden = !(save.runs && save.runs[n]); setShareLabel(true); renderGoals(true, ch);
     } else { $('#resExtra').hidden = !clipOk() || engine.deathCause === 'self'; $('#btnWatch').hidden = true; /* a funny fail is shareable too */ setShareLabel(false);
@@ -4912,6 +4927,7 @@ window.__T = T;
     if (ev.repeat) return;
     if (state === 'splash') { unlock(); return; }
     if (state === 'replay') { if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); endReplay(); } return; }
+    if (state === 'ending' && !$('#finale').hidden) { if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); finale.end && finale.end(); } return; }
     if (state === 'cine') { if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); $('#skipIntro').click(); return; } return; }
     const dir = KEYS[ev.key];
     if (dir) { ev.preventDefault(); if (state === 'intro') beginPlay(); if (state === 'playing') setHeld(dir, true); return; }
@@ -4991,7 +5007,35 @@ window.__T = T;
   function nextLevel() { click(); wipeTo(() => startLevel(levelIdx + 1)); }
   $('#btnNext').onclick = () => { if (dive && engine.state === 'won') { click(); lbTab = 'fast'; openHome(); go('ranks'); return; } if (engine.state === 'won' && levelIdx + 1 < LEVELS.length) nextLevel(); else if (engine.state === 'won') openEnding(); else if (engine.state !== 'won' && history.length) undo(); else restart(); };
   // the finale: all 30 gates awake. A one-time coin bonus, the story's payoff, and a nudge to go back for every star.
-  function openEnding() { click(); Audio.play('win'); setState('ending'); show('ending'); const first = !save.finished;
+  // the finale: 30 gate lights wake one by one (rising notes), fireworks of pearl-light, the title and the diver, then a credits roll;
+  // a tap skips straight to the end card. Its own rAF loop (the game's frame loop holds behind it).
+  function finale(done) { const F = $('#finale'); if (!F || REDUCED_MOTION) { done(); return; }
+    show(null); F.hidden = false; F.className = ''; const G = $('#finGates'); G.innerHTML = '<i></i>'.repeat(30); const cnt = $('#finCount b'); cnt.textContent = '0';
+    const cv = $('#finCv'), cx = cv.getContext('2d'), P = [], T = []; let alive = true, last = performance.now(), tFire = 0;
+    const fit = () => { const r = Math.min(2, devicePixelRatio || 1); cv.width = innerWidth * r; cv.height = innerHeight * r; cx.setTransform(r, 0, 0, r, 0, 0); }; fit();
+    const COL = ['#ff4a5a', '#ffd23d', '#8ff0ff', '#ffffff', '#ff9d0a', '#b88cff'];
+    const burst = (x, y, n, big) => { const c1 = COL[Math.floor(Math.random() * COL.length)], c2 = COL[Math.floor(Math.random() * COL.length)];
+      for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, v = (big ? 260 : 170) * (0.35 + Math.random() * 0.75); P.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, l: 1.3 + Math.random() * 0.9, t: 0, c: i % 3 ? c1 : c2, r: 1.6 + Math.random() * 2.2, k: 0 }); } };
+    const confetti = n => { for (let i = 0; i < n; i++) P.push({ x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * 0.4, vx: (Math.random() - 0.5) * 60, vy: 60 + Math.random() * 90, l: 7, t: 0, c: COL[i % COL.length], r: 3 + Math.random() * 3, k: 1, s: Math.random() * 6, w: 2 + Math.random() * 4 }); };
+    const loop = now => { if (!alive) return; const dt = Math.min(0.05, (now - last) / 1000); last = now; cx.clearRect(0, 0, innerWidth, innerHeight);
+      if (F.classList.contains('lit') && !F.classList.contains('roll')) { tFire -= dt; if (tFire <= 0) { tFire = 0.35 + Math.random() * 0.5; burst(innerWidth * (0.15 + Math.random() * 0.7), innerHeight * (0.12 + Math.random() * 0.4), 70, Math.random() < 0.3); } }
+      cx.globalCompositeOperation = 'lighter';
+      for (let i = P.length - 1; i >= 0; i--) { const p = P[i]; p.t += dt; if (p.t > p.l || p.y > innerHeight + 40) { P.splice(i, 1); continue; } const a = 1 - p.t / p.l;
+        if (p.k) { p.vy = Math.min(p.vy + 30 * dt, 160); p.x += (p.vx + Math.sin(p.t * 3 + p.s) * 40) * dt; p.y += p.vy * dt; cx.globalCompositeOperation = 'source-over'; cx.save(); cx.translate(p.x, p.y); cx.rotate(p.t * 4 + p.s); cx.scale(1, Math.abs(Math.sin(p.t * 5 + p.s))); cx.fillStyle = p.c; cx.globalAlpha = Math.min(1, a * 3); cx.fillRect(-p.w, -p.r, p.w * 2, p.r * 2); cx.restore(); cx.globalCompositeOperation = 'lighter'; continue; }
+        p.vx *= 1 - 1.6 * dt; p.vy = p.vy * (1 - 1.6 * dt) + 60 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+        cx.globalAlpha = a; cx.fillStyle = p.c; cx.beginPath(); cx.arc(p.x, p.y, p.r * (0.6 + a), 0, 7); cx.fill(); cx.globalAlpha = a * 0.25; cx.beginPath(); cx.arc(p.x, p.y, p.r * 4, 0, 7); cx.fill(); }
+      cx.globalAlpha = 1; cx.globalCompositeOperation = 'source-over'; requestAnimationFrame(loop); };
+    requestAnimationFrame(loop);
+    const at = (ms, fn) => T.push(setTimeout(() => { if (alive) fn(); }, ms));
+    const gates = G.children; for (let i = 0; i < 30; i++) at(700 + i * 85, () => { gates[i].classList.add('on'); cnt.textContent = i + 1; if (i % 3 === 0) Audio.pearl(1 + (i / 3 % 7)); if (i % 5 === 4) buzz(8); });
+    at(700 + 30 * 85 + 250, () => { F.classList.add('lit'); Audio.play('gateOpen'); Audio.swell && Audio.swell(); buzz([30, 60, 30, 60, 90]); const r = G.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 160, true); confetti(140); });
+    at(4300, () => { F.classList.add('title'); Audio.play('win'); confetti(90); });
+    at(9800, () => F.classList.add('roll'));
+    const end = () => { if (!alive) return; alive = false; T.forEach(clearTimeout); F.hidden = true; F.className = ''; removeEventListener('resize', fit); done(); };
+    at(27500, end); addEventListener('resize', fit);
+    F.onclick = () => { click(); end(); }; finale.end = end; }
+  function openEnding() { click(); setState('ending'); finale(() => { if (state === 'ending') openEndCard(); }); }
+  function openEndCard() { Audio.play('win'); show('ending'); const first = !save.finished;
     if (first) { save.finished = 1; save.coins += 200; persist(); } $('#endCoins').hidden = !first;
     const stars = totalStars(), tr = (save.stats && save.stats.treasures) || 0;
     $('#endStats').innerHTML = `<div class="stat"><b>${stars}/${LEVELS.length * 3}</b><span>stars</span></div><div class="stat"><b>${tr}</b><span>treasures</span></div><div class="stat"><b>${save.coins}</b><span>coins</span></div>`;
@@ -5061,7 +5105,7 @@ window.__T = T;
         stickTick(realDt * 1000);
         acc = Math.min(acc + (now - (frame.last || now)), 300); frame.last = now; // a long gap (tab throttled, iframe off-screen, GC) must not fast-forward the dive
         if (beginPlay.pk && ((engine.moveQueue && engine.moveQueue.length) || engine.held)) setHeldPeekOff(); // the first move ends the opening look
-        if (banner.start && ((engine.moveQueue && engine.moveQueue.length) || engine.held)) { banner.start = false; $('#lvlBanner').classList.remove('on'); } // ...and the level-name banner (it sat over the tank)
+        if (banner.start && ((engine.moveQueue && engine.moveQueue.length) || engine.held)) { banner.start = false; bannerOff(); } // ...and the level-name banner (it sat over the tank)
         { const mv = (engine.moveQueue && engine.moveQueue.length) || engine.held || touch; if (mv) quietAt = now; const q = !!quietAt && now - quietAt < 1200 && (engine.relaxed || engine.oxygen > 15); if (q !== quietOn) { quietOn = q; document.body.classList.toggle('swim', q); } } // quiet HUD while swimming
         if (slowMo > 0) { slowMo = Math.max(0, slowMo - realDt); acc = 0; } // the world holds its breath for a moment
         if (planHold) { if ((engine.moveQueue && engine.moveQueue.length) || engine.held) { planHold = false; planJob++; HINT.busy = false; $('#btnHint').classList.remove('busy'); } else acc = 0; }
@@ -5098,7 +5142,7 @@ window.__T = T;
     }
     // the 3D world holds still while a screen covers it (level map, menus, pause, results): draw one fresh frame for the
     // blurred backdrop, then stop re-rendering until the screen closes. Saves the whole GPU budget on those screens.
-    const covered = state !== 'playing' && state !== 'cine' && state !== 'replay' && (!!document.querySelector('.screen.sheet.on, #levels.on') || (state === 'menu' && HM3.matches && $('#home').classList.contains('on')));
+    const covered = state !== 'playing' && state !== 'cine' && state !== 'replay' && (!!document.querySelector('.screen.sheet.on, #levels.on') || (state === 'menu' && HM3.matches && $('#home').classList.contains('on')) || (state === 'splash' && $('#splash').classList.contains('on')) || (state === 'ending' && !$('#finale').hidden));
     if (covered && heldFrame && !heldDirty) { lastHeld = now; return; }
     heldFrame = covered; heldDirty = false;
     if (TUT.on) tutPlace();
@@ -5110,9 +5154,12 @@ window.__T = T;
   requestAnimationFrame(frame);
   // ---- boot: loading screen -> decode art -> pre-build & pre-compile the intro level, a monster level and the menu -> title screen
   setState('splash'); show(null); let booting = true;
-  const dropLoader = () => { booting = false; const L = $('#loader'); if (L) { L.classList.add('done'); setTimeout(() => L.remove(), 700); } };
+  const boot = {}; const dropLoader = () => { booting = false; clearInterval(boot.tipT); const L = $('#loader'); if (L) { L.classList.add('done'); setTimeout(() => L.remove(), 700); } };
   (async () => { const bar = $('#loadBar'), tip = $('#loadTip'), pause = () => new Promise(r => setTimeout(r, 0)); let shown = 0;
-    const prog = (k, msg) => { shown = Math.max(shown, k); if (bar) bar.style.width = (shown * 100).toFixed(0) + '%'; if (msg && tip) tip.textContent = msg; };
+    const prog = (k, msg) => { shown = Math.max(shown, k); if (bar) bar.style.width = (shown * 100).toFixed(0) + '%'; const L = $('#loader'); if (L) L.style.setProperty('--ldp', Math.max(3, shown * 100).toFixed(0) + '%'); if (msg && tip) tip.textContent = msg; };
+    { const H = ['Stones fall when you dig under them. <b>Never stand below one!</b>', 'Pearls roll off round things. Use that to steer them.', 'Stuck? <b>Undo</b> rewinds as far as you like.', 'Air only starts counting <b>on your first move</b>.', 'Every level hides an ancient <b>relic</b>. Can you find all 30?', 'A stone dropped on a monster is a <b>BONK!</b> combo.', 'The 💡 hint plans a way out from wherever you are.'];
+      const el = $('#ldHint'); let hi = Math.floor(Math.random() * H.length); const nx = () => { if (!el) return; el.classList.add('out'); setTimeout(() => { el.innerHTML = '<b>Tip</b> · ' + H[hi++ % H.length]; el.classList.remove('out'); }, 350); };
+      if (el) { el.innerHTML = '<b>Tip</b> · ' + H[hi++ % H.length]; boot.tipT = setInterval(nx, 3400); } }
     try {
       prog(0.04, 'Filling the tank…'); await World.ready(k => prog(0.04 + k * 0.46));
       // tune graphics first, on one of the busiest levels, so every level below is warmed at the tier the device will really use

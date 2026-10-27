@@ -664,3 +664,25 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - Bug fixed: a spotlight tutorial left open (e.g. restart or home during it) carried over into the next level; `startLevel`/`openHome`
   now close it. Debug: `__dc.card(i)` opens a level's card.
 - Don't name a class `air` inside cards: the HUD's `.air` styles (air meter) leak onto it.
+
+## Expert pass (pre-launch review → docs/expert-review.md)
+- **The list** lives in `docs/expert-review.md` (P0/P1/P2 with status); keep it updated when items land.
+- **Loader:** painted backdrop + rays + corals, glossy gold bar with stripes, the waving diver riding the bar (`--ldp` set by `prog`),
+  rotating gameplay tips (`#ldHint`, cleared in `dropLoader`).
+- **Title (`#splash`):** painted reef (`.ts-bg`), logo, kicker, hero = waving diver in front of a slow light burst with three glowing
+  red pearls, gold "Tap to dive" pill; pieces fade in when the title is shown (so it can't be tapped "too early" unnoticed). The 3D
+  scene is fully covered there, so the frame loop holds (`covered` includes splash).
+- **Intro film:** night grade lifted (sand `uNight` tint, post `night` mix, exposure floor 0.36, backdrop tint, low-tier `#cineDark` 0.62);
+  captions are a frosted pill whose words fade in one by one (`cap()` wraps words in spans); letterbox bars slide in; Skip is a glossy
+  navy pill with a gold progress ring (`--sp` = film time / 48 s).
+- **Finale** (`finale(done)`, `#finale`): after level 30 → 30 gate lights wake one by one with rising notes, fireworks + confetti on a
+  2D canvas (own rAF loop), title + waving diver, then a credits roll (`.fc-roll`, keep it in step with Settings › Credits), then the
+  end card (`openEndCard`). Tap / Enter / Escape skips. Reduced motion goes straight to the card.
+- **Level intro card** (`#lbWrap`, moved out of `#lvlBanner`) sits at the bottom above the round buttons and the first move clears it
+  (`bannerOff()`), so it never covers the board.
+- **Reef rock:** two stone sizes blended by a macro pattern, broad light/dark patches, depth = distance to open water (≤ 2 cells, from
+  the mask) so thick walls sink into shade, a lit bevel on top/left edges and a crease on right/bottom. Deep-world lichen spots sparser.
+- **Waterline:** soft meniscus with moving glints instead of a ruled line. **Daily Dive card** uses the real tank photo
+  (`levelPhoto(cv, i, false, live)`). Level-30 button "Wake the reef ✨" (no wrap). Social meta tags added (og:type, twitter card).
+- **Size:** sheet sprites + the painted background are embedded as WebP (`webp()` in build_assets.py, `exact` keeps edge colours);
+  the unused old art set (`ART_SRC`) is no longer embedded. dist 12.0 MB → 9.3 MB.

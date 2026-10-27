@@ -6,11 +6,24 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); SRC = os.pat
 def uri(rel):
     p = os.path.join(SRC, rel); ext = os.path.splitext(p)[1].lower(); mime = 'image/png' if ext == '.png' else 'image/jpeg'
     return f'data:{mime};base64,' + base64.b64encode(open(p, 'rb').read()).decode()
+def webp(rel, q=90):
+    # sheet sprites ship as WebP (same look, about a third of the PNG size); `exact` keeps the colour under transparent pixels so
+    # filtered edges don't pick up dark fringes. Falls back to the PNG when Pillow can't write WebP.
+    p = os.path.join(SRC, rel)
+    try:
+        from PIL import Image
+        import io
+        im = Image.open(p); im = im.convert('RGBA') if im.mode not in ('RGB', 'RGBA') else im
+        b = io.BytesIO(); im.save(b, 'WEBP', quality=q, method=6, exact=True, alpha_quality=100)
+        if b.tell() < os.path.getsize(p): return 'data:image/webp;base64,' + base64.b64encode(b.getvalue()).decode()
+    except Exception as e:
+        print('webp skipped for', rel, e)
+    return uri(rel)
 def main():
     man = json.load(open(os.path.join(SRC, 'assets', 'asset-manifest.json')))
-    sheet = {k: [uri(v['file']), v['w'], v['h']] for k, v in man['SHEET_SPR'].items()}
-    art = {k: ([uri(x) for x in v] if isinstance(v, list) else uri(v)) for k, v in man['ART_SRC'].items()}
-    data = {'SHEET_SPR': sheet, 'ART_SRC': art, 'PHOTO_BG_URI': uri(man['PHOTO_BG_URI'])}
+    sheet = {k: [webp(v['file']), v['w'], v['h']] for k, v in man['SHEET_SPR'].items()}
+    # (ART_SRC — the old art set — is no longer used by the game, so it isn't embedded)
+    data = {'SHEET_SPR': sheet, 'PHOTO_BG_URI': webp(man['PHOTO_BG_URI'], 88)}
     # optional per-world paintings: src/assets/images/background/bg_photo_w2.jpg (Coral Caves) / bg_photo_w3.jpg (The Deep), same 2560x1435 framing
     for w in (2, 3):
         for ext in ('jpg', 'png'):
