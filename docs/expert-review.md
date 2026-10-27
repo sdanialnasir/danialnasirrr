@@ -35,6 +35,12 @@ Status: ✅ done in this pass · ⏳ needs the owner (assets / hosting) · — n
 | C2 | P1 | First move of every level: nothing tells you which way to go on levels without the coach. | The level-start reveal (pearl pings → gate) already does this; keep. | — already there |
 | C3 | P1 | Win celebration, pearl hit-stop, combos, relics, danger glow, undo, hints | Already strong; checked, no change. | — already there |
 
+## C+. Owner follow-up
+| # | Pri | Problem | Fix | Status |
+|---|---|---|---|---|
+| C5 | P1 | Unlimited undo removes all tension. | 3 undos per try; the button only appears in a tight spot or after a crash, with the count on it. | ✅ |
+| C6 | P1 | Night scenes in the intro look dull (flat blue wash, grey sand). | Moonlit colour grade: indigo shadows, teal mid-tones, silver moon glow, red pearls glowing warm. | ✅ |
+
 ## D. Size and speed (a 12 MB single file is a long wait on mobile data)
 | # | Pri | Problem | Fix | Status |
 |---|---|---|---|---|

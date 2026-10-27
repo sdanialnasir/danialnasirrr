@@ -1668,6 +1668,17 @@ html body:is(.ui-art, :not(.ui-art)) #skipIntro.dd-skip { display: inline-flex; 
 @media (orientation: landscape) and (max-height: 620px) { .fin-top { top: 10%; width: min(60vw, 30rem); } #finale.title .fin-top { top: 0.6rem; transform: translateX(-50%) scale(0.5); } .fin-title { top: 30%; } .fin-diver { width: min(40vh, 14rem); } }
 @media (orientation: landscape) and (min-width: 760px) { .fin-title { top: 36%; } .fin-diver { left: 82%; width: min(46vh, 24rem); } }
 #ending .panel .msg { padding: 0.6rem 0.8rem 0; }
+
+/* undo lifeline: hidden in calm water (its slot stays, so nothing jumps), pops up glowing in a tight spot, with the undos left */
+html body:is(.ui-art, :not(.ui-art)) #btnUndo { position: relative; transition: opacity .3s ease, transform .35s cubic-bezier(.2, 1.5, .4, 1), filter .3s; }
+html body:is(.ui-art, :not(.ui-art)) #btnUndo:not(.ready) { opacity: 0 !important; transform: scale(0.5) translateY(0.6rem); pointer-events: none; }
+html body:is(.ui-art, :not(.ui-art)) #btnUndo.ready { opacity: 1 !important; animation: undoGlow 1.6s ease-in-out infinite; }
+@keyframes undoGlow { 0%, 100% { box-shadow: 0 0 0 0.16rem #0a1a4c, 0 0 0 0.3rem rgba(255, 210, 63, 0.9), 0 0 1rem 0.2rem rgba(255, 200, 60, 0.45); } 50% { box-shadow: 0 0 0 0.16rem #0a1a4c, 0 0 0 0.3rem rgba(255, 210, 63, 0.5), 0 0 1.8rem 0.5rem rgba(255, 200, 60, 0.7); } }
+#btnUndo .ub-n { position: absolute; top: -0.35rem; right: -0.35rem; min-width: 1.3rem; height: 1.3rem; padding: 0 0.3rem; border-radius: 999px; display: grid; place-items: center; font-family: var(--display); font-weight: 700; font-size: 0.8rem; line-height: 1; color: #13235a;
+  background: linear-gradient(180deg, #fff6a8, #ffc61a); box-shadow: 0 0 0 0.12rem #9c4d00; }
+#btnUndo.last .ub-n { background: linear-gradient(180deg, #ffb0a0, #ff4a5a); color: #fff; box-shadow: 0 0 0 0.12rem #7a0018; }
+body.swim[data-state="playing"] #btnUndo.ready { opacity: 1 !important; }
+@media (prefers-reduced-motion: reduce) { #btnUndo.ready { animation: none !important; } }
 </style>
 </head>
 <body data-state="splash">
@@ -1697,7 +1708,7 @@ html body:is(.ui-art, :not(.ui-art)) #skipIntro.dd-skip { display: inline-flex; 
   <div class="air" id="air"><div class="top"><i class="bub"></i><span class="air-l">AIR</span><b id="airTxt">60</b><div class="airstars" id="airStars" aria-label="Stars if you finish now"><i>★</i><i>★</i><i>★</i></div></div><div class="airbar"><i id="airFill"></i><span class="mk" style="left:30%"></span><span class="mk" style="left:60%"></span></div></div>
 </div>
 <div id="hudB">
-  <button class="hbtn sm" id="btnUndo" aria-label="Undo last move"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span class="hb-l">Undo</span></button>
+  <button class="hbtn sm" id="btnUndo" aria-label="Undo last move" aria-hidden="true" tabindex="-1"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span class="hb-l">Undo</span><b class="ub-n">3</b></button>
   <button class="hbtn sm" id="btnRestartHud" aria-label="Restart level"><svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg><span class="hb-l">Restart</span></button>
   <button class="hbtn sm" id="btnHint" aria-label="Show me the next moves"><svg class="i" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg><em>free</em><span class="hb-l">Hint</span></button>
 </div>
@@ -1819,7 +1830,7 @@ html body:is(.ui-art, :not(.ui-art)) #skipIntro.dd-skip { display: inline-flex; 
       <div class="r"><i class="ic stone"></i><p><b>Stones and pearls fall</b> when nothing holds them up, and roll off round things (left first). One on your head ends the dive, but you can drop them on enemies.</p></div>
       <div class="r"><i class="ic fish"></i><p><b>Piranhas, jellyfish and crabs</b> patrol the caves. Touching one ends the dive.</p></div>
       <div class="r"><i class="ic airc"></i><p><b>Watch your air.</b> Air capsules give +45 seconds. Finish with more air for more stars: the ★★★ under the timer shows what you would get right now.</p></div>
-      <div class="r"><i class="ic undo"></i><p><b>Made a mistake?</b> <span class="touch-only">Tap ↶ to undo,</span><span class="desk-only">Click ↶ or press Z to undo,</span> even after a crash. ⟲ starts over. 💡 shows you the next moves.</p></div>
+      <div class="r"><i class="ic undo"></i><p><b>In a tight spot?</b> The ↶ <b>Undo</b> button pops up when danger is near or after a crash. You get <b>3 undos</b> per try (⟲ Restart refills them). 💡 shows you the next moves.</p></div>
     </div>
     <p class="how-ctl"><span class="touch-only">Drag anywhere to swim: a short drag steps carefully, a long drag swims fast. Hold the map button to see the whole level.</span><span class="desk-only">Arrow keys or WASD to swim (or drag with the mouse) · Z undo · R restart · P pause · hold M for the map.</span></p>
   </div>
@@ -3254,7 +3265,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             c *= 0.95 + g1 * 0.06 + (g2 - 0.5) * 0.05; }
           c = mix(c, c * vec3(0.72, 0.62, 0.5), vWet * 0.75); c += vec3(0.25, 0.2, 0.12) * smoothstep(0.03, 0.0, abs(vWet - 0.75)) * vWet;
           if (uNew > 0.5) { float l = dot(c, vec3(0.299, 0.587, 0.114)); c = max(vec3(0.0), mix(vec3(l), c, 1.3)); } // richer, warmer sand (the lights were greying it out)
-          c = mix(c, c * vec3(0.27, 0.34, 0.58), uNight); // the intro's night (moonlit, still readable)
+          c = mix(c, c * vec3(0.55, 0.66, 0.9), uNight); // the intro's night: a cool tint here, the moonlight grade is done in post
           { float d = length(vWp.xy - uLamp.xy), pool = smoothstep(uLamp.z * 1.9, 0.0, d), core = smoothstep(uLamp.z, 0.0, d); // the diver's lamp
             c *= 1.0 - uLampAmb * (1.0 - pool); c += c * vec3(0.75, 0.5, 0.22) * core * uLamp.w; }
           diffuseColor.rgb = c; }`)
@@ -4463,8 +4474,15 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         vec3 safe(vec3 c){ return (any(isnan(c)) || any(isinf(c))) ? vec3(0.0) : clamp(c, 0.0, 32.0); }
         void main(){ vec3 c = safe(texture2D(tScene, vUv).rgb); vec3 b = safe(texture2D(tBloom, vUv).rgb);
           if (lens > 0.0) { vec2 dv = (vUv - 0.5) * lens * 0.0012 * dot(vUv - 0.5, vUv - 0.5) * 4.0; c.r = safe(texture2D(tScene, vUv + dv).rgb).r; c.b = safe(texture2D(tScene, vUv - dv).rgb).b; } // faint chromatic fringe at the edges
-          // the intro's night grade: mid-tones sink into deep blue, but bright lights (pearl-lights, lamp, lightning) keep shining
-          if (night > 0.0) { vec3 hi = max(c - 1.15, 0.0); c = mix(c, c * vec3(0.24, 0.32, 0.6) + hi * 3.0, night); b *= 1.0 + night * 1.6; }
+          // the intro's night grade: a moonlit split-tone (inky indigo shadows, teal mid-tones, silver highlights, a moon glow pouring in
+          // from the surface) instead of a flat blue wash; real lights (pearl-lights, lamp, lightning) keep shining and bloom more
+          if (night > 0.0) { vec3 hi = max(c - 1.0, 0.0); float ln = dot(c, vec3(0.2126, 0.7152, 0.0722));
+            vec3 g = mix(vec3(0.003, 0.01, 0.045), vec3(0.025, 0.12, 0.23), smoothstep(0.0, 0.2, ln));
+            g = mix(g, vec3(0.3, 0.5, 0.66), smoothstep(0.22, 1.1, ln));
+            g = mix(g, c * vec3(0.45, 0.62, 1.0), 0.38);
+            float red = max(c.r - 2.2 * max(c.g, c.b), 0.0); g += vec3(1.0, 0.16, 0.24) * red * 2.2;   // the red pearls glow warm against the cool night
+            vec2 mo = (vUv - vec2(0.5, 1.1)) * vec2(aspect * 0.85, 1.35); g += vec3(0.1, 0.22, 0.34) * pow(max(0.0, 1.0 - length(mo)), 2.6);
+            c = mix(c, g + hi * 3.0, night); b *= 1.0 + night * 1.9; }
           c += b * strength * 0.85;
           if (rays > 0.0) c += safe(texture2D(tRays, vUv).rgb) * rays;
           // gentle grade: a touch more contrast and saturation, cool shadows, warm highlights
@@ -6371,7 +6389,7 @@ window.__T = T;
     levelIdx = i; const lv = custom || LEVELS[i]; dive = custom && custom.daily ? custom : null;
     Audio.music(!custom && i >= 20 ? 'deep' : 'play'); // the Deep gets its own dark soundscape
     engine = new Engine(lv); engine.relaxed = !!save.settings.relaxed && !dive; if (dive) { engine.daily = true; World.dailyWorld(lv.name, dayNum() % 3); } /* the Daily Dive is a race: always on the clock */ world.loadLevel(engine); hideStuck(); stuckKey = ''; Audio.setTension(0); document.body.classList.toggle('relaxed', engine.relaxed);
-    window.__LEVELSCENE = (custom || LEVELS[i]).scene || null; history = []; stuckTimer = 0; stuckShown = false; gateNudged = true; coachStart(i, custom);
+    window.__LEVELSCENE = (custom || LEVELS[i]).scene || null; history = []; undoLeft = UNDO_MAX; undoUntil = 0; stuckTimer = 0; stuckShown = false; gateNudged = true; coachStart(i, custom);
     { const ph = $('#pauseHint'); if (ph) ph.innerHTML = rich(lv.hint); }
     relicSync(); tickWorld(engine, performance.now());
     held.clear(); heldOrder = []; acc = 0; overTimer = 0; lowAirBeep = 0; resultShown = false; endTouch();
@@ -6475,7 +6493,7 @@ window.__T = T;
       if (j < 0) { world.setCoachTrail(null); coachHand(null); COACH.trail = false;
         if (!HINT.busy && COACH.replanKey !== cur) { COACH.replanKey = cur; findPlan(plan => { COACH.plan = { route: plan, refs: planRefs(engine, plan) }; COACH.ck = ''; }); return; } // re-plan from here (free)
         if (HINT.busy) return; if (COACH.hint > 0) { COACH.hint = 0; hintSync(); return; }
-        if (!COACH.undoShown) { COACH.undoShown = true; toast(document.body.classList.contains('touch') ? 'Oops! Tap ↶ to undo' : 'Oops! Press Z to undo'); $('#btnUndo').classList.add('nudge'); setTimeout(() => $('#btnUndo').classList.remove('nudge'), 4000); } return; }
+        if (!COACH.undoShown) { COACH.undoShown = true; toast(document.body.classList.contains('touch') ? 'Oops! Tap ↶ to undo' : 'Oops! Press Z to undo'); undoNeed(6000); $('#btnUndo').classList.add('nudge'); setTimeout(() => $('#btnUndo').classList.remove('nudge'), 4000); } return; }
       let k = j + 1; while (k < R.length && R[k].key === cur) k++; if (k >= R.length) target = [engine.gate.x, engine.gate.y];
       else { let m = k; while (m > 0 && RT[m - 1] === '.') m--; target = R[m - 1].p; dir = RT[m - 1]; } }
     if (!target) return; COACH.firstDone = true; COACH.trail = true;
@@ -6516,7 +6534,7 @@ window.__T = T;
   // nothing wins from here: say so plainly and offer to rewind to the newest moment that still has a way through
   function noWayForward(proven = true) { const msg = proven ? 'No way to finish from here.' : 'I couldn\'t find a way from here.'; COACH.hint = 0; COACH.plan = null; hintSync(); world.setCoachTrail(null); coachHand(null); const R = coachRefs(); let k = -1;
     for (let i = history.length - 1; i >= 0 && i >= history.length - 60; i--) if (plRoute(history[i], R, COACH.route) !== null) { k = i; break; }
-    if (k >= 0) stuckCard(msg, `Rewind ${history.length - k} move${history.length - k === 1 ? '' : 's'}`, () => { history.length = k + 1; undo(); setTimeout(showMe, 80); });
+    if (k >= 0) stuckCard(msg, `Rewind ${history.length - k} move${history.length - k === 1 ? '' : 's'}`, () => { history.length = k + 1; undo(true); setTimeout(showMe, 80); });
     else stuckCard(msg, 'Start over', () => { restart(); }); }
 
   // the board left the verified route: find the newest undo snapshot that's back on it and offer to rewind there
@@ -6527,7 +6545,7 @@ window.__T = T;
     return null; }
   let stuckKey = '';
   function checkStuck() { const o = deadPearl(engine); if (!o) { stuckKey = ''; return; } const k = o.id + '@' + o.x + ',' + o.y; if (k === stuckKey) return; stuckKey = k;
-    stuckCard(o.y > engine.gate.y ? 'That pearl fell below the gate: it can never get back up.' : 'That pearl is boxed in: it can\'t reach the gate now.', history.length ? 'Undo' : 'Restart', () => { if (history.length) undo(); else restart(); }); buzz([20, 40, 20]); }
+    stuckCard(o.y > engine.gate.y ? 'That pearl fell below the gate: it can never get back up.' : 'That pearl is boxed in: it can\'t reach the gate now.', history.length && (undoLeft > 0 || undoFree()) ? 'Undo' : 'Restart', () => { if (history.length && (undoLeft > 0 || undoFree())) undo(); else restart(); }); undoNeed(9000); buzz([20, 40, 20]); }
   let stuckCb = null;
   function stuckCard(msg, act, fn) { const c = $('#stuckCard'); $('#stuckMsg').textContent = msg; $('#stuckAct').textContent = act; stuckCb = fn; c.classList.add('on'); clearTimeout(stuckCard.tm); stuckCard.tm = setTimeout(() => c.classList.remove('on'), 9000); }
   const hideStuck = () => { $('#stuckCard').classList.remove('on'); stuckCb = null; };
@@ -6541,6 +6559,15 @@ window.__T = T;
   function restart() { click(); startLevel(levelIdx, dive || undefined); beginPlay(); }
   // ---- undo: a snapshot of the whole puzzle before every move the diver makes
   let history = [], stuckTimer = 0, stuckShown = false;
+  // undo is a limited lifeline: 3 per attempt (Restart refills them; Relaxed mode keeps it unlimited). The button only shows up in a
+  // tight spot (danger next to the diver, a stuck pearl, a long think, after a crash) and stays a few seconds, so it's there when it matters.
+  const UNDO_MAX = 3; let undoLeft = UNDO_MAX, undoUntil = 0, undoVis = null;
+  const undoFree = () => !!(engine && engine.relaxed);
+  function undoNeed(ms) { undoUntil = Math.max(undoUntil, performance.now() + (ms || 5000)); undoSync(); }
+  function undoSync() { const b = $('#btnUndo'); if (!b) return; const can = !!engine && history.length > 0 && (undoFree() || undoLeft > 0) && engine.state !== 'won';
+    const vis = can && (undoFree() || state === 'over' || performance.now() < undoUntil); const key = vis + ':' + (undoFree() ? '∞' : undoLeft);
+    if (key === undoVis) return; undoVis = key; b.classList.toggle('ready', vis); b.setAttribute('aria-hidden', vis ? 'false' : 'true'); b.tabIndex = vis ? 0 : -1;
+    const n = b.querySelector('.ub-n'); if (n) n.textContent = undoFree() ? '∞' : undoLeft; b.classList.toggle('last', !undoFree() && undoLeft === 1); }
   let runLog = '', runUndo = false, runHint = false; // this attempt's moves, one char per tick (same format as the verified routes), for "Watch best run"
   function cloneEngine(e) { const n = Object.create(Engine.prototype); Object.assign(n, e);
     n.grid = e.grid.slice(); n.water = e.water.slice(); const map = new Map(); n.objects = new Map();
@@ -6682,22 +6709,23 @@ window.__T = T;
       const bad = c.state === 'dead' || (c.state === 'playing' && !escapes(c));
       if (!bad && moved) anySafe = true; if (bad && (moved || c.state === 'dead')) out.push({ x: nx, y: ny }); }
     const stay = fresh(); const stayBad = !survives(stay, 2);
-    world.setDanger({ cells: out, stay: stayBad && anySafe }); }
+    world.setDanger({ cells: out, stay: stayBad && anySafe }); if (out.length || stayBad) undoNeed(4500); }
   function doomed(e) { if (!e.player) return true;
     for (const first of ['', 'U', 'D', 'L', 'R']) { const c = cloneEngine(e); c.oxygen = Math.max(c.oxygen, 30); if (first) c.press(PLM[first]); let dead = false;
       for (let i = 0; i < 10; i++) { c.step(); if (c.state === 'dead') { dead = true; break; } if (c.state === 'won') break; } if (!dead) return false; }
     return true; }
-  function undo() {
+  function undo(force) {
     if (!history.length || !engine || (state !== 'playing' && state !== 'over') || engine.state === 'won' || $('#ending').classList.contains('on')) { if (state === 'playing') toast('Nothing to undo yet'); return; }
+    if (force !== true && !undoFree()) { if (undoLeft <= 0) { toast('No undos left: ⟲ Restart gives you 3 more'); return; } undoLeft--; } undoVis = null;
     Audio.play('undo'); buzz(10); hideStuck(); stuckKey = ''; planJob++; COACH.plan = null; let snap = history.pop(), extra = 0; while (history.length && extra < 12 && doomed(snap)) { snap = history.pop(); extra++; } runUndo = true; if (snap.__log !== undefined) runLog = runLog.slice(0, snap.__log); const cp = world.camPos.clone(), ct = world.camTarget.clone();
     engine = cloneEngine(snap); world.keepTreasures(); world.loadLevel(engine); relicSync(); world.onTick(engine, performance.now()); world.startPlay(); world.camPos.copy(cp); world.camTarget.copy(ct); setTimeout(dangerScan, 0);
     held.clear(); heldOrder = []; endTouch(); acc = 0; overTimer = 0; resultShown = false; hudKey = ''; lastScore = -1;
     if (state !== 'playing') { setState('playing'); show(null); } updateHud(); undoHold = true;
     if (!REDUCED_MOTION) world.flashFx('rewind'); { const pl = engine.player; if (pl) world.particles.bubbles(pl.x, -pl.y, 0.4, 10, 0.08, 0.35); } /* time rewound: a cool blue blink + a puff of bubbles */
-    if (extra) toast(`Rewound ${extra + 1} moves to a safe spot`); }
+    if (extra) toast(`Rewound ${extra + 1} moves to a safe spot`); else if (force !== true && !undoFree()) toast(undoLeft ? `${undoLeft} undo${undoLeft === 1 ? '' : 's'} left` : 'That was your last undo'); undoNeed(2500); }
   let planHold = false; // while a hint is being worked out the world holds still (nothing moves, air paused); any move cancels it
   let undoHold = false; // after an undo the world waits for the player's next move (a falling stone hangs until you act)
-  $('#btnUndo').onclick = undo;
+  $('#btnUndo').onclick = () => undo();
 
   // ---- watch your best run: the fastest winning attempt is stored as a tick route and played back at 2x
   let replay = null, lastWin = null; const MV = { U: 'up', D: 'down', L: 'left', R: 'right' };
@@ -6877,7 +6905,7 @@ window.__T = T;
       setTimeout(() => { if (state === 'over') Audio.vo(['win1', 'win2', 'win3'][Math.random() * 3 | 0]); }, 700); }
     else { const cause = { crushed: 'Crushed!', monster: 'Gobbled!', oxygen: 'Out of air!', self: 'Restarted' }[engine.deathCause] || 'Dive over'; $('#resTitle').textContent = cause; $('#resCoins').hidden = true; lastWin = null;
       $('#resStats').innerHTML = `<div class="stat"><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>pearls</span></div><div class="stat"><b>${D.best ? D.best.t.toFixed(1) + 's' : '–'}</b><span>today's best</span></div>`;
-      $('#btnNext').textContent = history.length ? 'Undo last move' : 'Try again'; $('#btnNext').hidden = false; $('#btnNext').classList.add('green'); $('#btnRetry').lastChild.textContent = 'Restart'; persist(); } }
+      $('#btnNext').textContent = history.length && (undoLeft > 0 || undoFree()) ? (undoFree() ? 'Undo last move' : `Undo last move (${undoLeft} left)`) : 'Try again'; $('#btnNext').hidden = false; $('#btnNext').classList.add('green'); $('#btnRetry').lastChild.textContent = 'Restart'; persist(); } }
   let ddWriting = Promise.resolve();
   function pushDaily() { const D = ddSave(); if (!D.best) return; ddWriting = ddWriting.then(async () => { await LB.ready; if (!LB.db || !LB.uid) return;
     try { await LB.db.doc('daily/' + LB.uid).set({ day: D.key, t: D.best.t, air: D.best.air, nick: (save.name || 'Diver').slice(0, 16), suit: save.equip.suit, updatedAt: Date.now() }); } catch (er) { if (er && er.code === 'invalid_argument') LB.readOnly = true; } }); }
@@ -6942,7 +6970,7 @@ window.__T = T;
       const cause = { crushed: 'Crushed!', monster: 'Gobbled!', oxygen: 'Out of air!', self: 'Restarted', spiked: 'Spiked!' }[engine.deathCause] || 'Dive over';
       $('#resTitle').textContent = cause; $('#resStars').hidden = true; $('#resBest').hidden = true;
       $('#resStats').innerHTML = `<div class="stat"><i class="si e"></i><b>${engine.ballsIn}/${engine.ballsTotal}</b><span>pearls</span></div><div class="stat"><i class="si a"></i><b>${Math.max(0, Math.ceil(engine.oxygen))}s</b><span>air left</span></div>`;
-      $('#btnNext').textContent = history.length ? 'Undo last move' : 'Try again'; $('#btnNext').hidden = false; $('#btnNext').classList.add('green');
+      $('#btnNext').textContent = history.length && (undoLeft > 0 || undoFree()) ? (undoFree() ? 'Undo last move' : `Undo last move (${undoLeft} left)`) : 'Try again'; $('#btnNext').hidden = false; $('#btnNext').classList.add('green');
       $('#btnRetry').lastChild.textContent = 'Restart'; renderGoals(false, null);
     }
   }
@@ -6987,7 +7015,7 @@ window.__T = T;
     if (dir) { ev.preventDefault(); if (state === 'intro') beginPlay(); if (state === 'playing') setHeld(dir, true); return; }
     if (ev.key === 'Escape' && state !== 'playing' && state !== 'paused') { const sh = document.querySelector('.screen.sheet.on:not(.modal), #levels.on'); if (sh) { ev.preventDefault(); go('back'); return; } }
     if (ev.key === 'Escape' || ev.key === 'p' || ev.key === 'P') { if (state === 'playing') pause(); else if (state === 'paused') beginPlay(); }
-    if (ev.key === 'z' || ev.key === 'Z' || ev.key === 'u' || ev.key === 'U' || ev.key === 'Backspace') { ev.preventDefault(); undo(); return; }
+    if (ev.key === 'z' || ev.key === 'Z' || ev.key === 'u' || ev.key === 'U' || ev.key === 'Backspace') { ev.preventDefault(); if ($('#btnUndo').classList.contains('ready')) undo(); else if (history.length) toast(undoLeft > 0 || undoFree() ? 'Undo shows up when you\'re in a tight spot' : 'No undos left: R restarts'); return; }
     if (ev.key === 'r' || ev.key === 'R') { if (state === 'playing') { restart(); return; } else if (state === 'over' || state === 'paused') restart(); }
     if (ev.key === 'Enter' && state === 'menu' && !ev.target.closest('input')) { if ($('#home').classList.contains('on')) { $('#btnPlay').click(); return; } if ($('#levels').classList.contains('on')) { $('#lvPlay').click(); return; } }
     if (state === 'tut') { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); tutNext(); } else if (ev.key === 'Escape') endTut(); return; }
@@ -7059,7 +7087,7 @@ window.__T = T;
   $('#btnQuit').onclick = ev => { click(); wipeTo(openHome, ev); };
   $('#btnResHome').onclick = ev => { click(); wipeTo(openHome, ev); };
   function nextLevel() { click(); wipeTo(() => startLevel(levelIdx + 1)); }
-  $('#btnNext').onclick = () => { if (dive && engine.state === 'won') { click(); lbTab = 'fast'; openHome(); go('ranks'); return; } if (engine.state === 'won' && levelIdx + 1 < LEVELS.length) nextLevel(); else if (engine.state === 'won') openEnding(); else if (engine.state !== 'won' && history.length) undo(); else restart(); };
+  $('#btnNext').onclick = () => { if (dive && engine.state === 'won') { click(); lbTab = 'fast'; openHome(); go('ranks'); return; } if (engine.state === 'won' && levelIdx + 1 < LEVELS.length) nextLevel(); else if (engine.state === 'won') openEnding(); else if (engine.state !== 'won' && history.length && (undoLeft > 0 || undoFree())) undo(); else restart(); };
   // the finale: all 30 gates awake. A one-time coin bonus, the story's payoff, and a nudge to go back for every star.
   // the finale: 30 gate lights wake one by one (rising notes), fireworks of pearl-light, the title and the diver, then a credits roll;
   // a tap skips straight to the end card. Its own rAF loop (the game's frame loop holds behind it).
@@ -7161,6 +7189,7 @@ window.__T = T;
         if (beginPlay.pk && ((engine.moveQueue && engine.moveQueue.length) || engine.held)) setHeldPeekOff(); // the first move ends the opening look
         if (banner.start && ((engine.moveQueue && engine.moveQueue.length) || engine.held)) { banner.start = false; bannerOff(); } // ...and the level-name banner (it sat over the tank)
         { const mv = (engine.moveQueue && engine.moveQueue.length) || engine.held || touch; if (mv) quietAt = now; const q = !!quietAt && now - quietAt < 1200 && (engine.relaxed || engine.oxygen > 15); if (q !== quietOn) { quietOn = q; document.body.classList.toggle('swim', q); } } // quiet HUD while swimming
+        undoSync(); // the undo lifeline appears in tight spots and fades a few seconds later
         if (slowMo > 0) { slowMo = Math.max(0, slowMo - realDt); acc = 0; } // the world holds its breath for a moment
         if (planHold) { if ((engine.moveQueue && engine.moveQueue.length) || engine.held) { planHold = false; planJob++; HINT.busy = false; $('#btnHint').classList.remove('busy'); } else acc = 0; }
         if (undoHold) { if ((engine.moveQueue && engine.moveQueue.length) || engine.held) undoHold = false; else acc = 0; }
@@ -7178,7 +7207,7 @@ window.__T = T;
           coachTick(realDt); checkStuck(); hintSync();
           Audio.setTension(engine.relaxed ? 0 : (15 - engine.oxygen) / 15);
           if (engine.gate && engine.gate.open && !gateNudged && performance.now() - gateOpenAt > 8000) { gateNudged = true; toast('Swim into the glowing gate to finish ✨'); }
-          stuckTimer += realDt; if (!stuckShown && stuckTimer > 22 && engine.ballsIn < engine.ballsTotal) { stuckShown = true; toast(isTouch ? 'Stuck? Tap 💡 for a hint, or ↶ to undo' : 'Stuck? Click 💡 for a hint, or press Z to undo'); $('#btnHint').classList.add('nudge'); setTimeout(() => $('#btnHint').classList.remove('nudge'), 4000); }
+          stuckTimer += realDt; if (!stuckShown && stuckTimer > 22 && engine.ballsIn < engine.ballsTotal) { stuckShown = true; undoNeed(8000); toast(isTouch ? 'Stuck? Tap 💡 for a hint, or ↶ to undo' : 'Stuck? Click 💡 for a hint, or press Z to undo'); $('#btnHint').classList.add('nudge'); setTimeout(() => $('#btnHint').classList.remove('nudge'), 4000); }
           if (engine.oxygen < 15 && !engine.relaxed) { lowAirBeep -= dt; if (lowAirBeep <= 0) { lowAirBeep = engine.oxygen < 6 ? 1.3 : 2.4; Audio.play('lowAir'); /* calm: a soft pulse every few seconds, not a beeper */ } }
         }
         updateHud();
@@ -7211,7 +7240,7 @@ window.__T = T;
   const boot = {}; const dropLoader = () => { booting = false; clearInterval(boot.tipT); const L = $('#loader'); if (L) { L.classList.add('done'); setTimeout(() => L.remove(), 700); } };
   (async () => { const bar = $('#loadBar'), tip = $('#loadTip'), pause = () => new Promise(r => setTimeout(r, 0)); let shown = 0;
     const prog = (k, msg) => { shown = Math.max(shown, k); if (bar) bar.style.width = (shown * 100).toFixed(0) + '%'; const L = $('#loader'); if (L) L.style.setProperty('--ldp', Math.max(3, shown * 100).toFixed(0) + '%'); if (msg && tip) tip.textContent = msg; };
-    { const H = ['Stones fall when you dig under them. <b>Never stand below one!</b>', 'Pearls roll off round things. Use that to steer them.', 'Stuck? <b>Undo</b> rewinds as far as you like.', 'Air only starts counting <b>on your first move</b>.', 'Every level hides an ancient <b>relic</b>. Can you find all 30?', 'A stone dropped on a monster is a <b>BONK!</b> combo.', 'The 💡 hint plans a way out from wherever you are.'];
+    { const H = ['Stones fall when you dig under them. <b>Never stand below one!</b>', 'Pearls roll off round things. Use that to steer them.', 'In a tight spot the <b>Undo</b> button pops up. You get 3 per try.', 'Air only starts counting <b>on your first move</b>.', 'Every level hides an ancient <b>relic</b>. Can you find all 30?', 'A stone dropped on a monster is a <b>BONK!</b> combo.', 'The 💡 hint plans a way out from wherever you are.'];
       const el = $('#ldHint'); let hi = Math.floor(Math.random() * H.length); const nx = () => { if (!el) return; el.classList.add('out'); setTimeout(() => { el.innerHTML = '<b>Tip</b> · ' + H[hi++ % H.length]; el.classList.remove('out'); }, 350); };
       if (el) { el.innerHTML = '<b>Tip</b> · ' + H[hi++ % H.length]; boot.tipT = setInterval(nx, 3400); } }
     try {

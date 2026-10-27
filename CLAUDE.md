@@ -686,3 +686,13 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   (`levelPhoto(cv, i, false, live)`). Level-30 button "Wake the reef ✨" (no wrap). Social meta tags added (og:type, twitter card).
 - **Size:** sheet sprites + the painted background are embedded as WebP (`webp()` in build_assets.py, `exact` keeps edge colours);
   the unused old art set (`ART_SRC`) is no longer embedded. dist 12.0 MB → 9.3 MB.
+
+## Limited undo + moonlit night (owner: "unlimited undo is unwanted… it should show in a difficult spot"; "night scenes look dull")
+- **Undo is a lifeline:** `UNDO_MAX = 3` per attempt (`undoLeft`, refilled by `startLevel`, so Restart gives 3 again; Relaxed mode =
+  unlimited, button always shown). `#btnUndo` is hidden in calm play (its slot stays, so Restart/Hint don't move) and pops up glowing
+  with a count badge (`.ub-n`, red on the last one) when `undoNeed(ms)` fires: danger glow finds a fatal cell or standing still is fatal,
+  a pearl is stuck, the 22 s "stuck?" tip, the level-1 coach's "Oops", after a crash (state 'over'), and for 2.5 s after an undo.
+  `undoSync()` runs from the frame loop. Z/U/Backspace only work while the button is up (otherwise a toast explains). The lose card
+  reads "Undo last move (n left)" or "Try again" at 0. The hint's "Rewind N moves" is part of the paid hint: `undo(true)` is free.
+- **Night grade** (post `night`): moonlit split-tone (indigo shadows, teal mids, silver highs, moon glow from the surface), strong reds
+  (the pearls) kept glowing warm; sand `uNight` is now only a cool tint (the grade does the rest).
