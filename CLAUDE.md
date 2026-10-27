@@ -750,3 +750,24 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - **Diver motion:** the spring chases the tick-interpolated position (k 120) → held moves glide at an even speed; walk/swim at full strength
   with stride speed from the body's speed; the push clip plays while a pearl moves; the diver faces what he pushes (yaw 0.72 → 0.22) and leans
   0.145 toward it so the gloves meet the pearl without sinking in.
+
+## Story transition (owner's 10-image reference pack: tunnel → emergence → results → arrival)
+- **Pipe** (`makePipe(world, R, L, base)`, World): open cylinder outside + BackSide inside with a generated patina texture (`pipeTex`: plates,
+  rivets, rust flecks; world tints `PIPE_TINT` teal / violet / navy with cyan glow spots), chunky brass rim + bead, brass bands, inner ribs,
+  instanced rivets, three porthole lamps on the rim (top/left/right) and three set into the tunnel wall (`pipeTick` pulses them), instanced
+  barnacles + moss, rocks at the foot. Mouth at z = 0 facing +z.
+- **Film** (`class Story`, own scene; `world.storyStart({w, tank, onFreeze})` / `storyStop()`; while on, `update()` and `render()` hand over to it):
+  painted reef as a mirrored ring all round (`PHOTO_W[w]`), dune sand with `TEX.sandRef`, sun shafts, sheet corals/weeds/rocks/shells
+  scattered with a clear walkway, drifting sheet fish, the **next level's real tank photo** (`levelPhoto`) on a framed tank with a teak stand.
+  Shot 1 (0–2.7 s): camera inside the pipe behind the swimming diver, toward the bright mouth (warm + cool point lights inside).
+  Shot 2 (2.7 s–): low camera behind-right; the diver walks out of the mouth, turns to the distant tank and waves (`aim()` points the
+  RightArm/RightForeArm bones in world space after the mixer; the arms are short, so the arm goes out sideways or it hides behind the helmet).
+  At 5.9 s it freezes and calls `onFreeze`. Phones: wider FOV, camera further back, `setViewOffset` lifts the picture above the card.
+  `window.__SC` / `__SC1` override shot-2 / shot-1 camera numbers for tuning.
+- **Controller:** on a win (`storyOK()`: not Daily, not replay, not reduced motion, not level 30) `clearStamp` is skipped; 1.25 s after the
+  win a bubble wipe starts `startStory()`; the freeze runs `finishLevel()` and relabels the button "Continue ›". `body.story` CSS puts the
+  card at the right (landscape) or bottom (portrait), hides the HUD, goals, extras, Home and the mascot. A tap / Enter / Space during the
+  film skips to the freeze (`storySkip`). `storyEnd()` runs from `startLevel` and `openHome`.
+- **Arrival:** Continue sets `arriveNext`; `beginPlay` calls `world.arrive()`: a small pipe (R 0.3) pops out of the sand in the tank's
+  bottom-left corner (z 0.3, in front of the walls), the diver arcs out of it to his start cell, the pipe sinks after ~2.3 s; the first move
+  ends the pop-out. A spotlight tutorial on that level waits 1.7 s for it. Debug: `__dc.story()`.

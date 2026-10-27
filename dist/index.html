@@ -1679,6 +1679,43 @@ html body:is(.ui-art, :not(.ui-art)) #btnUndo.ready { opacity: 1 !important; ani
 #btnUndo.last .ub-n { background: linear-gradient(180deg, #ffb0a0, #ff4a5a); color: #fff; box-shadow: 0 0 0 0.12rem #7a0018; }
 body.swim[data-state="playing"] #btnUndo.ready { opacity: 1 !important; }
 @media (prefers-reduced-motion: reduce) { #btnUndo.ready { animation: none !important; } }
+
+/* ---- Story transition: the result card sits over the frozen film frame (right on wide screens, at the bottom on phones) ---- */
+body.story #hud, body.story #hudB, body.story #btnMap, body.story #lvlBanner, body.story #lbWrap, body.story #clearStamp, body.story #coachHand, body.story #stuckCard, body.story #fpsMeter { display: none !important; }
+html body.story:is(.ui-art, :not(.ui-art)) #result::before { background: linear-gradient(90deg, transparent 52%, rgba(2, 16, 48, 0.35)) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+html body.story:is(.ui-art, :not(.ui-art)) #result { place-items: center end; padding: 2.5vh 3.2vw; }
+html body.story:is(.ui-art, :not(.ui-art)) #result > .wrap { display: flex !important; flex-direction: column; align-items: stretch; gap: 0.55rem; width: min(25rem, 34vw); max-width: none; max-height: 94vh; overflow: auto; padding: 1.3rem 1.3rem 1.1rem;
+  border-radius: 1.6rem; background: linear-gradient(180deg, rgba(30, 72, 170, 0.97), rgba(12, 36, 110, 0.97)) !important; border: 3px solid #4fa8ff; box-shadow: 0 0 0 3px rgba(4, 18, 60, 0.85), 0 1rem 3rem rgba(0, 10, 40, 0.55), inset 0 2px 0 rgba(255, 255, 255, 0.25); animation: storyCard 0.45s cubic-bezier(.2, 1.3, .4, 1) both; }
+@keyframes storyCard { from { opacity: 0; transform: translateX(2.5rem) scale(0.96); } to { opacity: 1; transform: none; } }
+html body.story:is(.ui-art, :not(.ui-art)) #result .res-l, html body.story:is(.ui-art, :not(.ui-art)) #result .res-r { display: flex !important; flex-direction: column; align-items: stretch; gap: 0.5rem; padding: 0 !important; margin: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important; width: auto !important; }
+html body.story:is(.ui-art, :not(.ui-art)) #result .res-l { align-items: center; text-align: center; }
+html body.story #result #resMascot, html body.story #result #resGoals, html body.story #result #resExtra, html body.story #result #btnResHome, html body.story #result .kbd-hint, html body.story #result #resCause { display: none !important; }
+html body.story:is(.ui-art, :not(.ui-art)) #result .kicker { color: #8fd2ff; letter-spacing: 0.14em; font-size: 0.82rem; margin: 0; }
+html body.story:is(.ui-art, :not(.ui-art)) #result .title { font-size: clamp(2rem, 3.4vw, 2.8rem); margin: 0; line-height: 1.05; }
+html body.story:is(.ui-art, :not(.ui-art)) #result .stars { margin: 0.1rem 0 0; transform: scale(0.9); }
+html body.story:is(.ui-art, :not(.ui-art)) #result .big-score { font-size: clamp(2.2rem, 3.6vw, 3rem); line-height: 1; margin: 0; }
+html body.story:is(.ui-art, :not(.ui-art)) #result .score-lbl { margin: -0.3rem 0 0.2rem; letter-spacing: 0.18em; }
+html body.story:is(.ui-art, :not(.ui-art)) #result .res-stats { grid-template-columns: 1fr 1fr; gap: 0.55rem; margin: 0; }
+html body.story:is(.ui-art, :not(.ui-art)) #result .stat { padding: 0.55rem 0.4rem; border-radius: 1rem; }
+html body.story:is(.ui-art, :not(.ui-art)) #result .stat b { font-size: 1.6rem; }
+html body.story:is(.ui-art, :not(.ui-art)) #result .res-coins:not([hidden]) { margin: 0; padding: 0.5rem 0.8rem; display: flex; align-items: center; justify-content: center; } html body.story #result #resCoinWhy { display: none !important; } html body.story #result .rc-top { border-right: 0; padding-right: 0; }
+html body.story:is(.ui-art, :not(.ui-art)) #result .rc-top b { font-size: 1.8rem; }
+html body.story:is(.ui-art, :not(.ui-art)) #result #btnNext { width: 100%; min-height: 3.4rem; font-size: 1.5rem; margin: 0.25rem 0 0; }
+html body.story:is(.ui-art, :not(.ui-art)) #result .duo { display: grid !important; grid-template-columns: 1fr 1fr; gap: 0.55rem; margin: 0; width: auto; }
+html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9rem; flex-direction: row; justify-content: center; gap: 0.45rem; font-size: 1.05rem; padding: 0.4rem 0.6rem; }
+@media (orientation: portrait), (max-width: 700px) {
+  html body.story:is(.ui-art, :not(.ui-art)) #result { place-items: end center; padding: 0 3vw 2.2vh; }
+  html body.story:is(.ui-art, :not(.ui-art)) #result::before { background: linear-gradient(180deg, transparent 50%, rgba(2, 16, 48, 0.4)) !important; }
+  html body.story:is(.ui-art, :not(.ui-art)) #result > .wrap { width: min(30rem, 94vw); max-height: 56vh; gap: 0.4rem; padding: 0.9rem 1rem 0.9rem; animation-name: storyCardUp; }
+  html body.story:is(.ui-art, :not(.ui-art)) #result .title { font-size: 2rem; }
+  html body.story:is(.ui-art, :not(.ui-art)) #result .big-score { font-size: 2rem; }
+  html body.story:is(.ui-art, :not(.ui-art)) #result .stars { transform: scale(0.75); margin: -0.4rem 0 -0.4rem; }
+  html body.story:is(.ui-art, :not(.ui-art)) #result .stat b { font-size: 1.3rem; }
+  html body.story:is(.ui-art, :not(.ui-art)) #result .kicker { font-size: 0.72rem; } html body.story:is(.ui-art, :not(.ui-art)) #result .score-lbl { display: none; } html body.story:is(.ui-art, :not(.ui-art)) #result .stat { padding: 0.35rem; } html body.story:is(.ui-art, :not(.ui-art)) #result .rc-top b { font-size: 1.4rem; } html body.story:is(.ui-art, :not(.ui-art)) #result .res-coins { padding: 0.3rem; }
+  html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.5rem; }
+  html body.story:is(.ui-art, :not(.ui-art)) #result #btnNext { min-height: 3rem; font-size: 1.3rem; }
+}
+@keyframes storyCardUp { from { opacity: 0; transform: translateY(2.5rem) scale(0.96); } to { opacity: 1; transform: none; } }
 </style>
 </head>
 <body data-state="splash">
@@ -4004,8 +4041,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     if (!TEX.cobbleRock) { // reef rock in the owner's reference style: small and medium flat stones packed tightly, warm browns with a few grey-lavender
       // ones, soft low-contrast shading and thin warm mortar. Two canvases share every stone: a height map (bump) and a colour map.
       const N = 1024, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'); g.fillStyle = 'rgb(58,58,58)'; g.fillRect(0, 0, N, N);
-      const cc = document.createElement('canvas'); cc.width = cc.height = N; const gC = cc.getContext('2d'); gC.fillStyle = '#86603f'; gC.fillRect(0, 0, N, N);
-      const PAL = [[168, 130, 100], [178, 142, 112], [158, 122, 94], [186, 152, 122], [150, 118, 96], [170, 150, 150], [156, 142, 156], [176, 136, 102], [146, 112, 88], [190, 160, 130], [164, 140, 128], [140, 128, 140]];
+      const cc = document.createElement('canvas'); cc.width = cc.height = N; const gC = cc.getContext('2d'); gC.fillStyle = '#7a5439'; gC.fillRect(0, 0, N, N);
+      const PAL = [[160, 114, 84], [170, 124, 92], [148, 104, 78], [178, 134, 100], [140, 98, 74], [152, 126, 130], [162, 118, 86], [144, 102, 80], [182, 140, 106], [154, 110, 82], [136, 118, 128], [168, 126, 96]];
       let sd = 11; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647; const stones = []; for (let k = 0; k < 9000; k++) { gC.fillStyle = rnd() < 0.5 ? 'rgba(60,38,22,0.22)' : 'rgba(190,150,110,0.18)'; gC.fillRect(rnd() * N, rnd() * N, 2 + rnd() * 4, 2 + rnd() * 4); } // warm mottled earth between the stones
       const fits = (x, y, r) => { for (const q of stones) { let dx = Math.abs(q.x - x), dy = Math.abs(q.y - y); dx = Math.min(dx, N - dx); dy = Math.min(dy, N - dy); if (dx * dx + dy * dy < (q.r + r + 1.5) ** 2) return false; } return true; };
       for (const [rmin, rmax, tries] of [[48, 70, 900], [30, 46, 1400], [16, 28, 2600], [8, 14, 700]]) for (let t = 0; t < tries; t++) { const r = rmin + rnd() * (rmax - rmin), x = rnd() * N, y = rnd() * N; if (fits(x, y, r)) stones.push({ x, y, r }); }
@@ -4035,7 +4072,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           vec3 tint = mix(uCol, vec3(dot(uCol, vec3(0.3333))) * vec3(0.94, 1.0, 1.06), smoothstep(0.4, 0.8, r3) * 0.5); // stones vary: some greyer, some warmer
           tint *= 0.88 + 0.24 * smoothstep(0.25, 0.8, r2 * 0.5 + r3 * 0.5);                                                // broad light and dark patches
           vec3 c = tint * (0.12 + 0.5 * r * r) * (0.82 + 0.3 * r2);
-          ${world === 0 ? '{ vec3 rc = texture2D(uRockC, pt * 0.3).rgb; rc = mix(vec3(dot(rc, vec3(0.3, 0.59, 0.11))), rc, 0.72) * vec3(0.96, 0.98, 1.04); c = rc * (0.92 + 0.16 * r2) * 0.95; }' : 'c = mix(c, texture2D(uRockC, pt * 0.3).rgb * tint * 1.6, 0.35);'} // the reference's warm cobbles (other worlds keep their colour, with a hint of the stone variety)
+          ${world === 0 ? '{ vec3 rc = texture2D(uRockC, pt * 0.3).rgb; rc = mix(vec3(dot(rc, vec3(0.3, 0.59, 0.11))), rc, 0.76) * vec3(1.06, 0.97, 0.94); c = rc * (0.92 + 0.16 * r2) * 0.95; }' : 'c = mix(c, texture2D(uRockC, pt * 0.3).rgb * tint * 1.6, 0.35);'} // the reference's warm cobbles (other worlds keep their colour, with a hint of the stone variety)
           { float ee = 0.009, hx = texture2D(uRock, (pt + vec2(ee, 0.0)) * 0.3).r - r, hy = texture2D(uRock, (pt + vec2(0.0, ee)) * 0.3).r - r; // bump: stones lit from the top-left like the key light
             c *= clamp(1.0 + (-hx * 0.6 + hy * 0.75) * 6.0, 0.7, 1.35);
             if (uCol.r > 0.3 || uCol.g > 0.45) c = mix(c, vec3(0.2, 0.36, 0.22) * (0.5 + 0.7 * r), smoothstep(0.5, 0.85, r2) * smoothstep(0.0, 0.02, hy) * smoothstep(0.35, 0.6, r) * 0.32); } // a little algae on the upper faces
@@ -4568,6 +4605,183 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       ledge: ['weed1', 'weed2', 'weed3', 'weed4', 'weed5', 'weed6', 'weed7', 'weed8', 'weed9', 'coral1', 'coral3', 'coral5'], stars: ['starA', 'starB', 'starC', 'starD'], shells: ['shellA', 'shellB', 'shellC', 'shellD'], jelly: 'jellyN', goal: 'gateA', platform: 'platformN' } };
   const isRockSpr = (n) => n.startsWith('rock'), isPlantSpr = (n) => n.startsWith('plant') || n.startsWith('weed');
   // ---------------------------------------------------------------- the world
+  // ---------------------------------------------------------------- story: the tunnel pipe between levels
+  // Weathered metal pipe with brass rings and rivets, three glowing porthole lamps round the mouth (top, left, right), barnacles, moss,
+  // coral and rocks at its foot (the owner's design sheet). Per world: teal (shallows), violet (caves), navy with cyan glow (the deep).
+  const PIPE_TINT = [{ base: '#2f8f8b', dark: '#13504f', light: '#77d3c4', moss: 0x7c9a2e },
+    { base: '#7354b4', dark: '#33236a', light: '#b597f0', moss: 0x8f6fc0 },
+    { base: '#1e4c78', dark: '#0b2140', light: '#3d84b8', moss: 0x2c7a86, glow: '#62f4ff' }];
+  function pipeTex(w) { TEX.pipe = TEX.pipe || []; if (TEX.pipe[w]) return TEX.pipe[w];
+    const P = PIPE_TINT[w], [c, g] = canvas(1024, 512); let s = 11 + w * 977; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    g.fillStyle = P.base; g.fillRect(0, 0, 1024, 512);
+    for (let i = 0; i < 2600; i++) { const x = rnd() * 1024, y = rnd() * 512, r = 3 + rnd() * 28; g.globalAlpha = 0.05 + rnd() * 0.13; g.fillStyle = rnd() < 0.55 ? P.dark : P.light; g.beginPath(); g.ellipse(x, y, r * 1.4, r, rnd() * 3, 0, 7); g.fill(); }
+    for (let i = 0; i < 1100; i++) { const x = rnd() * 1024, y = rnd() * 512, r = 0.7 + rnd() * 3.2; g.globalAlpha = 0.3 + rnd() * 0.55; g.fillStyle = rnd() < 0.6 ? '#b0602a' : '#6a3a1c'; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); } // rust flecks
+    for (let i = 0; i < 70; i++) { const x = rnd() * 1024, y = rnd() * 512; g.globalAlpha = 0.18 + rnd() * 0.2; g.fillStyle = '#8a4a20'; g.beginPath(); g.ellipse(x, y, 6 + rnd() * 18, 3 + rnd() * 8, rnd() * 3, 0, 7); g.fill(); } // rust patches
+    g.globalAlpha = 0.6; g.strokeStyle = P.dark; g.lineWidth = 3; // riveted plates
+    for (let x = 0; x <= 1024; x += 128) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, 512); g.stroke(); }
+    for (let y = 0; y <= 512; y += 128) { g.beginPath(); g.moveTo(0, y); g.lineTo(1024, y); g.stroke(); }
+    g.globalAlpha = 0.25; g.strokeStyle = P.light; g.lineWidth = 1.5; for (let x = 2; x <= 1024; x += 128) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, 512); g.stroke(); }
+    const rivet = (x, y, r) => { const gr = g.createRadialGradient(x - r * 0.35, y - r * 0.35, 0.5, x, y, r); gr.addColorStop(0, '#f6e2a8'); gr.addColorStop(0.5, '#b08a4a'); gr.addColorStop(1, '#4a3418'); g.globalAlpha = 1; g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); };
+    for (let x = 0; x <= 1024; x += 128) for (let y = 10; y < 512; y += 24) rivet(x + 7, y, 3.4);
+    for (let y = 0; y <= 512; y += 128) for (let x = 12; x < 1024; x += 26) rivet(x, y + 7, 3);
+    if (P.glow) for (let i = 0; i < 140; i++) { const x = rnd() * 1024, y = rnd() * 512, r = 1.5 + rnd() * 4; const gr = g.createRadialGradient(x, y, 0, x, y, r * 3); gr.addColorStop(0, P.glow); gr.addColorStop(1, 'rgba(98,244,255,0)'); g.globalAlpha = 0.5 + rnd() * 0.5; g.fillStyle = gr; g.beginPath(); g.arc(x, y, r * 3, 0, 7); g.fill(); }
+    g.globalAlpha = 1; const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return (TEX.pipe[w] = t); }
+  // R = outer radius, L = length; the mouth is at z = 0 facing +z and the pipe runs back along -z. Lamps are exposed for pulsing.
+  function makePipe(w = 0, R = 1, L = 6, base = true) { const P = PIPE_TINT[w], T = R * 0.13, g = new THREE.Group(), tx = pipeTex(w);
+    const tO = tx.clone(); tO.repeat.set(3, L / (R * 2.2)); tO.needsUpdate = true; const tI = tx.clone(); tI.repeat.set(3, L / (R * 2.2)); tI.needsUpdate = true;
+    const metal = new THREE.MeshStandardMaterial({ map: tO, roughness: 0.62, metalness: 0.35, envMapIntensity: 0.9 });
+    const inner = new THREE.MeshStandardMaterial({ map: tI, color: 0x9fb6b4, roughness: 0.8, metalness: 0.2, side: THREE.BackSide, envMapIntensity: 0.5 });
+    const brass = MAT.pipeBrass || (MAT.pipeBrass = new THREE.MeshStandardMaterial({ color: 0xd8a03e, metalness: 0.85, roughness: 0.3, envMapIntensity: 1.2 }));
+    const cyl = (r, m) => { const geo = new THREE.CylinderGeometry(r, r, L, 64, 1, true); geo.rotateX(Math.PI / 2); geo.translate(0, 0, -L / 2); const mesh = new THREE.Mesh(geo, m); mesh.castShadow = mesh.receiveShadow = true; g.add(mesh); return mesh; };
+    cyl(R, metal); cyl(R - T, inner);
+    { const lip = new THREE.Mesh(new THREE.RingGeometry(R - T, R, 64), metal); g.add(lip); }
+    const ring = (r, tube, z, m = brass) => { const t = new THREE.Mesh(new THREE.TorusGeometry(r, tube, 14, 80), m); t.position.z = z; t.castShadow = true; g.add(t); return t; };
+    ring(R - T * 0.4, R * 0.085, R * 0.04); ring(R - T - R * 0.02, R * 0.03, -R * 0.02); // the chunky brass rim + a thin inner bead
+    for (const z of [-L * 0.3, -L * 0.62]) ring(R + R * 0.01, R * 0.05, z);
+    for (let k = 1; k * R * 0.8 < L; k++) ring(R - T, R * 0.035, -k * R * 0.8, inner); // ribs inside the tunnel
+    { const riv = [], add = (x, y, z) => riv.push([x, y, z]);
+      for (let i = 0; i < 30; i++) { const a = i / 30 * Math.PI * 2; add(Math.cos(a) * (R - T * 0.4), Math.sin(a) * (R - T * 0.4), R * 0.13); }
+      for (const z of [-L * 0.3, -L * 0.62]) for (let i = 0; i < 26; i++) { const a = i / 26 * Math.PI * 2; add(Math.cos(a) * (R + R * 0.05), Math.sin(a) * (R + R * 0.05), z); }
+      const im = new THREE.InstancedMesh(new THREE.SphereGeometry(R * 0.032, 8, 6), brass, riv.length), M4 = new THREE.Matrix4(); riv.forEach((p, i) => im.setMatrixAt(i, M4.makeTranslation(p[0], p[1], p[2]))); g.add(im); }
+    const lamps = [];
+    for (const a of [Math.PI / 2, Math.PI * 0.94, Math.PI * 0.06]) { const lp = new THREE.Group(); lp.position.set(Math.cos(a) * (R + R * 0.02), Math.sin(a) * (R + R * 0.02), R * 0.1); g.add(lp);
+      const bez = new THREE.Mesh(new THREE.TorusGeometry(R * 0.15, R * 0.045, 12, 32), brass); lp.add(bez);
+      const back = new THREE.Mesh(new THREE.CircleGeometry(R * 0.17, 24), brass); back.position.z = -R * 0.03; lp.add(back);
+      const glass = new THREE.Mesh(new THREE.SphereGeometry(R * 0.14, 24, 14), new THREE.MeshStandardMaterial({ color: 0xd8401c, emissive: 0xff2a06, emissiveIntensity: 0.55, roughness: 0.15, metalness: 0 }));
+      glass.scale.z = 0.55; lp.add(glass);
+      const hot = new THREE.Mesh(new THREE.SphereGeometry(R * 0.05, 12, 8), new THREE.MeshBasicMaterial({ color: 0xffc8a8 })); hot.position.set(-R * 0.03, R * 0.04, R * 0.06); lp.add(hot);
+      const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.dot, color: 0xff6a3c, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.6 })); glow.scale.setScalar(R * 1.1); glow.position.z = R * 0.1; lp.add(glow);
+      for (let i = 0; i < 8; i++) { const b = i / 8 * Math.PI * 2, rv = new THREE.Mesh(new THREE.SphereGeometry(R * 0.018, 6, 4), brass); rv.position.set(Math.cos(b) * R * 0.15, Math.sin(b) * R * 0.15, R * 0.04); lp.add(rv); }
+      lamps.push({ glass, glow }); }
+    for (const a of [Math.PI / 2, Math.PI * 0.8, Math.PI * 0.2]) { const lp = new THREE.Group(), rr = R - T - R * 0.02; lp.position.set(Math.cos(a) * rr, Math.sin(a) * rr, -R * 0.75); lp.lookAt(0, 0, -R * 0.75); g.add(lp); // lamps set into the tunnel wall
+      const bez = new THREE.Mesh(new THREE.TorusGeometry(R * 0.1, R * 0.03, 10, 24), brass); lp.add(bez);
+      const glass = new THREE.Mesh(new THREE.SphereGeometry(R * 0.09, 18, 10), new THREE.MeshStandardMaterial({ color: 0xd8401c, emissive: 0xff2a06, emissiveIntensity: 0.55, roughness: 0.15 })); glass.scale.z = 0.5; lp.add(glass);
+      const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.dot, color: 0xff6a3c, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.5 })); glow.scale.setScalar(R * 0.8); glow.position.z = R * 0.08; lp.add(glow);
+      lamps.push({ glass, glow }); }
+    { // barnacles and moss on the upper body and round the rim
+      let s = 5 + w; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647; const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), S = new V3(), Pp = new V3(), up = new V3(0, 1, 0);
+      const bar = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.5, 1, 0.8, 8), new THREE.MeshStandardMaterial({ color: 0xd9ccb0, roughness: 0.95 }), 46);
+      const moss = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), new THREE.MeshStandardMaterial({ color: P.moss, roughness: 1 }), 90);
+      for (let i = 0; i < 46; i++) { const a = Math.PI * (0.12 + rnd() * 0.76) + (rnd() < 0.3 ? Math.PI * 0.9 : 0), z = -rnd() * L * 0.75, n = new V3(Math.cos(a), Math.sin(a), 0);
+        Pp.copy(n).multiplyScalar(R * 1.01).setZ(z); Q.setFromUnitVectors(up, n); const k = R * (0.035 + rnd() * 0.04); S.set(k, k, k); bar.setMatrixAt(i, M4.compose(Pp, Q, S)); }
+      for (let i = 0; i < 90; i++) { const a = Math.PI * (0.18 + rnd() * 0.64), z = rnd() < 0.5 ? -rnd() * R * 0.5 : -rnd() * L * 0.8, n = new V3(Math.cos(a), Math.sin(a), 0);
+        Pp.copy(n).multiplyScalar(R * 1.0).setZ(z); Q.setFromUnitVectors(up, n); const k = R * (0.05 + rnd() * 0.08); S.set(k * 1.4, k * 0.45, k * 1.2); moss.setMatrixAt(i, M4.compose(Pp, Q, S)); }
+      bar.castShadow = moss.castShadow = true; g.add(bar, moss); }
+    if (base) { // rocks round the foot of the mouth
+      let s = 31 + w; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647; const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), S = new V3(), Pp = new V3();
+      const rk = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1, 1), new THREE.MeshStandardMaterial({ color: w === 1 ? 0x6c5a8a : w === 2 ? 0x3a4a66 : 0x6f7480, roughness: 0.9, flatShading: true }), 16);
+      for (let i = 0; i < 16; i++) { const side = i % 2 ? 1 : -1, x = side * (R * (0.7 + rnd() * 0.55)), z = R * (0.25 - rnd() * 0.9); Pp.set(x, -R * 0.82 + rnd() * R * 0.12, z); Q.setFromEuler(new THREE.Euler(rnd() * 3, rnd() * 3, rnd() * 3)); const k = R * (0.1 + rnd() * 0.17); S.set(k * 1.2, k * 0.8, k);
+        rk.setMatrixAt(i, M4.compose(Pp, Q, S)); }
+      rk.castShadow = rk.receiveShadow = true; g.add(rk); }
+    g.userData.pipe = { R, L, lamps, mats: [metal, inner, tO, tI] }; return g; }
+  function pipeTick(p, t) { const L = p.userData.pipe.lamps; L.forEach((l, i) => { const k = 0.82 + 0.18 * Math.sin(t * 2.2 + i * 2.1); l.glass.material.emissiveIntensity = 0.55 * k; l.glow.material.opacity = 0.5 * k + 0.1; }); }
+
+  // the transition film: shot 1 inside the pipe swimming toward the light, shot 2 outside on the sand (the diver walks out, turns to
+  // the next aquarium in the distance and waves), then it holds on that frame under the result card. Its own scene; World renders it
+  // instead of the level while it runs.
+  class Story {
+    constructor(world, o) { this.world = world; this.o = o; this.t = 0; this.frozen = false; const w = this.w = o.w || 0, WS = WORLD_STYLE[w];
+      const S = this.scene = new THREE.Scene(); S.environment = world.scene.environment;
+      const fogC = new THREE.Color().setRGB(...WS.lo).lerp(new THREE.Color().setRGB(...WS.hi), 0.55); S.background = fogC.clone(); S.fog = new THREE.Fog(fogC, 9, 46);
+      this.cam = new THREE.PerspectiveCamera(46, 1, 0.08, 200);
+      S.add(new THREE.HemisphereLight(0xd6f0ff, 0x8a6a3a, w === 2 ? 0.7 : 1.05));
+      const key = this.key = new THREE.DirectionalLight(0xfff1d8, w === 2 ? 2.2 : 3.2); key.position.set(-3, 12, -5); key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.bias = -0.0008; key.shadow.normalBias = 0.03;
+      { const c = key.shadow.camera; c.left = -7; c.right = 7; c.top = 7; c.bottom = -7; c.near = 1; c.far = 40; } key.target.position.set(0, 0, -1); S.add(key, key.target);
+      const fill = new THREE.DirectionalLight(0x9fd8ff, 1.1); fill.position.set(4, 3, 8); S.add(fill);
+      // a ring of the painted reef all round (mirrored so its edges meet), sand to the horizon, sun shafts
+      { const im = PHOTO_W[w] || PHOTO_W[0], tex = new THREE.Texture(im); tex.colorSpace = THREE.SRGBColorSpace; tex.wrapS = THREE.MirroredRepeatWrapping; tex.repeat.set(4, 1); tex.needsUpdate = true; this.own = [tex];
+        const Rr = 40, Hh = Rr * 2 * Math.PI / 4 / 1.78, geo = new THREE.CylinderGeometry(Rr, Rr, Hh, 72, 1, true);
+        const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false, color: new THREE.Color(WORLD_TINT[w]).lerp(new THREE.Color(0xffffff), w ? 0.08 : 0) });
+        const ring = new THREE.Mesh(geo, mat); ring.position.y = Hh * 0.5 - Hh * 0.2; ring.rotation.y = -Math.PI / 2 - 0.9; S.add(ring); }
+      { const t = TEX.sandRef.clone(); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(30, 30); t.needsUpdate = true; this.own.push(t);
+        const geo = new THREE.PlaneGeometry(90, 90, 90, 90); geo.rotateX(-Math.PI / 2); const P = geo.attributes.position;
+        for (let i = 0; i < P.count; i++) { const x = P.getX(i), z = P.getZ(i), r = Math.hypot(x, z); P.setY(i, (Math.sin(x * 0.7 + z * 0.3) * 0.06 + Math.sin(z * 0.9 - x * 0.2) * 0.05) * Math.min(1, r / 3) + Math.max(0, r - 14) * 0.04); }
+        geo.computeVertexNormals();
+        const sand = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: t, color: new THREE.Color(1.25, 1.12, 0.9), roughness: 0.95 })); sand.receiveShadow = true; S.add(sand); }
+      { const sm = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, uniforms: { uT: { value: 0 } },
+          vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+          fragmentShader: 'uniform float uT; varying vec2 vUv; void main(){ float a = pow(max(0.0, sin(vUv.x * 3.14159)), 2.0) * smoothstep(0.0, 0.8, vUv.y) * (0.75 + 0.25 * sin(uT * 0.6 + vUv.x * 4.0)); gl_FragColor = vec4(vec3(1.0, 0.97, 0.85) * a * 0.16, a * 0.16); }' });
+        this.shaftMat = sm; for (let i = 0; i < 9; i++) { const m = new THREE.Mesh(new THREE.PlaneGeometry(1.2 + (i % 3) * 0.9, 26), sm); m.position.set(-10 + i * 3.1, 11, -9 - (i % 4) * 3); m.rotation.z = 0.32 - (i % 3) * 0.06; S.add(m); } }
+      // the pipe: mouth on the left of the shot-2 frame, facing the camera's right; the diver walks out of it
+      this.dir = new V3(0.72, 0, 0.69).normalize(); const R = this.R = 1.05;
+      this.pipe = makePipe(w, R, 9); this.pipe.rotation.y = Math.atan2(this.dir.x, this.dir.z); this.M = new V3(-2.1, R * 0.82, -0.4); this.pipe.position.copy(this.M); S.add(this.pipe);
+      { const warm = new THREE.PointLight(0xff9a62, 3.2, 5, 1.6); warm.position.set(0, R * 0.55, -R * 0.9); this.pipe.add(warm); const cool = new THREE.PointLight(0x8fe8ff, 4, 7, 1.4); cool.position.set(0, 0, -R * 0.4); this.pipe.add(cool); }
+      // decoration: corals, weeds, rocks, shells, stars all round, a clear walkway out of the mouth; a few big blurred-near pieces
+      { let s = 77 + w * 13; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647, NM = ['coral1', 'coral2', 'coral3', 'coral4', 'coral5', 'weed1', 'weed3', 'weed5', 'weed7', 'weed9', 'rockA', 'rockB', 'rockC', 'shellA', 'shellC', 'starA', 'starC'];
+        const okSpot = (x, z) => { const px = x - this.M.x, pz = z - this.M.z, along = px * this.dir.x + pz * this.dir.z, side = Math.abs(px * this.dir.z - pz * this.dir.x);
+          if (along > -1.2 && along < 4.5 && side < 1.5) return false; /* walkway */ if (along < 0.4 && side < R * 1.3 && along > -9) return false; /* the pipe itself */ const dx = x - 5.2, dz = z + 12; if (Math.abs(dx) < 4.2 && Math.abs(dz) < 2.5) return false; return true; };
+        this.spr = [];
+        for (let i = 0; i < 150; i++) { const a = rnd() * Math.PI * 2, r = 1.6 + Math.pow(rnd(), 0.7) * 22, x = Math.cos(a) * r, z = Math.sin(a) * r - 4; if (!okSpot(x, z)) continue;
+          const nm = NM[Math.floor(rnd() * NM.length)], big = nm.startsWith('rock') ? 0.6 : nm.startsWith('shell') || nm.startsWith('star') ? 0.22 : 0.55, sp = sprPlane(nm, big * (0.8 + rnd() * 0.9) * (1 + r * 0.03), true, null);
+          sp.position.set(x, -0.03, z); if (rnd() < 0.5) sp.scale.x = -1; S.add(sp); this.spr.push(sp); }
+        for (const [x, z, nm, h] of [[-3.2, 1.9, 'coral3', 0.9], [-2.6, 2.5, 'coral1', 0.7], [-0.9, 1.4, 'weed5', 0.8], [-3.3, 0.6, 'coral4', 0.75], [-1.3, 0.2, 'coral2', 0.6], [2.6, 1.6, 'coral5', 0.85], [3.4, 0.8, 'coral2', 0.9], [1.6, 2.4, 'rockB', 0.5], [-1.0, -1.2, 'coral1', 0.65], [0.9, -2.6, 'weed3', 0.9], [3.1, -2.1, 'coral4', 0.8], [-2.9, -1.7, 'weed9', 1.0]]) {
+          if (!okSpot(x, z)) continue; const sp = sprPlane(nm, h, true, null); sp.position.set(x, -0.02, z); S.add(sp); this.spr.push(sp); }
+        this.fish = []; for (let i = 0; i < 7; i++) { const nm = ['fishA', 'fishB', 'fishC', 'fishE', 'fishG', 'fishH', 'fishI'][i], f = sprPlane(nm, 0.28 + rnd() * 0.22, false, null); f.material = f.material.clone(); f.material.fog = true;
+          f.userData.f = { x: -12 + rnd() * 24, y: 1.5 + rnd() * 4.5, z: -6 - rnd() * 14, v: (rnd() < 0.5 ? -1 : 1) * (0.5 + rnd() * 0.7), ph: rnd() * 6 }; S.add(f); this.fish.push(f); } }
+      // the next aquarium, standing on the seabed in the distance (a photo of the real next level on its front glass)
+      if (o.tank) { const tw = 5.2, th = tw * o.tank.height / o.tank.width, g = this.tank = new THREE.Group(); g.position.set(5.2, 0, -12); S.add(g);
+        const tex = new THREE.CanvasTexture(o.tank); tex.colorSpace = THREE.SRGBColorSpace; this.own.push(tex); const cr = 1 / 1.04; tex.repeat.set(cr, cr); tex.offset.set((1 - cr) / 2, (1 - cr) / 2);
+        const face = new THREE.Mesh(new THREE.PlaneGeometry(tw, th), new THREE.MeshBasicMaterial({ map: tex, fog: true })); face.position.set(0, 0.55 + th / 2, 0); g.add(face);
+        const navy = new THREE.MeshStandardMaterial({ color: WS.trim, roughness: 0.4, metalness: 0.3 }), fr = 0.09;
+        for (const [x, y, bw, bh] of [[0, 0.55, tw + fr * 2, fr], [0, 0.55 + th, tw + fr * 2, fr], [-tw / 2, 0.55 + th / 2, fr, th], [tw / 2, 0.55 + th / 2, fr, th]]) { const b = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, 0.9), navy); b.position.set(x, y, -0.4); g.add(b); }
+        for (const [x, y] of [[-tw / 2, 0.55], [tw / 2, 0.55], [-tw / 2, 0.55 + th], [tw / 2, 0.55 + th]]) { const c = new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 8), MAT.pipeBrass); c.position.set(x, y, 0.05); g.add(c); }
+        const st = new THREE.Mesh(new THREE.BoxGeometry(tw + 0.5, 0.55, 1.3), new THREE.MeshStandardMaterial({ color: 0x5a3b22, roughness: 0.7 })); st.position.set(0, 0.27, -0.4); st.castShadow = st.receiveShadow = true; g.add(st);
+        const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.dot, color: 0x7ff0ff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.28, fog: false })); halo.scale.set(tw * 2.2, th * 2.4, 1); halo.position.set(0, 0.55 + th / 2, -0.6); g.add(halo);
+        g.rotation.y = -0.38; }
+      // the diver (the player's own outfit), in a holder we steer
+      this.hold = new THREE.Group(); S.add(this.hold); this.diver = makeDiver(); this.hold.add(this.diver); this.u = this.diver.userData;
+      this.diver.traverse(c => { if (c.isMesh) c.castShadow = true; });
+      if (this.u.glb) { const bones = this.u.glb.mesh.skeleton.bones, B = n => bones.find(b => b.name === n); this.arm = [B('RightArm'), B('RightForeArm'), B('RightHand')]; }
+      this.parts = new Particles(S, 300); this.bubT = 0;
+      this.flash = 0; this.resize(); }
+    resize() { const w = innerWidth, h = innerHeight, c = this.cam; c.aspect = w / h; const port = w < h; this.port = port;
+      c.fov = port ? 62 : 44; c.updateProjectionMatrix(); const pr = this.world.pixelRatio; this.parts.mat.uniforms.scale.value = h * pr * 0.9; this.parts.bubMat.uniforms.scale.value = h * pr * 0.9; }
+    // where things are at story time t
+    pose(t) { const d = this.dir, M = this.M, R = this.R, side = new V3(d.z, 0, -d.x); // side = the pipe's right as seen from inside
+      const cam = this.cam, hold = this.hold, D = this.diver, u = this.u;
+      const ease = (k) => { k = Math.min(1, Math.max(0, k)); return k * k * (3 - 2 * k); };
+      const at = (s, y) => new V3(M.x + d.x * s, y, M.z + d.z * s), face = (f) => Math.atan2(-f.z, f.x);
+      const SC1 = window.__SC1 || {};
+      if (t < 2.7) { // shot 1: inside the tunnel, behind the diver, swimming out toward the bright mouth
+        const k = t / 2.7, cs = -4.4 + k * 1.3; cam.position.copy(at(cs, M.y + 0.28)).addScaledVector(side, -0.2); cam.up.set(0, 1, 0); cam.lookAt(at(cs + 6, M.y - 0.12)); cam.rotateZ(0.06);
+        const ds = cs + 1.15 + ease(k) * 1.7; hold.position.copy(at(ds, M.y - 0.3 + Math.sin(t * 3.2) * 0.04)).addScaledVector(side, 0.28); hold.rotation.set(0, face(d) - 0.35, 0); D.rotation.set(0, 0, SC1.pitch ?? -0.15 + Math.sin(t * 3.2) * 0.05);
+        return { swim: 1, floor: 0, speed: 2.4, shot: 1 }; }
+      // shot 2: outside, low, the mouth on the left. Walk out (2.7–4.5), turn toward the distant tank (4.5–5.1), wave (5.1–)
+      const t2 = t - 2.7, Df = at(1.75, 0.5), tankP = this.tank ? this.tank.position : new V3(6, 0, -13), fF = new V3().subVectors(tankP, Df).setY(0).normalize(), rgt = new V3(-fF.z, 0, fF.x);
+      const SC = window.__SC || {}, port = this.port; // __SC: tuning hook (back, side, h, ahead, shift)
+      const base = Df.clone().addScaledVector(fF, -(SC.back ?? (port ? 4.2 : 3.0))).addScaledVector(rgt, SC.side ?? (port ? 0.7 : 0.95)).setY(SC.h ?? 0.9), look = Df.clone().addScaledVector(fF, SC.ahead ?? 6).addScaledVector(rgt, SC.shift ?? (port ? -0.9 : 0.9)).setY(SC.ly ?? 0.8);
+      cam.position.copy(base).addScaledVector(fF, 0.35 * ease(t2 / 3.2)); cam.up.set(0, 1, 0); cam.lookAt(look);
+      const out = ease(t2 / 1.8), s0 = -0.5, s1 = 1.75; hold.position.copy(at(s0 + (s1 - s0) * out, 0.5)).addScaledVector(side, 0.1 * out); D.rotation.set(0, 0, 0);
+      const toT = new V3().subVectors(tankP, hold.position).setY(0).normalize();
+      const tk = ease((t2 - 1.6) / 0.7), f = d.clone().lerp(toT, tk).normalize(); hold.rotation.set(0, face(f), 0);
+      const walking = t2 < 1.9 ? 1 : t2 < 2.4 ? 1 - (t2 - 1.9) / 0.5 : 0;
+      if (t2 < 0.25) { hold.position.y += Math.sin(t2 / 0.25 * Math.PI) * 0.12; } // a little hop over the lip
+      return { swim: walking, floor: 1, speed: walking * 1.8, shot: 2, wave: ease((t2 - 2.2) / 0.5), t2, face: f };
+    }
+    aim(b, c, dir, k) { b.updateWorldMatrix(true, false); c.updateWorldMatrix(false, false);
+      const p0 = new V3().setFromMatrixPosition(b.matrixWorld), p1 = new V3().setFromMatrixPosition(c.matrixWorld), cur = p1.sub(p0).normalize();
+      const qd = new THREE.Quaternion().setFromUnitVectors(cur, dir.clone().normalize()), qw = new THREE.Quaternion(), qp = new THREE.Quaternion(); b.getWorldQuaternion(qw); b.parent.getWorldQuaternion(qp);
+      const nl = qp.invert().multiply(qd.multiply(qw)); b.quaternion.slerp(nl, k); }
+    update(dt) { if (!this.frozen) this.t += dt; const t = this.t, st = this.pose(t), u = this.u;
+      if (st.shot !== this.shot) { if (this.shot) this.flash = 1; this.shot = st.shot; }
+      if (u.glb && !this.frozen) { glbDrive(u, dt, { reach: 0, push: 0, dig: 0, swim: st.swim, floor: st.floor, speed: st.speed, pushing: false });
+        if (st.wave > 0 && this.arm[0] && this.arm[1] && this.arm[2]) { const f = st.face, up = new V3(0, 1, 0), right = new V3().crossVectors(f, up).normalize(), wv = Math.sin((st.t2 - 2.2) * 8.5);
+          this.diver.updateMatrixWorld(true);
+          this.aim(this.arm[0], this.arm[1], up.clone().multiplyScalar(0.5).addScaledVector(f, 0.35).addScaledVector(right, 0.8), st.wave);
+          this.aim(this.arm[1], this.arm[2], up.clone().multiplyScalar(0.85).addScaledVector(f, 0.2).addScaledVector(right, 0.2 + 0.45 * wv), st.wave); } }
+      if (!this.frozen && t > 5.9) { this.frozen = true; if (this.o.onFreeze) this.o.onFreeze(); }
+      // life: lamps pulse, fish drift, bubbles rise from the diver and the pipe mouth
+      pipeTick(this.pipe, this.world.time); this.shaftMat.uniforms.uT.value = this.world.time;
+      for (const f of this.fish) { const F = f.userData.f; F.x += F.v * dt; if (F.x > 14) F.x = -14; if (F.x < -14) F.x = 14; f.position.set(F.x, F.y + Math.sin(this.world.time * 1.3 + F.ph) * 0.15, F.z); f.scale.x = F.v > 0 ? -1 : 1; }
+      this.bubT -= dt; if (this.bubT <= 0) { this.bubT = 0.12; const p = this.hold.position; this.parts.bubbles(p.x - 0.1, p.y + 0.85, p.z, 1, 0.04 + Math.random() * 0.04, 0.12);
+        const m = this.M; this.parts.bubbles(m.x + (Math.random() - 0.5) * 1.2, m.y + 0.4 + Math.random() * 0.6, m.z + 0.6, 1, 0.03 + Math.random() * 0.05, 0.3); }
+      this.parts.update(dt, this.world.time); this.flash = Math.max(0, this.flash - dt * 3); }
+    // landscape: keep the subject in the left 62% (the card sits right); portrait: the top 55% (the card sits below)
+    render(post) { const w = innerWidth, h = innerHeight, c = this.cam; if (this.shot === 2 && this.port) c.setViewOffset(w, h, 0, h * 0.26, w, h); else c.clearViewOffset();
+      post.render(this.scene, c, this.world.time); }
+    dispose() { this.scene.traverse(o => { if (o.isMesh || o.isPoints || o.isSprite || o.isInstancedMesh) { if (o.geometry && !Object.values(GEO).includes(o.geometry)) o.geometry.dispose(); } });
+      for (const t of this.own) t.dispose(); const P = this.pipe.userData.pipe; P.mats.forEach(m => m.dispose()); }
+  }
   class WorldImpl {
     constructor(cv) {
       this.canvas = cv;
@@ -4758,7 +4972,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.renderer.setPixelRatio(this.pixelRatio); this.renderer.setSize(w, h, false);
       this.post.setSize(Math.round(w * this.pixelRatio), Math.round(h * this.pixelRatio));
       this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
-      this.particles.mat.uniforms.scale.value = h * this.pixelRatio * 0.9; this.particles.bubMat.uniforms.scale.value = h * this.pixelRatio * 0.9;
+      this.particles.mat.uniforms.scale.value = h * this.pixelRatio * 0.9; this.particles.bubMat.uniforms.scale.value = h * this.pixelRatio * 0.9; if (this.story) this.story.resize();
       this.fitCamera(true, this.e && !this.e.menu && !this.playing);
     }
 
@@ -4783,7 +4997,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.disposeLevel(); this.levelGroup.clear(); this.entShadows = []; this.entities.clear(); this.particles.n = 0; this.particles.bub.n = 0;
       this.gateObj = null; this.gateFx = null; this.pops = []; this.coachCells = null; this.sandInst = null; this.treasures = []; this.digChunks = []; if (this.warn) this.warn.visible = false; this.ghosts = []; this.absorbing = []; this.deathTint = 0; this.setFx('');
     }
-    loadLevel(e) { this.relic = null; this.revealQ = null; if (this.dangerPool) { this.setDanger(null); this.dangerPool.forEach(sp => { sp.userData.k = 0; sp.visible = false; }); }
+    loadLevel(e) { this.arr = null; this.relic = null; this.revealQ = null; if (this.dangerPool) { this.setDanger(null); this.dangerPool.forEach(sp => { sp.userData.k = 0; sp.visible = false; }); }
       this.clearLevel(); this.e = e; this.shadowDirty = true; this.mood = null; this.playerAct = null; this.lastHup = -9; const ART = ART_SETS[NEW_ART_LEVELS.has(e.name) || e.menu || e.daily ? 'new' : 'old']; this.newArt = ART === ART_SETS.new; MAT.sandNew.value = this.newArt ? 1 : 0; this.tickMs = e.tickMs; this.menuMode = !!e.menu; this.playing = false; this.lead.set(0, 0); this.lastMove = -99; this.zoomK = 1.12; this.playerPos = null;
       const W = e.w, H = e.h; this.particles.top = 1;
       const sand = [], blocks = [], cobbles = [], solid = [];
@@ -4823,6 +5037,14 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             float cau = pow(max(0.0, 1.0 - abs(a + b) * 0.5), 6.0); c += vec3(0.55, 0.95, 1.0) * cau * (0.1 + 0.18 * k);            // moving caustic net on the back glass
             { float sx = vW.x * 0.34 + vW.y * 0.16 + sin(uT * 0.11) * 0.35, sh = pow(0.5 + 0.5 * sin(sx * 6.2832 + sin(sx * 2.1 + uT * 0.07) * 1.3), 6.0);
               c += uHi * sh * (0.05 + 0.16 * k * k); }                                                                              // soft slanted sun shafts, swaying slowly, strongest under the surface
+            { float x = vW.x; // hazy reef behind the tank (the reference shows blue rock pillars through the water): a far and a near layer
+              float far = 0.66 + 0.13 * sin(x * 0.7 + 1.3) + 0.09 * sin(x * 1.9 + 0.4) + 0.05 * sin(x * 4.3) + 0.12 * smoothstep(0.55, 0.9, sin(x * 0.45 + 2.0));
+              float nr = 0.45 + 0.08 * sin(x * 1.1 + 4.0) + 0.06 * sin(x * 2.7 + 1.0) + 0.03 * sin(x * 6.3) + 0.16 * smoothstep(0.6, 0.95, sin(x * 0.62 + 5.1));
+              float fm = smoothstep(far + 0.012, far - 0.012, k), nm = smoothstep(nr + 0.01, nr - 0.01, k);
+              float tex = 0.5 + 0.5 * sin(x * 9.0 + sin(vW.y * 5.0) * 1.5) * sin(vW.y * 7.0 + x * 2.0);
+              c = mix(c, mix(uLo, uHi, 0.42) * (0.86 + 0.06 * tex), fm * 0.7);
+              c = mix(c, uLo * (0.7 + 0.1 * tex) + uHi * 0.05, nm * 0.75);
+              c += uHi * 0.16 * smoothstep(0.05, 0.0, far - k) * fm + uHi * 0.12 * smoothstep(0.04, 0.0, nr - k) * nm; } // sunlit rims on top of each layer
             c *= 0.9 + 0.1 * smoothstep(0.0, 0.5, k);                                                                               // the floor of a tunnel a touch deeper
             { vec2 q = vW.xy * 5.0 + vec2(sin(uT * 0.21 + vW.y) * 0.4, uT * 0.18); vec2 ci = floor(q); float h = fract(sin(dot(ci, vec2(91.7, 37.3))) * 43758.5);
               vec2 f = fract(q) - 0.5 - (vec2(fract(h * 5.7), fract(h * 9.1)) - 0.5) * 0.7; c += vec3(0.8, 0.95, 1.0) * step(0.93, h) * smoothstep(0.06, 0.0, length(f)) * 0.22; } // tiny motes drifting in the water
@@ -4842,7 +5064,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         // stone plinth the tank stands on, resting on the seabed
         const pl = new THREE.Mesh(roundedBox(w + 0.7, 0.85, 1.3, 0.12), this.newArt ? [MAT.plinthN, MAT.plinthSideN] : [MAT.plinth, MAT.plinthSide]); pl.position.set(cx, yB - 0.42, 0); pl.castShadow = pl.receiveShadow = true; tank.add(pl);
         bar(w + 0.3, 0.1, zF - zB + 0.25, cx, yB - 0.02, 0).material = MAT.trim;
-        this.pump = null; if (this.newArt) this.buildPremiumTank(tank, { x0, x1, yT, yB, cx, cy, w, h, zF, zB });
+        this.pump = null; this.streams = null; if (this.newArt) this.buildPremiumTank(tank, { x0, x1, yT, yB, cx, cy, w, h, zF, zB });
         if (false) { const c = document.createElement('canvas'); c.width = 1024; c.height = 160; const g = c.getContext('2d'), idx = LEVELS.findIndex(l => l.name === e.name) + 1;
           const gr = g.createLinearGradient(0, 0, 0, 160); gr.addColorStop(0, '#ffe7a3'); gr.addColorStop(0.45, '#d9a63c'); gr.addColorStop(1, '#8a5a17');
           g.fillStyle = gr; g.beginPath(); g.roundRect(8, 8, 1008, 144, 36); g.fill(); g.lineWidth = 6; g.strokeStyle = '#5a3a0c'; g.stroke();
@@ -4928,7 +5150,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             const mg = new THREE.BufferGeometry(); mg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); mg.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
             const im = new THREE.Mesh(mg, mm); im.castShadow = im.receiveShadow = true; this.levelGroup.add(im);
             for (const [x, y] of mass) { if (y < 1 || e.get(x, y - 1) !== T.EMPTY) continue; const hh = variant(x, y + 3); if (hh % 100 > 55) continue; // a few plants on exposed tops
-              const nm = ART.ledge[hh % ART.ledge.length], sp = sprPlane(nm, 0.3 + (hh % 4) * 0.05, true, { dz: 0.25, op: 0.5 }); sp.position.set(x + ((hh >> 4) % 5 - 2) * 0.08, -y + 0.5, -0.2); if (hh & 1) sp.scale.x = -1; this.levelGroup.add(sp); } } }
+              const nm = ART.ledge[hh % ART.ledge.length], sp = sprPlane(nm, 0.3 + (hh % 4) * 0.05, true, { dz: 0.25, op: 0.5 }); sp.position.set(x + ((hh >> 4) % 5 - 2) * 0.08, -y + 0.5, -0.2); if (hh & 1) sp.scale.x = -1; this.levelGroup.add(sp); }
+            // the reference grows little coral clumps right out of the rock face (mostly along its foot, a few higher up)
+            for (const [x, y] of mass) { const hh = variant(x + 7, y * 3 + 1), foot = !mM(x, y + 1); if (hh % 100 > (foot ? 30 : 9)) continue;
+              const CF = ['coral1', 'coral2', 'coral3', 'coral4', 'coral5', 'weed2', 'weed5'], nm = CF[(hh >> 3) % CF.length], sp = sprPlane(nm, 0.26 + (hh % 5) * 0.035, true, { dz: 0.03, op: 0.5 });
+              sp.position.set(x + ((hh >> 5) % 7 - 3) * 0.07, -y - 0.5 + (foot ? 0.02 : 0.18 + ((hh >> 2) % 4) * 0.08), zF + 0.015); if (hh & 2) sp.scale.x = -1; sp.userData.sway = [nm.startsWith('weed') ? 0.05 : 0.015, 1.2, (hh % 50) / 10]; this.levelGroup.add(sp); } } }
         const pol = new THREE.InstancedMesh(GEO.polyp, new THREE.MeshPhysicalMaterial({ roughness: 0.4, clearcoat: 0.6, sheen: 0.5, envMapIntensity: 0.5 }), runs.reduce((a, r) => a + (r[1] - r[0] + 1) * 8, 0));
         const br = new THREE.InstancedMesh(GEO.branch, new THREE.MeshPhysicalMaterial({ roughness: 0.4, clearcoat: 0.6, emissive: 0x220a10, emissiveIntensity: 1 }), runs.reduce((a, r) => a + (r[1] - r[0] + 1) * 3, 0));
         let pi = 0, bi = 0;
@@ -5243,9 +5469,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             fragmentShader: `uniform float uT, uPh; uniform vec4 uB; varying vec2 vUv; varying vec3 vW; void main(){
               float inside = step(uB.x, vW.x) * step(vW.x, uB.y) * step(uB.z, vW.y) * step(vW.y, uB.w);
               float across = pow(max(0.0, sin(vUv.x * 3.14159)), 3.0), down = pow(clamp((vW.y - uB.z) / (uB.w - uB.z), 0.0, 1.0), 1.4);
-              float a = 0.09 * across * down * (0.65 + 0.35 * sin(uT * 0.5 + uPh)) * inside; gl_FragColor = vec4(vec3(1.0, 0.96, 0.82) * a, a); }` }));
+              float a = 0.15 * across * down * (0.65 + 0.35 * sin(uT * 0.5 + uPh)) * inside; gl_FragColor = vec4(vec3(1.0, 0.96, 0.82) * a, a); }` }));
           m.position.set(x0 + (i + 0.5) * w / n + 0.6, cy + 0.2, 0.47); m.rotation.z = 0.36; m.renderOrder = 4; tank.add(m); } }
       this.pump = { x: x0 + 0.28, y: yB + 0.15, z: -0.42, t: 0, top: ys };
+      // a few more thin bubble streams rising behind the play plane (the reference tank fizzes everywhere)
+      this.streams = []; { const n = Math.max(2, Math.round(w / 4.5)); for (let i = 0; i < n; i++) this.streams.push({ x: x0 + (i + 0.5 + (((i * 53) % 10) / 10 - 0.5) * 0.6) * w / n, y: yB + 0.1, z: -0.44 + ((i * 31) % 5) * 0.012, t: i * 0.37, on: 0.18 + ((i * 17) % 7) * 0.03 }); }
     }
     // the diver's death: flattened under a stone, keeling over onto his back (out of air), or spun over (gobbled). He stays down
     // with X eyes and little stars circling until the result screen; nothing pops out of existence.
@@ -5507,6 +5735,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     update(dt, now) {
       this.time += dt; const t = this.time; skinTick(t);
       this.rayMat.uniforms.time.value = t; MAT.causticT.value = t;
+      if (this.story) { this.story.update(dt); return; } // the transition film owns the screen
       this.particles.update(dt, t); this.tickPops(dt); this.tickCoach(dt); this.tickCine(dt);
       if (!this.e) { this.camera.position.set(0, 0, 30); this.camera.lookAt(0, 0, 0); this.placeBackdrop(); return; }
       const e = this.e;
@@ -5539,6 +5768,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         for (const [i, s] of this.sandAnim) if (s === 99) this.sandAnim.delete(i);
         this.syncSandBlocks();
       }
+      if (this.streams) for (const q of this.streams) { q.t -= dt; if (q.t <= 0) { q.t = q.on + Math.random() * 0.25; this.particles.bubbles(q.x + (Math.random() - 0.5) * 0.06, q.y, q.z, 1, 0.02 + Math.random() * 0.025, 0.04); } }
       if (this.pump) { this.pump.t -= dt; if (this.pump.t <= 0) { this.pump.t = 0.09 + Math.random() * 0.08; this.particles.bubbles(this.pump.x + (Math.random() - 0.5) * 0.08, this.pump.y, this.pump.z, 1, 0.03 + Math.random() * 0.03, 0.05); } }
       this.syncOcclusion();
       for (const ent of this.entities.values()) {
@@ -5683,6 +5913,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           m.rotation.z = moving ? Math.sin(t * 22) * 0.05 : 0;
         }
       }
+      this.tickArrive(dt);
       this.syncEntityShadows(); this.dangerUpdate(dt, t); this.funUpdate(dt, t);
       // ghosts
       this.ghosts = this.ghosts.filter(ent => { const g = ent.ghost, m = ent.m; g.t += dt;
@@ -5829,7 +6060,31 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const d = Math.max(hh / Math.tan(fov / 2), hw / Math.tan(fov / 2) / cam.aspect); // the whole tank inside the card (diver, pearls and gate all visible); the reef fills any spare room
       cam.position.set(cx, cy + d * 0.08, d); cam.lookAt(cx, cy, 0); cam.updateMatrixWorld();
       const sd = new SharedDraw(cv, 1.5); try { sd.render(this.scene, cam); } finally { sd.dispose(); } return true; }
-    render() {
+    // arriving from the tunnel: the pipe's mouth pushes up out of the sand in the tank's bottom-left corner, the diver pops out and arcs
+    // to his start cell, then the pipe sinks away. Visual only (the engine already has the diver on his cell); his first move ends it.
+    arrive() { const e = this.e; if (!e || !e.player) return; this.arriveStop(); const w = e.menu || e.cine ? 0 : worldOf(e.name);
+      const p = makePipe(w, 0.36, 1.2, false), dir = new V3(0.5, 0.84, 0.2).normalize(); p.quaternion.setFromUnitVectors(new V3(0, 0, 1), dir);
+      let cx = 1, cy = e.h - 2; { let best = -1e9; for (let y = 1; y < e.h - 1; y++) for (let x = 1; x < e.w - 1; x++) { // the lowest open floor cell toward the bottom-left
+        const t0 = e.get(x, y), tb = e.get(x, y + 1); if ((t0 !== T.EMPTY && t0 !== T.PLAYER) || tb === T.EMPTY || tb === T.PLAYER) continue; const sc = y * 3 - x * 2; if (sc > best) { best = sc; cx = x; cy = y; } } }
+      const base = new V3(cx - 0.05, -cy - 0.5 + 0.24, 0.05); p.position.copy(base); p.scale.setScalar(0.001); this.levelGroup.add(p);
+      this.arr = { t: 0, p, base, dir, mouth: base.clone().addScaledVector(dir, 0.12), puff: false, pop: false }; }
+    arriveStop() { const A = this.arr; if (!A) return; this.levelGroup.remove(A.p); A.p.traverse(o => { if (o.geometry) o.geometry.dispose(); }); A.p.userData.pipe.mats.forEach(m => m.dispose()); this.arr = null;
+      for (const ent of this.entities.values()) if (ent.o.t === T.PLAYER) ent.m.visible = true; }
+    tickArrive(dt) { const A = this.arr; if (!A) return; const e = this.e, pl = e && e.player; if (pl && (pl.x !== pl.px || pl.y !== pl.py) && A.t < 1.35) A.t = 1.35; // a move ends the pop-out
+      A.t += dt; const t = A.t, sm = k => { k = Math.min(1, Math.max(0, k)); return k * k * (3 - 2 * k); }, back = k => { k = Math.min(1, Math.max(0, k)); const c = 1.7; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); };
+      const rise = t < 0.5 ? back(t / 0.5) : t < 2.3 ? 1 : 1 - sm((t - 2.3) / 0.5); A.p.scale.setScalar(Math.max(0.001, rise)); A.p.position.copy(A.base).addScaledVector(A.dir, -0.3 * (1 - Math.min(1, rise)));
+      pipeTick(A.p, this.time);
+      if (!A.puff) { A.puff = true; this.particles.emit(A.base.x, A.base.y + 0.1, 0.3, 26, { color: new THREE.Color(1, 0.86, 0.55), speed: 1.6, life: 0.8, size: 0.16, spread: 0.35 }); this.particles.bubbles(A.base.x, A.base.y + 0.2, 0.3, 8, 0.08, 0.3); }
+      let ent = null; for (const en of this.entities.values()) if (en.o.t === T.PLAYER) ent = en;
+      if (ent) { const m = ent.m; if (t < 0.5) m.visible = false;
+        else if (t < 1.35) { m.visible = true; if (!A.pop) { A.pop = true; this.particles.bubbles(A.mouth.x, A.mouth.y + 0.2, 0.3, 14, 0.1, 0.25); this.sfx('bubble'); }
+          const k = (t - 0.5) / 0.85, s = sm(k), to = m.position.clone(); m.position.lerpVectors(A.mouth, to, s); m.position.y += Math.sin(Math.min(1, k) * Math.PI) * 0.9; m.scale.multiplyScalar(0.55 + 0.45 * sm(k * 1.6));
+          m.rotation.z = (1 - s) * 0.5; }
+        else { m.visible = true; m.rotation.z = 0; } }
+      if (t > 2.85) this.arriveStop(); }
+    storyStart(o) { this.storyStop(); this.story = new Story(this, o); this.story.update(0); }
+    storyStop() { if (!this.story) return; this.story.dispose(); this.story = null; }
+    render() { if (this.story) { this.story.render(this.post); return; }
       // phones: refresh the shadow map every other frame (the key light and tank never move; bobbing at 30 Hz is indistinguishable)
       const sm = this.renderer.shadowMap; if (isMobile && sm.enabled) { sm.autoUpdate = false; this.frameN = (this.frameN || 0) + 1; if (this.frameN % 2 === 0 || this.shadowDirty) { sm.needsUpdate = true; this.shadowDirty = false; } }
       this.post.render(this.scene, this.camera, this.time); }
@@ -5879,7 +6134,7 @@ window.__T = T;
     document.querySelectorAll('.ld-title, .gs-title, .hm-title, .cine-title .title').forEach(t => { t.classList.add('logo-art'); t.setAttribute('aria-label', 'Aqua Energizer'); });
   })();
   const canvas = $('#c');
-  const world = World.create(canvas); window.__dc = { world, aud: Audio, card: (i) => startLevel(i), get engine() { return engine; }, get save() { return save; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { skipTut = true; try { startLevel(i); beginPlay(); } finally { skipTut = false; } }, plan: (cb) => planFrom(engine, coachRefs(), COACH.route, cb), planCheck: (plan) => plSim(engine, plan).won, doomed: () => doomed(engine), relic: (i) => relicCell(i), run: () => RUN, tick: () => { engine.step(); tickWorld(engine, performance.now()); dangerScan(); }, danger: () => { dangerScan(); return world.lastDanger; }, undo: () => undo(), tut: (i) => { if (save.tutSeen) delete save.tutSeen[i]; startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), World, intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
+  const world = World.create(canvas); window.__dc = { world, aud: Audio, story: () => ({ on: storyOn, shown: resultShown, t: world.story ? world.story.t : -1 }), card: (i) => startLevel(i), get engine() { return engine; }, get save() { return save; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { skipTut = true; try { startLevel(i); beginPlay(); } finally { skipTut = false; } }, plan: (cb) => planFrom(engine, coachRefs(), COACH.route, cb), planCheck: (plan) => plSim(engine, plan).won, doomed: () => doomed(engine), relic: (i) => relicCell(i), run: () => RUN, tick: () => { engine.step(); tickWorld(engine, performance.now()); dangerScan(); }, danger: () => { dangerScan(); return world.lastDanger; }, undo: () => undo(), tut: (i) => { if (save.tutSeen) delete save.tutSeen[i]; startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), World, intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
   world.onSfx = n => Audio.play(n); world.onToast = m => toast(m);
   let gateOpenAt = 0, gateNudged = true;
   world.onGateOpen = () => { if (state === 'replay' || state === 'clip') return; gateOpenAt = performance.now(); gateNudged = false; banner('The gate is awake!', 'Swim in!', 'Swim into the glowing gate to carry the light home.', 3200); };
@@ -6137,7 +6392,7 @@ window.__T = T;
   function wipeTo(fn, ev) { const w = $('#wipe'); if (!w || REDUCED_MOTION || w.classList.contains('in')) { fn(); return; }
     const x = ev && ev.clientX ? ev.clientX : innerWidth / 2, y = ev && ev.clientY ? ev.clientY : innerHeight / 2; w.style.setProperty('--x', x + 'px'); w.style.setProperty('--y', y + 'px');
     w.classList.add('in'); Audio.play('bubble'); setTimeout(() => { try { fn(); } finally { setTimeout(() => w.classList.remove('in'), 90); } }, 380); }
-  function openHome() { if (TUT.on) { TUT.on = false; Audio.stopVo(); $('#tut').classList.remove('on'); world.focus = null; } setPeekSafe(); Audio.setTension(0); Audio.music('menu'); setState('menu'); go('home'); showMenuScene(); reefProgress(); homeCard(); homeLayout(); idleThumbs(); }
+  function openHome() { storyEnd(); if (TUT.on) { TUT.on = false; Audio.stopVo(); $('#tut').classList.remove('on'); world.focus = null; } setPeekSafe(); Audio.setTension(0); Audio.music('menu'); setState('menu'); go('home'); showMenuScene(); reefProgress(); homeCard(); homeLayout(); idleThumbs(); }
   // phone portrait home (the owner's mockup): painted backdrop, waving diver, and a card with a photo of the next level's tank.
   // The 3D scene is hidden behind it there, so the frame loop holds instead of rendering.
   // the mockup home: phones in portrait, and computers / big landscape screens (laid out for width). Both cover the 3D scene.
@@ -6424,7 +6679,7 @@ window.__T = T;
   $('#nameInput').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') $('#nameSave').click(); });
 
   // ---- levels ----
-  function startLevel(i, custom) { if (TUT.on) { TUT.on = false; Audio.stopVo(); $('#tut').classList.remove('on'); world.focus = null; }
+  function startLevel(i, custom) { storyEnd(); arriveNext = false; if (TUT.on) { TUT.on = false; Audio.stopVo(); $('#tut').classList.remove('on'); world.focus = null; }
     if (typeof booting !== 'undefined' && booting) dropLoader();
     runTreasures = 0; runTreasureSet.clear(); runLog = ''; runUndo = false; runHint = false; runReset();
     levelIdx = i; const lv = custom || LEVELS[i]; dive = custom && custom.daily ? custom : null;
@@ -6493,7 +6748,7 @@ window.__T = T;
     save.tutSeen = save.tutSeen || {}; save.tutSeen[TUT.idx] = 1; save.tipsSeen = save.tipsSeen || {}; save.tipsSeen[TUT.idx] = 1; persist();
     setState('playing'); lastFrame = performance.now(); acc = 0; world.lastTick = performance.now(); banner(); } // like beginPlay: the frame loop keeps its own clock (frame.last)
   $('#tut').addEventListener('click', ev => { if (ev.target.closest('.tut-skip')) { click(); TUT.t0 = 0; endTut(); return; } tutNext(); });
-  function beginPlay() { if (state !== 'intro' && state !== 'paused') return; const fromIntro = state === 'intro'; setState('playing'); setTimeout(dangerScan, 0); show(null); lastFrame = performance.now(); acc = 0; world.lastTick = performance.now(); if (fromIntro) { world.startPlay(); if (!startTut(levelIdx)) { banner(); levelReveal(); if (!skipTut) { world.peek = true; clearTimeout(beginPlay.pk); beginPlay.pk = setTimeout(() => { if (!mapBtn.classList.contains('on')) world.peek = false; }, 1500); } } } } // phones: a look at the whole tank first, then the camera glides down to the diver
+  function beginPlay() { if (state !== 'intro' && state !== 'paused') return; const fromIntro = state === 'intro'; setState('playing'); setTimeout(dangerScan, 0); show(null); lastFrame = performance.now(); acc = 0; world.lastTick = performance.now(); if (fromIntro) { world.startPlay(); let arrived = false; if (arriveNext) { arriveNext = false; arrived = true; world.arrive(); const li = levelIdx; setTimeout(() => { if (state === 'playing' && levelIdx === li && engine && !engine.begun) startTut(li); }, 1700); } /* the tutorial waits for the pop-out */ if (arrived || !startTut(levelIdx)) { banner(); levelReveal(); if (!skipTut) { world.peek = true; clearTimeout(beginPlay.pk); beginPlay.pk = setTimeout(() => { if (!mapBtn.classList.contains('on')) world.peek = false; }, 1500); } } } } // phones: a look at the whole tank first, then the camera glides down to the diver
   let bannerTimer = null;
   function levelReveal() { if (!engine || replay || CLIP) return; const pts = []; for (const o of engine.objects.values()) if (o.t === T.BALL) pts.push({ x: o.x, y: o.y }); pts.sort((a, b) => a.x - b.x || a.y - b.y);
     if (engine.gate) pts.push({ x: engine.gate.x, y: engine.gate.y, gate: true }); let k = 0; world.onReveal = p => { if (p.gate) { Audio.play('hint'); world.popText(p.x, -p.y + 0.62, 'Gate', '#8ff4ff'); } else Audio.pearl(++k); }; world.reveal(pts); }
@@ -7050,6 +7305,7 @@ window.__T = T;
   addEventListener('keydown', ev => {
     if (ev.repeat) return;
     if (state === 'splash') { unlock(); return; }
+    if (storyOn && !resultShown) { if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); storySkip(); } return; }
     if (state === 'replay') { if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); endReplay(); } return; }
     if (state === 'ending' && !$('#finale').hidden) { if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); finale.end && finale.end(); } return; }
     if (state === 'cine') { if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); $('#skipIntro').click(); return; } return; }
@@ -7128,7 +7384,18 @@ window.__T = T;
   $('#btnRestart').onclick = restart;
   $('#btnQuit').onclick = ev => { click(); wipeTo(openHome, ev); };
   $('#btnResHome').onclick = ev => { click(); wipeTo(openHome, ev); };
-  function nextLevel() { click(); wipeTo(() => startLevel(levelIdx + 1)); }
+  function nextLevel() { click(); const fromStory = storyOn; wipeTo(() => { startLevel(levelIdx + 1); arriveNext = fromStory; }); }
+  // ---- the story between levels: the diver drops through the gate into a tunnel pipe, walks out onto the sand and waves at the next
+  // aquarium; the film holds on that frame under the result card. Continue -> the next level opens with the pipe in its corner.
+  let storyOn = false, arriveNext = false;
+  function storyOK() { return !dive && !replay && !REDUCED_MOTION && engine && engine.state === 'won' && levelIdx + 1 < LEVELS.length && !save.settings.noStory; }
+  function startStory() { if (!storyOn || resultShown) return; const n = levelIdx + 1, map = LEVELS[n].map, cw = Math.max(1, map[0].length - 2), ch = Math.max(1, map.length - 2), cv = document.createElement('canvas');
+    cv.width = 720; cv.height = Math.round(720 * Math.min(1.1, Math.max(0.3, ch / cw))); try { levelPhoto(cv, n, false); } catch (er) {}
+    document.body.classList.add('story'); bannerOff();
+    world.storyStart({ w: worldOfIdx(levelIdx), tank: cv, onFreeze: () => { if (!storyOn || resultShown) return; finishLevel(); $('#btnNext').textContent = 'Continue ›'; } }); }
+  function storyEnd() { if (!storyOn && !document.body.classList.contains('story')) return; storyOn = false; world.storyStop(); document.body.classList.remove('story'); heldDirty = true; }
+  function storySkip() { if (storyOn && !resultShown && world.story && world.story.t > 0.35) { world.story.t = Math.max(world.story.t, 5.85); return true; } return false; }
+  addEventListener('pointerdown', () => { storySkip(); }, true);
   $('#btnNext').onclick = () => { if (dive && engine.state === 'won') { click(); lbTab = 'fast'; openHome(); go('ranks'); return; } if (engine.state === 'won' && levelIdx + 1 < LEVELS.length) nextLevel(); else if (engine.state === 'won') openEnding(); else if (engine.state !== 'won' && history.length && (undoLeft > 0 || undoFree())) undo(); else restart(); };
   // the finale: all 30 gates awake. A one-time coin bonus, the story's payoff, and a nudge to go back for every star.
   // the finale: 30 gate lights wake one by one (rising notes), fireworks of pearl-light, the title and the diver, then a credits roll;
@@ -7243,7 +7510,7 @@ window.__T = T;
           engine.step(); tickWorld(engine, now - acc); dangerScan();
           { const p = engine.player; runLog += p && p.x !== px0 ? (p.x > px0 ? 'R' : 'L') : p && p.y !== py0 ? (p.y > py0 ? 'D' : 'U') : '.'; }
           if (pre && engine.player && (engine.player.x !== px0 || engine.player.y !== py0)) { history.push(pre); if (history.length > 200) history.shift(); stuckTimer = 0; }
-          if (engine.state !== 'playing') { overTimer = 0; if (engine.state === 'won') clearStamp(); setState('over'); hideStuck(); Audio.setTension(0); held.clear(); heldOrder = []; endTouch(); buzz(engine.state === 'won' ? 30 : [40, 40, 60]); break; }
+          if (engine.state !== 'playing') { overTimer = 0; if (engine.state === 'won' && !storyOK()) clearStamp(); setState('over'); hideStuck(); Audio.setTension(0); held.clear(); heldOrder = []; endTouch(); buzz(engine.state === 'won' ? 30 : [40, 40, 60]); break; }
         }
         if (engine.state === 'playing') {
           coachTick(realDt); checkStuck(); hintSync();
@@ -7257,7 +7524,7 @@ window.__T = T;
         overTimer += realDt; frame.last = now;
         acc += dt * 1000; while (acc >= engine.tickMs) { acc -= engine.tickMs; engine.step(); tickWorld(engine, now - acc); }
         updateHud();
-        if (overTimer > (engine.state === 'won' ? 2.1 : 1.4) && !resultShown) finishLevel();
+        if (!resultShown && !storyOn) { if (engine.state === 'won' && storyOK()) { if (overTimer > 1.25) { storyOn = true; wipeTo(startStory); } } else if (overTimer > (engine.state === 'won' ? 2.1 : 1.4)) finishLevel(); }
       }
     } else {
       frame.last = now;
