@@ -706,3 +706,15 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   soft low bloops. All low-passed at 1.2–1.5 kHz, little reverb, no bell partials. The absorb event no longer adds `Audio.pearl`; pearl
   pitch steps capped at +7; `swell()` only lifts the pad a little (≤ 2.2 kHz); GAIN absorb .42, gateOpen .45, win .48, pearl .36, star .32.
 - Measured (mixed as in game): escape loudest −15.1 → −19.8 dB, energy above 800 Hz 23% → 0%; pearl-in −17.5 → −24.9 dB.
+
+## Voice-overs: ElevenLabs generator + more lines
+- **`make_voices.bat`** (repo root, Windows) → `tools/make_voices.ps1` (PowerShell 5.1-compatible, ASCII only) reads **`tools/voices.json`**
+  (46 lines: 28 narrator, 18 diver; shortlist of voices with ids; model `eleven_v4` → fallbacks `eleven_v3`, `eleven_multilingual_v2`
+  with [tags] stripped) and writes `src/assets/vo/<id>.mp3`, then runs `tools/build.py` if Python exists. Modes: audition (sample line per
+  candidate → `voice-auditions/`), make all (skips existing), remake all, redo one. Voices resolve by name in the account (default voices),
+  then the known id, then the public Voice Library (added to the account). Key: `ELEVENLABS_API_KEY` or `.elevenlabs-key` (gitignored);
+  picks saved in `tools/voices.picked.json`. Defaults: narrator **Lily**, diver **Jessica**. Not run here (no PowerShell/key in the sandbox).
+- **New hooks** (controller): `dvoice(kind)` plays the diver's `d_*` lines (pearl in, gate opens, relic, bonk/double combos, near miss,
+  air < 10 s once per try, undo) only if the clip exists, ≤ 1 per 6 s, pearl/phew/undo by chance. Narrator: `n_world2`/`n_world3` with the
+  world intro cards (levels 11, 21), `n_daily` at Daily Dive start, `n_fin1`/`n_fin2` in the finale. Tutorial `t1e` has a computer
+  variant `t1e_k`. Full table: docs/voiceover-script.md (generated from voices.json).

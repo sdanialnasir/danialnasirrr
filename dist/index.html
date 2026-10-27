@@ -6135,9 +6135,16 @@ window.__T = T;
   // Combos: a stone dropped on a monster ("BONK!") and two pearls delivered within ~3 s ("DOUBLE!") get a stamp, a slow-motion beat
   // and coins on the result screen. Each counts once per run (keyed, so undo-and-repeat can't farm it). Never in replays/clips.
   const RUN = { combos: [], keys: new Set(), lastAbsorb: -99, relic: null, relicGot: false, near: new Map(), dodgeAt: -9 };
-  function runReset() { RUN.combos = []; RUN.keys.clear(); RUN.lastAbsorb = -99; RUN.relicGot = false; RUN.near.clear(); RUN.dodgeAt = -9; }
+  function runReset() { RUN.combos = []; RUN.keys.clear(); RUN.lastAbsorb = -99; RUN.relicGot = false; RUN.near.clear(); RUN.dodgeAt = -9; RUN.airSaid = false; }
+  // the diver's little voice lines during play (src/assets/vo/d_*.mp3, made by make_voices.bat). Only if the clip exists, at most one
+  // every 6 s, and the frequent moments only some of the time, so they stay cute instead of repetitive.
+  const DV = { pearl: ['d_pearl1', 'd_pearl2', 'd_pearl3'], gate: ['d_gate1', 'd_gate2'], relic: ['d_relic'], bonk: ['d_bonk'], double: ['d_double'], phew: ['d_phew1', 'd_phew2'], air: ['d_air'], undo: ['d_undo1', 'd_undo2'] };
+  const DVK = { pearl: 0.55, phew: 0.6, undo: 0.5 }; let dvAt = 0;
+  const hasVo = id => !!(window.AQ_DATA && AQ_DATA.VO && AQ_DATA.VO[id]);
+  function dvoice(kind) { if (replay || CLIP || state === 'cine' || !DV[kind]) return; const now = performance.now(); if (now - dvAt < 6000) return; if (Math.random() > (DVK[kind] ?? 1)) return;
+    const L = DV[kind].filter(hasVo); if (!L.length) return; dvAt = now; Audio.vo(L[Math.random() * L.length | 0]); }
   function combo(key, label, coins, word, col) { if (RUN.keys.has(key)) return; RUN.keys.add(key); RUN.combos.push([label, coins]);
-    slowMo = Math.max(slowMo, 0.4); comboStamp(word, '+' + coins, col); buzz([20, 40, 20, 40, 60]); Audio.play('star'); }
+    slowMo = Math.max(slowMo, 0.4); comboStamp(word, '+' + coins, col); buzz([20, 40, 20, 40, 60]); Audio.play('star'); dvAt = 0; dvoice(key.startsWith('bonk') ? 'bonk' : 'double'); }
   function comboStamp(word, sub, col) { const el = $('#comboStamp'); if (!el || REDUCED_MOTION && false) return; bannerOff(); el.querySelector('b').textContent = word; el.querySelector('span').textContent = sub; el.style.setProperty('--cc', col || '#ff8fd0');
     el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); clearTimeout(comboStamp.t); comboStamp.t = setTimeout(() => el.classList.remove('on'), 1400); }
   function fun(e) { if (replay || CLIP || e !== engine || !e.player && !e.events.some(v => v.type === 'monsterDeath' || v.type === 'absorb')) return;
@@ -6147,12 +6154,12 @@ window.__T = T;
     const p = e.player; if (!p || e.state !== 'playing') return;
     // relic: walk (or dig) into its cell
     if (RUN.relic && !RUN.relicGot && p.x === RUN.relic.x && p.y === RUN.relic.y) { RUN.relicGot = true; const n = levelIdx + 1; save.relics = save.relics || {}; const first = !save.relics[n]; save.relics[n] = 1; persist();
-      world.collectRelic(); Audio.play('treasure'); setTimeout(() => Audio.play('star'), 160); buzz([20, 30, 20, 30, 80]);
+      world.collectRelic(); Audio.play('treasure'); setTimeout(() => Audio.play('star'), 160); buzz([20, 30, 20, 30, 80]); dvAt = 0; dvoice('relic');
       toast(first ? `Ancient relic found! ${Object.keys(save.relics).length}/${LEVELS.length}` : 'Relic found again'); }
     // near miss: a monster came right next to him and moved on without catching him -> a quick dodge hop + "Close one!"
     for (const o of e.objects.values()) { if (o.t !== T.FISH && o.t !== T.JELLY && o.t !== T.CRAB) continue; const d = Math.abs(o.x - p.x) + Math.abs(o.y - p.y);
-      if (d <= 1) RUN.near.set(o.id, true); else if (RUN.near.get(o.id)) { RUN.near.delete(o.id); if (performance.now() - RUN.dodgeAt > 2500) { RUN.dodgeAt = performance.now(); world.dodge(); } } }
-    world.lowAir = !e.relaxed && e.begun && e.oxygen < 10; }
+      if (d <= 1) RUN.near.set(o.id, true); else if (RUN.near.get(o.id)) { RUN.near.delete(o.id); if (performance.now() - RUN.dodgeAt > 2500) { RUN.dodgeAt = performance.now(); world.dodge(); dvoice('phew'); } } }
+    world.lowAir = !e.relaxed && e.begun && e.oxygen < 10; if (world.lowAir && !RUN.airSaid) { RUN.airSaid = true; dvoice('air'); } }
   // the relic's cell: a sand cell the diver can dig to from the start, as far as possible from every cell the verified winning route
   // visits (so finding it is a detour, never on the way), not right under a stone/pearl. Computed once per level.
   const relicCache = {};
@@ -6181,8 +6188,8 @@ window.__T = T;
       case 'land': if (pl) { const d = Math.max(Math.abs(pl.x - v.x), Math.abs(pl.y - v.y)); if (d <= 1) want([26, 40, 16], 6); else if (d <= 3) want(12, 3); } break;
       case 'monsterDeath': want([20, 30, 20], 5); weekBump('bonk'); break;
       case 'teeter': want([22, 50, 22], 7); break;
-      case 'absorb': want([18, 50, 30], 8); slowMo = 0.23; break; // one soft 'whoomp' (absorb) only: the extra pitched chime on top made it shrill
-      case 'gateOpen': want([30, 60, 30, 60, 90], 9); Audio.swell(); break;
+      case 'absorb': want([18, 50, 30], 8); slowMo = 0.23; if (e.ballsIn < e.ballsTotal) dvoice('pearl'); break; // one soft 'whoomp' (absorb) only: the extra pitched chime on top made it shrill
+      case 'gateOpen': want([30, 60, 30, 60, 90], 9); Audio.swell(); dvAt = 0; dvoice('gate'); break;
     }
     if (pat) buzz(pat); }
   let cineRunning = false, slowMo = 0; // seconds of a short slow-motion beat when a pearl goes in (counted on the frame clock)
@@ -6443,7 +6450,7 @@ window.__T = T;
       if (['pearl', 'stone', 'fish', 'jelly', 'crab', 'air'].includes(ic)) { needIcons([ic]); el.style.setProperty('--ic', `var(--ic-${ic})`); } else if (ic === 'diver') { const th = diverThumb(); el.style.setProperty('--ic', th ? `url("${th}")` : 'none'); } else el.style.removeProperty('--ic');
       el.dataset.ic = ic; $('#tut .tut-dots').innerHTML = TUT.steps.length > 1 ? TUT.steps.map((_, k) => `<i class="${k === TUT.i ? 'on' : k < TUT.i ? 'done' : ''}"></i>`).join('') : ''; }
     $('#tut .tut-next').textContent = TUT.i < TUT.steps.length - 1 ? 'Next' : "Let's dive";
-    const b = $('#tut .tut-bub'); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); Audio.stopVo(); Audio.vo(st.id); Audio.play('click'); }
+    const b = $('#tut .tut-bub'); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); Audio.stopVo(); Audio.vo(st.id === 't1e' && !touchUI() ? 't1e_k' : st.id); Audio.play('click'); }
   function startTut(idx) { const steps = TUT_STEPS[idx]; if (!steps || dive || skipTut) return false; save.tutSeen = save.tutSeen || {}; if (save.tutSeen[idx]) return false;
     TUT.on = true; TUT.idx = idx; TUT.steps = steps.filter(st => tutTarget(st)); if (!TUT.steps.length) { TUT.on = false; return false; } TUT.i = 0; setState('tut');
     $('#tut').classList.add('on'); tutShow(); tutPlace(); return true; }
@@ -6501,10 +6508,11 @@ window.__T = T;
     else { const path = coachPath(engine, pl, target); world.setCoachTrail(path); coachHand(null);
       if (path && path.length) { const first = path[0], d = first[0] > pl[0] ? 'R' : first[0] < pl[0] ? 'L' : first[1] > pl[1] ? 'D' : 'U'; coachHand(world.toScreen(pl[0], pl[1]), d); } } }
   function banner(small, big, line, ms) { const lv = dive || LEVELS[levelIdx], b = $('#lvlBanner'); if (!lv) return;
-    let tip = line || ''; if (small === undefined && dive) { small = 'Daily Dive'; big = dive.name; tip = 'Same puzzle for every diver today. Go fast!'; ms = 2600; }
+    let tip = line || ''; if (small === undefined && dive) { small = 'Daily Dive'; big = dive.name; tip = 'Same puzzle for every diver today. Go fast!'; ms = 2600; setTimeout(() => { if (state === 'playing') Audio.vo('n_daily'); }, 400); }
     let card = null; if (small === undefined) { small = `Level ${levelIdx + 1}`; big = lv.name; card = (lv.intro && !(save.tipsSeen || {})[levelIdx]) ? lv.intro : null; tip = ''; if (card) { save.tipsSeen = save.tipsSeen || {}; save.tipsSeen[levelIdx] = 1; persist(); } ms = card ? 4600 : 1900; }
     { const c = $('#lbCard'); c.hidden = !card; if (card) { if (!/^world/.test(card.ic)) needIcons([card.ic]); c.dataset.ic = card.ic; c.style.setProperty('--ic', /^world/.test(card.ic) ? 'none' : `var(--ic-${card.ic})`);
-        $('#lbK').textContent = card.k; $('#lbT').textContent = card.t; $('#lbD').innerHTML = rich(card.d); } }
+        $('#lbK').textContent = card.k; $('#lbT').textContent = card.t; $('#lbD').innerHTML = rich(card.d);
+        if (card.ic === 'world2' || card.ic === 'world3') setTimeout(() => { if (state === 'playing') Audio.vo('n_' + card.ic); }, 500); } } // the narrator welcomes you to a new world
     $('#lbNum').textContent = small; $('#lbName').textContent = big; $('#lbTip').textContent = tip; b.classList.toggle('go', big === 'Swim in!');
     b.classList.add('on'); $('#lbWrap').classList.toggle('on', !!card); banner.start = small === `Level ${levelIdx + 1}` && !tip; clearTimeout(bannerTimer); bannerTimer = setTimeout(bannerOff, ms || 1900); }
   function bannerOff() { $('#lvlBanner').classList.remove('on'); $('#lbWrap').classList.remove('on'); } // the first move clears the name and the intro card (it covered the board)
@@ -6722,7 +6730,7 @@ window.__T = T;
     held.clear(); heldOrder = []; endTouch(); acc = 0; overTimer = 0; resultShown = false; hudKey = ''; lastScore = -1;
     if (state !== 'playing') { setState('playing'); show(null); } updateHud(); undoHold = true;
     if (!REDUCED_MOTION) world.flashFx('rewind'); { const pl = engine.player; if (pl) world.particles.bubbles(pl.x, -pl.y, 0.4, 10, 0.08, 0.35); } /* time rewound: a cool blue blink + a puff of bubbles */
-    if (extra) toast(`Rewound ${extra + 1} moves to a safe spot`); else if (force !== true && !undoFree()) toast(undoLeft ? `${undoLeft} undo${undoLeft === 1 ? '' : 's'} left` : 'That was your last undo'); undoNeed(2500); }
+    if (extra) toast(`Rewound ${extra + 1} moves to a safe spot`); else if (force !== true && !undoFree()) toast(undoLeft ? `${undoLeft} undo${undoLeft === 1 ? '' : 's'} left` : 'That was your last undo'); undoNeed(2500); dvoice('undo'); }
   let planHold = false; // while a hint is being worked out the world holds still (nothing moves, air paused); any move cancels it
   let undoHold = false; // after an undo the world waits for the player's next move (a falling stone hangs until you act)
   $('#btnUndo').onclick = () => undo();
@@ -7110,10 +7118,10 @@ window.__T = T;
     requestAnimationFrame(loop);
     const at = (ms, fn) => T.push(setTimeout(() => { if (alive) fn(); }, ms));
     const gates = G.children; for (let i = 0; i < 30; i++) at(700 + i * 85, () => { gates[i].classList.add('on'); cnt.textContent = i + 1; if (i % 3 === 0) Audio.pearl(1 + (i / 3 % 7)); if (i % 5 === 4) buzz(8); });
-    at(700 + 30 * 85 + 250, () => { F.classList.add('lit'); Audio.play('gateOpen'); Audio.swell && Audio.swell(); buzz([30, 60, 30, 60, 90]); const r = G.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 160, true); confetti(140); });
-    at(4300, () => { F.classList.add('title'); Audio.play('win'); confetti(90); });
+    at(700 + 30 * 85 + 250, () => { F.classList.add('lit'); Audio.vo('n_fin1'); Audio.play('gateOpen'); Audio.swell && Audio.swell(); buzz([30, 60, 30, 60, 90]); const r = G.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 160, true); confetti(140); });
+    at(4300, () => { F.classList.add('title'); Audio.play('win'); confetti(90); }); at(7200, () => Audio.vo('n_fin2'));
     at(9800, () => F.classList.add('roll'));
-    const end = () => { if (!alive) return; alive = false; T.forEach(clearTimeout); F.hidden = true; F.className = ''; removeEventListener('resize', fit); done(); };
+    const end = () => { if (!alive) return; alive = false; T.forEach(clearTimeout); Audio.stopVo(); F.hidden = true; F.className = ''; removeEventListener('resize', fit); done(); };
     at(27500, end); addEventListener('resize', fit);
     F.onclick = () => { click(); end(); }; finale.end = end; }
   function openEnding() { click(); setState('ending'); finale(() => { if (state === 'ending') openEndCard(); }); }

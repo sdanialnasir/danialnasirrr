@@ -1,0 +1,384 @@
+{
+ "_about": "Every voice-over line in Aqua Energizer. make_voices.bat reads this file. Edit a line's text, then choose 'Redo one line'. Words in [brackets] are ElevenLabs audio tags (v3/v4 models): they set the delivery and are not spoken.",
+ "model": "eleven_v4",
+ "fallback_models": [
+  "eleven_v3",
+  "eleven_multilingual_v2"
+ ],
+ "output_format": "mp3_44100_128",
+ "settings": {
+  "narrator": {
+   "stability": 0.5,
+   "similarity_boost": 0.8,
+   "use_speaker_boost": true
+  },
+  "diver": {
+   "stability": 0.5,
+   "similarity_boost": 0.75,
+   "use_speaker_boost": true
+  }
+ },
+ "pick": {
+  "narrator": "Lily",
+  "diver": "Jessica"
+ },
+ "audition": {
+  "narrator": "[softly] Deep in the sea, the reef glows with magic pearls. [gently] But one little diver turns on a light.",
+  "diver": "[excited] Woohoo! The light's back! [giggles] Easy as bubbles!"
+ },
+ "candidates": {
+  "narrator": [
+   {
+    "name": "Lily",
+    "id": "pFZP5JQG7iQjIQuC4Bku",
+    "why": "Recommended. Warm, velvety British storyteller; soft and calm, like a bedtime legend."
+   },
+   {
+    "name": "Matilda",
+    "id": "XrExE9yKIg1WjnnlVkGX",
+    "why": "Warm, friendly American; a cosy kids-show narrator."
+   },
+   {
+    "name": "Alice",
+    "id": "Xb7hH8MSUJpSbSDYk0k2",
+    "why": "Clear, bright British; a little more 'teacher' than storyteller."
+   },
+   {
+    "name": "Sarah",
+    "id": "EXAVITQu4vr4xnSDxMaL",
+    "why": "Soft, young American; gentle and unhurried."
+   },
+   {
+    "name": "Emma Taylor",
+    "why": "Voice Library: young British storyteller with a soft, gentle voice (added to your voices if found)."
+   }
+  ],
+  "diver": [
+   {
+    "name": "Jessica",
+    "id": "cgSgspJ2msm6clMCkdW9",
+    "why": "Recommended. Young, playful and expressive; giggles and excitement land well."
+   },
+   {
+    "name": "Laura",
+    "id": "FGY2WhTYpPnrIDTdsKH5",
+    "why": "Quirky and upbeat; a cheeky sidekick feel."
+   },
+   {
+    "name": "Gigi",
+    "id": "jBpfuIE2acCO8z3wKNLl",
+    "why": "Older 'childish animation' voice; very cartoony (may no longer be available)."
+   },
+   {
+    "name": "Mimi",
+    "id": "zrHiDhphv9ZnVXBqCLjz",
+    "why": "Older 'childish animation' voice; tiny and cute (may no longer be available)."
+   }
+  ]
+ },
+ "lines": [
+  {
+   "id": "vo1",
+   "role": "narrator",
+   "text": "[softly] Deep in the sea, the reef glows with magic pearls.",
+   "when": "Intro film: the reef at night",
+   "max_seconds": 4.3
+  },
+  {
+   "id": "vo2",
+   "role": "narrator",
+   "text": "[a little worried] One night, a huge storm hits the reef…",
+   "when": "Intro film: the storm",
+   "max_seconds": 3.2
+  },
+  {
+   "id": "vo3",
+   "role": "narrator",
+   "text": "…and sweeps all the pearls away. [whispers] The reef goes dark.",
+   "when": "Intro film: the lights blow away",
+   "max_seconds": 3.4
+  },
+  {
+   "id": "vo4",
+   "role": "narrator",
+   "text": "[gently] But one little diver turns on a light.",
+   "when": "Intro film: the helmet lamp clicks on",
+   "max_seconds": 3.8
+  },
+  {
+   "id": "vo5",
+   "role": "narrator",
+   "text": "Swim into the sand to dig a tunnel.",
+   "when": "Intro film: first dig",
+   "max_seconds": 3.3
+  },
+  {
+   "id": "vo6",
+   "role": "narrator",
+   "text": "The tunnel reaches the gate. Now get behind the red pearl…",
+   "when": "Intro film: diver above the gate",
+   "max_seconds": 3.3
+  },
+  {
+   "id": "vo7",
+   "role": "narrator",
+   "text": "[excited] …and push it to the gate!",
+   "when": "Intro film: first push",
+   "max_seconds": 1.9
+  },
+  {
+   "id": "vo8",
+   "role": "narrator",
+   "text": "[amazed] The gate wakes up, and the light comes back!",
+   "when": "Intro film: the gate opens",
+   "max_seconds": 3.2
+  },
+  {
+   "id": "vo9",
+   "role": "narrator",
+   "text": "Twenty-nine gates are still dark. [warmly] Can you wake them all?",
+   "when": "Intro film: wide shot, 30 gates",
+   "max_seconds": 4.0
+  },
+  {
+   "id": "t1a",
+   "role": "narrator",
+   "text": "This is you. Swim, dig and push your way to the gate.",
+   "when": "Tutorial L1: the diver"
+  },
+  {
+   "id": "t1b",
+   "role": "narrator",
+   "text": "This red pearl is full of light. The gate needs it.",
+   "when": "Tutorial L1: the pearl"
+  },
+  {
+   "id": "t1c",
+   "role": "narrator",
+   "text": "Push the pearl in to wake the gate, then swim in yourself.",
+   "when": "Tutorial L1: the gate"
+  },
+  {
+   "id": "t1d",
+   "role": "narrator",
+   "text": "Air starts on your first move, so look around first. Finish before it runs out!",
+   "when": "Tutorial L1: the air meter"
+  },
+  {
+   "id": "t1e",
+   "role": "narrator",
+   "text": "Swipe to swim. Swim into sand to dig through it.",
+   "when": "Tutorial L1: how to swim (phones)"
+  },
+  {
+   "id": "t1e_k",
+   "role": "narrator",
+   "text": "Use the arrow keys to swim. Swim into sand to dig through it.",
+   "when": "Tutorial L1: how to swim (computers)"
+  },
+  {
+   "id": "t2a",
+   "role": "narrator",
+   "text": "Take the sand away under a stone, and it falls.",
+   "when": "Tutorial L2: stones"
+  },
+  {
+   "id": "t2b",
+   "role": "narrator",
+   "text": "[gently] Never stand right under a stone!",
+   "when": "Tutorial L2: stay safe"
+  },
+  {
+   "id": "t3a",
+   "role": "narrator",
+   "text": "Falling stones and pearls roll off round things, and they roll left first.",
+   "when": "Tutorial L3: rolling"
+  },
+  {
+   "id": "t5a",
+   "role": "narrator",
+   "text": "[a little worried] It patrols the water, and charges the moment it sees you.",
+   "when": "Tutorial L5: the piranha"
+  },
+  {
+   "id": "t5b",
+   "role": "narrator",
+   "text": "[playfully] Drop a stone on it to stop it for good.",
+   "when": "Tutorial L5: fight back"
+  },
+  {
+   "id": "t6a",
+   "role": "narrator",
+   "text": "It drifts up and down its shaft. Cross when it is far away.",
+   "when": "Tutorial L6: the jellyfish"
+  },
+  {
+   "id": "t9a",
+   "role": "narrator",
+   "text": "It scuttles back and forth. Stay out of its path!",
+   "when": "Tutorial L9: the crab"
+  },
+  {
+   "id": "t12a",
+   "role": "narrator",
+   "text": "[brightly] Swim into it for forty-five more seconds of air.",
+   "when": "Tutorial L12: air capsule"
+  },
+  {
+   "id": "n_world2",
+   "role": "narrator",
+   "text": "[warmly] Deeper now. Welcome to the Coral Caves. [softly] Plan before you dig.",
+   "when": "Level 11: entering World 2"
+  },
+  {
+   "id": "n_world3",
+   "role": "narrator",
+   "text": "[hushed] This is The Deep. Only the bravest divers come this far.",
+   "when": "Level 21: entering World 3"
+  },
+  {
+   "id": "n_daily",
+   "role": "narrator",
+   "text": "[cheerfully] Today's dive is the same for every diver. Ready? Go!",
+   "when": "Daily Dive start"
+  },
+  {
+   "id": "n_fin1",
+   "role": "narrator",
+   "text": "[amazed] Every gate is awake. The whole reef is glowing again!",
+   "when": "Finale: all 30 gates light up"
+  },
+  {
+   "id": "n_fin2",
+   "role": "narrator",
+   "text": "[warmly] Thank you, little diver. The Glow Reef shines because of you.",
+   "when": "Finale: title and credits"
+  },
+  {
+   "id": "win1",
+   "role": "diver",
+   "text": "[excited] Woohoo! The light's back!",
+   "when": "Result: level cleared",
+   "max_seconds": 1.8
+  },
+  {
+   "id": "win2",
+   "role": "diver",
+   "text": "Gate's awake. Onward!",
+   "when": "Result: level cleared",
+   "max_seconds": 1.8
+  },
+  {
+   "id": "win3",
+   "role": "diver",
+   "text": "[giggles] Easy as bubbles!",
+   "when": "Result: level cleared",
+   "max_seconds": 1.8
+  },
+  {
+   "id": "lose1",
+   "role": "diver",
+   "text": "[sighs] Oof… let's try that again.",
+   "when": "Result: dive failed",
+   "max_seconds": 1.8
+  },
+  {
+   "id": "lose2",
+   "role": "diver",
+   "text": "[determined] Hold on, I've got this!",
+   "when": "Result: dive failed",
+   "max_seconds": 1.8
+  },
+  {
+   "id": "d_pearl1",
+   "role": "diver",
+   "text": "[happy] Got one!",
+   "when": "A pearl goes in (sometimes)",
+   "max_seconds": 1.8
+  },
+  {
+   "id": "d_pearl2",
+   "role": "diver",
+   "text": "One more!",
+   "when": "A pearl goes in (sometimes)",
+   "max_seconds": 1.8
+  },
+  {
+   "id": "d_pearl3",
+   "role": "diver",
+   "text": "[giggles] In you go!",
+   "when": "A pearl goes in (sometimes)",
+   "max_seconds": 1.8
+  },
+  {
+   "id": "d_gate1",
+   "role": "diver",
+   "text": "[excited] It's open!",
+   "when": "The gate opens",
+   "max_seconds": 1.8
+  },
+  {
+   "id": "d_gate2",
+   "role": "diver",
+   "text": "Yes! Let's go!",
+   "when": "The gate opens",
+   "max_seconds": 1.8
+  },
+  {
+   "id": "d_relic",
+   "role": "diver",
+   "text": "[gasps] Ooh, treasure!",
+   "when": "Hidden relic found",
+   "max_seconds": 1.8
+  },
+  {
+   "id": "d_bonk",
+   "role": "diver",
+   "text": "[giggles] Bonk!",
+   "when": "Stone dropped on a monster",
+   "max_seconds": 1.8
+  },
+  {
+   "id": "d_double",
+   "role": "diver",
+   "text": "[excited] Double!",
+   "when": "Two pearls in a row",
+   "max_seconds": 1.8
+  },
+  {
+   "id": "d_phew1",
+   "role": "diver",
+   "text": "[relieved] Phew!",
+   "when": "A monster just missed (sometimes)",
+   "max_seconds": 1.8
+  },
+  {
+   "id": "d_phew2",
+   "role": "diver",
+   "text": "That was close!",
+   "when": "A monster just missed (sometimes)",
+   "max_seconds": 1.8
+  },
+  {
+   "id": "d_air",
+   "role": "diver",
+   "text": "[nervous] I need air!",
+   "when": "Air below 10 s (once per try)",
+   "max_seconds": 1.8
+  },
+  {
+   "id": "d_undo1",
+   "role": "diver",
+   "text": "Whoops!",
+   "when": "Undo used (sometimes)",
+   "max_seconds": 1.8
+  },
+  {
+   "id": "d_undo2",
+   "role": "diver",
+   "text": "[playfully] Wait, wait… one more time!",
+   "when": "Undo used (sometimes)",
+   "max_seconds": 1.8
+  }
+ ]
+}
