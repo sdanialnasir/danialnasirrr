@@ -737,3 +737,16 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - `tankShot` (level photos) still renders front-on. A gentler version (FOV 38, yaw 0.14/0.10) was tried first; the stronger one read better.
 - **Desktop closer too** (owner follow-up): `DESK_CLOSE = 0.74` × the whole-level distance, `follow` on, so the camera tracks the diver like
   on phones (no breathing zoom on computers). Level start shows the whole tank for 1.5 s on every device (`beginPlay.pk`), Map / hold M = overview.
+
+## Reference look + diver animation (owner: "match the ChatGPT aquarium exactly"; "the diver gets inside the ball, movement feels static")
+- **Sand** uses the owner's reference sand (`src/assets/images/tex/sand_ref.webp`, cut from the arrival concept by `tools/make_ref_textures.py`,
+  embedded as `AQ_DATA.TEX`, loaded as `TEX.sandRef`): golden-yellow with rippling light lines; `uRef` in `sandify` switches it on (new art).
+- **Reef rock (world 1)** is drawn in the reference's style (`massMat` generator): small/medium flat stones packed tightly (dart-thrown, 4 size
+  classes), warm brown mottled earth, low-contrast stones with a soft dark rim + top-left light catch, a few grey-lavender ones; a colour map
+  (`TEX.rockCol`) and a matching height map (`TEX.cobbleRock`) share every stone; sampled at `pt * 0.3`. Worlds 2–3 keep their tints.
+- **Water** is clear bright aqua (back panel alpha 0.38–0.5, was 0.72; front glass 0.22, was 0.45) so the reef behind the tank shows;
+  shallows water `lo/hi` brighter. **Post grade** saturation 1.2, filmic 0.55 (the reference is vivid). **Corals:** a coral (+ often a weed)
+  on ~65% of ledge tops, standing on the top face.
+- **Diver motion:** the spring chases the tick-interpolated position (k 120) → held moves glide at an even speed; walk/swim at full strength
+  with stride speed from the body's speed; the push clip plays while a pearl moves; the diver faces what he pushes (yaw 0.72 → 0.22) and leans
+  0.145 toward it so the gloves meet the pearl without sinking in.

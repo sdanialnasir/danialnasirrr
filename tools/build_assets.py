@@ -34,6 +34,11 @@ def main():
     if os.path.isdir(ui_dir):
         data['UI'] = {os.path.splitext(f)[0]: 'data:image/webp;base64,' + base64.b64encode(open(os.path.join(ui_dir, f), 'rb').read()).decode()
                       for f in sorted(os.listdir(ui_dir)) if f.endswith('.webp')}
+    # textures cut from the owner's reference art (tools/make_ref_textures.py) -> AQ_DATA.TEX
+    tex_dir = os.path.join(SRC, 'assets', 'images', 'tex')
+    if os.path.isdir(tex_dir):
+        data['TEX'] = {os.path.splitext(f)[0]: 'data:image/webp;base64,' + base64.b64encode(open(os.path.join(tex_dir, f), 'rb').read()).decode()
+                       for f in sorted(os.listdir(tex_dir)) if f.endswith('.webp')}
     # optional voice-over clips for the intro: src/assets/vo/<line id>.mp3 (e.g. vo1.mp3 ... vo7.mp3) -> AQ_DATA.VO
     vo_dir = os.path.join(SRC, 'assets', 'vo')
     if os.path.isdir(vo_dir):

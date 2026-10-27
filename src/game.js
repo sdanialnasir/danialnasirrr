@@ -970,6 +970,7 @@ const World = (() => {
 
   const TEX = {};
   function buildTextures() {
+    { const R = (window.AQ_DATA && AQ_DATA.TEX) || {}; if (R.sand_ref && !TEX.sandRef) { TEX.sandRef = new THREE.TextureLoader().load(R.sand_ref); TEX.sandRef.wrapS = TEX.sandRef.wrapT = THREE.RepeatWrapping; TEX.sandRef.colorSpace = THREE.SRGBColorSpace; TEX.sandRef.anisotropy = 4; } } // the owner's reference sand
     // soft dot + bubble sprites
     { const [c, g] = canvas(64); const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.35, 'rgba(255,255,255,0.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); TEX.dot = tex(c, false); }
     { const [c, g] = canvas(64); const ig = g.createRadialGradient(32, 32, 10, 32, 32, 28); ig.addColorStop(0, 'rgba(200,240,255,0.08)'); ig.addColorStop(1, 'rgba(220,245,255,0.45)'); g.fillStyle = ig; g.beginPath(); g.arc(32, 32, 27, 0, 7); g.fill();
@@ -1104,8 +1105,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (mask) { sh.uniforms.uMask = mask.tex; sh.uniforms.uSize = mask.size; }
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWp; varying vec3 vNo;')
         .replace('#include <project_vertex>', '#include <project_vertex>\n{ vec4 wp4 = vec4(transformed, 1.0);\n#ifdef USE_INSTANCING\n wp4 = instanceMatrix * wp4;\n#endif\n vWp = (modelMatrix * wp4).xyz; vNo = normal; }');
-      sh.uniforms.uCausticT = MAT.causticT; sh.uniforms.uSandTex = { value: sprTex('sand') }; sh.uniforms.uNew = MAT.sandNew; sh.uniforms.uNight = MAT.sandNight; sh.uniforms.uLamp = MAT.lamp; sh.uniforms.uLampAmb = MAT.lampAmb;
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uCausticT, uNew, uNight, uLampAmb; uniform vec4 uLamp; uniform sampler2D uSandTex; varying vec3 vWp; varying vec3 vNo; float vEdge = 0.0; float vBotOpen = 0.0; float vLine = 0.0; float vWet = 0.0; float vTopOpen = 0.0; vec2 vLc = vec2(0.5); vec3 vGlint = vec3(0.0);' + (mask ? '\nuniform sampler2D uMask; uniform vec2 uSize;' : ''))
+      sh.uniforms.uCausticT = MAT.causticT; sh.uniforms.uSandTex = { value: sprTex('sand') }; sh.uniforms.uSandRef = { value: TEX.sandRef || sprTex('sand') }; sh.uniforms.uRef = { value: TEX.sandRef ? 1 : 0 }; sh.uniforms.uNew = MAT.sandNew; sh.uniforms.uNight = MAT.sandNight; sh.uniforms.uLamp = MAT.lamp; sh.uniforms.uLampAmb = MAT.lampAmb;
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uCausticT, uNew, uNight, uLampAmb; uniform vec4 uLamp; uniform sampler2D uSandTex, uSandRef; uniform float uRef; varying vec3 vWp; varying vec3 vNo; float vEdge = 0.0; float vBotOpen = 0.0; float vLine = 0.0; float vWet = 0.0; float vTopOpen = 0.0; vec2 vLc = vec2(0.5); vec3 vGlint = vec3(0.0);' + (mask ? '\nuniform sampler2D uMask; uniform vec2 uSize;' : ''))
         .replace('#include <clipping_planes_fragment>', mask ? `#include <clipping_planes_fragment>
         { vec2 cell = vec2(floor(vWp.x + 0.5), floor(-vWp.y + 0.5)); vec2 lc = vec2(vWp.x + 0.5, -vWp.y + 0.5) - cell;
           if (cell.x < 0.0 || cell.y < 0.0 || cell.x >= uSize.x || cell.y >= uSize.y) discard;
@@ -1163,7 +1164,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             if (uNew > 0.5) { float dd = clamp((-p.y - 0.5) / 8.0, 0.0, 1.0); // sun-bleached sand on top -> warm amber -> damp russet deep down
               base = mix(vec3(1.12, 0.84, 0.42), vec3(0.98, 0.58, 0.22), smoothstep(0.0, 0.45, dd)); base = mix(base, vec3(0.58, 0.29, 0.15), smoothstep(0.45, 1.0, dd));
               float bl = sin(p.x * 0.62 + sin(p.y * 0.9) * 1.4) * sin(p.y * 0.75 + p.x * 0.28 + 1.3); base *= 1.0 + bl * 0.1; }
-            c = base * mix(1.0, det, 0.58); }
+            c = base * mix(1.0, det, 0.58);
+            if (uRef > 0.5 && uNew > 0.5) { float dd = clamp((-p.y - 0.5) / 10.0, 0.0, 1.0); // the reference's golden sand (with its rippling light lines), a touch deeper amber far down
+              c = texture2D(uSandRef, p * 0.62 + vec2(0.13, 0.37)).rgb * 1.3 * vec3(1.0, 1.08, 0.92) * mix(vec3(1.0), vec3(0.95, 0.85, 0.75), dd); c = mix(vec3(dot(c, vec3(0.3, 0.59, 0.11))), c, 0.8); } } // golden-yellow like the reference, not orange
           // sediment strata: soft wavy layers of slightly different sand, like a cut through the seabed
           float st = -p.y * 1.15 + sin(p.x * 0.45) * 0.28 + sin(p.x * 1.3 + 2.0) * 0.08;
           float band = floor(st), fb = fract(st), bh = fract(sin(band * 91.7) * 43758.5);
@@ -1207,7 +1210,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           { float g1 = fract(sin(dot(floor(p * 90.0), vec2(12.9898, 78.233))) * 43758.5453), g2 = fract(sin(dot(floor(p * 37.0), vec2(39.3, 11.7))) * 43758.5453);
             c *= 0.95 + g1 * 0.06 + (g2 - 0.5) * 0.05; }
           c = mix(c, c * vec3(0.72, 0.62, 0.5), vWet * 0.75); c += vec3(0.25, 0.2, 0.12) * smoothstep(0.03, 0.0, abs(vWet - 0.75)) * vWet;
-          if (uNew > 0.5) { float l = dot(c, vec3(0.299, 0.587, 0.114)); c = max(vec3(0.0), mix(vec3(l), c, 1.3)); } // richer, warmer sand (the lights were greying it out)
+          if (uNew > 0.5) { float l = dot(c, vec3(0.299, 0.587, 0.114)); c = max(vec3(0.0), mix(vec3(l), c, uRef > 0.5 ? 1.0 : 1.3)); } // richer, warmer sand (the lights were greying it out)
           c = mix(c, c * vec3(0.55, 0.66, 0.9), uNight); // the intro's night: a cool tint here, the moonlight grade is done in post
           { float d = length(vWp.xy - uLamp.xy), pool = smoothstep(uLamp.z * 1.9, 0.0, d), core = smoothstep(uLamp.z, 0.0, d); // the diver's lamp
             c *= 1.0 - uLampAmb * (1.0 - pool); c += c * vec3(0.75, 0.5, 0.22) * core * uLamp.w; }
@@ -1713,10 +1716,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   // per-frame: blend the clips from what the diver is doing (weights always add up to 1, so it never falls back to the T/A-pose)
   function glbDrive(u, dt, st) { const G = u.glb, A = G.act, W = G.w;
     const busy = Math.min(1, Math.max(st.reach, st.push, st.dig)), r = 1 - busy * 0.95, mv = st.swim * r, still = (1 - st.swim) * r;
-    const goal = { push: 1 - r, walk: mv * st.floor * 0.55, swim: mv * (1 - st.floor), stand: (still + mv * 0.45) * st.floor, idle: still * (1 - st.floor) }; // the Meshy walk hunches: half of it is plenty
+    const goal = { push: 1 - r, walk: mv * st.floor * 0.9, swim: mv * (1 - st.floor), stand: (still + mv * 0.1) * st.floor, idle: still * (1 - st.floor) }; // full-strength strides so arms and legs really move
     let sum = 0; for (const k in goal) { W[k] = (W[k] ?? 0) + (goal[k] - (W[k] ?? 0)) * Math.min(1, dt * 10); sum += W[k]; }
     for (const k in goal) A[k].setEffectiveWeight(W[k] / (sum || 1));
-    A.walk.timeScale = 1.6; A.swim.timeScale = 1.5; A.idle.timeScale = 0.9; G.mixer.update(dt); }
+    const sp = st.speed || 0; A.walk.timeScale = Math.max(1, Math.min(2.6, 0.9 + sp * 0.42)); A.swim.timeScale = Math.max(1, Math.min(2.4, 0.9 + sp * 0.36)); A.idle.timeScale = 0.9; // strides keep pace with the body
+    if (A.push) { if (st.pushing) { A.push.paused = false; A.push.timeScale = Math.min(1.6, 0.6 + sp * 0.25); } else if (!A.push.paused) { A.push.paused = true; } } // the shove animates while the pearl moves, holds still otherwise
+    G.mixer.update(dt); }
   // ---------------------------------------------------------------- skins (shop)
   const SKIN = { suit: 'violet', scarf: 'pink', hat: 'none', trail: 'bubbles', pearl: 'ruby' };
   const SKINS = {
@@ -1931,32 +1936,43 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   // a sunlit lip on exposed tops; uses the sand mask's wall channel (.b) to know which neighbours are open
   function massMat(world) { MAT.mass = MAT.mass || [];
     if (MAT.mass[world]) return MAT.mass[world];
-    if (!TEX.cobbleRock) { // a crisp, tileable height map: packed cobbles (jittered grid) with dark mortar gaps, rounded tops and fine grain
-      const N = 1024, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'); g.fillStyle = '#262626'; g.fillRect(0, 0, N, N);
-      let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647; const G = 9, cs = N / G;
-      for (let gy = 0; gy < G; gy++) for (let gx = 0; gx < G; gx++) { const x = (gx + 0.5 + (rnd() - 0.5) * 0.5) * cs, y = (gy + 0.5 + (rnd() - 0.5) * 0.5) * cs, rx = cs * (0.4 + rnd() * 0.12), ry = cs * (0.32 + rnd() * 0.12), a = rnd() * 3.14, v = 0.62 + rnd() * 0.3;
-        for (const ox of [-N, 0, N]) for (const oy of [-N, 0, N]) { const X = x + ox, Y = y + oy; if (X < -cs || X > N + cs || Y < -cs || Y > N + cs) continue;
-          g.save(); g.translate(X, Y); g.rotate(a); const gr = g.createRadialGradient(-rx * 0.18, -ry * 0.22, 1, 0, 0, Math.max(rx, ry) * 1.02);
-          const L = k => Math.round(255 * Math.min(1, v * k)); gr.addColorStop(0, `rgb(${L(1.12)},${L(1.12)},${L(1.12)})`); gr.addColorStop(0.62, `rgb(${L(0.92)},${L(0.92)},${L(0.92)})`); gr.addColorStop(0.9, `rgb(${L(0.62)},${L(0.62)},${L(0.62)})`); gr.addColorStop(1, 'rgb(60,60,60)');
-          g.fillStyle = gr; g.beginPath(); g.ellipse(0, 0, rx, ry, 0, 0, 7); g.fill(); g.restore(); } }
-      for (let k = 0; k < 140; k++) { const x = rnd() * N, y = rnd() * N, rr = cs * (0.1 + rnd() * 0.12), v = 0.5 + rnd() * 0.3; // small pebbles packed into the gaps: less of a polka-dot grid
-        for (const ox of [-N, 0, N]) for (const oy of [-N, 0, N]) { const X = x + ox, Y = y + oy; if (X < -cs || X > N + cs || Y < -cs || Y > N + cs) continue; const p0 = g.getImageData(Math.max(0, Math.min(N - 1, X | 0)), Math.max(0, Math.min(N - 1, Y | 0)), 1, 1).data[0]; if (p0 > 70) continue;
-          const gr = g.createRadialGradient(X - rr * 0.25, Y - rr * 0.3, 0.5, X, Y, rr); gr.addColorStop(0, `rgb(${255 * v | 0},${255 * v | 0},${255 * v | 0})`); gr.addColorStop(1, 'rgb(55,55,55)'); g.fillStyle = gr; g.beginPath(); g.arc(X, Y, rr, 0, 7); g.fill(); } }
-      { const im = g.getImageData(0, 0, N, N), d = im.data; for (let k = 0; k < d.length; k += 4) { const n = (rnd() - 0.5) * 22; d[k] = d[k + 1] = d[k + 2] = Math.max(0, Math.min(255, d[k] + n)); } g.putImageData(im, 0, 0); }
-      TEX.cobbleRock = new THREE.CanvasTexture(c); TEX.cobbleRock.wrapS = TEX.cobbleRock.wrapT = THREE.RepeatWrapping; TEX.cobbleRock.colorSpace = THREE.NoColorSpace; TEX.cobbleRock.anisotropy = 4; }
+    if (!TEX.cobbleRock) { // reef rock in the owner's reference style: small and medium flat stones packed tightly, warm browns with a few grey-lavender
+      // ones, soft low-contrast shading and thin warm mortar. Two canvases share every stone: a height map (bump) and a colour map.
+      const N = 1024, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'); g.fillStyle = 'rgb(58,58,58)'; g.fillRect(0, 0, N, N);
+      const cc = document.createElement('canvas'); cc.width = cc.height = N; const gC = cc.getContext('2d'); gC.fillStyle = '#86603f'; gC.fillRect(0, 0, N, N);
+      const PAL = [[168, 130, 100], [178, 142, 112], [158, 122, 94], [186, 152, 122], [150, 118, 96], [170, 150, 150], [156, 142, 156], [176, 136, 102], [146, 112, 88], [190, 160, 130], [164, 140, 128], [140, 128, 140]];
+      let sd = 11; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647; const stones = []; for (let k = 0; k < 9000; k++) { gC.fillStyle = rnd() < 0.5 ? 'rgba(60,38,22,0.22)' : 'rgba(190,150,110,0.18)'; gC.fillRect(rnd() * N, rnd() * N, 2 + rnd() * 4, 2 + rnd() * 4); } // warm mottled earth between the stones
+      const fits = (x, y, r) => { for (const q of stones) { let dx = Math.abs(q.x - x), dy = Math.abs(q.y - y); dx = Math.min(dx, N - dx); dy = Math.min(dy, N - dy); if (dx * dx + dy * dy < (q.r + r + 1.5) ** 2) return false; } return true; };
+      for (const [rmin, rmax, tries] of [[48, 70, 900], [30, 46, 1400], [16, 28, 2600], [8, 14, 700]]) for (let t = 0; t < tries; t++) { const r = rmin + rnd() * (rmax - rmin), x = rnd() * N, y = rnd() * N; if (fits(x, y, r)) stones.push({ x, y, r }); }
+      for (const q of stones) { const a = rnd() * 3.14, rx = q.r * (0.98 + rnd() * 0.12), ry = q.r * (0.8 + rnd() * 0.18), v = 0.72 + rnd() * 0.22, col = PAL[(rnd() * PAL.length) | 0], j = 0.92 + rnd() * 0.16;
+        for (const ox of [-N, 0, N]) for (const oy of [-N, 0, N]) { const X = q.x + ox, Y = q.y + oy; if (X < -80 || X > N + 80 || Y < -80 || Y > N + 80) continue;
+          g.save(); g.translate(X, Y); g.rotate(a); const gr = g.createRadialGradient(-rx * 0.2, -ry * 0.25, 1, 0, 0, Math.max(rx, ry));
+          const L = k => Math.round(255 * Math.min(1, v * k)); gr.addColorStop(0, `rgb(${L(1.05)},${L(1.05)},${L(1.05)})`); gr.addColorStop(0.7, `rgb(${L(0.95)},${L(0.95)},${L(0.95)})`); gr.addColorStop(0.92, `rgb(${L(0.75)},${L(0.75)},${L(0.75)})`); gr.addColorStop(1, 'rgb(70,70,70)');
+          g.fillStyle = gr; g.beginPath(); g.ellipse(0, 0, rx, ry, 0, 0, 7); g.fill(); g.restore();
+          gC.save(); gC.translate(X + 2, Y + 3); gC.rotate(a); gC.fillStyle = 'rgba(70,45,28,0.45)'; gC.beginPath(); gC.ellipse(0, 0, rx, ry, 0, 0, 7); gC.fill(); gC.restore(); // a soft shadow in the mortar
+          gC.save(); gC.translate(X, Y); gC.rotate(a); const C = (k, al = 1) => `rgba(${Math.min(255, col[0] * k * j) | 0},${Math.min(255, col[1] * k * j) | 0},${Math.min(255, col[2] * k * j) | 0},${al})`, cg = gC.createRadialGradient(-rx * 0.3, -ry * 0.35, 1, 0, 0, Math.max(rx, ry));
+          cg.addColorStop(0, C(1.08)); cg.addColorStop(0.65, C(1.0)); cg.addColorStop(1, C(0.86)); gC.fillStyle = cg; gC.beginPath(); gC.ellipse(0, 0, rx, ry, 0, 0, 7); gC.fill();
+          gC.save(); gC.clip(); for (let k = 0; k < Math.max(6, q.r * 1.2); k++) { gC.fillStyle = rnd() < 0.5 ? C(1.22, 0.16) : C(0.7, 0.16); gC.beginPath(); gC.arc((rnd() - 0.5) * rx * 2, (rnd() - 0.5) * ry * 2, 1 + rnd() * q.r * 0.12, 0, 7); gC.fill(); } gC.restore(); // rough, mottled stone surface
+          gC.lineWidth = Math.max(1.5, q.r * 0.09); gC.strokeStyle = 'rgba(66,42,26,0.55)'; gC.beginPath(); gC.ellipse(0, 0, rx, ry, 0, 0, 7); gC.stroke(); // soft dark rim
+          gC.lineWidth = Math.max(1, q.r * 0.06); gC.strokeStyle = C(1.35, 0.5); gC.beginPath(); gC.ellipse(0, 0, rx * 0.9, ry * 0.9, 0, Math.PI * 0.95 - a, Math.PI * 1.6 - a); gC.stroke(); // light catch, top-left
+          gC.restore(); } }
+      { const im = g.getImageData(0, 0, N, N), d = im.data; for (let k = 0; k < d.length; k += 4) { const n = (rnd() - 0.5) * 14; d[k] = d[k + 1] = d[k + 2] = Math.max(0, Math.min(255, d[k] + n)); } g.putImageData(im, 0, 0); }
+      TEX.cobbleRock = new THREE.CanvasTexture(c); TEX.cobbleRock.wrapS = TEX.cobbleRock.wrapT = THREE.RepeatWrapping; TEX.cobbleRock.colorSpace = THREE.NoColorSpace; TEX.cobbleRock.anisotropy = 4;
+      TEX.rockCol = new THREE.CanvasTexture(cc); TEX.rockCol.wrapS = TEX.rockCol.wrapT = THREE.RepeatWrapping; TEX.rockCol.colorSpace = THREE.SRGBColorSpace; TEX.rockCol.anisotropy = 4; }
     const COL = [[0.82, 0.46, 0.3], [0.5, 0.34, 0.75], [0.24, 0.4, 0.6]][world] || [0.82, 0.46, 0.3];
     const m = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85, envMapIntensity: 0.3 });
-    m.onBeforeCompile = (sh) => { sh.uniforms.uMask = MAT.sandMask.tex; sh.uniforms.uSize = MAT.sandMask.size; sh.uniforms.uRock = { value: TEX.cobbleRock }; sh.uniforms.uCol = { value: new THREE.Vector3(...COL) }; sh.uniforms.uCausticT = MAT.causticT; sh.uniforms.uLamp = MAT.lamp; sh.uniforms.uLampAmb = MAT.lampAmb;
+    m.onBeforeCompile = (sh) => { sh.uniforms.uMask = MAT.sandMask.tex; sh.uniforms.uSize = MAT.sandMask.size; sh.uniforms.uRock = { value: TEX.cobbleRock }; sh.uniforms.uRockC = { value: TEX.rockCol }; sh.uniforms.uCol = { value: new THREE.Vector3(...COL) }; sh.uniforms.uCausticT = MAT.causticT; sh.uniforms.uLamp = MAT.lamp; sh.uniforms.uLampAmb = MAT.lampAmb;
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWm; varying vec3 vNm;').replace('#include <project_vertex>', '#include <project_vertex>\n{ vec4 wp4 = vec4(transformed, 1.0);\n#ifdef USE_INSTANCING\n wp4 = instanceMatrix * wp4;\n#endif\n vWm = (modelMatrix * wp4).xyz; vNm = normal; }');
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform sampler2D uMask, uRock; uniform vec2 uSize; uniform vec3 uCol; uniform float uCausticT, uLampAmb; uniform vec4 uLamp; varying vec3 vWm; varying vec3 vNm;')
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform sampler2D uMask, uRock, uRockC; uniform vec2 uSize; uniform vec3 uCol; uniform float uCausticT, uLampAmb; uniform vec4 uLamp; varying vec3 vWm; varying vec3 vNm;')
         .replace('#include <color_fragment>', `#include <color_fragment>
         { vec2 p = vWm.xy; vec2 pt = abs(vNm.y) > 0.5 ? vWm.xz * vec2(1.0, 1.6) : abs(vNm.x) > 0.5 ? vWm.zy * vec2(1.6, 1.0) : vWm.xy; float r2 = texture2D(uRock, pt * 0.13 + 0.37).r, r3 = texture2D(uRock, pt * 0.07 + 0.71).r;
-          float r = texture2D(uRock, pt * 0.42).r;
+          float r = texture2D(uRock, pt * 0.3).r;
           vec3 tint = mix(uCol, vec3(dot(uCol, vec3(0.3333))) * vec3(0.94, 1.0, 1.06), smoothstep(0.4, 0.8, r3) * 0.5); // stones vary: some greyer, some warmer
           tint *= 0.88 + 0.24 * smoothstep(0.25, 0.8, r2 * 0.5 + r3 * 0.5);                                                // broad light and dark patches
           vec3 c = tint * (0.12 + 0.5 * r * r) * (0.82 + 0.3 * r2);
-          { float ee = 0.009, hx = texture2D(uRock, (pt + vec2(ee, 0.0)) * 0.42).r - r, hy = texture2D(uRock, (pt + vec2(0.0, ee)) * 0.42).r - r; // bump: stones lit from the top-left like the key light
-            c *= clamp(1.0 + (-hx * 0.6 + hy * 0.75) * 8.0, 0.55, 1.5);
+          ${world === 0 ? '{ vec3 rc = texture2D(uRockC, pt * 0.3).rgb; rc = mix(vec3(dot(rc, vec3(0.3, 0.59, 0.11))), rc, 0.72) * vec3(0.96, 0.98, 1.04); c = rc * (0.92 + 0.16 * r2) * 0.95; }' : 'c = mix(c, texture2D(uRockC, pt * 0.3).rgb * tint * 1.6, 0.35);'} // the reference's warm cobbles (other worlds keep their colour, with a hint of the stone variety)
+          { float ee = 0.009, hx = texture2D(uRock, (pt + vec2(ee, 0.0)) * 0.3).r - r, hy = texture2D(uRock, (pt + vec2(0.0, ee)) * 0.3).r - r; // bump: stones lit from the top-left like the key light
+            c *= clamp(1.0 + (-hx * 0.6 + hy * 0.75) * 6.0, 0.7, 1.35);
             if (uCol.r > 0.3 || uCol.g > 0.45) c = mix(c, vec3(0.2, 0.36, 0.22) * (0.5 + 0.7 * r), smoothstep(0.5, 0.85, r2) * smoothstep(0.0, 0.02, hy) * smoothstep(0.35, 0.6, r) * 0.32); } // a little algae on the upper faces
           vec2 cell = vec2(floor(p.x + 0.5), floor(-p.y + 0.5)); vec2 lc = vec2(p.x + 0.5, -p.y + 0.5) - cell;
           #define WB(o) texture2D(uMask, (cell + o + 0.5) / uSize).b
@@ -2430,9 +2446,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           if (rays > 0.0) c += safe(texture2D(tRays, vUv).rgb) * rays;
           // gentle grade: a touch more contrast and saturation, cool shadows, warm highlights
           float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
-          c = mix(vec3(l), c, 1.08); /* modern pass: was 1.24 (too candy) */
+          c = mix(vec3(l), c, 1.2); /* the owner's reference look: vivid but clean */
           c = mix(c * vec3(0.94, 0.99, 1.06), c * vec3(1.03, 1.0, 0.96), smoothstep(0.2, 0.8, l));
-          c = max(c, 0.0); vec3 cc = min(c, 1.0); c += (cc * cc * (3.0 - 2.0 * cc) - cc) * 0.42; /* softer filmic contrast (was 0.62) */
+          c = max(c, 0.0); vec3 cc = min(c, 1.0); c += (cc * cc * (3.0 - 2.0 * cc) - cc) * 0.55; /* softer filmic contrast (was 0.62) */
           // soft vignette
           vec2 d = vUv - 0.5; d.x *= aspect; float v = smoothstep(1.05, 0.3, length(d)); c *= mix(0.58 - 0.3 * night - 0.12 * vig, 1.0, v);
           gl_FragColor = vec4(c, 1.0);
@@ -2477,7 +2493,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   const DAILY_WORLD = new Map(); // Daily Dive puzzles borrow a world's look (set by the controller)
   const WORLD_TINT = [0xffffff, 0xcdb2ff, 0x6a80c4], WORLD_FOG = [0, 0.12, 0.32];
   // per-world identity inside the tank: frame lacquer, water colour, and the deep's glowing specks
-  const WORLD_STYLE = [{ trim: 0x18284f, lo: [0.04, 0.42, 0.64], hi: [0.2, 0.84, 0.97], glow: 0, crystals: 0 },
+  const WORLD_STYLE = [{ trim: 0x18284f, lo: [0.06, 0.52, 0.78], hi: [0.3, 0.9, 1.0], glow: 0, crystals: 0 },
     { trim: 0x3b1c74, lo: [0.12, 0.2, 0.52], hi: [0.34, 0.62, 0.96], glow: 0.25, crystals: 0xb57cff },
     { trim: 0x0c2f3a, lo: [0.02, 0.15, 0.3], hi: [0.07, 0.47, 0.66], glow: 1, crystals: 0x4ff0d8 }];
   const ART_SETS = {
@@ -2720,7 +2736,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           const c = document.createElement('canvas'); c.width = 512; c.height = 256; const g = c.getContext('2d');
           const streak = (x, wd, a) => { const gr = g.createLinearGradient(x, 0, x + wd, 0); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(0.5, `rgba(255,255,255,${a})`); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.save(); g.transform(1, 0, -0.45, 1, 0, 0); g.fillRect(x, 0, wd, 256); g.restore(); };
           streak(90, 60, 0.22); streak(170, 18, 0.18); streak(380, 40, 0.12);
-          MAT.glassFront = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, toneMapped: false, opacity: 0.45 });
+          MAT.glassFront = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, toneMapped: false, opacity: 0.22 });
           MAT.trim = new THREE.MeshPhysicalMaterial({ color: 0x2c6d78, metalness: 0.55, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.1, envMapIntensity: 1.3 });
           MAT.trimCap = new THREE.MeshPhysicalMaterial({ color: 0xe0b85a, metalness: 0.8, roughness: 0.25, clearcoat: 1, envMapIntensity: 1.5 });
           MAT.plinth = causticify(new THREE.MeshPhysicalMaterial({ color: 0xcdb78f, roughness: 0.75, clearcoat: 0.2, envMapIntensity: 0.4 }), 0.15);
@@ -2746,7 +2762,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             { vec2 q = vW.xy * 5.0 + vec2(sin(uT * 0.21 + vW.y) * 0.4, uT * 0.18); vec2 ci = floor(q); float h = fract(sin(dot(ci, vec2(91.7, 37.3))) * 43758.5);
               vec2 f = fract(q) - 0.5 - (vec2(fract(h * 5.7), fract(h * 9.1)) - 0.5) * 0.7; c += vec3(0.8, 0.95, 1.0) * step(0.93, h) * smoothstep(0.06, 0.0, length(f)) * 0.22; } // tiny motes drifting in the water
             { float d = length(vW.xy - uLamp.xy), pool = smoothstep(uLamp.z * 2.0, 0.0, d); c *= 1.0 - uLampAmb * 0.8 * (1.0 - pool); c += vec3(0.5, 0.42, 0.25) * pool * pool * uLamp.w * 0.35; }
-            gl_FragColor = vec4(pow(c, vec3(2.2)), 0.72); }` }))) : MAT.glassBack);
+            gl_FragColor = vec4(pow(c, vec3(2.2)), 0.38 + 0.12 * (1.0 - k)); }` }))) : MAT.glassBack);
         if (this.newArt) { const U = back.material.uniforms; U.uH.value.set(yB, yT); U.uLo.value.setRGB(...WS.lo); U.uHi.value.setRGB(...WS.hi); U.uGlow.value = WS.glow; }
         back.position.set(cx, cy, zB); back.renderOrder = 1; tank.add(back);
         for (const sx of [x0, x1]) { const p = new THREE.Mesh(new THREE.PlaneGeometry(zF - zB, h), MAT.glassSide); p.rotation.y = Math.PI / 2; p.position.set(sx, cy, (zF + zB) / 2); p.renderOrder = 2; tank.add(p); }
@@ -3032,10 +3048,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       for (let y = 1; y < H; y++) for (let x = 1; x < W - 1; x++) {
         const below = e.get(x, y), here = e.get(x, y - 1);
         if (here !== T.EMPTY || (below !== T.SAND && below !== T.STEEL && below !== T.WALL)) continue;
-        if (((x * 7 + y * 13 + W) % 4) !== 0) continue;
+        if (this.newArt ? variant(x, y + 5) % 100 > 64 : ((x * 7 + y * 13 + W) % 4) !== 0) continue; // the reference: coral and plants on most ledges
         const ox = ((x * 31 + y * 17) % 5) / 10 - 0.2;
-        if (this.newArt) { const hh = variant(x, y + 11), nm = ART.ledge[hh % ART.ledge.length], w = sprPlane(nm, 0.42 + (hh % 5) * 0.05, true, { dz: 0.25, op: 0.45 });
-          w.position.set(x + ox, -y + 0.5, -0.38); if (hh & 1) w.scale.x = -1; w.userData.sway = [0.05, 1.3, (hh % 60) / 10]; this.levelGroup.add(w); k++; continue; } // baked with the static sprites; sways in the shader
+        if (this.newArt) { const hh = variant(x, y + 11), CORAL = ['coral1', 'coral2', 'coral3', 'coral4', 'coral5'], WEED = ART.ledge.filter(n => n.startsWith('weed')); // a small cluster: a coral and often a weed beside it
+          const pick = [[CORAL[hh % CORAL.length], 0.4 + (hh % 4) * 0.06, 0]]; if (hh % 3 !== 0) pick.push([WEED[(hh >> 2) % WEED.length], 0.5 + (hh % 5) * 0.06, (hh & 2) ? 0.28 : -0.28]);
+          for (const [nm, hgt, dx] of pick) { const w = sprPlane(nm, hgt, true, { dz: 0.25, op: 0.45 }); w.position.set(x + ox + dx, -y + 0.5, dx ? -0.2 : -0.08); if (hh & 1) w.scale.x = -1; w.userData.sway = [nm.startsWith('weed') ? 0.06 : 0.02, 1.3, (hh % 60) / 10]; this.levelGroup.add(w); }
+          k++; continue; } // baked with the static sprites; sways in the shader
         if (k++ % 3 !== 1) { for (let i = 0; i < 3; i++) { const w = makeKelp(0.5 + Math.random() * 0.4); w.position.set(x + ox - 0.15 + i * 0.13, -y + 0.48, -0.42); w.userData.phase = Math.random() * 6; this.levelGroup.add(w); this.weeds.push(w); } }
         else { const c = makeCoral(); c.position.set(x + ox, -y + 0.48, -0.42); c.scale.setScalar(1.2); this.levelGroup.add(c); }
       }
@@ -3489,8 +3507,10 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           const u = m.userData, fit = u.fit || { s: 1.3, yOff: 0.04 }, dir = e.playerDir >= 0 ? 1 : -1, ph = ent.phase;
           // ---- locomotion: a damped spring chases the diver's cell, so every move eases out, overshoots a hair and settles like a body in water
           if (!ent.sp || Math.hypot(ent.sp.x - o.x, ent.sp.y + o.y) > 2.5) ent.sp = { x: o.x, y: -o.y, vx: 0, vy: 0 };
-          { const S = ent.sp, k = 70, c = 2 * Math.sqrt(k) * 0.8, n = Math.max(1, Math.ceil(dt / 0.008)), h = dt / n;
-            for (let i = 0; i < n; i++) { S.vx += (k * (o.x - S.x) - c * S.vx) * h; S.vy += (k * (-o.y - S.y) - c * S.vy) * h; S.x += S.vx * h; S.y += S.vy * h; } }
+          // the spring chases the tick-interpolated position (not the end of the cell), so a held move glides at an even speed instead of
+          // slowing down and speeding up every cell; a single tap still eases in and settles
+          { const S = ent.sp, k = 120, c = 2 * Math.sqrt(k) * 0.88, n = Math.max(1, Math.ceil(dt / 0.008)), h = dt / n, ta = moving ? a : 1, tx = o.px + (o.x - o.px) * ta, ty = -(o.py + (o.y - o.py) * ta);
+            for (let i = 0; i < n; i++) { S.vx += (k * (tx - S.x) - c * S.vx) * h; S.vy += (k * (ty - S.y) - c * S.vy) * h; S.x += S.vx * h; S.y += S.vy * h; } }
           const gx0 = ent.sp.x, gy0 = ent.sp.y, vxW = ent.sp.vx, vyW = ent.sp.vy, speed = Math.hypot(vxW, vyW);
           if (moving) { this.lastMove = t; this.moveDir.set(o.x - o.px, -(o.y - o.py)); }
           if (ent.cell !== o.y * e.w + o.x) { if (ent.cell !== undefined && !(this.playerAct && this.playerAct.t < 0.06)) this.sfx('swim'); ent.cell = o.y * e.w + o.x; }
@@ -3514,7 +3534,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             if (act.k === 'dig') digE = env; else pushE = Math.sin(Math.min(1, p * 1.6) * Math.PI * 0.5) * (1 - Math.max(0, p - 0.7) / 0.3); if (p >= 1) this.playerAct = null; }
           const mood = this.mood; if (mood) { mood.t += dt; if (mood.t > mood.dur) this.mood = null; }
           if (u.glb) { const onFloor = below !== T.EMPTY && below !== T.GATE ? 1 : 0; ent.onFloor = (ent.onFloor ?? onFloor) + (onFloor - (ent.onFloor ?? onFloor)) * Math.min(1, dt * 6);
-            glbDrive(u, dt, { reach: ent.reach, push: pushE, dig: digE, swim: swimK, floor: ent.onFloor }); }
+            glbDrive(u, dt, { reach: ent.reach, push: pushE, dig: digE, swim: swimK, floor: ent.onFloor, speed, pushing: !!(ent.reach > 0.5 && speed > 0.4) }); }
           const mk = this.mood ? this.mood.k : null, mt = this.mood ? this.mood.t : 0, joy = mk === 'joy' ? Math.sin(Math.min(1, mt / 1.1) * Math.PI) : 0;
           // ---- lean: a springy pitch into the swim direction; stops rock back past upright and settle (water drag)
           const fwdV = vxW * dir, leanGoal = Math.max(-0.42, Math.min(0.42, -fwdV * 0.1)) - ent.reach * 0.12 - pushE * 0.32 + (vyW > 0.4 ? 0.08 : vyW < -0.4 ? -0.16 : 0);
@@ -3523,7 +3543,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           u.body.rotation.z = (ent.lean + sway + digE * (act && act.dir === 'down' ? 0.42 : act && act.dir === 'up' ? -0.32 : -0.2)) * (u.glb ? 0.4 : 1); /* the clips already lean */
           u.head.rotation.z = -ent.lean * 0.35 + Math.sin(t * 0.8 + ph + 1) * 0.04 * floatK + (mk === 'bonk' ? Math.sin(mt * 30) * 0.18 * Math.max(0, 1 - mt / 0.5) : 0) + (vyW > 0.4 ? 0.12 : vyW < -0.4 ? -0.18 : 0) * swimK;
           // body slides toward what it pushes so the gloves actually touch it
-          const lean2 = dir * (0.2 * Math.max(ent.reach, pushE) + 0.02 * pushE), hop = joy * 0.16 * Math.abs(Math.sin(mt * 6.5)) ;
+          const lean2 = dir * (u.glb ? 0.145 * Math.max(ent.reach, pushE) : 0.2 * Math.max(ent.reach, pushE) + 0.02 * pushE), hop = joy * 0.16 * Math.abs(Math.sin(mt * 6.5)) ;
           ent.cold = (ent.cold || 0) + (((this.lowAir && !this.menuMode) ? 1 : 0) - (ent.cold || 0)) * Math.min(1, dt * 3); // low air: he shivers and gasps
           const shiver = ent.cold > 0.01 ? Math.sin(t * 47) * 0.014 * ent.cold : 0; if (ent.cold > 0.3 && Math.random() < dt * 1.6) this.particles.bubbles(gx0 + 0.12 * dir, gy0 + 0.4, 0.3, 2, 0.04, 0.12);
           m.position.set(gx0 + lean2 + shiver, gy0 + fit.yOff + ent.lift + bob + hop, 0.14); this.playerPos = m.position; this.playerFacing = ent.facing || 1;
@@ -3536,7 +3556,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
             let danger = false; for (let k = 1; k <= 2; k++) { const yy = o.y - k; if (yy < 0) break; const q = e.obj[yy * e.w + o.x]; if (q && (q.t === T.ROCK || q.t === T.BALL)) { danger = true; break; } if (e.get(o.x, yy) !== T.EMPTY) break; }
             danger = danger || !!this.dangerStay; const show = danger && e.state === 'playing'; if (show && !this.warn.visible) { this.playerMood('surprise', 0.9); this.sfx('eep'); } this.warn.visible = show; if (danger) { const pz = 1 + Math.sin(t * 9) * 0.12; this.warn.scale.setScalar(0.42 * pz); this.warn.position.set(gx + 0.38, gy + 0.62, 0.9); } }
           // ---- turning (yaw spring) + a full happy spin on joy
-          { const yo = u.glb ? 0.72 : 0.35, yt = dir > 0 ? -yo : -Math.PI + yo; /* the Meshy diver turns a little more toward the camera so its face reads */ if (ent.yaw === undefined) ent.yaw = yt; ent.yaw += (yt - ent.yaw) * (1 - Math.exp(-dt * 9));
+          { const yo = u.glb ? 0.72 - 0.5 * Math.max(ent.reach || 0, pushE) : 0.35, yt = dir > 0 ? -yo : -Math.PI + yo; /* facing what he pushes so the gloves meet it */ /* the Meshy diver turns a little more toward the camera so its face reads */ if (ent.yaw === undefined) ent.yaw = yt; ent.yaw += (yt - ent.yaw) * (1 - Math.exp(-dt * 9));
             m.rotation.y = ent.yaw + (mk === 'joy' ? Math.PI * 2 * Math.min(1, Math.max(0, (mt - 0.15) / 0.75)) ** 0.8 * (1 - 0) : 0);
             // squash & stretch: slow breath when idle, stretch along fast moves, a quick squash on a flinch
             const fs = fit.s, br = Math.sin(t * 1.25 + ph) * 0.018 * (1 - swimK), st = swimK * 0.07, fl = mk === 'flinch' ? Math.sin(Math.min(1, mt / 0.35) * Math.PI) * 0.12 : 0;
