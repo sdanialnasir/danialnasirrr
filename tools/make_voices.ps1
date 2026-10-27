@@ -7,18 +7,25 @@ param([string]$Mode = '')
 $ErrorActionPreference = 'Stop'
 try { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 } catch {}
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
-$Root = Split-Path -Parent $PSScriptRoot
-$CfgPath = Join-Path $PSScriptRoot 'voices.json'
+# Two ways to run: inside the game project (tools\ folder: clips go to src\assets\vo and the game is rebuilt), or standalone from the
+# extracted zip (everything in one folder: clips go to a 'voiceovers' folder next to this script, plus voiceovers.zip to send back).
+$Here = $PSScriptRoot
+$InRepo = Test-Path (Join-Path (Split-Path -Parent $Here) 'src\assets')
+$Root = if ($InRepo) { Split-Path -Parent $Here } else { $Here }
+$CfgPath = Join-Path $Here 'voices.json'
+if (-not (Test-Path $CfgPath)) { throw "voices.json is missing. Keep it in the same folder as make_voices.ps1." }
 $Cfg = Get-Content -Raw -Encoding UTF8 $CfgPath | ConvertFrom-Json
-$PickPath = Join-Path $PSScriptRoot 'voices.picked.json'
+$PickPath = Join-Path $Here 'voices.picked.json'
 $KeyFile = Join-Path $Root '.elevenlabs-key'
-$VoDir = Join-Path $Root 'src\assets\vo'
+$KeyTxt = Join-Path $Root 'elevenlabs-key.txt'
+$VoDir = if ($InRepo) { Join-Path $Root 'src\assets\vo' } else { Join-Path $Root 'voiceovers' }
 $AudDir = Join-Path $Root 'voice-auditions'
 $Api = 'https://api.elevenlabs.io'
 
 function Get-Key {
   if ($env:ELEVENLABS_API_KEY) { return $env:ELEVENLABS_API_KEY.Trim() }
   if (Test-Path $KeyFile) { return (Get-Content -Raw $KeyFile).Trim() }
+  if (Test-Path $KeyTxt) { $t = (Get-Content -Raw $KeyTxt).Trim(); if ($t -and $t -notlike 'PASTE*') { return $t } }
   $k = (Read-Host 'Paste your ElevenLabs API key').Trim()
   if (-not $k) { throw 'No API key given.' }
   if ((Read-Host 'Save it in .elevenlabs-key for next time? (y/n)') -eq 'y') { Set-Content -NoNewline -Path $KeyFile -Value $k }
@@ -94,6 +101,13 @@ function Ask-Voices {
 }
 
 function Rebuild {
+  if (-not $InRepo) {
+    $zip = Join-Path $Root 'voiceovers.zip'; if (Test-Path $zip) { Remove-Item $zip }
+    Compress-Archive -Path (Join-Path $VoDir '*.mp3') -DestinationPath $zip
+    Write-Host "`nDone! Your clips are in the 'voiceovers' folder, and packed into voiceovers.zip. Send that zip back to put them in the game." -ForegroundColor Green
+    try { Invoke-Item $Root } catch {}
+    return
+  }
   $py = Get-Command python -ErrorAction SilentlyContinue; if (-not $py) { $py = Get-Command py -ErrorAction SilentlyContinue }
   if ($py) { Write-Host "`nRebuilding the game..." -ForegroundColor Cyan; & $py.Source (Join-Path $Root 'tools\build.py') }
   else { Write-Host "`nPython isn't installed here, so the game wasn't rebuilt. Commit src\assets\vo (or send the MP3s) and it gets built in." -ForegroundColor Yellow }
