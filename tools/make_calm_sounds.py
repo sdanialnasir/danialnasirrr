@@ -6,7 +6,8 @@
   * the underwater ambience loop (src/assets/music/ambience.mp3): deep water rumble, slow swells, distant bubble streams.
 Replaces the brighter UI-pack cues written by make_sounds.py (dig/push/land/roll/swim/bubble recordings are kept, land is softened).
 
-Usage: python3 tools/make_calm_sounds.py
+Usage: python3 tools/make_calm_sounds.py            (everything)
+       python3 tools/make_calm_sounds.py win pearl  (only those cues; add "ambience" for the loop)
 """
 import os, sys
 import numpy as np
@@ -59,18 +60,26 @@ def whoosh(dur, f0, f1, amp=0.3):
 
 def main():
     out = {}
-    def put(name, x, peak=0.7): out[name] = save(name, norm(x, peak))
-    # level clear: a gently rolled C-major-pentatonic arpeggio of soft mallets over a warm low pad, a few far bubbles. Calm, not a fanfare.
-    arp = mix(*[(mallet(hz(s), 2.2, 0.9 - i * 0.08, bright=0.18), i * 0.16, 1) for i, s in enumerate([12, 16, 19, 24])])
-    put('win', hall(mix((arp, 0, 1), (pad_tone([hz(0), hz(7), hz(16)], 3.2, 0.55), 0.05, 1), (soft_bubbles(10, 1.6, amp=0.12), 0.2, 1)), 0.34), 0.68)
-    # star (pitched per star in the game, pentatonic steps): one soft kalimba note
-    put('star', hall(mallet(hz(19), 1.0, 1.0, bright=0.2, decay=4.2), 0.14), 0.62)
-    # pearl delivered (pitched per pearl): a warm marimba "plop" with a bubble
-    put('pearl', hall(mix((mallet(hz(16), 1.0, 1.0, bright=0.14, decay=4.4), 0, 1), (soft_bubbles(3, 0.15, amp=0.12), 0.02, 1)), 0.14), 0.62)
-    # pearl absorbed into the gate: water drawn in (a soft low whoosh) and a low bell
-    put('absorb', hall(mix((whoosh(0.7, 900, 260, 0.35), 0, 1), (mallet(hz(7), 1.8, 0.8, bright=0.12, decay=2.2), 0.28, 1), (soft_bubbles(6, 0.5, amp=0.12), 0.1, 1)), 0.32), 0.66)
-    # the gate wakes: a slow warm swell chord, a soft rising pair of notes, bubbles
-    put('gateOpen', hall(mix((pad_tone([hz(0), hz(4), hz(7), hz(14)], 3.0, 0.8, attack=0.8), 0, 1), (mallet(hz(16), 2.0, 0.55, bright=0.14), 0.6, 1), (mallet(hz(21), 2.0, 0.45, bright=0.14), 0.85, 1), (soft_bubbles(12, 1.4, amp=0.12), 0.2, 1)), 0.36), 0.7)
+    only = set(sys.argv[1:])
+    def put(name, x, peak=0.7):
+        if not only or name in only: out[name] = save(name, norm(x, peak))
+    # The reward cues are deliberately LOW, WARM and SHORT (owner: the pearl-in and escape sounds were "shrill and annoying": the old
+    # ones were long ringing mallet bells, stacked and pitched up). Sine bodies under ~700 Hz, everything low-passed at 1.2-1.6 kHz,
+    # little reverb, no bell partials.
+    def bloop(f0, f1, dur=0.35, amp=1.0):
+        """a soft round water 'bloop': a sine gliding down, quick gentle decay"""
+        t = np.arange(int(dur * SR)) / SR; f = f1 + (f0 - f1) * np.exp(-t * 14); ph = 2 * np.pi * np.cumsum(f) / SR
+        return (np.sin(ph) * np.exp(-t * 9) * (1 - np.exp(-t * 400)) * amp).astype(np.float32)
+    # level clear (swimming into the open gate): a warm low chord breathing in and out, bubbles rising. No arpeggio, no bells.
+    put('win', hall(lp(mix((pad_tone([hz(-12), hz(-5), hz(0), hz(4)], 2.4, 0.9, attack=0.35, release=1.4), 0, 1), (soft_bubbles(14, 1.3, 1.6, 3.4, amp=0.1), 0.1, 1)), 1400), 0.18, 1500), 0.5)
+    # star (pitched a little per star): a tiny soft low pop
+    put('star', hall(lp(bloop(hz(7), hz(0), 0.3), 1500), 0.08, 1500), 0.42)
+    # pearl (level-start pings, finale): a soft round bloop
+    put('pearl', hall(lp(mix((bloop(hz(4), hz(-5), 0.32), 0, 1), (soft_bubbles(2, 0.1, amp=0.08), 0.02, 1)), 1500), 0.08, 1500), 0.45)
+    # pearl drawn into the gate: one low soft "whoomp" of water and a few bubbles
+    put('absorb', hall(lp(mix((whoosh(0.45, 520, 170, 0.4), 0, 1), (bloop(hz(-5), hz(-17), 0.45, 0.9), 0.04, 1), (soft_bubbles(5, 0.35, 1.8, 3.4, amp=0.1), 0.06, 1)), 1300), 0.12, 1300), 0.5)
+    # the gate wakes: a slow, low, warm swell and bubbles. No rising notes.
+    put('gateOpen', hall(lp(mix((pad_tone([hz(-12), hz(-5), hz(0)], 2.2, 0.9, attack=0.6, release=1.2), 0, 1), (soft_bubbles(10, 1.1, 1.8, 3.4, amp=0.09), 0.15, 1)), 1200), 0.18, 1200), 0.5)
     # swim into a closed gate: a muted wooden double "tok", low
     put('gateLocked', hall(mix((mallet(hz(-5), 0.5, 1.0, bright=0.05, decay=9), 0, 1), (mallet(hz(-8), 0.5, 0.8, bright=0.05, decay=9), 0.12, 1)), 0.08, 2200), 0.5)
     # lose: three soft falling notes (not a buzzer, not a cartoon), with bubbles drifting up
@@ -101,6 +110,7 @@ def main():
         puff = lp(hp(rng.standard_normal(len(th)).astype(np.float32), 200), 900) * np.exp(-th * 9) * 0.25
         put(nm, hall(mix((thud.astype(np.float32), 0, 1), (puff, 0.005, 1), (soft_bubbles(5, 0.3, 1.6, 3.5, 0.18), 0.03, 1)), 0.14, 1200), 0.62)
 
+    if only and 'ambience' not in only: print('wrote', ', '.join(out)); return
     # ---- the water ambience: 32 s seamless stereo loop (decoded it is ~11 MB of memory, so not longer)
     L = 36; n = L * SR; t = np.arange(n) / SR; amb = np.zeros((n, 2), np.float32)
     def brown(n):

@@ -732,8 +732,8 @@ const Audio = (() => {
   // tools/make_sounds.py from Kenney + uiSFX recordings, see docs/audio-credits.md). Music: src/assets/music/{menu,play,deep}.mp3,
   // streamed through <audio> elements (decoding whole songs would cost phones ~40 MB each) into the music bus.
   const FILES = {}; let ambSrc = null;
-  const GAIN = { dig: 0.42, push: 0.55, land: 0.7, roll: 0.4, bump: 0.32, swim: 0.2, bubble: 0.35, air: 0.7, treasure: 0.5, absorb: 0.55, gateOpen: 0.6, gateLocked: 0.5,
-    win: 0.62, death: 0.7, monsterDeath: 0.65, bite: 0.55, lowAir: 0.34, click: 0.35, pearl: 0.42, star: 0.42, hint: 0.45, undo: 0.45 };
+  const GAIN = { dig: 0.42, push: 0.55, land: 0.7, roll: 0.4, bump: 0.32, swim: 0.2, bubble: 0.35, air: 0.7, treasure: 0.5, absorb: 0.42, gateOpen: 0.45, gateLocked: 0.5,
+    win: 0.48, death: 0.7, monsterDeath: 0.65, bite: 0.55, lowAir: 0.34, click: 0.35, pearl: 0.36, star: 0.32, hint: 0.45, undo: 0.45 };
   const VOICE = new Set(['hup', 'yay', 'eep', 'oof', 'hi', 'hmm', 'woohoo', 'aww']); // the synthesized squeaks are off unless a recorded voice exists
   function b64buf(u) { const b = atob(u.slice(u.indexOf(',') + 1)), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a.buffer; }
   function loadFiles() { const D = window.AQ_DATA || {};
@@ -911,8 +911,8 @@ const Audio = (() => {
   };
   // the soundscape reacts (still no tune): a warm swell with an open filter when the gate wakes; the pad thins and darkens as air runs out
   function swell() { if (!ctx || !padBus) return; const t = ctx.currentTime, g = padBus.gain, f = padF.frequency;
-    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(2.3, t + 1.4); g.linearRampToValueAtTime(1.5, t + 5); g.linearRampToValueAtTime(1 - tension * 0.65, t + 10);
-    f.cancelScheduledValues(t); f.setValueAtTime(f.value, t); f.linearRampToValueAtTime(12000, t + 1); [0, 7, 12, 19].forEach((st, i) => note(110 * 2 * Math.pow(2, st / 12), t + 0.2 + i * 0.25, 7, 'sine', 0.035, padBus)); }
+    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(1.35, t + 1.6); g.linearRampToValueAtTime(1 - tension * 0.65, t + 7); // a gentle lift only:
+    f.cancelScheduledValues(t); f.setValueAtTime(f.value, t); f.linearRampToValueAtTime(Math.min(2200, Math.max(f.value, 900)), t + 1.2); } // it used to open to 12 kHz at 2.3x with extra notes (shrill)
   // k 0 = open (playing), 1 = muffled (pause / result / sheets during a level): a soft shelf, not a wall
   function muffle(k) { muffK = k; if (!ctx || !muffF) return; const t = ctx.currentTime; muffF.frequency.cancelScheduledValues(t); muffF.frequency.setTargetAtTime(20000 * Math.pow(900 / 20000, k), t, k ? 0.18 : 0.35); muffG.gain.cancelScheduledValues(t); muffG.gain.setTargetAtTime(1 - 0.28 * k, t, 0.3); }
   function setTension(k) { k = Math.max(0, Math.min(1, k)); if (!ctx || !padBus || Math.abs(k - tension) < 0.02) return; tension = k; const t = ctx.currentTime; if (TR.f) { TR.f.frequency.cancelScheduledValues(t); TR.f.frequency.setTargetAtTime(18000 * Math.pow(0.05, k), t, 0.8); }
@@ -931,7 +931,7 @@ const Audio = (() => {
   function setVolumes(music, sfx) { if (sfx === 0) setVol('sfx', 0); }
   function setVol(k, v) { if (!(k in vol)) return; vol[k] = Math.max(0, Math.min(1, +v || 0)); if (!ctx) return; const t = ctx.currentTime;
     if (k === 'music' && musicBus) musicBus.gain.setTargetAtTime(gMusic(), t, 0.05); if (k === 'amb' && ambBus) ambBus.gain.setTargetAtTime(gAmb(), t, 0.05); if (k === 'sfx' && sfxBus) sfxBus.gain.setTargetAtTime(gSfx(), t, 0.05); }
-  function pearl(n) { if (!ctx || muted) return; if (playFile('pearl', Math.pow(2, [0, 2, 4, 7, 9, 12, 14][Math.min(6, Math.max(0, n - 1))] / 12))) return; /* pentatonic steps: overlapping cues stay consonant */ const t = ctx.currentTime + 0.05, f = 523 * Math.pow(2, (n - 1) * 4 / 12); note(f, t, 0.9, 'triangle', 0.13, sfxBus); note(f * 2, t + 0.07, 0.6, 'sine', 0.06, sfxBus); } // each pearl a step higher
+  function pearl(n) { if (!ctx || muted) return; if (playFile('pearl', Math.pow(2, [0, 2, 4, 5, 7, 7, 7][Math.min(6, Math.max(0, n - 1))] / 12))) return; /* pentatonic steps: overlapping cues stay consonant */ const t = ctx.currentTime + 0.05, f = 523 * Math.pow(2, (n - 1) * 4 / 12); note(f, t, 0.9, 'triangle', 0.13, sfxBus); note(f * 2, t + 0.07, 0.6, 'sine', 0.06, sfxBus); } // each pearl a step higher
   function star(i) { if (!ctx || muted) return; if (playFile('star', Math.pow(2, [0, 2, 5][Math.min(2, Math.max(0, i))] / 12))) return; const t = ctx.currentTime, f = 784 * Math.pow(2, i * 5 / 12); note(f, t, 0.7, 'triangle', 0.14, sfxBus); note(f * 1.5, t + 0.03, 0.5, 'sine', 0.06, sfxBus); thump(110, 0.12, 0.18); }
   // share clips: the mixed game sound as a MediaStream for the recorder
   let capDest = null;
@@ -4116,7 +4116,7 @@ window.__T = T;
       case 'land': if (pl) { const d = Math.max(Math.abs(pl.x - v.x), Math.abs(pl.y - v.y)); if (d <= 1) want([26, 40, 16], 6); else if (d <= 3) want(12, 3); } break;
       case 'monsterDeath': want([20, 30, 20], 5); weekBump('bonk'); break;
       case 'teeter': want([22, 50, 22], 7); break;
-      case 'absorb': want([18, 50, 30], 8); slowMo = 0.23; Audio.pearl(e.ballsIn); break;
+      case 'absorb': want([18, 50, 30], 8); slowMo = 0.23; break; // one soft 'whoomp' (absorb) only: the extra pitched chime on top made it shrill
       case 'gateOpen': want([30, 60, 30, 60, 90], 9); Audio.swell(); break;
     }
     if (pat) buzz(pat); }

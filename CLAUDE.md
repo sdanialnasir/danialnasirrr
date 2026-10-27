@@ -696,3 +696,13 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   reads "Undo last move (n left)" or "Try again" at 0. The hint's "Rewind N moves" is part of the paid hint: `undo(true)` is free.
 - **Night grade** (post `night`): moonlit split-tone (indigo shadows, teal mids, silver highs, moon glow from the surface), strong reds
   (the pearls) kept glowing warm; sand `uNight` is now only a cool tint (the grade does the rest).
+
+## Soft reward sounds (owner: the pearl-in and escape sounds were "shrill and annoying")
+- The old cues were long ringing mallet bells, stacked: pearl-in = `absorb` bell + a pitched `pearl` chime (up to +14 semitones); gate
+  opening = `gateOpen` bell pair + `Audio.swell()` opening the pad filter to 12 kHz at 2.3× gain with four extra sine notes; escape = `win`
+  arpeggio + three `star` chimes.
+- Now (`tools/make_calm_sounds.py win star pearl absorb gateOpen` — the script takes cue names to regenerate only those): `absorb` = one
+  low water "whoomp" + bubbles; `gateOpen` = a low warm swell; `win` = a warm low chord breathing in/out + rising bubbles; `star`/`pearl` =
+  soft low bloops. All low-passed at 1.2–1.5 kHz, little reverb, no bell partials. The absorb event no longer adds `Audio.pearl`; pearl
+  pitch steps capped at +7; `swell()` only lifts the pad a little (≤ 2.2 kHz); GAIN absorb .42, gateOpen .45, win .48, pearl .36, star .32.
+- Measured (mixed as in game): escape loudest −15.1 → −19.8 dB, energy above 800 Hz 23% → 0%; pearl-in −17.5 → −24.9 dB.
