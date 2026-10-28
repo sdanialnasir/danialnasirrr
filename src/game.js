@@ -3215,13 +3215,14 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         const m = new THREE.MeshStandardMaterial({ map: t, color: V.sand, roughness: 0.95 }); this.mats.push(m); const g = new THREE.Mesh(new THREE.PlaneGeometry(26, 120), m); g.rotation.x = -Math.PI / 2; g.position.set(0, -0.2, -50); sc.add(g); this.own.push(g.geometry); }
       // canyon walls: rocks and corals streaming past on both sides (recycled)
       this.walls = []; const NM = w === 2 ? ['coral2', 'coral4', 'weed3', 'weed7'] : ['coral1', 'coral2', 'coral3', 'coral5', 'weed1', 'weed5', 'weed9'];
-      for (let i = 0; i < 36; i++) { const side = i % 2 ? 1 : -1, r = makeBoulder(); r.scale.setScalar(2.2 + Math.random() * 2.4); r.position.set(side * (4.6 + Math.random() * 2.2), 0.2 + Math.random() * 1.6, -i * 3.4); r.rotation.set(Math.random() * 3, Math.random() * 3, 0); sc.add(r); this.walls.push(r);
-        if (i % 3 === 0) { const sp = sprPlane(NM[i % NM.length], 1.2 + Math.random() * 1.2, true, null); sp.position.set(side * (3.6 + Math.random()), -0.2, -i * 3.4 - 1.5); sc.add(sp); this.walls.push(sp); } }
+      const RK = ['rockA', 'rockB', 'rockC']; // painted sheet rocks for the canyon walls, so the 3D stones are only ever things to dodge
+      for (let i = 0; i < 36; i++) { const side = i % 2 ? 1 : -1, r = sprPlane(RK[i % 3], 2.6 + Math.random() * 2.6, true, null); r.position.set(side * (4.4 + Math.random() * 2), -0.25, -i * 3.4); if (Math.random() < 0.5) r.scale.x = -1; sc.add(r); this.walls.push(r);
+        if (i % 2 === 0) { const sp = sprPlane(NM[i % NM.length], 1.1 + Math.random() * 1.3, true, null); sp.position.set(side * (3.4 + Math.random() * 0.8), -0.22, -i * 3.4 - 1.6); sc.add(sp); this.walls.push(sp); } }
       { const N = 260, g = new THREE.BufferGeometry(), p = new Float32Array(N * 3); for (let i = 0; i < N; i++) { p[i * 3] = (Math.random() - 0.5) * 14; p[i * 3 + 1] = Math.random() * 6; p[i * 3 + 2] = -Math.random() * 60; }
         g.setAttribute('position', new THREE.BufferAttribute(p, 3)); const m = new THREE.PointsMaterial({ color: 0xcfefff, size: 0.06, transparent: true, opacity: 0.7, depthWrite: false }); this.mats.push(m); this.own.push(g); this.specks = new THREE.Points(g, m); sc.add(this.specks); }
       if (V.target) { const eel = this.eel = makeEel(14, 0.7); eel.userData.setGlow(1); sc.add(eel); const pip = this.pip = makePip(0xffc23a, 0.9); pip.scale.setScalar(1.3); sc.add(pip); }
       if (V.eyes) { const g = this.eyes = new THREE.Group(); for (const sx of [-1, 1]) { const sp = glowSpr(0xff2a1a, 7, 0.9); sp.position.x = sx * 3.2; g.add(sp); } g.position.set(0, 4.5, -48); sc.add(g); }
-      if (V.chaser) { this.chasers = []; for (let i = 0; i < 2; i++) { const f = makeFish(); f.scale.setScalar(1.25); f.rotation.y = Math.PI / 2; sc.add(f); this.chasers.push(f); } }
+      if (V.chaser) { this.chasers = []; for (let i = 0; i < 2; i++) { const f = makeFish(); f.scale.setScalar(0.85); f.rotation.y = Math.PI / 2; sc.add(f); this.chasers.push(f); } }
       if (V.manta) { const m = this.manta = makeManta(); m.scale.setScalar(0.9); sc.add(m); }
       this.coils = V.hazards.includes('coil') ? [0, 1].map(() => { const e = makeEel(9, 0.55); e.userData.setGlow(0.8); e.visible = false; sc.add(e); return e; }) : [];
       S.scene.remove(S.hold); sc.add(S.hold); S.hold.rotation.set(0, Math.PI / 2, 0); S.diver.rotation.set(0, 0, 0);
@@ -3275,12 +3276,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         if (ob.z > 6) { if (ob.kind === 'coil') { o.visible = false; o.userData.busy = false; } else this.scene.remove(o); if (o.isSprite) o.material.dispose(); return false; } return true; });
       if (this.eel) { const ez = -14 + Math.sin(t * 0.4) * 2, ex = Math.sin(t * 0.9) * 1.6; this.eel.userData.pose((u, tt) => new V3(ex + Math.sin(u * 6 - tt * 4) * 0.9 * u, 2.2 + Math.cos(u * 5 - tt * 3) * 0.6 * u, ez - u * 14), S.world.time); this.pip.position.set(ex, 2.9, ez + 0.3); this.pip.rotation.set(0, -Math.PI / 2, Math.sin(t * 8) * 0.3); }
       if (this.eyes) { this.eyes.children.forEach(s => { s.material.opacity = 0.55 + 0.35 * Math.sin(t * 2); }); }
-      if (this.chasers) this.chasers.forEach((f, i) => { f.position.set(this.pos.x * 0.6 + (i ? 1.4 : -1.4) + Math.sin(t * 2 + i) * 0.4, this.pos.y + Math.cos(t * 2.4 + i) * 0.4, 3.2 + Math.sin(t * 1.3 + i * 2) * 0.6); f.rotation.y = Math.PI / 2; f.rotation.z = Math.sin(S.world.time * 14 + i) * 0.2; });
+      if (this.chasers) this.chasers.forEach((f, i) => { f.position.set(this.pos.x + (i ? 1.15 : -1.15) + Math.sin(t * 2 + i) * 0.3, this.pos.y - 0.35 + Math.cos(t * 2.4 + i) * 0.3, 1.3 + Math.sin(t * 1.3 + i * 2) * 0.5); f.rotation.y = Math.PI / 2; f.rotation.z = Math.sin(S.world.time * 14 + i) * 0.2; });
       if (V.flash && go && Math.random() < dt * 0.25) { this.flashK = 1; Audio.play('thunder'); } this.flashK = Math.max(0, (this.flashK || 0) - dt * 3); this.key.intensity = 2.4 + this.flashK * 8;
       this.fill.position.set(this.pos.x, this.pos.y + 0.6, 1.4);
       // camera: behind and a little above, leaning into turns
       this.shake = Math.max(0, this.shake - dt * 1.6); const c = this.cam, sh = this.shake * this.shake;
-      c.position.set(this.pos.x * 0.55 + (Math.random() - 0.5) * sh, this.pos.y * 0.55 + 1.55 + (Math.random() - 0.5) * sh, 4.4); c.up.set(Math.sin(-this.vel.x * 0.012), 1, 0); c.lookAt(this.pos.x * 0.3, this.pos.y * 0.5 + 0.75, -8);
+      c.position.set(this.pos.x * 0.7 + (Math.random() - 0.5) * sh, this.pos.y * 0.7 + 1.05 + (Math.random() - 0.5) * sh, 3.1); c.up.set(Math.sin(-this.vel.x * 0.012), 1, 0); c.lookAt(this.pos.x * 0.45, this.pos.y * 0.65 + 0.45, -8);
       this.parts.bubbles(this.pos.x - 0.1, this.pos.y + 0.5, 0.2, 1, 0.04, 0.12); this.parts.update(dt, S.world.time);
       if (S.o.onQte && go) S.o.onQte(this.Q, 'prog', this.stats());
       if (!this.done && t >= this.dur) this.done = 'ok'; return this.done; }
