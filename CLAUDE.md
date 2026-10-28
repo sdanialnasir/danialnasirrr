@@ -919,3 +919,16 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   (`world.setBreathHint` → `breathBand`, additive shader plane in the level group), one toast per level the first time + voice `t_breathe`;
   breathing shows bubbles + "Fresh air!". Tutorial step 1 reworded (voice id `t1d2`; the old `t1d` clip doesn't match any more). New voice lines
   in tools/voices.json (base set): `t1d2`, `t_breathe`, `d_breathe` — not recorded yet.
+
+## Faces for the Meshy cast + roll hints (owner: "their mouth is always open… every character should have expressions"; "we don't know if it will go left or right")
+- **Face rig** (World, before `castOK`): `FACE[key]` = mouth centre + half size and eye centres + radius in pixels of a 700 px front render of the
+  model's box (made with a scratchpad script that renders `castGeo(key)` front-on with a grid). `faceRig()` builds 6 relative morph targets from
+  the model's own front vertices at load: 0 close (lips meet on the centre line), 1 smile, 2 sad, 3 wide (mouth + eyes), 4 unused, 5 squint.
+  `addLids()` puts a skin-coloured cap (`SKIN_LID`) on a pivot at the top of each eye; it grows down to blink (random every 1.8–5.4 s) and
+  sits part-way for sad / angry / happy. `faceTick(dt)` (every frame, also during films) drives all faces in `FACES`. Rest = mouth closed
+  (`rest` 0.85; Snip 0.4, Snap 0.35, piranha 0.3 keep a grin); `ud.talk(a)` opens it with the syllables; `ud.setMood('happy'|'sad'|'angry'|'wide')`.
+  Piranhas chomp (`chomp: 5`) and scowl. Films: each line's mood (line element 4, derived from its voice delivery tag + emote by the scratchpad
+  injector `inject_ch.py`; 97 of 137 lines) is set on the speaker when the line starts.
+- **Roll hints** (`rollScan()` after every play tick, Settings → Roll hints, `save.settings.rollHint`): if a stone/pearl is within 4–5 cells, each
+  of the 4 next moves runs 10 ticks on a hidden copy; objects that would move sideways (not a direct push) get a gold dotted path + chevron
+  (`world.setRollTrails` / `rollUpdate`, pooled sprites). E.g. level 3: digging beside the stone shows it rolling left into the shaft.
