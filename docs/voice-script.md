@@ -15,20 +15,20 @@ This is everything the story needs recorded, grouped by voice so each actor’s 
 |---|---|---|---|
 | narrator | Lily | 36 | 2,261 |
 | diver | Jessica | 38 | 1,413 |
-| pip | Laura | 100 | 4,689 |
+| pip | Laura | 104 | 4,881 |
 | shelly | Matilda | 19 | 1,013 |
-| clack | Bill | 32 | 1,696 |
+| clack | Bill | 34 | 1,787 |
 | grimtide | Callum | 35 | 1,452 |
 | murk | Brian | 18 | 772 |
-| lumen | Charlie | 12 | 711 |
+| lumen | Charlie | 14 | 805 |
 | mira | Sarah | 6 | 379 |
 | cousin | Aria | 7 | 298 |
 | snip | Liam | 9 | 350 |
 | snap | Eric | 4 | 173 |
 | keeper | Alice | 32 | 1,946 |
-| **all** | | **348** | **17,153** |
+| **all** | | **356** | **17,530** |
 
-ElevenLabs bills by characters, and the [delivery] tags count too: the whole story is **17,153 spoken characters, about 22,539 credits with tags** on a full-price model (turbo/flash models cost about half). `make_voices.bat` prints the exact number and asks before it spends anything. Auditions are extra (≈ 150 credits per sample).
+ElevenLabs bills by characters, and the [delivery] tags count too: the whole story is **17,530 spoken characters, about 23,041 credits with tags** on a full-price model (turbo/flash models cost about half). `make_voices.bat` prints the exact number and asks before it spends anything. Auditions are extra (≈ 150 credits per sample).
 
 ## narrator — Lily
 
@@ -138,6 +138,8 @@ A tiny seahorse. Talks fast when nervous (often), jokes to hide fear, huge heart
 | `s3_5` | Chapter 3 · Shelly’s Tale | [trembling, pretending] I'm not scared. My fins are just cold. |
 | `s4_4` | Chapter 4 · Captain Clack | [deadpan] I've been here five seconds. |
 | `s5_2` | Chapter 5 · Jelly Bounce | [excited] They're making a bouncy staircase! Jump, Spark! Jump! |
+| `s5_ok1` | Chapter 5 · Jelly Bounce — after “Bounce through the jelly garden!” (done in time) | [giddy] Again! Again! My tummy is doing loop-the-loops! |
+| `s5_no1` | Chapter 5 · Jelly Bounce — after “Bounce through the jelly garden!” (missed) | [wincing, giggly] Ow, stingy! Are jellies supposed to be stingy? |
 | `s6_2` | Chapter 6 · The Keeper’s Map | [excited, nervous] Open it! No, wait, what if it bites? Open it! No! Okay. Open it. |
 | `s6_5` | Chapter 6 · The Keeper’s Map | [deadpan] You're holding it upside down. |
 | `s7_2` | Chapter 7 · The Lure | [nervous] Spark… gates don't usually wink at you. |
@@ -163,6 +165,8 @@ A tiny seahorse. Talks fast when nervous (often), jokes to hide fear, huge heart
 | `s17_3` | Chapter 17 · The Arch’s Secret | [puzzled] Given away? But he TAKES light. He's a light-taker. A big… taking… noodle. |
 | `s17_ok1` | Chapter 17 · The Arch’s Secret — after “Light the lamps!” (done in time) | [excited] You did it! The arch remembers! |
 | `s18_2` | Chapter 18 · A Secret Trail | [excited] Murk left them! He's helping us! In secret! Like a spy! A big squishy spy! |
+| `s18_ok1` | Chapter 18 · A Secret Trail — after “Follow Murk's pearl trail!” (done in time) | [thrilled] We got them all! Well, most! Murk, you big squishy hero! |
+| `s18_no1` | Chapter 18 · A Secret Trail — after “Follow Murk's pearl trail!” (missed) | [determined] Some floated away… but we know the way now! |
 | `s19_2` | Chapter 19 · Good News | [overjoyed] She's okay? SHE'S OKAY! Spark! She's okay! |
 | `s20_4` | Chapter 20 · The Lantern in Chains | [frightened] Why does he keep talking about FOOD? |
 | `s22_3` | Chapter 22 · Whale Song | [overjoyed] CLACK! |
@@ -265,6 +269,8 @@ Captain of the Crack Crab Crew. Loud, pompous, secretly soft. Comic relief who d
 | `s4_cfunny_2` | Chapter 4 · Captain Clack — choice “Name, rank, snack?”: funny answer “Spark. Seaweed chips.” | [delighted] Seaweed chips! A diver of TASTE! Crew, this one is one of us! |
 | `s4_ckind_2` | Chapter 4 · Captain Clack — choice “Name, rank, snack?”: kind answer “The famous captain, I presume?” | [flustered, proud] Famous? Me? Well. Yes. Obviously. Crew, did you HEAR that? |
 | `s5_4` | Chapter 5 · Jelly Bounce | [pompous, then delighted] A captain does NOT bounce. A captain ascends. With dignity. WHEEEE! |
+| `s5_ok2` | Chapter 5 · Jelly Bounce — after “Bounce through the jelly garden!” (done in time) | [flustered, proud] Dignified. Extremely dignified. Nobody saw me squeal. |
+| `s5_no2` | Chapter 5 · Jelly Bounce — after “Bounce through the jelly garden!” (missed) | [blustering] Tactical retreat, crew! Very tactical! |
 | `s6_4` | Chapter 6 · The Keeper’s Map | [proud] A treasure map! Hand it here, crew. Captains are excellent with maps. |
 | `s8_3` | Chapter 8 · Follow the Fish | [triumphant] FISH! Of course! Exactly as I planned. I planned fish. |
 | `s9_3` | Chapter 9 · The Torn Map | [grumbling] Cliffs. Of course it’s cliffs. Crabs and cliffs have a long and painful history. |
@@ -370,6 +376,8 @@ An anglerfish showman. Big theatrical voice (“Ladies and gentlefish!”) over 
 | `s22_1` | Chapter 22 · Whale Song | [thrilled] Old Bellow! He only sings when the Lantern fights back! |
 | `s23_4` | Chapter 23 · The Mural | [soft, amazed] Kid, I’ve been in show business a long time. That’s what we call a plot twist. |
 | `s28_1` | Chapter 28 · The Deep Rises | [theatrical, grand] Ladies and gentlefish! Wave those arms, Spark! Show the Deep it’s not alone! |
+| `s28_ok1` | Chapter 28 · The Deep Rises — after “Light up the Deep!” (done in time) | [ecstatic, theatrical] Standing ovation! The whole Deep is GLOWING! |
+| `s28_no1` | Chapter 28 · The Deep Rises — after “Light up the Deep!” (missed) | [brave, theatrical] A few lights short, but the show goes on, darling! |
 | `l21_s` | Level 21: level starts | [stage whisper] Shh! Sleeping piranhas. Tiptoe, my friends. Tippy-tippy-toe. |
 | `l21_g` | Level 21: gate opens | [theatrical] Twenty-one! Bravo! Bravissimo! |
 | `l22_p` | Level 22: first pearl in | [thrilled] Listen! Old Bellow sings louder with every pearl! |

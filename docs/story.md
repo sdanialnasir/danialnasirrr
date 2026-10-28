@@ -22,7 +22,7 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 | 2 | Pip’s Glow | hope ↑ |  |
 | 3 | Shelly’s Tale | dread ↓ |  |
 | 4 | Captain Clack | fun ↑ | Name, rank, snack? (choice) |
-| 5 | Jelly Bounce | fun ↑ |  |
+| 5 | Jelly Bounce | fun ↑ | Bounce through the jelly garden! (run) |
 | 6 | The Keeper’s Map | discovery ↑ |  |
 | 7 | The Lure | BLUNDER ↓↓ | Hold on to the map! (tap) |
 | 8 | Follow the Fish | recovery ↑ | Cheer Pip up (choice) |
@@ -35,7 +35,7 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 | 15 | Mira | hope ↑ | Ride the canyon with Mira! (run) |
 | 16 | The Prisoner | mystery |  |
 | 17 | The Arch’s Secret | resolve ↑ | Light the lamps! (tap) |
-| 18 | A Secret Trail | hope ↑ |  |
+| 18 | A Secret Trail | hope ↑ | Follow Murk's pearl trail! (run) |
 | 19 | Good News | joy ↑↑ | Message for home (choice) |
 | 20 | The Lantern in Chains | dread ↓ |  |
 | 21 | Lumen | hope ↑ |  |
@@ -45,7 +45,7 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 | 25 | The Captain’s Last Order | GRIEF ↓↓↓ | Answer the Captain (choice) |
 | 26 | Breaking the Chains | rescue ↑↑ | Give your light! (tap) |
 | 27 | Over the Abyss | resolve ↑ | Answer Murk (choice) |
-| 28 | The Deep Rises | rally ↑↑ |  |
+| 28 | The Deep Rises | rally ↑↑ | Light up the Deep! (run) |
 | 29 | Grimtide’s Lair | showdown ↓ | Through the coils! Reach the Lantern! (run) |
 | 30 | The Reef’s Revenge | REVENGE ↑↑↑ | Give the light away! (hold) |
 
@@ -315,6 +315,7 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 - `s18_1` *Pearls float up from the sand like little lanterns. A trail.*
 - `s18_2` **Pip:** Murk left them! He's helping us! In secret! Like a spy! A big squishy spy! _(spin)_
+- ▶ **Follow Murk's pearl trail!** (run) — in time: **Pip:** We got them all! Well, most! Murk, you big squishy hero! — missed: **Pip:** Some floated away… but we know the way now!
 - `s18_3` **Grimtide:** Murk… Why are my pearls floating away, Murk?
 - `s18_4` **Murk:** …Currents?
 
@@ -449,6 +450,7 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 **Chapter 28 · The Deep Rises** (film `plankton`, arrival `bubble`, rally ↑↑)
 
 - `s28_1` **Lumen:** Ladies and gentlefish! Wave those arms, Spark! Show the Deep it’s not alone! _(spin)_
+- ▶ **Light up the Deep!** (run) — in time: **Lumen:** Standing ovation! The whole Deep is GLOWING! — missed: **Lumen:** A few lights short, but the show goes on, darling!
 - `s28_2` *Every wave sets the plankton glowing. Then the jellies. Then the fish. Then everyone.*
 - `s28_3` *Clack’s crew raise his tiny hat high.*
 - `s28_4` **Grimtide:** Light them all, little light. More for me.

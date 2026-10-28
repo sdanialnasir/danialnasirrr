@@ -664,6 +664,28 @@
    "set": "base"
   },
   {
+   "id": "t1d2",
+   "role": "narrator",
+   "text": "[warm] Your air runs down as you dive. Swim up to the top of the tank to breathe again.",
+   "when": "Tutorial L1: the air meter (breathing)",
+   "set": "base"
+  },
+  {
+   "id": "t_breathe",
+   "role": "narrator",
+   "text": "[gently urgent] Low on air! Swim up to the top of the tank to breathe.",
+   "when": "First time the air runs low in a level",
+   "set": "base"
+  },
+  {
+   "id": "d_breathe",
+   "role": "diver",
+   "text": "[gasping, relieved] Ahh! Fresh air!",
+   "when": "The diver breathes at the surface (sometimes)",
+   "max_seconds": 1.6,
+   "set": "base"
+  },
+  {
    "id": "s0_1",
    "role": "narrator",
    "text": "[warm, wonder] Once, the reef glowed every night. And the brightest light of all was the Great Lantern.",
@@ -1028,6 +1050,42 @@
    "role": "clack",
    "text": "[pompous, then delighted] A captain does NOT bounce. A captain ascends. With dignity. WHEEEE!",
    "when": "Chapter 5 · Jelly Bounce",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Captain Clack"
+  },
+  {
+   "id": "s5_ok1",
+   "role": "pip",
+   "text": "[giddy] Again! Again! My tummy is doing loop-the-loops!",
+   "when": "Chapter 5 · Jelly Bounce — after “Bounce through the jelly garden!” (done in time)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Pip"
+  },
+  {
+   "id": "s5_ok2",
+   "role": "clack",
+   "text": "[flustered, proud] Dignified. Extremely dignified. Nobody saw me squeal.",
+   "when": "Chapter 5 · Jelly Bounce — after “Bounce through the jelly garden!” (done in time)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Captain Clack"
+  },
+  {
+   "id": "s5_no1",
+   "role": "pip",
+   "text": "[wincing, giggly] Ow, stingy! Are jellies supposed to be stingy?",
+   "when": "Chapter 5 · Jelly Bounce — after “Bounce through the jelly garden!” (missed)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Pip"
+  },
+  {
+   "id": "s5_no2",
+   "role": "clack",
+   "text": "[blustering] Tactical retreat, crew! Very tactical!",
+   "when": "Chapter 5 · Jelly Bounce — after “Bounce through the jelly garden!” (missed)",
    "max_seconds": 0,
    "set": "story",
    "who": "Captain Clack"
@@ -1852,6 +1910,24 @@
    "who": "Murk"
   },
   {
+   "id": "s18_ok1",
+   "role": "pip",
+   "text": "[thrilled] We got them all! Well, most! Murk, you big squishy hero!",
+   "when": "Chapter 18 · A Secret Trail — after “Follow Murk's pearl trail!” (done in time)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Pip"
+  },
+  {
+   "id": "s18_no1",
+   "role": "pip",
+   "text": "[determined] Some floated away… but we know the way now!",
+   "when": "Chapter 18 · A Secret Trail — after “Follow Murk's pearl trail!” (missed)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Pip"
+  },
+  {
    "id": "s19_1",
    "role": "cousin",
    "text": "[shrieking with joy] PIP! PIP! Shelly woke up! She’s okay!",
@@ -2435,6 +2511,24 @@
    "max_seconds": 0,
    "set": "story",
    "who": "Grimtide"
+  },
+  {
+   "id": "s28_ok1",
+   "role": "lumen",
+   "text": "[ecstatic, theatrical] Standing ovation! The whole Deep is GLOWING!",
+   "when": "Chapter 28 · The Deep Rises — after “Light up the Deep!” (done in time)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Lumen"
+  },
+  {
+   "id": "s28_no1",
+   "role": "lumen",
+   "text": "[brave, theatrical] A few lights short, but the show goes on, darling!",
+   "when": "Chapter 28 · The Deep Rises — after “Light up the Deep!” (missed)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Lumen"
   },
   {
    "id": "s29_1",
@@ -3794,28 +3888,6 @@
    "max_seconds": 0,
    "set": "story",
    "who": "The Reef Keeper"
-  },
-  {
-   "id": "t1d2",
-   "role": "narrator",
-   "text": "[warm] Your air runs down as you dive. Swim up to the top of the tank to breathe again.",
-   "when": "Tutorial L1: the air meter (breathing)",
-   "set": "base"
-  },
-  {
-   "id": "t_breathe",
-   "role": "narrator",
-   "text": "[gently urgent] Low on air! Swim up to the top of the tank to breathe.",
-   "when": "First time the air runs low in a level",
-   "set": "base"
-  },
-  {
-   "id": "d_breathe",
-   "role": "diver",
-   "text": "[gasping, relieved] Ahh! Fresh air!",
-   "when": "The diver breathes at the surface (sometimes)",
-   "max_seconds": 1.6,
-   "set": "base"
   }
  ]
 }
