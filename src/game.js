@@ -2031,6 +2031,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     MAT.crabDarkN = P({ color: 0xc23a10, roughness: 0.3, clearcoat: 1 });
     MAT.crabBellyN = P({ color: 0xffd8a8, roughness: 0.35, clearcoat: 0.6 });
   }
+  function talkMouth(parent, x, y, z, w, h, ry = 0) { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), MAT.monMouth || MAT.monPupil); m.scale.set(w * 0.35, h, w); m.position.set(x, y, z); m.rotation.y = ry; m.visible = false; m.userData.h = h; parent.add(m); return m; }
   function cartoonEye(r, look = [0.25, 0]) { // white ball, big pupil looking toward look, two highlights
     const g = new THREE.Group(), w = new THREE.Mesh(new THREE.SphereGeometry(r, 14, 10), MAT.monEye); g.add(w);
     const p = new THREE.Mesh(new THREE.SphereGeometry(r * 0.62, 12, 8), MAT.monPupil); p.position.set(look[0] * r, look[1] * r, r * 0.55); g.add(p);
@@ -2050,6 +2051,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const pect = new THREE.Mesh(finShape(0.13, 0.1, false), MAT.finN); pect.rotation.set(0.3, -0.5, Math.PI + 0.6); pect.position.set(0.0, -0.08, 0.22); b.add(pect);
     const eye = cartoonEye(0.1, [0.35, -0.05]); eye.position.set(0.17, 0.09, 0.19); b.add(eye);
     const brow = new THREE.Mesh(new THREE.CapsuleGeometry(0.028, 0.13, 4, 8), MAT.monPupil); brow.rotation.z = Math.PI / 2 - 0.5; brow.position.set(0.17, 0.21, 0.24); b.add(brow);
+    { const e2 = cartoonEye(0.1, [-0.35, -0.05]); e2.rotation.y = Math.PI; e2.position.set(0.17, 0.09, -0.19); b.add(e2); const b2 = brow.clone(); b2.position.z = -0.24; b.add(b2);
+      const p2 = pect.clone(); p2.rotation.set(-0.3, 0.5, Math.PI + 0.6); p2.position.z = -0.22; b.add(p2);
+      for (const [x, y, r] of [[-0.12, 0.17, 0.045], [-0.22, 0.08, 0.035], [-0.04, 0.24, 0.03]]) { const sp = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), MAT.spotN); sp.scale.z = 0.4; sp.position.set(x, y, -0.235); b.add(sp); } } // the far side (films show it)
     const jaw = new THREE.Group(); jaw.position.set(0.3, -0.04, 0.05); b.add(jaw);
     { const mouth = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), MAT.monMouth); mouth.rotation.z = -Math.PI / 2; mouth.scale.set(1, 0.6, 1.3); jaw.add(mouth);
       for (let i = 0; i < 4; i++) { const t = new THREE.Mesh(new THREE.ConeGeometry(0.026, 0.07, 5), MAT.monTooth); t.position.set(0.0, 0.035, -0.06 + i * 0.045 + 0.02); t.rotation.z = Math.PI; jaw.add(t);
@@ -2088,7 +2092,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const e = cartoonEye(0.075, [0, -0.15]); e.position.set(s * 0.1, 0.32, 0.14); g.add(e);
       const br = new THREE.Mesh(new THREE.CapsuleGeometry(0.018, 0.08, 4, 6), MAT.monPupil); br.rotation.z = Math.PI / 2 + s * 0.45; br.position.set(s * 0.1, 0.41, 0.19); g.add(br); }
     const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.04, 0.012, 6, 12, Math.PI), MAT.monPupil); mouth.position.set(0, 0.05, 0.27); g.add(mouth);
-    g.userData = { legs, claws }; g.traverse(o => { if (o.isMesh) o.castShadow = true; }); return g;
+    g.userData = { legs, claws, mouth: talkMouth(g, 0, 0.035, 0.265, 0.05, 0.035, Math.PI / 2) }; g.traverse(o => { if (o.isMesh) o.castShadow = true; }); return g;
   }
   // air capsule: a glassy soap-bubble (clear middle, bright fresnel rim, iridescent sheen, a window highlight),
   // a soft cyan glow inside, a crisp O2 badge and three tiny bubbles that rise and loop inside it
@@ -2595,12 +2599,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const head = new THREE.Group(); head.position.set(0.04, 0.3, 0); body.add(head);
     { const h = new THREE.Mesh(new THREE.SphereGeometry(0.085, 20, 14), mat); h.scale.set(1.05, 0.95, 0.85); head.add(h);
       const sn = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.034, 0.12, 12), mat); sn.rotation.z = -Math.PI / 2 + 0.25; sn.position.set(0.1, -0.03, 0); head.add(sn);
-      const tip = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8), mat); tip.position.set(0.16, -0.045, 0); head.add(tip);
+      const tip = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8), mat); tip.position.set(0.16, -0.045, 0); head.add(tip); head.userData.mouth = talkMouth(head, 0.188, -0.05, 0, 0.024, 0.02);
       for (const z of [-1, 1]) { const e = cartoonEye(0.045, [0.4, 0]); e.position.set(0.03, 0.02, z * 0.062); e.rotation.y = z * 0.5; head.add(e); }
       for (let i = 0; i < 4; i++) { const cr = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.06, 6), mat); cr.position.set(-0.04 - i * 0.025, 0.075 - i * 0.012, 0); cr.rotation.z = 0.5 + i * 0.25; head.add(cr); } }
     const fin = new THREE.Mesh(new THREE.CircleGeometry(0.07, 16, -0.4, 2.2), new THREE.MeshStandardMaterial({ color: 0xfff1b8, emissive: col, emissiveIntensity: 0.5, transparent: true, opacity: 0.7, side: THREE.DoubleSide })); fin.position.set(-0.07, 0.07, 0); fin.rotation.y = Math.PI / 2; body.add(fin);
     const halo = glowSpr(col, 0.8, 0.08 + glow * 0.22); halo.position.set(0, 0.05, 0); g.add(halo);
-    g.userData = { body, head, segs, fin, halo, mat, setGlow(k) { mat.emissiveIntensity = 0.06 + k * 0.22; halo.material.opacity = 0.08 + k * 0.22; },
+    g.userData = { body, head, segs, fin, halo, mat, mouth: head.userData.mouth, setGlow(k) { mat.emissiveIntensity = 0.06 + k * 0.22; halo.material.opacity = 0.08 + k * 0.22; },
       tick(t) { body.position.y = Math.sin(t * 2.4) * 0.03; segs.forEach((s, i) => { if (i > 5) s.rotation.z = Math.sin(t * 2 + i * 0.6) * 0.12; }); fin.scale.x = 0.8 + Math.sin(t * 22) * 0.2; head.rotation.z = Math.sin(t * 1.3) * 0.08; } };
     return shadowOf(g); }
   // Shelly: a big friendly sea turtle (shell with painted plates, four paddling flippers, a sleepy smile)
@@ -2616,12 +2620,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     { const neck = new THREE.Mesh(new THREE.CapsuleGeometry(0.13, 0.22, 6, 12), skin); neck.rotation.z = Math.PI / 2; neck.position.x = -0.12; head.add(neck);
       const h = new THREE.Mesh(new THREE.SphereGeometry(0.2, 20, 14), skin); h.scale.set(1.15, 0.9, 0.95); h.position.x = 0.08; head.add(h);
       for (const z of [-1, 1]) { const e = cartoonEye(0.06, [0.5, 0]); e.position.set(0.2, 0.07, z * 0.12); e.rotation.y = z * 0.6; head.add(e); }
-      const sm = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.012, 6, 12, Math.PI), MAT.monPupil); sm.rotation.set(Math.PI / 2, 0, Math.PI); sm.position.set(0.27, -0.04, 0); head.add(sm); }
+      const sm = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.012, 6, 12, Math.PI), MAT.monPupil); sm.rotation.set(Math.PI / 2, 0, Math.PI); sm.position.set(0.27, -0.04, 0); head.add(sm); head.userData.mouth = talkMouth(head, 0.265, -0.05, 0, 0.075, 0.045); }
     const flip = []; for (const [x, z, s] of [[0.45, 0.62, 1], [0.45, -0.62, 1], [-0.55, 0.5, 0.7], [-0.55, -0.5, 0.7]]) { const p = new THREE.Group(); p.position.set(x, 0, z); b.add(p);
       const f = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 10), skin); f.scale.set(0.9 * s, 0.09, 0.42 * s); f.position.set(0.05, 0, Math.sign(z) * 0.22 * s); f.rotation.y = Math.sign(z) * (x > 0 ? -0.5 : 0.4); p.add(f); flip.push(p); }
     const tail = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.25, 8), skin); tail.rotation.z = Math.PI / 2; tail.position.set(-0.85, 0, 0); b.add(tail);
     if (glowSpots) for (let i = 0; i < 14; i++) { const a = i * 2.4, d = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), new THREE.MeshBasicMaterial({ color: 0x7ffff0 })); const n = new V3(Math.cos(a) * 0.8, 0.45 + (i % 3) * 0.15, Math.sin(a) * 0.8).normalize(); d.position.set(n.x * 0.8, n.y * 0.385, n.z * 0.64); b.add(d); }
-    g.userData = { b, head, flip, tick(t, k = 1) { flip.forEach((p, i) => { p.rotation.x = Math.sin(t * 2.2 * k + (i % 2) * Math.PI + (i > 1 ? 1 : 0)) * 0.45 * (i % 2 ? -1 : 1); }); head.rotation.z = Math.sin(t * 0.9) * 0.08; b.position.y = Math.sin(t * 1.6) * 0.05; } };
+    g.userData = { b, head, flip, mouth: head.userData.mouth, tick(t, k = 1) { flip.forEach((p, i) => { p.rotation.x = Math.sin(t * 2.2 * k + (i % 2) * Math.PI + (i > 1 ? 1 : 0)) * 0.45 * (i % 2 ? -1 : 1); }); head.rotation.z = Math.sin(t * 0.9) * 0.08; b.position.y = Math.sin(t * 1.6) * 0.05; } };
     return shadowOf(g); }
   // a manta ray: two wings that flap, cephalic lobes, a thin tail; dark top, pale belly
   function makeManta() { const g = new THREE.Group(), b = new THREE.Group(); g.add(b);
@@ -2653,13 +2657,13 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     for (let i = 0; i < 12; i++) { const a = i * 2.1, n = new V3(Math.cos(a) * 0.7, 0.4 + (i % 4) * 0.15, Math.sin(a) * 0.7).normalize(); const s = new THREE.Mesh(new THREE.SphereGeometry(0.07 + (i % 3) * 0.03, 10, 8), spot); s.position.set(n.x, n.y * 1.15 + 1.15, n.z * 0.95); s.scale.set(1, 1, 0.4); s.lookAt(s.position.clone().multiplyScalar(2)); b.add(s); }
     const eyes = []; for (const z of [-1, 1]) { const eg = new THREE.Group(); eg.position.set(0.72, 1.0, z * 0.42); eg.rotation.y = z * 0.7; b.add(eg); const e = cartoonEye(0.26, [0.3, 0]); eg.add(e);
       const lid = new THREE.Mesh(new THREE.SphereGeometry(0.29, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), skin); lid.position.z = 0.02; eg.add(lid); eyes.push({ eg, lid }); }
-    const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.03, 8, 16, Math.PI), MAT.monPupil); mouth.position.set(0.98, 0.62, 0); mouth.rotation.set(0, Math.PI / 2, 0); b.add(mouth);
+    const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.03, 8, 16, Math.PI), MAT.monPupil); mouth.position.set(0.98, 0.62, 0); mouth.rotation.set(0, Math.PI / 2, 0); b.add(mouth); const mOpen = talkMouth(b, 0.97, 0.55, 0, 0.15, 0.09);
     const tents = []; for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2 + 0.2, piv = new THREE.Group(); piv.position.set(Math.cos(a) * 0.55, 0.35, Math.sin(a) * 0.55); piv.rotation.y = -a; b.add(piv);
       const pts = []; for (let k = 0; k <= 10; k++) { const f = k / 10; pts.push(new V3(f * 1.7, -f * 0.3 + Math.sin(f * 3) * 0.12, Math.sin(f * 4 + i) * 0.12)); }
       const curve = new THREE.CatmullRomCurve3(pts), geo = new THREE.TubeGeometry(curve, 24, 0.13, 10); const P = geo.attributes.position; // taper toward the tip
       for (let v = 0; v < P.count; v++) { const seg = Math.floor(v / 11) / 24; const cx = curve.getPoint(Math.min(1, seg)); const p = new V3(P.getX(v), P.getY(v), P.getZ(v)); p.sub(cx).multiplyScalar(1 - seg * 0.8).add(cx); P.setXYZ(v, p.x, p.y, p.z); }
       geo.computeVertexNormals(); const tm = new THREE.Mesh(geo, skin); piv.add(tm); tents.push(piv); }
-    g.userData = { b, eyes, mouth, tents, glow: null, setSad(k) { eyes.forEach(E => { E.lid.rotation.x = -0.2 - k * 0.9; E.lid.visible = k > 0.02; }); mouth.rotation.z = k > 0.5 ? 0 : Math.PI; mouth.position.y = k > 0.5 ? 0.55 : 0.62; },
+    g.userData = { b, eyes, mouth: mOpen, smile: mouth, tents, glow: null, setSad(k) { eyes.forEach(E => { E.lid.rotation.x = -0.2 - k * 0.9; E.lid.visible = k > 0.02; }); mouth.rotation.z = k > 0.5 ? 0 : Math.PI; mouth.position.y = k > 0.5 ? 0.55 : 0.62; },
       tick(t, k = 1) { tents.forEach((p, i) => { p.rotation.z = Math.sin(t * 1.3 * k + i * 0.8) * 0.22 - 0.1; p.rotation.x = Math.cos(t * 1.1 * k + i) * 0.12; }); b.position.y = Math.sin(t * 1.2) * 0.08; } };
     g.userData.setSad(0); return shadowOf(g); }
   // a giant clam with a glowing pearl; open 0..1
@@ -2761,6 +2765,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     {"t": "The Deep Rises", "r": "plankton", "a": "bubble", "w": 2, "L": [["lumen", "Ladies and gentlefish! Wave those arms, Spark! Show the Deep it isn’t alone!"], ["", "Every wave sets the plankton glowing. Then the jellies. Then the fish."], ["", "Clack’s crew raise his tiny hat high, their claws shining."], ["shelly", "Everyone who ever hid from Grimtide. All of them, shining for you."], ["pip", "Twenty-eight gates… and a whole sea behind us!"], ["grimtide", "Light them all, little light. It only makes my feast sweeter."]]},
     {"t": "Grimtide’s Lair", "r": "lair", "a": "drop", "w": 2, "L": [["", "At the foot of the Great Lantern, Grimtide waits, the Heart Pearl in his coils."], ["grimtide", "You did it, little light. Twenty-nine gates. The Lantern is nearly full."], ["grimtide", "Wake the last one, and the Heart will blaze. And then I drink it ALL."], ["pip", "That’s why he let us… We’ve been lighting his dinner!"], ["you", "You’re wrong about one thing. That light isn’t yours. We’re giving it away."], ["grimtide", "Then come, Keeper’s child. Let’s see who shines last."]], "Q": {"at": 4, "kind": "swipe", "dir": "left", "label": "Dodge!", "ok": [["murk", "Not this time, Grimtide!"]], "no": [["murk", "Spark! I’ve got you!"]]}},
     {"t": "The Reef’s Revenge", "r": "victory", "a": "drop", "w": 2, "L": [["", "The last gate wakes. Thirty beams of light rush to the Lantern."], ["grimtide", "Yes… YES! Give it to me!"], ["", "Every creature in the sea gives its light at once. Too much light, freely given."], ["grimtide", "No… NO! It burns! It BURNS!"], ["", "All the light he stole pours out of him… and the great eel shrinks to a tiny, wriggling worm."], ["shelly", "That’s for my shell."], ["murk", "And that’s for the Keeper."], ["pip", "And THAT’S for Captain Clack!"], ["", "The Heart Pearl rises home. And for the first time since the storm, the whole reef shines."]], "Q": {"at": 2, "kind": "hold", "label": "Give the light away!", "ok": [["you", "It was never yours!"]], "no": [["pip", "Everybody, NOW! Give it away!"]]}}];
+  const PROLOGUE = {"t": "The Night the Lights Went Out", "r": "prologue", "a": "pipe", "w": 0, "L": [["", "Once, the reef glowed every night. And the brightest light of all was the Great Lantern."], ["pip", "Ooh! Ooh! Look at me! I'm the second brightest thing here!"], ["grimtide", "Such pretty little lights. I'll take them. ALL of them."], ["", "Grimtide, the eel who drinks light, rose out of the abyss, and the reef's lights poured into his jaws."], ["keeper", "Not while I'm Keeper!"], ["", "The Reef Keeper gave all her light to save the Lantern. Grimtide fled… and the whole reef went dark."], ["pip", "Hello…? Anybody…?"]]};
   const STORY_WHO = {"": "", "you": "Spark", "pip": "Pip", "shelly": "Shelly", "clack": "Captain Clack", "mira": "Mira", "cousin": "Pip’s cousin", "lumen": "Lumen", "murk": "Murk", "grimtide": "Grimtide", "snip": "Snip", "snap": "Snap", "keeper": "The Reef Keeper", "choir": "The Clam Choir", "arch": "The Coral Arch"};
   const sm01 = (k) => { k = Math.min(1, Math.max(0, k)); return k * k * (3 - 2 * k); };
   // keyframes: [[t, value], ...] where value is a number or [x, y, z]; smooth between keys, held at the ends
@@ -2948,6 +2953,50 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     run(S, c, t) { const tp = K(t, [[0, [0.8, 1.6, -8]], [3.4, [0.3, 1.3, -1.4]], [5.4, [-1.8, 0.9, -4.0]], [6.8, [-2.0, 0.6, -5.0]]]); c.tu.position.copy(tp); const tf = t < 3.4 ? new V3(0, 0, 1) : new V3(-0.55, 0, -1).normalize(); c.tu.rotation.y = Math.atan2(-tf.z, tf.x); c.tu.userData.tick(S.time, 1.5);
       const p = tp.clone().setY(tp.y + 0.62); S.dv(p, tf); S.cam(t < 3.4 ? new V3(0.4, 1.4, 2.6) : K(t, [[3.4, [2.2, 1.6, 1.4]], [6.8, [1.2, 1.3, -1.2]]]), t < 3.4 ? tp.clone().add(new V3(0, 0.5, 0)) : tp.clone().add(new V3(-0.6, 0.5, -1.2)));
       return { mode: 'stand', arms: t < 5.4 ? 'grip' : 'wave', armK: t < 5.4 ? 1 : sm01((t - 5.6) / 0.4), face: tf }; } };
+  // the prologue (the first thing a player sees): the reef's night festival under the Great Lantern; Grimtide erupts from the abyss and
+  // drinks the lights; the Reef Keeper (the diver model, on her rock) gives all her light to the Lantern and drives him off; then darkness,
+  // and little Pip alone. The intro film then cuts into the level-1 tank, where a new lamp clicks on.
+  RECIPES.prologue = { dur: 16, set: { dark: 0.85, night: 0.9 }, setup(S, c) {
+      c.tw = S.add(makeTower(30, 1)); c.tw.position.set(-3.5, 0, -19);
+      c.pip = S.add(makePip(0xffc23a, 1));
+      c.crabs = [0, 1, 2].map(() => { const cr = S.add(makeCrab()); cr.scale.setScalar(0.9); const pe = makeBall(true); pe.scale.setScalar(0.4); pe.position.y = 0.34; cr.add(pe); const gl = glowSpr(0xff8a5a, 0.9, 0.6); gl.position.y = 0.34; cr.add(gl); cr.userData.gl = gl; return cr; });
+      c.js = [0, 1, 2, 3].map(i => { const j = S.add(makeJelly()); j.scale.setScalar(0.7); const gl = glowSpr([0xff9ae0, 0x9ae8ff, 0xfff09a, 0xb8ff9a][i], 1.2, 0.6); j.add(gl); j.userData.gl = gl; return j; });
+      c.eel = S.add(makeEel(42, 2.1)); c.eel.visible = false;
+      c.motes = []; for (let i = 0; i < 26; i++) { const m = glowSpr([0xffd27a, 0xff9ae0, 0x9ae8ff][i % 3], 0.35, 0.7); S.scene.add(m); c.motes.push({ m, p0: new V3((Math.random() - 0.5) * 10, 0.4 + Math.random() * 3, -2 - Math.random() * 8), d: Math.random() * 0.8 }); }
+      const bm = new THREE.MeshBasicMaterial({ color: 0xfff2c0, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }); S.mats.push(bm);
+      c.beam = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.9, 1, 16, 1, true), bm); S.scene.add(c.beam);
+      c.lamp = glowSpr(0xfff2c0, 1.4, 0); S.scene.add(c.lamp); c.lampL = new THREE.PointLight(0xfff0c0, 0, 10, 1.4); S.scene.add(c.lampL);
+      c.rock = S.add(new THREE.Mesh(new THREE.DodecahedronGeometry(0.9, 1), SM({ color: 0x5a5068, roughness: 1, flatShading: true }))); c.rock.position.set(4.2, 0.1, -5.4); c.rock.scale.set(1.3, 0.7, 1.1);
+      S.clear.push([0, 0, 4], [4.2, -5.4, 2.5], [-3.5, -19, 5], [6, -1.6, 2]); },
+    run(S, c, t) { const T0 = c.tw.position, mouthP = new V3(-1, 6, -13);
+      const drink = sm01((t - 6.6) / 3.2), dark = sm01((t - 12.4) / 1.6), keeperK = sm01((t - 10.8) / 0.5), panic = sm01((t - 6.2) / 0.6);
+      // festival: jellies bob, crabs march with their glowing pearls (and scatter when he comes)
+      c.js.forEach((j, i) => { j.position.set(-3 + i * 2.1, 1.4 + (i % 2) * 0.8 + Math.sin(S.time * 1.2 + i) * 0.2, -4 - (i % 2) * 2.5); j.userData.gl.material.opacity = 0.6 * (1 - drink); });
+      c.crabs.forEach((cr, i) => { const x = -2.5 + i * 0.8 + Math.min(t, 6.2) * 0.25 + panic * (t - 6.2) * (i % 2 ? 2.2 : -2.2), z = -2.2 - i * 0.3; cr.position.set(x, S.groundY(x, z) + 0.22 + Math.abs(Math.sin(S.time * 7 + i)) * 0.04, z); cr.rotation.y = panic > 0.5 ? (i % 2 ? 0 : Math.PI) : -Math.PI / 2; cr.userData.gl.material.opacity = 0.6 * (1 - drink); });
+      // Grimtide erupts from the abyss in front of the Lantern, coils and opens his jaws; every light streams into his mouth
+      const rise = sm01((t - 4.6) / 1.8), back = sm01((t - 11.6) / 1.6); c.eel.visible = t > 4.5 && back < 0.99;
+      if (c.eel.visible) { c.eel.userData.pose((u, tt) => { const a = u * 7 + tt * 0.6, r = 3.2 + u * 1.5; return new V3(T0.x + 2.5 + Math.cos(a) * r * (0.4 + 0.6 * u), -9 + (rise * 16 - back * 18) * (1 - u * 0.55) + Math.sin(u * 9 - tt * 2) * 0.9, T0.z + 9 + Math.sin(a) * r * 0.6); }, S.time); // towering, just in front of the Lantern
+        c.eel.userData.setGlow(1 - back * 0.8); c.eel.userData.head.getWorldPosition(mouthP); c.eel.userData.jaw.rotation.x += drink * (1 - back) * 0.6; }
+      if (t > 4.9) S.fx('erupt', 'roar'); if (t > 6.4) S.fx('crack', 'thunder');
+      c.motes.forEach((q, i) => { const k = sm01((t - 6.6 - q.d) / 2.6); q.m.material.opacity = k >= 0.99 ? 0 : 0.7; q.m.position.copy(q.p0).lerp(mouthP, k); q.m.position.y += Math.sin(S.time * 1.4 + i) * 0.15 * (1 - k); });
+      // the Lantern dims as he drinks; the Keeper's gift blazes it up for a heartbeat, then the whole reef goes dark
+      const gift = sm01((t - 11.2) / 0.5) * (1 - sm01((t - 12.6) / 1.4));
+      c.tw.userData.big.material.opacity = 0.8 * Math.max(1 - drink * 0.75, gift) * (1 - dark * 0.92); c.tw.userData.lens.material.emissiveIntensity = 2 * Math.max(1 - drink * 0.8, gift * 1.6) * (1 - dark * 0.9);
+      S.key.intensity = ((3.2 * (1 - S.dark * 0.75) + 0.2) * (1 - drink * 0.5) + gift * 6) * (1 - dark * 0.85) + 0.1; S.nightK = 0.9 + dark * 0.1 - gift * 0.5; if (t > 11.2) S.fx('gift', 'flash');
+      // the Keeper on her rock: lamp up, a beam of light to the Lantern
+      const kp = new V3(4.2, c.rock.position.y + 0.55, -5.4), kf = new V3().subVectors(T0, kp).setY(0).normalize(); S.dv(kp, kf);
+      const lampP = kp.clone().add(new V3(kf.x * 0.25, 1.35 + keeperK * 0.35, kf.z * 0.25)); c.lamp.position.copy(lampP); c.lamp.material.opacity = (0.5 + gift * 0.5) * (t > 9.4 ? 1 : 0) * (1 - dark);
+      c.lampL.position.copy(lampP); c.lampL.intensity = ((t > 9.4 ? 4 : 0) + gift * 20) * (1 - dark);
+      { const to = T0.clone().add(new V3(0, 12.7, 0)), L = lampP.distanceTo(to); c.beam.position.copy(lampP).lerp(to, 0.5); c.beam.scale.set(1, L, 1); c.beam.lookAt(to); c.beam.rotateX(Math.PI / 2); c.beam.material.opacity = Math.min(1, gift * 1.1); }
+      // Pip: loops of joy at the festival, hides when Grimtide comes, then alone and dim in the dark
+      const pp = t < 5.2 ? new V3(-0.6 + Math.cos(t * 2.4) * 0.8, 1.3 + Math.sin(t * 2.4) * 0.5, 1.2) : t < 13.6 ? new V3(-1.2, 0.5 + Math.sin(S.time * 9) * 0.02, 0.4) : new V3(-0.4, 0.8 + Math.sin(S.time * 1.4) * 0.05, 1.4);
+      c.pip.position.lerp(pp, t < 0.05 ? 1 : 0.12); c.pip.rotation.y = t < 5.2 ? -t * 2.4 : 0.4; c.pip.userData.setGlow(t < 5.2 ? 1 : t < 13.6 ? 1 - drink * 0.9 : 0.06); c.pip.userData.tick(S.time * (t < 5.2 ? 2 : 1));
+      // cameras: drift through the festival; low and looking up at the eruption; the Keeper; then close on Pip in the dark
+      if (t < 4.6) S.cam(K(t, [[0, [2.6, 1.4, 6.5]], [4.6, [1.2, 1.5, 4.2]]]), K(t, [[0, [-1.5, 2.6, -8]], [4.6, [-0.8, 1.6, 0]]]));
+      else if (t < 9.6) S.cam(K(t, [[4.6, [2.2, 0.4, 5]], [9.6, [3.0, 0.6, 4]]]), K(t, [[4.6, [-1.6, 4, -12]], [9.6, [-1.5, 6.5, -13]]]));
+      else if (t < 13.4) S.cam(K(t, [[9.6, [6.6, 0.9, -0.9]], [11.6, [6.2, 0.9, -1.3]], [13.4, [6.0, 1.1, -1.2]]]), K(t, [[9.6, [4.0, 1.6, -5.6]], [11.6, [3.9, 1.8, -5.8]], [13.4, [-0.5, 4.5, -13]]])); // the Keeper in silhouette, Grimtide looming behind her
+      else S.cam(K(t, [[13.4, [0.6, 1.0, 3.8]], [16, [0.1, 0.9, 2.9]]]), K(t, [[13.4, [-0.4, 0.8, 1.4]], [16, [-0.4, 0.8, 1.4]]]));
+      return { mode: 'stand', arms: t > 10.8 ? 'hold' : null, armK: keeperK, lift: 1, face: kf }; } };
   // 25: Clack lies on his back in the sand, his hat beside him; the diver kneels with him; his claws go still; Shelly glides down out of the dark
   RECIPES.farewell = { dur: 8.4, set: { dark: 0.62 }, setup(S, c) { c.clack = S.add(makeCrab()); c.clack.scale.setScalar(1.2); c.hat = S.add(makeCapHat()); c.hat.scale.setScalar(1.25); c.tu = S.add(makeTurtle(true)); c.tu.scale.setScalar(1.35);
       c.soft = new THREE.PointLight(0xffd8a8, 5, 6, 1.5); c.soft.position.set(0.3, 1.7, 0.8); S.scene.add(c.soft); S.tankAt(-3.8, -10, 0.4); S.clear.push([0, 0, 3]); },
@@ -3148,7 +3197,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       return { mode: 'stand', arms: t < 3.6 ? 'point' : 'cheer', armK: 1, face: f, target: C.clone().add(new V3(0, 1, 0)) }; } };
   class Story {
     constructor(world, o) { this.world = world; this.o = o; this.t = 0; this.frozen = false; this.ch = o.ch || CHAPTERS[1]; this.rc = RECIPES[this.ch.r] || RECIPES.pipe; this.dur = this.rc.dur;
-      this.n = o.n || 1; this.Q = this.ch.Q || null; this.qte = null; this.qDone = !this.Q; this.li = 0; this.shot = null; this.camCur = null; this.look = new V3();
+      this.n = o.n ?? 1; this.Q = this.ch.Q || null; this.qte = null; this.qDone = !this.Q; this.li = 0; this.shot = null; this.camCur = null; this.look = new V3();
       this.seq = (this.ch.L || []).map((l, i) => ({ who: l[0], text: l[1], id: `s${this.n}_${i + 1}` })); this.seqTail = this.Q ? this.seq.splice(this.Q.at) : [];
       this.lines = this.seq; this.plan(0, 0.35, 0, this.Q ? this.Q.ok.map(l => ({ who: l[0], text: l[1], id: '' })).concat(this.seqTail) : null);
       const w = this.w = this.ch.w ?? o.w ?? 0, WS = WORLD_STYLE[w], set = Object.assign({}, this.rc.set || {}, this.ch.set || {}); this.set = set; const dark = this.dark = Math.min(0.92, (set.dark || 0) * 0.8 + [0, 0.22, 0.42][w]);
@@ -3212,7 +3261,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         else if (k === 'clack') { const x = h.x + r.x * 0.75 + f.x * 0.4, z = h.z + r.z * 0.75 + f.z * 0.4; const gy = this.groundY(x, z); o.position.set(x, (h.y < gy - 0.3 ? h.y + 0.1 : gy + 0.22) + Math.abs(Math.sin(tm * 6)) * 0.02, z); /* falls with the diver off a cliff */ const g = talking ? d : f; o.rotation.set(0, Math.atan2(g.x, g.z), 0); } } }
     // ---- who is speaking: the cast member on screen, its size, and a close-up camera on it (shot/reverse-shot from the recipe's camera)
     castOf(who) { const c = this.c; let o = null, s = 1, y = 0;
-      switch (who) { case 'you': o = this.hold; y = 0.72; break; case 'pip': o = c.pip || (c.h && c.h[0]); s = 0.75; break; case 'cousin': o = c.h && c.h[1]; s = 0.7; break;
+      switch (who) { case 'you': o = this.hold; y = 0.72; break; /* the Keeper is only ever seen in silhouette (no close-up) */ case 'pip': o = c.pip || (c.h && c.h[0]); s = 0.75; break; case 'cousin': o = c.h && c.h[1]; s = 0.7; break;
         case 'shelly': o = c.tu; s = 1.6; y = 0.35; break; case 'murk': o = c.o; s = 2.0; y = 1.0; break; case 'lumen': o = c.lumen || (this.ch.r === 'angler' ? c.a : null); s = 1.1; break;
         case 'mira': o = c.m; s = 1.9; break; case 'clack': o = c.clack || (c.crabs && c.crabs[0]); s = 0.55; y = 0.25; break;
         case 'grimtide': if (c.eel && c.eel.visible) { o = c.eel.userData.head; s = Math.max(1.6, c.eel.userData.segs[0].r * 3.2 * c.eel.scale.x); } break;
@@ -3308,9 +3357,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (!q) this.camCur = null;
       if (this.qte) { const k = 0.02 + 0.03 * this.qte.prog; this.cam0.position.x += (Math.random() - 0.5) * k; this.cam0.position.y += (Math.random() - 0.5) * k; }
       // the speaker talks: a little bob and sway (Grimtide's jaw works instead)
-      if (q && !this.frozen) { const tt = this.world.time, a = Math.abs(Math.sin(tt * 9.5)) * (0.6 + 0.4 * Math.sin(tt * 2.3));
-        if (sh.who === 'grimtide' && this.c.eel) this.c.eel.userData.jaw.rotation.x += 0.35 * a;
-        else { const dy = q.s * 0.035 * a, rz = Math.sin(tt * 5.5) * 0.045; q.o.position.y += dy; q.o.rotation.z += rz; this._tb = { o: q.o, dy, rz }; } } }
+      if (this._mouth) { this._mouth.visible = false; this._mouth = null; } if (this._jaw) { this._jaw.rotation.z = -0.15; this._jaw = null; }
+      const spk = sh && sh.who && !this.frozen && t < sh.l.t1 ? (q || this.castOf(sh.who)) : null; // the speaker talks in every shot, close or wide
+      if (spk) { const tt = this.world.time, a = Math.abs(Math.sin(tt * 9.5)) * (0.55 + 0.45 * Math.sin(tt * 2.3 + 1)) * (Math.sin(tt * 0.9) > -0.85 ? 1 : 0.2); // syllables, with small pauses
+        if (sh.who === 'grimtide' && this.c.eel) this.c.eel.userData.jaw.rotation.x += 0.4 * a;
+        else { const dy = spk.s * 0.03 * a, rz = Math.sin(tt * 5.5) * 0.04; spk.o.position.y += dy; spk.o.rotation.z += rz; this._tb = { o: spk.o, dy, rz };
+          const ud = spk.o.userData || {}; if (ud.mouth) { const m = ud.mouth; m.visible = a > 0.1; m.scale.y = m.userData.h * (0.3 + 0.9 * a); this._mouth = m; } else if (ud.jaw) { ud.jaw.rotation.z = -0.15 - 0.55 * a; this._jaw = ud.jaw; } } } }
     clearView(pos, q) { const R = this.ray || (this.ray = new THREE.Raycaster()); R.camera = this.cam0; // five rays: to the speaker and around them (something big near the lens covers half the frame)
       const own = o => { for (let a = o; a; a = a.parent) if (a === q.o) return true; return false; }, d0 = q.p.clone().sub(pos), side = new V3(d0.z, 0, -d0.x).normalize(), r = q.s * 0.4;
       for (const off of [[0, 0], [r, 0], [-r, 0], [0, r], [0, -r * 0.6]]) { const to = q.p.clone().addScaledVector(side, off[0]); to.y += off[1]; const d = to.sub(pos), L = d.length(); if (L < 0.05) continue;
@@ -3318,7 +3370,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         for (const h of hits) { const o = h.object, m = o.material; if (!o.isMesh || own(o) || !m || m.side === THREE.BackSide || (m.transparent && (m.opacity ?? 1) < 0.35) || m.blending === THREE.AdditiveBlending) continue;
           let vis = true; for (let a = o; a; a = a.parent) if (!a.visible) { vis = false; break; } if (vis) return false; } } return true; }
     // the last second slides the picture aside for the card (right on wide screens, bottom on phones)
-    render(post) { const w = innerWidth, h = innerHeight, c = this.cam0, k = sm01((this.t - (this.T - 1.1)) / 1.0); if (k > 0) { if (this.port) c.setViewOffset(w, h, 0, h * 0.26 * k, w, h); else c.setViewOffset(w, h, w * 0.13 * k, 0, w, h); } else c.clearViewOffset();
+    render(post) { if (this.set.night && post.compMat) post.compMat.uniforms.night.value = this.nightK ?? this.set.night; /* the moonlit night grade */ const w = innerWidth, h = innerHeight, c = this.cam0, k = sm01((this.t - (this.T - 1.1)) / 1.0); if (k > 0) { if (this.port) c.setViewOffset(w, h, 0, h * 0.26 * k, w, h); else c.setViewOffset(w, h, w * 0.13 * k, 0, w, h); } else c.clearViewOffset();
       post.render(this.scene, c, this.world.time); }
     dispose() { this.scene.traverse(o => { if ((o.isMesh || o.isPoints || o.isSprite) && o.geometry && !Object.values(GEO).includes(o.geometry)) o.geometry.dispose();
         if (o.isMesh && o.material && !Object.values(MAT).includes(o.material) && !Object.values(SPR.mat || {}).includes(o.material)) { const ms = Array.isArray(o.material) ? o.material : [o.material]; ms.forEach(m => { if (m && m.map && m.map.isCanvasTexture && !Object.values(TEX).includes(m.map)) this.own.push(m.map); }); } });
@@ -4706,7 +4758,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       obj = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ map: t, color: 0xffd08a, roughness: 0.95 })); obj.rotation.set(0.25, -0.5, 0); obj.scale.setScalar(1.15); }
     sc.add(obj); const sd = new SharedDraw(cv, 2); try { sd.render(sc, cam); } finally { sd.dispose(); } const url = cv.toDataURL('image/png');
     if (kind === 'sand') obj.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.map.dispose(); o.material.dispose(); } }); return url; }
-  return { create: c => new WorldImpl(c), CHAPTERS, STORY_WHO, isMobile, iconShot, isIOS, dailyWorld: (name, w) => DAILY_WORLD.set(name, w), setColorMarks: on => { CB.on = !!on; if (MAT.cbMark) MAT.cbMark.visible = CB.on; }, ready, SKINS, SKIN, applySkin, preview: (cv, thumb) => new SkinPreview(cv, thumb), trailColor, rarityOf };
+  return { create: c => new WorldImpl(c), CHAPTERS, PROLOGUE, STORY_WHO, isMobile, iconShot, isIOS, dailyWorld: (name, w) => DAILY_WORLD.set(name, w), setColorMarks: on => { CB.on = !!on; if (MAT.cbMark) MAT.cbMark.visible = CB.on; }, ready, SKINS, SKIN, applySkin, preview: (cv, thumb) => new SkinPreview(cv, thumb), trailColor, rarityOf };
 })();
 
 window.__T = T;
@@ -5112,11 +5164,15 @@ window.__T = T;
     cineEngine = new Engine(Object.assign({}, LEVELS[0], { tickMs: 150 })); cineEngine.time = 999; cineEngine.oxygen = 999; cineEngine.cine = true;
     world.loadLevel(cineEngine); world.onTick(cineEngine, performance.now()); world.startPlay();
     world.cineCam = true; world.cineT = 0; world.cineShot = 'descent'; world.shotT0 = 0; world.storyDim = 0.95; world.cineFx = { glow: 0, storm: 0, lamp: 0 }; world.wakeT = undefined;
-    cine = { t: 0, i: 0, wait: 0, wonAt: null, gateAt: null, said: {} }; acc = 0; frame.last = performance.now();
+    cine = { t: 0, i: 0, wait: 0, wonAt: null, gateAt: null, said: {}, pro: !REDUCED_MOTION }; acc = 0; frame.last = performance.now();
+    if (cine.pro) world.storyStart({ w: 0, n: 0, ch: World.PROLOGUE, tank: null, voDur: storyVoLen, onFx: storyFx, onCap: (line, i) => { storyCap(line, i, 0, World.PROLOGUE); $('#storySkip').hidden = true; }, onFreeze: () => { if (cine) cine.proEnd = true; } });
     setTimeout(() => $('#cineFade').classList.remove('on'), 120); // fade up from black
   }
   function cineTick(realDt, now) {
-    realDt = Math.min(realDt, 0.1); cine.t += realDt; world.cineT = cine.t; const c = cine, E = cineEngine, T = c.t, F = world.cineFx, once = (k, fn) => { if (!c.said[k]) { c.said[k] = 1; fn(); } };
+    realDt = Math.min(realDt, 0.1);
+    if (cine.pro) { if (!cine.proEnd) { $('#skipIntro').style.setProperty('--sp', Math.min(1, (world.story ? world.story.t : 0) / 70).toFixed(3)); $('#cineDark').style.opacity = world.post && world.post.enabled ? 0 : 0.4; return; } // the prologue film plays first (low tier: no night grade, so a dark overlay)
+      cine.pro = false; storyCap(null); world.storyStop(); cine.t = 12.3; Object.assign(cine.said, { l1: 1, v1: 1, st: 1, th2: 1, v3: 1 }); world.cineFx.glow = 0; world.storyDim = 1.3; acc = 0; } // then into the dark tank, lamp next
+    cine.t += realDt; world.cineT = cine.t; const c = cine, E = cineEngine, T = c.t, F = world.cineFx, once = (k, fn) => { if (!c.said[k]) { c.said[k] = 1; fn(); } };
     const shot = (n) => { world.cineShot = n; world.shotT0 = T; };
     // 1. the legend: the reef at night, alive with drifting pearl-light
     if (c.gateAt === null) { F.glow = Math.min(F.glow, 1); }
@@ -5138,7 +5194,7 @@ window.__T = T;
     // 5. the gate wakes: a ring of light, the pearl-lights pour back, the reef relights
     if (E.gate && E.gate.open && c.gateAt === null) { c.gateAt = T; shot('gate'); Audio.play('wake'); world.cineWake(); world.cineFlash(0.7); say('vo8'); }
     if (c.gateAt !== null) { const k = T - c.gateAt; world.storyDim = ramp(1.3, 0, 0.2, 2.2, k); F.glow = ramp(0, 1, 0.3, 2.4, k); F.lamp = ramp(1, 0, 0.6, 1.6, k); }
-    $('#cineDark').style.opacity = world.post && world.post.enabled ? 0 : (world.nightK || 0) * 0.62; $('#skipIntro').style.setProperty('--sp', Math.min(1, T / 48).toFixed(3)); // low tier: no post pass, darken with an overlay
+    $('#cineDark').style.opacity = world.post && world.post.enabled ? 0 : (world.nightK || 0) * 0.62; $('#skipIntro').style.setProperty('--sp', Math.min(1, (T + 22) / 70).toFixed(3)); // low tier: no post pass, darken with an overlay
     acc += Math.min(250, realDt * 1000);
     while (acc >= E.tickMs) { acc -= E.tickMs; E.step();
       for (const v of E.events) { if (v.type === 'dig') once('v5', () => say('vo5')); if (v.type === 'push' && v.t === T_BALL) once('v7', () => say('vo7')); }
@@ -5154,7 +5210,7 @@ window.__T = T;
   }
   function flash() { if (REDUCED_MOTION) return; const f = $('#cineFlash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); }
   function endCine() {
-    if (!cineRunning) return; cineRunning = false; clearTimeout(say.w); cine = null; world.cineCam = false; world.storyDim = 0; world.cineFx = null; world.flashK = 0; $('#cineDark').style.opacity = 0; cap(''); Audio.stopVo(); $('#cineTitle').classList.remove('on'); $('#cineGates').classList.remove('on');
+    if (!cineRunning) return; if (cine && cine.pro) { storyCap(null); world.storyStop(); } cineRunning = false; clearTimeout(say.w); cine = null; world.cineCam = false; world.storyDim = 0; world.cineFx = null; world.flashK = 0; $('#cineDark').style.opacity = 0; cap(''); Audio.stopVo(); $('#cineTitle').classList.remove('on'); $('#cineGates').classList.remove('on');
     $('#cineFade').classList.add('on'); setTimeout(() => $('#cineFade').classList.remove('on'), 60); // the menu fades up out of black
     menuEngine = cineEngine; cineEngine.menu = true; world.menuMode = true; world.playing = false; world.fitCamera(false); menuKeep = true; // the intro's tank becomes the menu backdrop as-is
     $('#skipIntro').hidden = true; save.introSeen = true; persist(); openHome();
@@ -6034,7 +6090,7 @@ window.__T = T;
     el.classList.add(ev === 'ok' ? 'win' : 'lose'); el.style.setProperty('--qp', ev === 'ok' ? 1 : 0); if (ev === 'ok') { Audio.play('star'); buzz([20, 40, 60]); } else { Audio.play('bump'); buzz(60); }
     setTimeout(() => { if (!world.story || !world.story.qte) { el.className = ''; el.hidden = true; } }, 900); }
   function storyCap(line, i, n, ch) { const el = $('#storyCap'); if (!el) return; if (!line) { el.classList.remove('on'); $('#storySkip').hidden = true; Audio.stopVo(); return; }
-    const who = line.who || '', txt = line.text || ''; el.querySelector('small').textContent = `Chapter ${n} · ${ch.t}`;
+    const who = line.who || '', txt = line.text || ''; el.querySelector('small').textContent = n ? `Chapter ${n} · ${ch.t}` : `Prologue · ${ch.t}`;
     const b = el.querySelector('b'); b.textContent = World.STORY_WHO[who] || ''; b.hidden = !who; el.dataset.who = who || 'narrator';
     const pEl = el.querySelector('p'); pEl.classList.remove('in'); void pEl.offsetWidth; pEl.textContent = txt; pEl.classList.add('in'); el.classList.add('on'); $('#storySkip').hidden = false;
     if (line.id && hasVo(line.id)) Audio.vo(line.id); }
