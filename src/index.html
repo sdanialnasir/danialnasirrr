@@ -1834,6 +1834,28 @@ html body:is(.ui-art, :not(.ui-art)) .kit.k-cond { background: linear-gradient(1
 /* story v5: lights out (levels 14, 24, 25) and dim water (8, 9): only the diver's lamp pool stays bright */
 #lampDark { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0; transition: opacity 1.2s ease;
   background: radial-gradient(circle var(--lr, 200px) at var(--lx, 50%) var(--ly, 50%), rgba(4, 8, 26, 0) 0%, rgba(4, 8, 26, 0) 38%, rgba(4, 8, 26, calc(var(--ld, 0) * 0.55)) 70%, rgba(4, 8, 26, var(--ld, 0)) 100%); }
+
+/* story: playable action scenes (title + progress, lamp lives, pearls, pop words, a red edge on a hit) */
+#runHud { position: fixed; inset: 0; z-index: 58; pointer-events: none; opacity: 0; transition: opacity .3s; }
+#runHud.on { opacity: 1; } body.running #storyCap { opacity: 0 !important; }
+#runHud .rh-top { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 1rem); left: 50%; transform: translateX(-50%); display: grid; gap: 0.4rem; justify-items: center; width: min(26rem, 70vw); }
+#runHud .rh-t { font-family: var(--display); font-size: clamp(1.1rem, 3vw, 1.6rem); color: #fff; text-shadow: 0 0.12rem 0 #0b2560, 0 0 1rem rgba(255, 200, 90, 0.6); text-align: center; }
+#runHud .rh-bar { display: block; width: 100%; height: 0.55rem; border-radius: 1rem; background: rgba(6, 18, 60, 0.7); border: 2px solid rgba(140, 210, 255, 0.6); overflow: hidden; }
+#runHud .rh-bar i { display: block; height: 100%; width: calc(var(--rp, 0) * 100%); background: linear-gradient(90deg, #5fd8ff, #ffe08a); border-radius: 1rem; }
+#runHud .rh-lives { position: absolute; left: 1.1rem; top: calc(env(safe-area-inset-top, 0px) + 1rem); display: flex; gap: 0.35rem; }
+#runHud .rh-lives i { width: 1.9rem; height: 1.9rem; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #fff6c8, #ffc23a 45%, #d97a10 75%); box-shadow: 0 0 0.9rem rgba(255, 200, 80, 0.85), 0 0 0 2px #6a3a08; transition: transform .2s, filter .3s, opacity .3s; }
+#runHud .rh-lives i.off { filter: grayscale(1) brightness(0.4); box-shadow: none; transform: scale(0.8); opacity: 0.6; }
+#runHud .rh-sc { position: absolute; right: 1.1rem; top: calc(env(safe-area-inset-top, 0px) + 4rem); display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem 0.3rem 0.35rem; border-radius: 2rem; background: rgba(6, 18, 60, 0.75); border: 2px solid rgba(255, 210, 110, 0.7); }
+#runHud .rh-sc i { width: 1.5rem; height: 1.5rem; border-radius: 50%; background: radial-gradient(circle, #fff3c0, #ffb43a 60%, transparent 70%); }
+#runHud .rh-sc b { font-family: var(--display); font-size: 1.3rem; color: #ffe08a; min-width: 1.6ch; } #runHud .rh-sc.bump { animation: rhBump .25s ease-out; }
+#runHud .rh-hint { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 7vh); transform: translateX(-50%); font-weight: 900; font-size: 0.95rem; letter-spacing: 0.08em; text-transform: uppercase; color: #ffe08a; padding: 0.35rem 0.9rem; border-radius: 1rem; background: rgba(8, 26, 76, 0.75); white-space: nowrap; animation: rhHint 4.5s ease forwards; }
+#runHud .rh-pop { position: absolute; left: 50%; top: 34%; transform: translate(-50%, -50%) scale(0.6); font-family: var(--display); font-size: clamp(1.6rem, 5vw, 2.8rem); color: #fff; opacity: 0; text-shadow: 0 0.15rem 0 #0b2560, 0 0 1.2rem rgba(120, 220, 255, 0.9); white-space: nowrap; }
+#runHud .rh-pop.on { animation: rhPop .7s ease-out forwards; } #runHud .rh-pop.close { color: #9ff0ff; } #runHud .rh-pop.hit { color: #ff8a7a; text-shadow: 0 0.15rem 0 #4a0810, 0 0 1.2rem rgba(255, 60, 60, 0.8); }
+#runHud .rh-pop.go { color: #ffe08a; } #runHud .rh-pop.big { font-size: clamp(1.4rem, 4.2vw, 2.4rem); animation-duration: 1.5s; }
+#runHud.hit::after { content: ''; position: absolute; inset: 0; box-shadow: inset 0 0 14vmin rgba(255, 30, 40, 0.65); animation: rhHit .6s ease-out forwards; }
+@keyframes rhPop { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); } 75% { opacity: 1; transform: translate(-50%, -55%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -65%) scale(1); } }
+@keyframes rhHit { from { opacity: 1; } to { opacity: 0; } } @keyframes rhBump { 50% { transform: scale(1.18); } } @keyframes rhHint { 0%, 75% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { #runHud .rh-pop.on { animation-duration: 0.01s; opacity: 1; } }
 </style>
 </head>
 <body data-state="splash">
@@ -2138,6 +2160,7 @@ html body:is(.ui-art, :not(.ui-art)) .kit.k-cond { background: linear-gradient(1
 </section>
 
 <div id="sfx" aria-hidden="true"></div><div id="cutBars" aria-hidden="true"><i></i><i></i></div>
+<div id="runHud" hidden aria-live="polite"><div class="rh-top"><b class="rh-t"></b><i class="rh-bar"><i></i></i></div><div class="rh-lives"></div><div class="rh-sc"><i></i><b class="rh-n">0</b></div><div class="rh-hint"></div><div class="rh-pop"></div></div>
 <div id="choice" hidden aria-live="assertive"><b></b><div class="ch-opts"></div><i class="ch-tm" aria-hidden="true"></i></div>
 <div id="qte" hidden aria-live="assertive"><div class="qt-ring"><i></i></div><b></b><small></small></div>
 <div id="talk" aria-live="polite"><i class="tk-ic" aria-hidden="true"></i><div><b></b><p></p></div></div>

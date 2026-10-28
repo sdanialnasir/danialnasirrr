@@ -1322,21 +1322,39 @@
   },
   {
    "id": "s10_ok1",
-   "role": "diver",
-   "text": "[shouting] Pip, hold on! JUMP!",
-   "when": "Chapter 10 · The Edge of the Shallows — after “Dive!” (done in time)",
+   "role": "pip",
+   "text": "[breathless, giddy] We lost them! Did we lose them? WE LOST THEM!",
+   "when": "Chapter 10 · The Edge of the Shallows — after “Escape Snip & Snap!” (done in time)",
    "max_seconds": 0,
    "set": "story",
-   "who": "Spark"
+   "who": "Pip"
+  },
+  {
+   "id": "s10_ok2",
+   "role": "snip",
+   "text": "[dizzy, furious] This isn't over, little light! …Snap, which way is up?",
+   "when": "Chapter 10 · The Edge of the Shallows — after “Escape Snip & Snap!” (done in time)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Snip"
   },
   {
    "id": "s10_no1",
    "role": "pip",
-   "text": "[screaming] They're biting! Jump-jump-JUMP!",
-   "when": "Chapter 10 · The Edge of the Shallows — after “Dive!” (missed)",
+   "text": "[whiny, relieved] Ow! Ow! They nibbled my tail! …But we're alive! Mostly!",
+   "when": "Chapter 10 · The Edge of the Shallows — after “Escape Snip & Snap!” (missed)",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
+  },
+  {
+   "id": "s10_no2",
+   "role": "snap",
+   "text": "[snarling, fading] Next time, little light. NEXT TIME.",
+   "when": "Chapter 10 · The Edge of the Shallows — after “Escape Snip & Snap!” (missed)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Snap"
   },
   {
    "id": "s11_1",
@@ -1513,19 +1531,37 @@
    "id": "s13_ok1",
    "role": "diver",
    "text": "[straining] I've got you, Pip! Don't let go!",
-   "when": "Chapter 13 · The Dark Storm — after “Hold on to Pip!” (done in time)",
+   "when": "Chapter 13 · The Dark Storm — after “Get everyone through the storm!” (done in time)",
    "max_seconds": 0,
    "set": "story",
    "who": "Spark"
   },
   {
-   "id": "s13_no1",
+   "id": "s13_ok2",
    "role": "pip",
-   "text": "[screaming] Spark! I can't hold on!",
-   "when": "Chapter 13 · The Dark Storm — after “Hold on to Pip!” (missed)",
+   "text": "[panicking] I'm holding! I'm holding! Where's Shelly?!",
+   "when": "Chapter 13 · The Dark Storm — after “Get everyone through the storm!” (done in time)",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
+  },
+  {
+   "id": "s13_no1",
+   "role": "pip",
+   "text": "[screaming] Spark! I can't hold on!",
+   "when": "Chapter 13 · The Dark Storm — after “Get everyone through the storm!” (missed)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Pip"
+  },
+  {
+   "id": "s13_no2",
+   "role": "diver",
+   "text": "[desperate] Shelly! Where are you?!",
+   "when": "Chapter 13 · The Dark Storm — after “Get everyone through the storm!” (missed)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Spark"
   },
   {
    "id": "s14_1",
@@ -1649,6 +1685,42 @@
    "role": "mira",
    "text": "[warm] Climb on. The canyon is wide, and grief is heavy. I will carry both.",
    "when": "Chapter 15 · Mira",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Mira"
+  },
+  {
+   "id": "s15_ok1",
+   "role": "pip",
+   "text": "[giddy, then soft] WHEEEE! Again! AGAIN! Shelly would have LOVED that!",
+   "when": "Chapter 15 · Mira — after “Ride the canyon with Mira!” (done in time)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Pip"
+  },
+  {
+   "id": "s15_ok2",
+   "role": "mira",
+   "text": "[serene, warm] You fly like a manta, little one. She would be proud.",
+   "when": "Chapter 15 · Mira — after “Ride the canyon with Mira!” (done in time)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Mira"
+  },
+  {
+   "id": "s15_no1",
+   "role": "pip",
+   "text": "[queasy] I think I swallowed a jellyfish. Is that bad? It feels bad.",
+   "when": "Chapter 15 · Mira — after “Ride the canyon with Mira!” (missed)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Pip"
+  },
+  {
+   "id": "s15_no2",
+   "role": "mira",
+   "text": "[calm] The canyon is rough tonight. Hold on tight. We are almost there.",
+   "when": "Chapter 15 · Mira — after “Ride the canyon with Mira!” (missed)",
    "max_seconds": 0,
    "set": "story",
    "who": "Mira"
@@ -2062,19 +2134,37 @@
    "id": "s24_ok1",
    "role": "diver",
    "text": "[desperate] I've got you! I've got… NO!",
-   "when": "Chapter 24 · Ambush — after “Grab Pip!” (done in time)",
+   "when": "Chapter 24 · Ambush — after “Chase Grimtide! Save Pip!” (done in time)",
    "max_seconds": 0,
    "set": "story",
    "who": "Spark"
   },
   {
+   "id": "s24_ok2",
+   "role": "pip",
+   "text": "[screaming, fading] Spaaark! Don’t let go of the reef!",
+   "when": "Chapter 24 · Ambush — after “Chase Grimtide! Save Pip!” (done in time)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Pip"
+  },
+  {
    "id": "s24_no1",
    "role": "diver",
    "text": "[screaming] PIP!",
-   "when": "Chapter 24 · Ambush — after “Grab Pip!” (missed)",
+   "when": "Chapter 24 · Ambush — after “Chase Grimtide! Save Pip!” (missed)",
    "max_seconds": 0,
    "set": "story",
    "who": "Spark"
+  },
+  {
+   "id": "s24_no2",
+   "role": "grimtide",
+   "text": "[cold, amused] Too slow, little light. Much too slow.",
+   "when": "Chapter 24 · Ambush — after “Chase Grimtide! Save Pip!” (missed)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Grimtide"
   },
   {
    "id": "s25_1",
@@ -2385,20 +2475,38 @@
   {
    "id": "s29_ok1",
    "role": "murk",
-   "text": "[roaring] Not this time!",
-   "when": "Chapter 29 · Grimtide’s Lair — after “Dodge!” (done in time)",
+   "text": "[roaring] Not this time, Grimtide!",
+   "when": "Chapter 29 · Grimtide’s Lair — after “Through the coils! Reach the Lantern!” (done in time)",
    "max_seconds": 0,
    "set": "story",
    "who": "Murk"
   },
   {
+   "id": "s29_ok2",
+   "role": "grimtide",
+   "text": "[hissing, furious] Clever little light. It will not save you.",
+   "when": "Chapter 29 · Grimtide’s Lair — after “Through the coils! Reach the Lantern!” (done in time)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Grimtide"
+  },
+  {
    "id": "s29_no1",
    "role": "murk",
-   "text": "[roaring] Spark! I've got you!",
-   "when": "Chapter 29 · Grimtide’s Lair — after “Dodge!” (missed)",
+   "text": "[roaring] Spark! I've got you! Grab my arm!",
+   "when": "Chapter 29 · Grimtide’s Lair — after “Through the coils! Reach the Lantern!” (missed)",
    "max_seconds": 0,
    "set": "story",
    "who": "Murk"
+  },
+  {
+   "id": "s29_no2",
+   "role": "pip",
+   "text": "[shrieking, relieved] Eight arms! Best seatbelt EVER!",
+   "when": "Chapter 29 · Grimtide’s Lair — after “Through the coils! Reach the Lantern!” (missed)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Pip"
   },
   {
    "id": "s30_1",

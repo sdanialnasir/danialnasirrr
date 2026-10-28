@@ -27,12 +27,12 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 | 7 | The Lure | BLUNDER ↓↓ | Hold on to the map! (tap) |
 | 8 | Follow the Fish | recovery ↑ | Cheer Pip up (choice) |
 | 9 | The Torn Map | hope ↑ |  |
-| 10 | The Edge of the Shallows | courage ↑ | Dive! (swipe) |
+| 10 | The Edge of the Shallows | courage ↑ | Escape Snip & Snap! (run) |
 | 11 | Voices in the Caves | menace ↓ | Answer Grimtide (choice) |
 | 12 | The Silent Clam | bittersweet |  |
-| 13 | The Dark Storm | danger ↓↓ | Hold on to Pip! (hold) |
+| 13 | The Dark Storm | danger ↓↓ | Get everyone through the storm! (run) |
 | 14 | Rest, Old Friend | grief ↓↓ | Promise Shelly (choice) |
-| 15 | Mira | hope ↑ |  |
+| 15 | Mira | hope ↑ | Ride the canyon with Mira! (run) |
 | 16 | The Prisoner | mystery |  |
 | 17 | The Arch’s Secret | resolve ↑ | Light the lamps! (tap) |
 | 18 | A Secret Trail | hope ↑ |  |
@@ -41,12 +41,12 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 | 21 | Lumen | hope ↑ |  |
 | 22 | Whale Song | wonder |  |
 | 23 | The Mural | discovery ↑ |  |
-| 24 | Ambush | BLUNDER ↓↓ | Grab Pip! (tap) |
+| 24 | Ambush | BLUNDER ↓↓ | Chase Grimtide! Save Pip! (run) |
 | 25 | The Captain’s Last Order | GRIEF ↓↓↓ | Answer the Captain (choice) |
 | 26 | Breaking the Chains | rescue ↑↑ | Give your light! (tap) |
 | 27 | Over the Abyss | resolve ↑ | Answer Murk (choice) |
 | 28 | The Deep Rises | rally ↑↑ |  |
-| 29 | Grimtide’s Lair | showdown ↓ | Dodge! (swipe) |
+| 29 | Grimtide’s Lair | showdown ↓ | Through the coils! Reach the Lantern! (run) |
 | 30 | The Reef’s Revenge | REVENGE ↑↑↑ | Give the light away! (hold) |
 
 ## How the story is told
@@ -206,7 +206,7 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 - `s10_1` **Pip:** That's the Coral Caves down there. Maybe we take the stairs? _(shake)_
 - `s10_2` **Snip:** Ooh, look, Snap! Little light wants to take the STAIRS! _(laugh)_
 - `s10_3` **Snap:** There are no stairs. There’s only US.
-- ▶ **Dive!** (swipe) — in time: **Spark:** Pip, hold on! JUMP! — missed: **Pip:** They're biting! Jump-jump-JUMP!
+- ▶ **Escape Snip & Snap!** (run) — in time: **Pip:** We lost them! Did we lose them? WE LOST THEM! / **Snip:** This isn't over, little light! …Snap, which way is up? — missed: **Pip:** Ow! Ow! They nibbled my tail! …But we're alive! Mostly! / **Snap:** Next time, little light. NEXT TIME.
 - `s10_4` **Captain Clack:** Crabs… don’t… fall… WELLLLL!
 
 ### Level 11: Grimtide sees every crystal you light. Light them anyway.
@@ -247,7 +247,7 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 - `s13_1` *The water goes black. The storm has found you.*
 - `s13_2` **Grimtide:** Thirteen gates, little light? Thirteen too many!
 - `s13_3` **Shelly:** Everyone behind my shell! NOW!
-- ▶ **Hold on to Pip!** (hold) — in time: **Spark:** I've got you, Pip! Don't let go! — missed: **Pip:** Spark! I can't hold on!
+- ▶ **Get everyone through the storm!** (run) — in time: **Spark:** I've got you, Pip! Don't let go! / **Pip:** I'm holding! I'm holding! Where's Shelly?! — missed: **Pip:** Spark! I can't hold on! / **Spark:** Shelly! Where are you?!
 - `s13_4` *Shelly takes the whole blow… and sinks, slowly, to the sand.*
 - `s13_5` **Grimtide:** One down.
 
@@ -392,7 +392,7 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 - `s24_1` **Pip:** Twenty-four gates! We're going to make it, Spark! We're actually going to— _(spin)_
 - `s24_2` **Grimtide:** ENOUGH!
-- ▶ **Grab Pip!** (tap) — in time: **Spark:** I've got you! I've got… NO! — missed: **Spark:** PIP!
+- ▶ **Chase Grimtide! Save Pip!** (run) — in time: **Spark:** I've got you! I've got… NO! / **Pip:** Spaaark! Don’t let go of the reef! — missed: **Spark:** PIP! / **Grimtide:** Too slow, little light. Much too slow.
 - `s24_3` **Pip:** Spaaark!
 - `s24_4` **Captain Clack:** Let him go, you overgrown NOODLE!
 - `s24_5` *Clack leaps at the tail. One mighty pinch… and the tail swats him into the dark.*
@@ -463,7 +463,7 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 - `s29_1` **Grimtide:** Twenty-nine gates. The Lantern is nearly full. Wake the last, and I drink it ALL.
 - `s29_2` **Pip:** THAT'S why he let us! We've been cooking his DINNER! _(shake)_
-- ▶ **Dodge!** (swipe) — in time: **Murk:** Not this time! — missed: **Murk:** Spark! I've got you!
+- ▶ **Through the coils! Reach the Lantern!** (run) — in time: **Murk:** Not this time, Grimtide! / **Grimtide:** Clever little light. It will not save you. — missed: **Murk:** Spark! I've got you! Grab my arm! / **Pip:** Eight arms! Best seatbelt EVER!
 - `s29_3` **Spark:** You’re wrong about one thing. That light isn’t yours. We’re giving it away.
 - `s29_4` **Grimtide:** Then come, Keeper’s child. Let’s see who shines last.
 
