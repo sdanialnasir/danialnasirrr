@@ -2120,7 +2120,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const e = cartoonEye(0.075, [0, -0.15]); e.position.set(s * 0.1, 0.32, 0.14); g.add(e);
       const br = new THREE.Mesh(new THREE.CapsuleGeometry(0.018, 0.08, 4, 6), MAT.monPupil); br.rotation.z = Math.PI / 2 + s * 0.45; br.position.set(s * 0.1, 0.41, 0.19); g.add(br); }
     const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.04, 0.012, 6, 12, Math.PI), MAT.monPupil); mouth.position.set(0, 0.05, 0.27); g.add(mouth);
-    g.userData = { legs, claws, mouth: talkMouth(g, 0, 0.035, 0.265, 0.05, 0.035, Math.PI / 2) }; g.traverse(o => { if (o.isMesh) o.castShadow = true; }); return kind ? castSwap(g, kind, { floor: 1, ry: 0 }) : g; /* the crab faces +z */
+    g.userData = { legs, claws, mouth: talkMouth(g, 0, 0.035, 0.265, 0.05, 0.035, Math.PI / 2) }; g.traverse(o => { if (o.isMesh) o.castShadow = true; }); return kind ? castSwap(g, kind, { floor: 1, ry: kind === 'clack' ? Math.PI : 0 }) : g; /* the crab faces +z; the films aim Clack the other way */
   }
   // air capsule: a glassy soap-bubble (clear middle, bright fresnel rim, iridescent sheen, a window highlight),
   // a soft cyan glow inside, a crisp O2 badge and three tiny bubbles that rise and loop inside it
@@ -6274,7 +6274,7 @@ window.__T = T;
     const b = el.querySelector('b'); b.textContent = World.STORY_WHO[who] || ''; b.hidden = !who; el.dataset.who = who || 'narrator';
     const pEl = el.querySelector('p'); pEl.classList.remove('in'); void pEl.offsetWidth; pEl.textContent = txt; pEl.classList.add('in'); el.classList.add('on'); $('#storySkip').hidden = false;
     if (line.id && hasVo(line.id)) Audio.vo(line.id); }
-  function storyEnd() { storyCap(null); talkStop(); qteUI(null, 'hide'); watching = false; document.body.classList.remove('watching'); if (!storyOn && !document.body.classList.contains('story')) return; storyOn = false; world.storyStop(); document.body.classList.remove('story'); heldDirty = true; }
+  function storyEnd() { storyCap(null); talkStop(); qteUI(null, 'hide'); watching = false; document.body.classList.remove('watching'); if (cineRunning) endCine(); /* leaving the intro by any route ends it (its prologue film kept drawing behind the level before) */ if (!storyOn && !document.body.classList.contains('story')) { if (world.story && !cineRunning) world.storyStop(); return; } storyOn = false; world.storyStop(); document.body.classList.remove('story'); heldDirty = true; }
   function storySkip(all) { const S = world.story; if (!(storyOn && !resultShown && S && S.t > 0.35)) return false; // a tap shows the next line; Skip (or the last tap) jumps to the end
     if (S.qte && !all) return true; // taps belong to the interactive beat
     if (!all && S.li < S.seq.length && S.seq[S.li].t0 !== undefined) S.t = Math.max(S.t, S.seq[S.li].t0); else if (!all && !S.qDone) S.t = Math.max(S.t, S.qAt); else { S.skipAll(); Audio.stopVo(); qteUI(null, 'hide'); } return true; }

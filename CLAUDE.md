@@ -891,3 +891,18 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - HUD `#runHud` (`runUI` in the controller: title + progress, lives, pearls, pop words, red edge on a hit); `body.running` hides captions.
 - Owner is preparing Meshy models for the whole cast (prompt given in chat: pip, pip_cousin, shelly, captain_clack, grimtide, murk, lumen,
   mira, snip, snap, bellow, reef_keeper, piranha, jellyfish, crab). When they arrive: a converter like convert_diver.py, keep talking mouths/glow.
+
+## The owner's Meshy cast (static models) + intro fix
+- `python3 tools/convert_cast.py <folder of Meshy_AI_<name>_*.glb> [--preview dir]` → `src/assets/models/cast.js` (`window.AQ_CAST`, ~3.4 MB:
+  i16 positions in the model's box, u16 uvs/indices, WebP base colour 384–640 px; normals are rebuilt in the game and welded across UV seams).
+  Names: pip, pip_cousin→cousin, shelly, captain_clack→clack, crab, murk, lumen, mira, snip, snap, piranha, bellow (grimtide/jellyfish/
+  reef_keeper not used yet: Grimtide's Meshy model is short and wide, not an eel; the Keeper is rigged but only has Running/Walking).
+- `castSwap(g, key, {hold, h, floor, ry, tint, keep})` (World, before makeFish): the builder still makes its procedural rig (now invisible) for
+  the animation hooks and size; the Meshy mesh is fitted to the same world box (largest side, or height with `h`), faces +x (`ry` default π/2;
+  crabs face +z, Clack π). One MeshStandardMaterial per instance (shared geometry + texture in `GEO/TEX['cast_<key>']`, never disposed).
+  `ud.talk(a)` squashes the body for speech (no separate mouths). Cast textures decode in `World.ready` (no black first frame).
+  Builders: makePip (gold = pip, other colours = cousin, tinted), makeTurtle, makeManta, makeWhale, makeOctopus, makeAngler (lure light moved
+  onto the model's lure), makeFish(kind = 'piranha' | 'snip' | 'snap' | null), makeCrab(kind = 'crab' | 'clack' | null), makeClack().
+  dist 11.3 → 14.4 MB. Debug: `World.castDebug()` returns the builders.
+- **Fixed:** leaving the intro by any route (`storyEnd` from startLevel/openHome) now ends it; before, the intro's prologue film stayed alive and
+  kept drawing behind level 1 (geometry count 200 → 550). Films themselves free everything on `storyStop` (checked: back to ~200).
