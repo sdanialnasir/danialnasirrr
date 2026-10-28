@@ -6095,6 +6095,10 @@ window.__T = T;
   // the storm keeps rumbling / ink keeps drifting while you play (never the board, never during the first seconds)
   function condTick(dt) { const c = !dive && LEVEL_COND[levelIdx + 1]; if (c !== 'storm' && c !== 'ink') return; condT += dt; const gap = c === 'storm' ? 13 : 16; if (condT < gap) return; condT = -Math.random() * 4;
     if (c === 'ink') world.storyFx('ink'); else if (Math.random() < 0.6) { world.storyFx('flicker'); Audio.play('thunder'); } else { world.storyFx('quake'); Audio.play('stormWind'); buzz([20, 30, 20]); } }
+  // lights out / dim water: a screen overlay keeps a pool of lamplight around the diver (same on every graphics tier; the board stays readable)
+  let ldOn = -1; function lampDark() { const el = $('#lampDark'); if (!el) return; const c = !dive && engine && (state === 'playing' || state === 'tut') ? LEVEL_COND[levelIdx + 1] : null, k = c === 'dark' ? 0.74 : c === 'dim' ? 0.36 : 0;
+    if (k !== ldOn) { ldOn = k; el.style.opacity = k ? 1 : 0; el.style.setProperty('--ld', k); } if (!k || !world.playerPos) return; const pp = world.playerPos, [x, y] = world.toScreen(pp.x, -pp.y), [x1] = world.toScreen(pp.x + 1, -pp.y), cell = Math.max(24, Math.abs(x1 - x));
+    el.style.setProperty('--lx', x.toFixed(0) + 'px'); el.style.setProperty('--ly', y.toFixed(0) + 'px'); el.style.setProperty('--lr', (cell * 3.4).toFixed(0) + 'px'); }
   function startStory() { if (!storyOn || resultShown) return; const n = levelIdx + 1; let cv = null;
     if (n < LEVELS.length) { const map = LEVELS[n].map, cw = Math.max(1, map[0].length - 2), ch = Math.max(1, map.length - 2); cv = document.createElement('canvas'); cv.width = 720; cv.height = Math.round(720 * Math.min(1.1, Math.max(0.3, ch / cw))); try { levelPhoto(cv, n, false); } catch (er) {} }
     document.body.classList.add('story'); bannerOff();
@@ -6256,6 +6260,7 @@ window.__T = T;
         if (banner.start && ((engine.moveQueue && engine.moveQueue.length) || engine.held)) { banner.start = false; bannerOff(); } // ...and the level-name banner (it sat over the tank)
         { const mv = (engine.moveQueue && engine.moveQueue.length) || engine.held || touch; if (mv) quietAt = now; const q = !!quietAt && now - quietAt < 1200 && (engine.relaxed || engine.oxygen > 15); if (q !== quietOn) { quietOn = q; document.body.classList.toggle('swim', q); } } // quiet HUD while swimming
         undoSync(); // the undo lifeline appears in tight spots and fades a few seconds later
+        lampDark();
         if (slowMo > 0) { slowMo = Math.max(0, slowMo - realDt); acc = 0; } // the world holds its breath for a moment
         if (planHold) { if ((engine.moveQueue && engine.moveQueue.length) || engine.held) { planHold = false; planJob++; HINT.busy = false; $('#btnHint').classList.remove('busy'); } else acc = 0; }
         if (undoHold) { if ((engine.moveQueue && engine.moveQueue.length) || engine.held) undoHold = false; else acc = 0; }
