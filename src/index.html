@@ -1864,6 +1864,21 @@ html body:is(.ui-art, :not(.ui-art)) .kit.k-cond { background: linear-gradient(1
 #breathCue.on { opacity: 1; animation: bcPulse 1.2s ease-in-out infinite; }
 @keyframes bcUp { 50% { transform: translateY(-0.25rem); } } @keyframes bcPulse { 50% { box-shadow: 0 0 1.6rem rgba(120, 240, 255, 0.95); } }
 @media (prefers-reduced-motion: reduce) { #breathCue.on, #breathCue i { animation: none; } }
+
+/* the clam song mini-game: four shells, round dots, a status line */
+#simon { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 5vh); transform: translateX(-50%) translateY(1rem); z-index: 61; display: grid; justify-items: center; gap: 0.55rem;
+  padding: 0.9rem 1.2rem 1rem; border-radius: 1.4rem; background: linear-gradient(180deg, rgba(30, 50, 130, 0.92), rgba(12, 22, 70, 0.94)); border: 2px solid rgba(190, 170, 255, 0.7); box-shadow: 0 0 0 2px #0a1238, 0 0.8rem 2rem rgba(0, 0, 0, 0.45); opacity: 0; transition: opacity .25s, transform .35s cubic-bezier(.2,1.5,.4,1); }
+#simon.on { opacity: 1; transform: translateX(-50%); }
+#simon > b { font-family: var(--display); font-size: 1.2rem; color: #ffe08a; }
+#simon .sm-r { display: flex; gap: 0.4rem; } #simon .sm-r i { width: 0.7rem; height: 0.7rem; border-radius: 50%; background: rgba(255, 255, 255, 0.2); transition: background .3s; } #simon .sm-r i.on { background: #ffe08a; box-shadow: 0 0 0.6rem #ffe08a; }
+#simon .sm-k { display: flex; gap: clamp(0.6rem, 3vw, 1.2rem); }
+#simon .sm-k button { position: relative; width: clamp(3.6rem, 15vw, 5rem); height: clamp(3.6rem, 15vw, 5rem); border-radius: 50% 50% 46% 46%; border: 3px solid rgba(255, 255, 255, 0.55); cursor: pointer;
+  background: radial-gradient(circle at 50% 38%, #fff 0 12%, var(--c) 13% 55%, color-mix(in srgb, var(--c) 55%, #10183a) 100%); box-shadow: 0 0.3rem 0 rgba(0, 0, 0, 0.35); transition: transform .1s, filter .15s; filter: brightness(0.75) saturate(0.8); }
+#simon.input .sm-k button { filter: brightness(0.95); } #simon .sm-k button:active { transform: translateY(0.15rem) scale(0.96); }
+#simon .sm-k button.lit { animation: smLit .45s ease-out; } @keyframes smLit { 0% { filter: brightness(1.8) saturate(1.2); transform: scale(1.12); box-shadow: 0 0 2rem var(--c); } 100% { filter: brightness(0.95); transform: none; } }
+#simon .sm-k kbd { position: absolute; right: -0.2rem; bottom: -0.3rem; font: 800 0.7rem/1 var(--text, Nunito, sans-serif); color: #fff; background: rgba(10, 20, 60, 0.85); border-radius: 0.3rem; padding: 0.15rem 0.3rem; }
+#simon .sm-st { font-weight: 900; font-size: 0.95rem; color: #e8f0ff; letter-spacing: 0.04em; } #simon.listen .sm-st { color: #c9b8ff; }
+#simon.bad { animation: qtLose .45s ease-out; }
 </style>
 </head>
 <body data-state="splash">
@@ -2170,6 +2185,7 @@ html body:is(.ui-art, :not(.ui-art)) .kit.k-cond { background: linear-gradient(1
 </section>
 
 <div id="sfx" aria-hidden="true"></div><div id="cutBars" aria-hidden="true"><i></i><i></i></div>
+<div id="simon" hidden aria-live="polite"><b></b><div class="sm-r"></div><div class="sm-k"></div><small class="sm-st"></small></div>
 <div id="runHud" hidden aria-live="polite"><div class="rh-top"><b class="rh-t"></b><i class="rh-bar"><i></i></i></div><div class="rh-lives"></div><div class="rh-sc"><i></i><b class="rh-n">0</b></div><div class="rh-hint"></div><div class="rh-pop"></div></div>
 <div id="choice" hidden aria-live="assertive"><b></b><div class="ch-opts"></div><i class="ch-tm" aria-hidden="true"></i></div>
 <div id="qte" hidden aria-live="assertive"><div class="qt-ring"><i></i></div><b></b><small></small></div>

@@ -29,7 +29,7 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 | 9 | The Torn Map | hope ↑ |  |
 | 10 | The Edge of the Shallows | courage ↑ | Escape Snip & Snap! (run) |
 | 11 | Voices in the Caves | menace ↓ | Answer Grimtide (choice) |
-| 12 | The Silent Clam | bittersweet |  |
+| 12 | The Silent Clam | bittersweet | Sing the Keeper’s song! (simon) |
 | 13 | The Dark Storm | danger ↓↓ | Get everyone through the storm! (run) |
 | 14 | Rest, Old Friend | grief ↓↓ | Promise Shelly (choice) |
 | 15 | Mira | hope ↑ | Ride the canyon with Mira! (run) |
@@ -234,6 +234,7 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 - `s12_1` *Giant clams open, one by one, and sing the Keeper’s old song.*
 - `s12_2` **The Clam Choir:** “Share your light, and the light comes home…”
 - `s12_3` *But the last clam stays shut. Grimtide stole its pearl, and its song.*
+- ▶ **Sing the Keeper’s song!** (simon) — in time: **The Clam Choir:** “…and the light comes home!” / The last clam opens. Its song comes back, and so does its pearl. — missed: The last clam stays shut… but deep inside, something hums along.
 - `s12_4` **Shelly:** Remember that tune, little ones. You’ll need it soon.
 
 ### Level 13: The water is going dark. Something huge is coming.

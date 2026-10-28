@@ -1864,6 +1864,21 @@ html body:is(.ui-art, :not(.ui-art)) .kit.k-cond { background: linear-gradient(1
 #breathCue.on { opacity: 1; animation: bcPulse 1.2s ease-in-out infinite; }
 @keyframes bcUp { 50% { transform: translateY(-0.25rem); } } @keyframes bcPulse { 50% { box-shadow: 0 0 1.6rem rgba(120, 240, 255, 0.95); } }
 @media (prefers-reduced-motion: reduce) { #breathCue.on, #breathCue i { animation: none; } }
+
+/* the clam song mini-game: four shells, round dots, a status line */
+#simon { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 5vh); transform: translateX(-50%) translateY(1rem); z-index: 61; display: grid; justify-items: center; gap: 0.55rem;
+  padding: 0.9rem 1.2rem 1rem; border-radius: 1.4rem; background: linear-gradient(180deg, rgba(30, 50, 130, 0.92), rgba(12, 22, 70, 0.94)); border: 2px solid rgba(190, 170, 255, 0.7); box-shadow: 0 0 0 2px #0a1238, 0 0.8rem 2rem rgba(0, 0, 0, 0.45); opacity: 0; transition: opacity .25s, transform .35s cubic-bezier(.2,1.5,.4,1); }
+#simon.on { opacity: 1; transform: translateX(-50%); }
+#simon > b { font-family: var(--display); font-size: 1.2rem; color: #ffe08a; }
+#simon .sm-r { display: flex; gap: 0.4rem; } #simon .sm-r i { width: 0.7rem; height: 0.7rem; border-radius: 50%; background: rgba(255, 255, 255, 0.2); transition: background .3s; } #simon .sm-r i.on { background: #ffe08a; box-shadow: 0 0 0.6rem #ffe08a; }
+#simon .sm-k { display: flex; gap: clamp(0.6rem, 3vw, 1.2rem); }
+#simon .sm-k button { position: relative; width: clamp(3.6rem, 15vw, 5rem); height: clamp(3.6rem, 15vw, 5rem); border-radius: 50% 50% 46% 46%; border: 3px solid rgba(255, 255, 255, 0.55); cursor: pointer;
+  background: radial-gradient(circle at 50% 38%, #fff 0 12%, var(--c) 13% 55%, color-mix(in srgb, var(--c) 55%, #10183a) 100%); box-shadow: 0 0.3rem 0 rgba(0, 0, 0, 0.35); transition: transform .1s, filter .15s; filter: brightness(0.75) saturate(0.8); }
+#simon.input .sm-k button { filter: brightness(0.95); } #simon .sm-k button:active { transform: translateY(0.15rem) scale(0.96); }
+#simon .sm-k button.lit { animation: smLit .45s ease-out; } @keyframes smLit { 0% { filter: brightness(1.8) saturate(1.2); transform: scale(1.12); box-shadow: 0 0 2rem var(--c); } 100% { filter: brightness(0.95); transform: none; } }
+#simon .sm-k kbd { position: absolute; right: -0.2rem; bottom: -0.3rem; font: 800 0.7rem/1 var(--text, Nunito, sans-serif); color: #fff; background: rgba(10, 20, 60, 0.85); border-radius: 0.3rem; padding: 0.15rem 0.3rem; }
+#simon .sm-st { font-weight: 900; font-size: 0.95rem; color: #e8f0ff; letter-spacing: 0.04em; } #simon.listen .sm-st { color: #c9b8ff; }
+#simon.bad { animation: qtLose .45s ease-out; }
 </style>
 </head>
 <body data-state="splash">
@@ -2170,6 +2185,7 @@ html body:is(.ui-art, :not(.ui-art)) .kit.k-cond { background: linear-gradient(1
 </section>
 
 <div id="sfx" aria-hidden="true"></div><div id="cutBars" aria-hidden="true"><i></i><i></i></div>
+<div id="simon" hidden aria-live="polite"><b></b><div class="sm-r"></div><div class="sm-k"></div><small class="sm-st"></small></div>
 <div id="runHud" hidden aria-live="polite"><div class="rh-top"><b class="rh-t"></b><i class="rh-bar"><i></i></i></div><div class="rh-lives"></div><div class="rh-sc"><i></i><b class="rh-n">0</b></div><div class="rh-hint"></div><div class="rh-pop"></div></div>
 <div id="choice" hidden aria-live="assertive"><b></b><div class="ch-opts"></div><i class="ch-tm" aria-hidden="true"></i></div>
 <div id="qte" hidden aria-live="assertive"><div class="qt-ring"><i></i></div><b></b><small></small></div>
@@ -4779,11 +4795,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           for (int i = 0; i < 64; i++) { if (float(i) >= n) break; uv -= d; acc += src(uv) * w; tot += w; w *= 0.965; }
           float a = acc / tot; float flick = 0.85 + 0.15 * sin(time * 0.6 + vUv.x * 9.0);
           gl_FragColor = vec4(vec3(0.85, 0.97, 1.0) * a * flick, 1.0); }`);
-      this.compMat = M({ tScene: { value: this.main.texture }, tBloom: { value: null }, tRays: { value: null }, strength: { value: this.strength }, rays: { value: 0 }, lens: { value: 0 }, aspect: { value: 1 }, time: { value: 0 }, night: { value: 0 }, vig: { value: 0 } },
-        `uniform sampler2D tScene, tBloom, tRays; uniform float strength, rays, lens, aspect, time, night, vig; varying vec2 vUv;
+      this.compMat = M({ tScene: { value: this.main.texture }, tBloom: { value: null }, tRays: { value: null }, strength: { value: this.strength }, rays: { value: 0 }, lens: { value: 0 }, aspect: { value: 1 }, time: { value: 0 }, night: { value: 0 }, vig: { value: 0 }, expo: { value: 1 } },
+        `uniform sampler2D tScene, tBloom, tRays; uniform float strength, rays, lens, aspect, time, night, vig, expo; varying vec2 vUv;
         vec3 safe(vec3 c){ return (any(isnan(c)) || any(isinf(c))) ? vec3(0.0) : clamp(c, 0.0, 32.0); }
-        void main(){ vec3 c = safe(texture2D(tScene, vUv).rgb); vec3 b = safe(texture2D(tBloom, vUv).rgb);
-          if (lens > 0.0) { vec2 dv = (vUv - 0.5) * lens * 0.0012 * dot(vUv - 0.5, vUv - 0.5) * 4.0; c.r = safe(texture2D(tScene, vUv + dv).rgb).r; c.b = safe(texture2D(tScene, vUv - dv).rgb).b; } // faint chromatic fringe at the edges
+        void main(){ vec3 c = safe(texture2D(tScene, vUv).rgb) * expo; vec3 b = safe(texture2D(tBloom, vUv).rgb) * expo; /* exposure (the films even out their brightness with it) */
+          if (lens > 0.0) { vec2 dv = (vUv - 0.5) * lens * 0.0012 * dot(vUv - 0.5, vUv - 0.5) * 4.0; c.r = safe(texture2D(tScene, vUv + dv).rgb).r * expo; c.b = safe(texture2D(tScene, vUv - dv).rgb).b * expo; } // faint chromatic fringe at the edges
           // the intro's night grade: a moonlit split-tone (inky indigo shadows, teal mid-tones, silver highlights, a moon glow pouring in
           // from the surface) instead of a flat blue wash; real lights (pearl-lights, lamp, lightning) keep shining and bloom more
           if (night > 0.0) { vec3 hi = max(c - 1.0, 0.0); float ln = dot(c, vec3(0.2126, 0.7152, 0.0722));
@@ -5094,7 +5110,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     {"t": "The Torn Map", "r": "dune", "a": "drop", "L": [["pip", "Look! The torn piece of the map! It blew all the way here!", "hop", "happy"], ["you", "It only shows one gate. On the edge of a cliff."], ["clack", "Cliffs. Of course it’s cliffs. Crabs and cliffs have a long and painful history.", "shake", "wide"], ["", "Behind the dune, ink hangs in the water. Fresh ink."]]},
     {"t": "The Edge of the Shallows", "r": "descent", "a": "drop", "L": [["pip", "That's the Coral Caves down there. Maybe we take the stairs?", "shake", "wide"], ["snip", "Ooh, look, Snap! Little light wants to take the STAIRS!", "laugh", "happy"], ["snap", "There are no stairs. There’s only US.", "", "angry"], ["clack", "Crabs… don’t… fall… WELLLLL!", "", "sad"]], "Q": {"at": 3, "kind": "run", "v": "dive", "dur": 22, "label": "Escape Snip & Snap!", "ok": [["pip", "We lost them! Did we lose them? WE LOST THEM!", "hop", "happy"], ["snip", "This isn't over, little light! …Snap, which way is up?", "", "angry"]], "no": [["pip", "Ow! Ow! They nibbled my tail! …But we're alive! Mostly!", "shake", "wide"], ["snap", "Next time, little light. NEXT TIME.", "", "sad"]]}},
     {"t": "Voices in the Caves", "r": "crystals", "a": "bubble", "w": 1, "L": [["grimtide", "Welcome to my caves, little light. Mind the echo. It's ME."], ["pip", "He can see us! Spark, he can SEE us!", "shake", "wide"], ["grimtide", "Every crystal you light shows me where you are. Shine away."], ["clack", "Crew! We came to pinch, and pinch we shall!", "salute", "happy"]], "Q": {"at": 3, "kind": "choice", "label": "Answer Grimtide", "opts": [["brave", "Then we'll light them ALL.", [["you", "Then we'll light every single one.", "", "angry"], ["grimtide", "…Bold. I like bold. Bold tastes better.", "", "angry"]]], ["funny", "Do you always talk this much?", [["you", "Do you always talk this much in caves?", "", "happy"], ["grimtide", "I… That is… how RUDE.", "", "angry"]]], ["kind", "Stay close, Pip.", [["you", "Stay close, Pip. He's just trying to scare you."], ["pip", "It's working. But… okay. Closer.", "nod"]]]]}},
-    {"t": "The Silent Clam", "r": "clams", "a": "swirl", "w": 1, "L": [["", "Giant clams open, one by one, and sing the Keeper’s old song."], ["choir", "“Share your light, and the light comes home…”"], ["", "But the last clam stays shut. Grimtide stole its pearl, and its song.", "", "sad"], ["shelly", "Remember that tune, little ones. You’ll need it soon.", "", "happy"]]},
+    {"t": "The Silent Clam", "r": "clams", "a": "swirl", "w": 1, "L": [["", "Giant clams open, one by one, and sing the Keeper’s old song."], ["choir", "“Share your light, and the light comes home…”"], ["", "But the last clam stays shut. Grimtide stole its pearl, and its song.", "", "sad"], ["shelly", "Remember that tune, little ones. You’ll need it soon.", "", "happy"]], "Q": {"at": 3, "kind": "simon", "label": "Sing the Keeper’s song!", "rounds": [3, 4, 5], "ok": [["choir", "“…and the light comes home!”"], ["", "The last clam opens. Its song comes back, and so does its pearl.", "", "happy"]], "no": [["", "The last clam stays shut… but deep inside, something hums along."]]}},
     {"t": "The Dark Storm", "r": "storm", "a": "drop", "w": 1, "L": [["", "The water goes black. The storm has found you."], ["grimtide", "Thirteen gates, little light? Thirteen too many!", "", "angry"], ["shelly", "Everyone behind my shell! NOW!"], ["", "Shelly takes the whole blow… and sinks, slowly, to the sand.", "", "sad"], ["grimtide", "One down.", "", "angry"]], "Q": {"at": 3, "kind": "run", "v": "storm", "dur": 24, "label": "Get everyone through the storm!", "ok": [["you", "I've got you, Pip! Don't let go!"], ["pip", "I'm holding! I'm holding! Where's Shelly?!", "", "wide"]], "no": [["pip", "Spark! I can't hold on!", "", "wide"], ["you", "Shelly! Where are you?!"]]}},
     {"t": "Rest, Old Friend", "r": "shellyrest", "a": "bubble", "w": 1, "L": [["pip", "Shelly? Shelly, please wake up…", "droop", "sad"], ["shelly", "Hush. My shell has survived worse. Clack’s singing, for one.", "", "sad"], ["shelly", "But I can't swim on. Promise me you'll wake every gate. Every last one.", "", "sad"], ["clack", "Go. I’ll stand guard. Nobody touches this turtle while Clack has claws.", "salute", "happy"]], "Q": {"at": 3, "kind": "choice", "label": "Promise Shelly", "opts": [["brave", "I promise. Then I'm coming back.", [["you", "I promise. And then I'm coming back for you."], ["shelly", "I’ll hold you to that.", "nod", "sad"]]], ["funny", "Promise. You owe me a story.", [["you", "Promise. But you owe me a bedtime story.", "", "sad"], ["shelly", "Deal. It’s a long one. Two hundred years.", "laugh", "happy"]]], ["kind", "Rest, Shelly. We've got this.", [["you", "Rest, Shelly. We've got this.", "", "sad"], ["shelly", "I know you do. That’s why I can rest.", "nod", "sad"]]]]}},
     {"t": "Mira", "r": "manta", "a": "drop", "w": 1, "L": [["mira", "I am Mira. The currents carried me a message from an old turtle."], ["mira", "“Don’t look back. Tell them I’m proud. And tell the crab to stop fussing.”"], ["pip", "That's definitely Shelly.", "laugh", "happy"], ["mira", "Climb on. The canyon is wide, and grief is heavy. I will carry both.", "", "happy"]], "Q": {"at": 4, "kind": "run", "v": "ride", "dur": 26, "label": "Ride the canyon with Mira!", "ok": [["pip", "WHEEEE! Again! AGAIN! Shelly would have LOVED that!", "spin", "happy"], ["mira", "You fly like a manta, little one. She would be proud.", "", "happy"]], "no": [["pip", "I think I swallowed a jellyfish. Is that bad? It feels bad.", "shake", "wide"], ["mira", "The canyon is rough tonight. Hold on tight. We are almost there."]]}},
@@ -5225,7 +5241,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   // 12: a choir of giant clams opens one after another; the diver claps along
   RECIPES.clams = { dur: 6.8, set: { dark: 0.3 }, setup(S, c) { c.cl = []; for (let i = 0; i < 5; i++) { const g = S.add(makeClam([0xc59ae8, 0xf0a0c8, 0x9ad0f0][i % 3])); const a = -0.9 + i * 0.45; g.position.set(Math.sin(a) * 2.6, 0, -1.2 - Math.cos(a) * 1.6); g.rotation.y = -a + Math.PI / 2; g.scale.setScalar(1.1); c.cl.push(g); c.rung = c.rung || []; }
       S.tankAt(4.4, -11, -0.3); S.clear.push([0, -1, 3.2]); },
-    run(S, c, t) { c.cl.forEach((g, i) => { const k = sm01((t - 0.8 - i * 0.55) / 0.35) * (0.85 + 0.15 * Math.sin(S.time * 4 + i)); g.userData.setOpen(k); if (k > 0.5 && !c.rung[i] && !S.probe) { c.rung[i] = true; try { Audio.pearl(i); } catch (er) {} } });
+    run(S, c, t) { c.cl.forEach((g, i) => { const k = (i < 4 || c.woke ? sm01((t - 0.8 - i * 0.55) / 0.35) : 0) * (0.85 + 0.15 * Math.sin(S.time * 4 + i)); g.userData.setOpen(k); if (k > 0.5 && !c.rung[i] && !S.probe) { c.rung[i] = true; try { Audio.pearl(i); } catch (er) {} } });
       const p = new V3(0, 0.5 + (t > 4 ? Math.abs(Math.sin(t * 4)) * 0.06 : 0), 0.6), f = t < 4.6 ? new V3(0, 0, -1) : new V3(0.25, 0, -1).normalize(); S.dv(p, f);
       S.cam(K(t, [[0, [0.3, 2.2, 4.2]], [4.0, [1.6, 1.2, 3.2]], [6.8, [2.0, 1.0, 2.6]]]), K(t, [[0, [0, 0.4, -1.5]], [4.0, [0, 0.6, -1.2]], [6.8, [1.8, 0.9, -4]]]));
       return { mode: 'stand', arms: t > 3.6 ? 'clap' : null, armK: sm01((t - 3.7) / 0.3), face: f }; } };
@@ -5644,6 +5660,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.scene.traverse(o => { if (o.isSprite && o.material && o.material.map === TEX.dot && !this.mats.includes(o.material) && o.material !== MAT.runPearl) this.mats.push(o.material); if ((o.isMesh || o.isPoints) && o.geometry && o.geometry !== GEO.runPearl && !Object.values(GEO).includes(o.geometry) && !this.own.includes(o.geometry)) this.own.push(o.geometry); });
       for (const x of this.own) x.dispose && x.dispose(); for (const m of this.mats) m.dispose(); }
   }
+  // each film's exposure, measured (mean brightness of every line's frame) and evened out toward a target per world: shallows 145, caves 122, the Deep 104
+  const FILM_EXPO = [1.25, 0.99, 0.87, 0.84, 0.82, 0.99, 0.88, 1.23, 0.84, 0.79, 0.86, 0.85, 0.88, 1.34, 1.12, 1.0, 1.7, 0.95, 1.41, 0.8, 1.39, 1.44, 1.29, 1.47, 1.66, 1.07, 1.83, 1.44, 1.47, 1.6, 1.08];
   class Story {
     constructor(world, o) { this.world = world; this.o = o; this.t = 0; this.frozen = false; this.ch = o.ch || CHAPTERS[1]; this.rc = RECIPES[this.ch.r] || RECIPES.pipe; this.dur = this.rc.dur;
       this.n = o.n ?? 1; this.Q = this.ch.Q || null; this.qte = null; this.qDone = !this.Q; this.li = 0; this.shot = null; this.camCur = null; this.look = new V3();
@@ -5699,15 +5717,20 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       for (const l of L) if (t < l.t1) return l.r0 + (l.r1 - l.r0) * Math.max(0, (t - l.t0) / (l.t1 - l.t0));
       return this.qDone ? this.dur : this.rQ; }
     // ---- interactive beats: tap (fill the bar), hold, swipe. The film runs at 15% meanwhile; 6.5 s without success = the other outcome
-    qteStart() { const Q = this.Q; this.qte = { kind: Q.kind, n: Q.n || 8, el: 0, prog: 0, r: this.rQ, down: false }; if (Q.kind === 'run') { try { this.run = new StoryRun(this, Q); } catch (er) { console.warn(er); this.run = null; } } if (this.o.onQte) this.o.onQte(Q, 'start'); }
-    qteIn(type, key) { const q = this.qte; if (!q || this.frozen) return; if (q.kind === 'run') { if (this.run && (type === 'drag' || type === 'key')) this.run.input(type, key); return; } if (q.kind === 'choice') { if (type === 'pick') this.qteEnd(true, key); return; } if (type === 'down') { q.down = true; if (q.kind === 'tap') q.prog += 1 / q.n; else if (q.kind === 'swipe') q.prog += 0.34; }
+    qteStart() { const Q = this.Q; this.qte = { kind: Q.kind, n: Q.n || 8, el: 0, prog: 0, r: this.rQ, down: false };
+      if (Q.kind === 'simon') { const R = Q.rounds || [3, 4, 5], seq = []; for (let i = 0; i < R[R.length - 1]; i++) { let v; do v = Math.random() * 4 | 0; while (i && v === seq[i - 1] && Math.random() < 0.6); seq.push(v); }
+        this.simon = { R, seq, r: 0, pos: 0, phase: 'wait', t: 0.9, show: 0, miss: 0, lit: [0, 0, 0, 0] }; } if (Q.kind === 'run') { try { this.run = new StoryRun(this, Q); } catch (er) { console.warn(er); this.run = null; } } if (this.o.onQte) this.o.onQte(Q, 'start'); }
+    qteIn(type, key) { const q = this.qte; if (!q || this.frozen) return; if (q.kind === 'simon') { const G = this.simon; if (type !== 'note' || !G || G.phase !== 'input') return; const i = key | 0; G.lit[i] = 1; Audio.pearl(i + 1);
+        if (G.seq[G.pos] === i) { G.pos++; if (this.o.onQte) this.o.onQte(this.Q, 'hit', { i, pos: G.pos, len: G.R[G.r] }); if (G.pos >= G.R[G.r]) { G.r++; if (G.r >= G.R.length) { G.phase = 'done'; G.t = 0.7; } else { G.phase = 'wait'; G.t = 1.0; if (this.o.onQte) this.o.onQte(this.Q, 'round', { r: G.r, of: G.R.length }); } } }
+        else { G.miss++; if (this.o.onQte) this.o.onQte(this.Q, 'miss', { miss: G.miss }); if (G.miss >= 2) { G.phase = 'fail'; G.t = 0.7; } else { G.phase = 'wait'; G.t = 1.1; } } return; }
+      if (q.kind === 'run') { if (this.run && (type === 'drag' || type === 'key')) this.run.input(type, key); return; } if (q.kind === 'choice') { if (type === 'pick') this.qteEnd(true, key); return; } if (type === 'down') { q.down = true; if (q.kind === 'tap') q.prog += 1 / q.n; else if (q.kind === 'swipe') q.prog += 0.34; }
       else if (type === 'up') q.down = false; else if (type === 'swipe') q.prog = 1; if (q.kind !== 'hold' && q.prog >= 1) return this.qteEnd(true); if (this.o.onQte) this.o.onQte(this.Q, 'prog', q.prog); }
     qteEnd(ok, key) { const q = this.qte; if (!q) return; if (this.run) { key = this.run.stats(); this.run.dispose(); this.run = null; } this.qte = null; this.qDone = true; this.qOk = ok; const n = this.n, from = this.seq.length, Q = this.Q;
       if (Q.kind === 'choice') { if (!key || !Q.opts.some(o => o[0] === key)) key = Q.opts.some(o => o[0] === this.trait) ? this.trait : Q.opts[0][0]; this.qKey = key; // no answer in time: what this player would say
         this.seq.push(...this.qLines(key).map((l, j) => this.mkLine(l, `s${n}_c${key}_${j + 1}`)), ...this.seqTail); }
       else this.seq.push(...this.qLines(ok).map((l, j) => this.mkLine(l, `s${n}_${ok ? 'ok' : 'no'}${j + 1}`)), ...this.seqTail);
       this.plan(from, this.t + 0.25, q.r); if (this.o.onQte) this.o.onQte(Q, ok ? 'ok' : 'no', key); }
-    skipAll() { if (!this.qDone) { if (!this.qte) this.qte = { kind: this.Q.kind, n: 1, el: 0, prog: 0, r: this.rQ }; this.qteEnd(false); } this.t = Math.max(this.t, this.T - 0.05); this.li = this.capI = this.seq.length; if (this.o.onCap) this.o.onCap(null); }
+    skipAll() { this.simon = null; if (!this.qDone) { if (!this.qte) this.qte = { kind: this.Q.kind, n: 1, el: 0, prog: 0, r: this.rQ }; this.qteEnd(false); } this.t = Math.max(this.t, this.T - 0.05); this.li = this.capI = this.seq.length; if (this.o.onCap) this.o.onCap(null); }
     companions() { if (!this.comp || !this.comp.length) return; const f = this.face || new V3(1, 0, 0), up = new V3(0, 1, 0), r = new V3().crossVectors(f, up).normalize(), h = this.hold.position, tm = this.time;
       const sp = this.shot && this.t < this.shot.l.t1 ? this.shot.who : '', cam = this.cam0.position;
       for (const k of this.comp) { const o = this.c[k]; let d = new V3().subVectors(cam, o.position).setY(0).normalize(), talking = sp === k;
@@ -5788,12 +5811,17 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         case 'clap': { const c = 0.5 + 0.5 * Math.sin(t * 9); pose(R, 1, 0.2, 0.8, 0.3, 0.3, 0.8, -0.35 * c); pose(L, -1, 0.2, 0.8, 0.3, 0.3, 0.8, -0.35 * c); break; }
         case 'offer': pose(R, 1, 0.2, 0.9, 0.15, 0.6, 0.7, 0); pose(L, -1, 0.2, 0.9, 0.15, 0.6, 0.7, 0); break;
         case 'grip': pose(R, 1, -0.6, 0.6, 0.45, -0.3, 0.8, 0.1); pose(L, -1, -0.6, 0.6, 0.45, -0.3, 0.8, 0.1); break; } }
+    simonTick(dt) { const G = this.simon; if (!G) return; G.t -= dt; for (let i = 0; i < 4; i++) G.lit[i] = Math.max(0, G.lit[i] - dt * 2.2);
+      if (G.phase === 'wait' && G.t <= 0) { G.phase = 'show'; G.show = 0; G.pos = 0; G.t = 0; if (this.o.onQte) this.o.onQte(this.Q, 'listen', { r: G.r, of: G.R.length }); }
+      else if (G.phase === 'show' && G.t <= 0) { if (G.show < G.R[G.r]) { const i = G.seq[G.show++]; G.lit[i] = 1; Audio.pearl(i + 1); if (this.o.onQte) this.o.onQte(this.Q, 'note', { i }); G.t = Math.max(0.42, 0.62 - G.r * 0.06); } else { G.phase = 'input'; if (this.o.onQte) this.o.onQte(this.Q, 'input', {}); } }
+      else if ((G.phase === 'done' || G.phase === 'fail') && G.t <= 0) { const ok = G.phase === 'done'; if (ok && this.c) this.c.woke = true; this.simon = null; this.qteEnd(ok); return; }
+      if (this.c && this.c.cl) this.c.cl.forEach((g, i) => { if (i < 4 && G.lit[i] > 0) { g.userData.setOpen(Math.max(0.75, G.lit[i])); if (g.userData.pg) g.userData.pg.material.opacity = 0.3 + 0.7 * G.lit[i]; } }); }
     update(dt) { if (this.run && this.qte) { const r = this.run.update(Math.min(dt, 0.05)); if (r) this.qteEnd(r === 'ok'); return; } // a playable action scene: the film waits
-      const sl = this.qte ? 0.15 : 1; if (!this.frozen) { this.t += dt * sl; this.time += dt * sl; } const t = this.t;
+      const sl = this.qte ? (this.qte.kind === 'simon' ? 0 : 0.15) : 1; if (!this.frozen) { this.t += dt * sl; this.time += dt * sl; } const t = this.t;
       if (this._tb) { const b = this._tb; b.o.position.y -= b.dy; b.o.rotation.z -= b.rz; b.o.rotation.y -= b.ry; this._tb = null; }
-      if (this.qte && !this.frozen) { const q = this.qte; q.el += dt; q.r = Math.min(this.dur, q.r + dt * 0.22); if (q.kind === 'hold') { q.prog = Math.max(0, Math.min(1, q.prog + (q.down ? dt / 1.3 : -dt * 0.3))); if (this.o.onQte) this.o.onQte(this.Q, 'prog', q.prog); if (q.prog >= 1) this.qteEnd(true); } if (this.qte && q.el > (q.kind === 'choice' ? 9 : 6.5)) this.qteEnd(false); }
+      if (this.qte && !this.frozen) { const q = this.qte; q.el += dt; q.r = Math.min(this.dur, q.r + dt * 0.22); if (q.kind === 'hold') { q.prog = Math.max(0, Math.min(1, q.prog + (q.down ? dt / 1.3 : -dt * 0.3))); if (this.o.onQte) this.o.onQte(this.Q, 'prog', q.prog); if (q.prog >= 1) this.qteEnd(true); } if (this.qte && q.kind !== 'simon' && q.el > (q.kind === 'choice' ? 9 : 6.5)) this.qteEnd(false); }
       if (!this.frozen && !this.qDone && !this.qte && t >= this.qAt) this.qteStart();
-      const st = this.rc.run(this, this.c, this.rtAt(this.t)) || {}; this.st = st; this.companions();
+      const st = this.rc.run(this, this.c, this.rtAt(this.t)) || {}; this.st = st; this.companions(); if (this.simon && this.qte) this.simonTick(dt);
       if (this.u.glb && !this.frozen) { const m = st.mode || 'stand', sw = m === 'swim' || m === 'walk' ? 1 : 0, fl = m === 'walk' || m === 'stand' ? 1 : 0;
         glbDrive(this.u, dt, { reach: 0, push: 0, dig: 0, swim: sw, floor: fl, speed: Math.abs(st.speed || (sw ? 1.4 : 0)), pushing: false }); this.arms(st); }
       if (!this.frozen && t >= this.T) { this.frozen = true; if (this.o.onCap) this.o.onCap(null); if (this.o.onFreeze) this.o.onFreeze(); }
@@ -5821,7 +5849,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         const fov = (q ? (this.port ? 40 : 28) : (this.port ? 62 : 44)) * (1 - 0.09 * pk), c = this.cam0; if (Math.abs(c.fov - fov) > 0.01) { c.fov = fov; c.updateProjectionMatrix(); }
         this.tremble = Math.max(0, (this.tremble || 0) - dt); if (this.tremble > 0) { const k = 0.012 * this.tremble; c.position.x += (Math.random() - 0.5) * k; c.position.y += (Math.random() - 0.5) * k; } }
       if (!q) this.camCur = null;
-      if (this.qte && this.qte.kind !== 'choice') { const k = 0.02 + 0.03 * this.qte.prog; this.cam0.position.x += (Math.random() - 0.5) * k; this.cam0.position.y += (Math.random() - 0.5) * k; }
+      if (this.qte && this.qte.kind !== 'choice' && this.qte.kind !== 'simon') { const k = 0.02 + 0.03 * this.qte.prog; this.cam0.position.x += (Math.random() - 0.5) * k; this.cam0.position.y += (Math.random() - 0.5) * k; }
       // the speaker talks: a little bob and sway (Grimtide's jaw works instead)
       if (this._mouth) { this._mouth.visible = false; this._mouth = null; } if (this._jaw) { this._jaw.rotation.z = -0.15; this._jaw = null; } if (this._talk) { this._talk.talk(0); this._talk = null; }
       const spk = sh && sh.who && !this.frozen && t < sh.l.t1 ? (q || this.castOf(sh.who)) : null; // the speaker talks in every shot, close or wide
@@ -5841,7 +5869,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         for (const h of hits) { const o = h.object, m = o.material; if (!o.isMesh || own(o) || !m || m.side === THREE.BackSide || (m.transparent && (m.opacity ?? 1) < 0.35) || m.blending === THREE.AdditiveBlending) continue;
           let vis = true; for (let a = o; a; a = a.parent) if (!a.visible) { vis = false; break; } if (vis) return false; } } return true; }
     // the last second slides the picture aside for the card (right on wide screens, bottom on phones)
-    render(post) { if (this.run) { if (post.compMat) post.compMat.uniforms.night.value = 0; this.cam0.clearViewOffset(); post.render(this.run.scene, this.run.cam, this.world.time); return; }
+    render(post) { { const ex = FILM_EXPO[this.n] || 1; if (post.compMat) post.compMat.uniforms.expo.value = this.run ? 1 : ex; this.world.renderer.toneMappingExposure = this.run ? 1 : ex; } if (this.run) { if (post.compMat) post.compMat.uniforms.night.value = 0; this.cam0.clearViewOffset(); post.render(this.run.scene, this.run.cam, this.world.time); return; }
       if (this.set.night && post.compMat) post.compMat.uniforms.night.value = this.nightK ?? this.set.night; /* the moonlit night grade */ const w = innerWidth, h = innerHeight, c = this.cam0, k = sm01((this.t - (this.T - 1.1)) / 1.0); if (k > 0) { if (this.port) c.setViewOffset(w, h, 0, h * 0.26 * k, w, h); else c.setViewOffset(w, h, w * 0.13 * k, 0, w, h); } else c.clearViewOffset();
       post.render(this.scene, c, this.world.time); }
     dispose() { if (this.run) { this.run.dispose(); this.run = null; } this.scene.traverse(o => { if ((o.isMesh || o.isPoints || o.isSprite) && o.geometry && !Object.values(GEO).includes(o.geometry)) o.geometry.dispose();
@@ -7228,7 +7256,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (M.glowT > 0) { M.glowT -= dt; if (M.pip && M.pip.userData.setGlow) M.pip.userData.setGlow(Math.min(1, (M.m.pip || 0.3) + M.glowT)); }
       if (M.eyes) M.eyes.forEach(g => { const c = (t + g.userData.ph) % 16, k = c > 10 && c < 14 ? Math.sin((c - 10) / 4 * Math.PI) : 0, blink = Math.abs(Math.sin((c - 12) * 3)) < 0.15 ? 0.2 : 1; g.children.forEach(sp => { sp.material.opacity = k * blink * M.m.eyes; }); }); }
     storyStart(o) { this.storyStop(); this.story = new Story(this, o); this.story.update(0); }
-    storyStop() { if (!this.story) return; this.story.dispose(); this.story = null; }
+    storyStop() { if (!this.story) return; this.story.dispose(); this.story = null; if (this.post && this.post.compMat) this.post.compMat.uniforms.expo.value = 1; }
     render() { if (this.story) { this.story.render(this.post); return; }
       // phones: refresh the shadow map every other frame (the key light and tank never move; bobbing at 30 Hz is indistinguishable)
       const sm = this.renderer.shadowMap; if (isMobile && sm.enabled) { sm.autoUpdate = false; this.frameN = (this.frameN || 0) + 1; if (this.frameN % 2 === 0 || this.shadowDirty) { sm.needsUpdate = true; this.shadowDirty = false; } }
@@ -8499,7 +8527,7 @@ window.__T = T;
   addEventListener('keydown', ev => {
     if (ev.repeat) return;
     if (state === 'splash') { unlock(); return; }
-    if (storyOn && !resultShown) { { const S = world.story; if (S && S.qte && ev.key !== 'Escape') { ev.preventDefault(); if (S.qte.kind === 'run') { S.qteIn('key', { k: ev.key.length === 1 ? ev.key.toLowerCase() : ev.key, on: true }); return; } if (S.qte.kind === 'choice') { const k = '123'.indexOf(ev.key); if (k >= 0 && S.Q.opts[k]) S.qteIn('pick', S.Q.opts[k][0]); return; } if (ev.key.startsWith('Arrow')) S.qteIn('swipe'); else if ((ev.key === ' ' || ev.key === 'Enter') && !ev.repeat) S.qteIn('down'); return; } }
+    if (storyOn && !resultShown) { { const S = world.story; if (S && S.qte && ev.key !== 'Escape') { ev.preventDefault(); if (S.qte.kind === 'simon') { const k = '1234'.indexOf(ev.key); if (k >= 0 && !ev.repeat) S.qteIn('note', k); return; } if (S.qte.kind === 'run') { S.qteIn('key', { k: ev.key.length === 1 ? ev.key.toLowerCase() : ev.key, on: true }); return; } if (S.qte.kind === 'choice') { const k = '123'.indexOf(ev.key); if (k >= 0 && S.Q.opts[k]) S.qteIn('pick', S.Q.opts[k][0]); return; } if (ev.key.startsWith('Arrow')) S.qteIn('swipe'); else if ((ev.key === ' ' || ev.key === 'Enter') && !ev.repeat) S.qteIn('down'); return; } }
       if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); if (watching && ev.key === 'Escape') endWatch(); else storySkip(ev.key === 'Escape'); } return; }
     if (state === 'replay') { if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); endReplay(); } return; }
     if (state === 'ending' && !$('#finale').hidden) { if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); finale.end && finale.end(); } return; }
@@ -8645,7 +8673,22 @@ window.__T = T;
       pop((ev === 'ok' ? (st && st.lives === 3 ? 'Flawless! ' : 'Made it! ') : 'Out of luck… ') + (st ? `✦ ${st.got}` : '') + (coins ? ` · +${coins} coins` : ''), ev === 'ok' ? 'go big' : 'hit big'); if (ev === 'ok') Audio.play('star');
       setTimeout(() => { el.className = ''; el.hidden = true; document.body.classList.remove('running'); }, 1500); return; }
     if (ev === 'hide') { el.className = ''; el.hidden = true; document.body.classList.remove('running'); } }
-  function qteUI(Q, ev, prog) { if (Q && Q.kind === 'run') return runUI(Q, ev, prog); if (ev === 'hide') runUI(null, 'hide'); if (Q && Q.kind === 'choice') return choiceUI(Q, ev, prog); const el = $('#qte'); if (!el) return; if (ev === 'hide') choiceUI(null, 'hide'); document.body.classList.toggle('qte-on', ev === 'start' || ev === 'prog'); if (ev === 'hide') { el.className = ''; el.hidden = true; return; }
+  // the clam song: four glowing shells to play the tune back on (keys 1–4); "Listen…" / "Your turn!" / round dots
+  const SIMON_COL = ['#c59ae8', '#f0a0c8', '#9ad0f0', '#ffd27a'];
+  function simonUI(Q, ev, d) { const el = $('#simon'); if (!el) return; const st = el.querySelector('.sm-st');
+    if (ev === 'start') { el.querySelector('b').textContent = Q.label; const box = el.querySelector('.sm-k'); box.innerHTML = '';
+      SIMON_COL.forEach((c, i) => { const bt = document.createElement('button'); bt.type = 'button'; bt.style.setProperty('--c', c); bt.innerHTML = isTouch ? '' : `<kbd>${i + 1}</kbd>`;
+        bt.addEventListener('click', e2 => { e2.stopPropagation(); const S = world.story; if (S && S.qte) S.qteIn('note', i); }); box.appendChild(bt); });
+      el.querySelector('.sm-r').innerHTML = (Q.rounds || [3, 4, 5]).map(() => '<i></i>').join(''); st.textContent = 'Listen to the clams…'; el.hidden = false; el.className = 'on listen'; return; }
+    const keys = [...el.querySelectorAll('.sm-k button')], flash = i => { const b = keys[i]; if (!b) return; b.classList.remove('lit'); void b.offsetWidth; b.classList.add('lit'); };
+    if (ev === 'note') flash(d.i); else if (ev === 'listen') { el.className = 'on listen'; st.textContent = d.r ? `Round ${d.r + 1} of ${d.of}: listen…` : 'Listen to the clams…'; }
+    else if (ev === 'input') { el.className = 'on input'; st.textContent = 'Your turn! Sing it back'; buzz(15); }
+    else if (ev === 'hit') { flash(d.i); buzz(8); }
+    else if (ev === 'round') { el.querySelectorAll('.sm-r i').forEach((x, k) => x.classList.toggle('on', k < d.r)); st.textContent = 'Lovely!'; Audio.play('star'); }
+    else if (ev === 'miss') { el.classList.remove('bad'); void el.offsetWidth; el.classList.add('bad'); st.textContent = d.miss >= 2 ? 'Oh no…' : 'Oops! Listen again…'; Audio.play('bump'); buzz(50); }
+    else if (ev === 'ok' || ev === 'no') { if (ev === 'ok') { el.querySelectorAll('.sm-r i').forEach(x => x.classList.add('on')); st.textContent = 'The song is back!'; } setTimeout(() => { el.className = ''; el.hidden = true; }, 1200); }
+    else if (ev === 'hide') { el.className = ''; el.hidden = true; } }
+  function qteUI(Q, ev, prog) { if (Q && Q.kind === 'simon') return simonUI(Q, ev, prog); if (ev === 'hide') simonUI(null, 'hide'); if (Q && Q.kind === 'run') return runUI(Q, ev, prog); if (ev === 'hide') runUI(null, 'hide'); if (Q && Q.kind === 'choice') return choiceUI(Q, ev, prog); const el = $('#qte'); if (!el) return; if (ev === 'hide') choiceUI(null, 'hide'); document.body.classList.toggle('qte-on', ev === 'start' || ev === 'prog'); if (ev === 'hide') { el.className = ''; el.hidden = true; return; }
     if (ev === 'start') { el.hidden = false; el.className = 'on k-' + Q.kind + (Q.dir ? ' d-' + Q.dir : ''); el.querySelector('b').textContent = Q.label;
       el.querySelector('small').textContent = Q.kind === 'tap' ? (isTouch ? 'Tap, tap, tap!' : 'Tap Space fast!') : Q.kind === 'hold' ? (isTouch ? 'Press and hold!' : 'Hold Space!') : (isTouch ? 'Swipe!' : 'Press an arrow key!');
       el.style.setProperty('--qp', 0); Audio.play('hint'); buzz([30, 30, 30]); return; }

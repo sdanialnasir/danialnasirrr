@@ -1541,6 +1541,33 @@
    "who": "Shelly"
   },
   {
+   "id": "s12_ok1",
+   "role": "narrator",
+   "text": "[singing, joyful] “…and the light comes home!”",
+   "when": "Chapter 12 · The Silent Clam — after “Sing the Keeper’s song!” (done in time)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "The Clam Choir"
+  },
+  {
+   "id": "s12_ok2",
+   "role": "narrator",
+   "text": "[warm, wonder] The last clam opens. Its song comes back, and so does its pearl.",
+   "when": "Chapter 12 · The Silent Clam — after “Sing the Keeper’s song!” (done in time)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Narrator"
+  },
+  {
+   "id": "s12_no1",
+   "role": "narrator",
+   "text": "[gentle, hopeful] The last clam stays shut… but deep inside, something hums along.",
+   "when": "Chapter 12 · The Silent Clam — after “Sing the Keeper’s song!” (missed)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Narrator"
+  },
+  {
    "id": "s13_1",
    "role": "narrator",
    "text": "[tense] The water goes black. The storm has found you.",

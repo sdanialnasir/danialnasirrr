@@ -13,7 +13,7 @@ This is everything the story needs recorded, grouped by voice so each actor’s 
 
 | role | voice (recommended) | lines | characters |
 |---|---|---|---|
-| narrator | Lily | 36 | 2,261 |
+| narrator | Lily | 39 | 2,417 |
 | diver | Jessica | 38 | 1,413 |
 | pip | Laura | 104 | 4,881 |
 | shelly | Matilda | 19 | 1,013 |
@@ -26,9 +26,9 @@ This is everything the story needs recorded, grouped by voice so each actor’s 
 | snip | Liam | 9 | 350 |
 | snap | Eric | 4 | 173 |
 | keeper | Alice | 32 | 1,946 |
-| **all** | | **356** | **17,530** |
+| **all** | | **359** | **17,686** |
 
-ElevenLabs bills by characters, and the [delivery] tags count too: the whole story is **17,530 spoken characters, about 23,041 credits with tags** on a full-price model (turbo/flash models cost about half). `make_voices.bat` prints the exact number and asks before it spends anything. Auditions are extra (≈ 150 credits per sample).
+ElevenLabs bills by characters, and the [delivery] tags count too: the whole story is **17,686 spoken characters, about 23,248 credits with tags** on a full-price model (turbo/flash models cost about half). `make_voices.bat` prints the exact number and asks before it spends anything. Auditions are extra (≈ 150 credits per sample).
 
 ## narrator — Lily
 
@@ -51,6 +51,9 @@ The storyteller. Warm and magical, but can turn tense and grave: this is a story
 | `s12_1` | Chapter 12 · The Silent Clam | [gently] Giant clams open, one by one, and sing the Keeper’s old song. |
 | `s12_2` | Chapter 12 · The Silent Clam | [singing softly] “Share your light, and the light comes home…” *(The Clam Choir)* |
 | `s12_3` | Chapter 12 · The Silent Clam | [sad] But the last clam stays shut. Grimtide stole its pearl, and its song. |
+| `s12_ok1` | Chapter 12 · The Silent Clam — after “Sing the Keeper’s song!” (done in time) | [singing, joyful] “…and the light comes home!” *(The Clam Choir)* |
+| `s12_ok2` | Chapter 12 · The Silent Clam — after “Sing the Keeper’s song!” (done in time) | [warm, wonder] The last clam opens. Its song comes back, and so does its pearl. |
+| `s12_no1` | Chapter 12 · The Silent Clam — after “Sing the Keeper’s song!” (missed) | [gentle, hopeful] The last clam stays shut… but deep inside, something hums along. |
 | `s13_1` | Chapter 13 · The Dark Storm | [tense] The water goes black. The storm has found you. |
 | `s13_4` | Chapter 13 · The Dark Storm | [slow, heartbroken] Shelly takes the whole blow… and sinks, slowly, to the sand. |
 | `s16_4` | Chapter 16 · The Prisoner | [tense] Before you can answer, a tail yanks him back into the dark. |
