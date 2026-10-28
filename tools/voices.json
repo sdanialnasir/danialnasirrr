@@ -1,10 +1,7 @@
 {
  "_about": "Every voice-over line in Aqua Energizer. make_voices.bat reads this file. 'set' is base (already recorded) or story (the story script). Words in [brackets] are ElevenLabs audio tags: they set the delivery and are not spoken. Script by character: docs/voice-script.md.",
  "model": "eleven_v4",
- "fallback_models": [
-  "eleven_v3",
-  "eleven_multilingual_v2"
- ],
+ "fallback_models": [],
  "output_format": "mp3_44100_128",
  "settings": {
   "narrator": {

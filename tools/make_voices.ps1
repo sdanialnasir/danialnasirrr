@@ -60,7 +60,7 @@ function Resolve-Voice([string]$name, [string]$id) {
   return $null
 }
 
-$Models = @($Cfg.model) + @($Cfg.fallback_models)
+$Models = @($Cfg.model)  # Eleven v4 only: if it fails, stop (no silent switch to an older model)
 $script:Model = $null
 function Speak([string]$voiceId, [string]$text, [string]$out, $settings) {
   $try = if ($script:Model) { @($script:Model) } else { $Models }
@@ -77,7 +77,7 @@ function Speak([string]$voiceId, [string]$text, [string]$out, $settings) {
       $msg = $_.ErrorDetails.Message; if (-not $msg) { $msg = $_.Exception.Message }
       if (Test-Path $out) { Remove-Item $out }
       if ($script:Model) { Write-Host "  failed: $msg" -ForegroundColor Red; return $false }
-      Write-Host "  model $m didn't work ($msg), trying the next one" -ForegroundColor Yellow
+      Write-Host "  $m didn't work: $msg" -ForegroundColor Red; Write-Host "  Stopping so no credits go to another model. Check your plan has Eleven v4." -ForegroundColor Yellow; exit 1
     }
   }
   return $false
@@ -89,17 +89,15 @@ function Get-Picks {
   return $p
 }
 function Ask-Voices {
+  # no typing: every role uses its pick from voices.json ("pick"), or tools\voices.picked.json if you saved other choices there
   $p = Get-Picks; $res = @{}
   foreach ($role in $Roles) {
-    $in = (Read-Host "$role voice - a name from the shortlist or a voice ID  [Enter = $($p[$role])]").Trim()
-    if ($in) { $p[$role] = $in }
     $cand = @($Cfg.candidates.$role) | Where-Object { $_.name -eq $p[$role] } | Select-Object -First 1
     $vid = Resolve-Voice $p[$role] $(if ($cand) { $cand.id } else { '' })
-    if (-not $vid) { throw "Couldn't find a voice called '$($p[$role])'. Type its voice ID instead (ElevenLabs > Voices > ... > Copy voice ID)." }
-    Write-Host "  $role = $($p[$role]) ($vid)" -ForegroundColor Cyan
+    if (-not $vid) { throw "Couldn't find the voice '$($p[$role])' for $role. Put another name or a voice ID in voices.json under ""pick""." }
+    Write-Host ("  {0,-9} = {1} ({2})" -f $role, $p[$role], $vid) -ForegroundColor Cyan
     $res[$role] = $vid
   }
-  ($p | ConvertTo-Json) | Set-Content -Encoding UTF8 $PickPath
   return $res
 }
 

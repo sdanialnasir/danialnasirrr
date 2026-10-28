@@ -60,7 +60,7 @@ out = ['# Aqua Energizer — the voice script, by character', '',
  'Lines already recorded (intro film, tutorial, diver quips) are not listed here and are skipped by the story-only mode of `make_voices.bat`.', '',
  '## How to record without wasting credits', '',
  '1. Run `make_voices.bat` → **1) Audition**, and type only the roles you want to hear (e.g. `grimtide,clack`). Each sample costs about 120–200 credits.',
- '2. Pick a voice per role (Enter keeps the recommended one).', '3. Choose **5) Make the story lines only**. It shows how many characters (≈ credits) it will use and asks before it starts.',
+ '2. Every role uses its recommended voice automatically (change one under "pick" in voices.json). Eleven v4 only, no fallback.', '3. Choose **5) Make the story lines only**. It shows how many characters (≈ credits) it will use and asks before it starts.',
  '4. If one line comes out wrong, fix its text in `tools/voices.json` and use **4) Redo one line**.', '',
  '## Totals', '', '| role | voice (recommended) | lines | characters |', '|---|---|---|---|']
 tot_l = tot_c = 0
