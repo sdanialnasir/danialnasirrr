@@ -879,3 +879,15 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   dark / 0.36 dim) because the lamp uniforms don't reach the water, sprites and corals. `world.setCond` is keyed to the level name (photos/undo reload).
 - **Voices: the owner must not record until the v5 script is approved.** Voice maker is Eleven v4 only (`fallback_models: []`), no name prompts.
 - Debug: `__dc.watch(n)` plays chapter n like the journal; `__dc.qte('pick', 'funny')` answers a choice.
+
+## Story action scenes (owner: "gameplay in the cinematics… not boring, not roaming around")
+- `Q.kind 'run'` = a playable 22–26 s swim through a canyon seen from behind the diver (`class StoryRun`, before `class Story`; own scene +
+  camera, the Story's `hold`/diver is moved into it and back). Drag anywhere (relative) / arrow keys / WASD to steer in x/y; things stream
+  toward the camera; dodge rocks (3D boulders; canyon walls are painted sheet rocks so they never look like hazards), piranhas crossing,
+  eel coils (go over/under), ink; grab gold pearl-lights (`Audio.pearl`); skim past = "Close!". 3 lamp lives, 1.3 s blink after a hit;
+  0 lives = `no` lines, survive = `ok` lines; the film waits meanwhile. Pearls → coins (≤ 30, not when re-watching from the journal).
+- Variants `RUN_V`: dive (ch 10, Snip & Snap chase at your fins), storm (13, lightning + sideways current), ride (15, on Mira; new beat),
+  chase (24, Grimtide carries Pip ahead), lair (29, red eyes). Coils are pooled (2 eels); spawn waves always leave a way through.
+- HUD `#runHud` (`runUI` in the controller: title + progress, lives, pearls, pop words, red edge on a hit); `body.running` hides captions.
+- Owner is preparing Meshy models for the whole cast (prompt given in chat: pip, pip_cousin, shelly, captain_clack, grimtide, murk, lumen,
+  mira, snip, snap, bellow, reef_keeper, piranha, jellyfish, crab). When they arrive: a converter like convert_diver.py, keep talking mouths/glow.
