@@ -2787,9 +2787,22 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const light = glowSpr(0xffe08a, 1.6, 0); light.position.y = 0.6; g.add(light); const beam = new THREE.Mesh(new THREE.ConeGeometry(0.5, 1.6, 20, 1, true), new THREE.MeshBasicMaterial({ color: 0xffe9a8, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); beam.position.y = 1.2; beam.rotation.x = Math.PI; g.add(beam);
     g.userData = { lidP, setOpen(k) { lidP.rotation.z = k * 1.9; light.material.opacity = k * 0.8; beam.material.opacity = k * 0.22; } }; return shadowOf(g); }
   // the map of the thirty gates (a glowing shell-paper scroll the diver holds up)
-  function makeMap(lit = 6) { const t = canvasTex(256, 160, (x, W, H) => { x.fillStyle = '#f3e3b8'; x.fillRect(0, 0, W, H); x.strokeStyle = '#b88a4a'; x.lineWidth = 6; x.strokeRect(3, 3, W - 6, H - 6);
-      x.strokeStyle = '#8a6030'; x.lineWidth = 3; x.setLineDash([6, 6]); x.beginPath(); const P = []; for (let i = 0; i < 30; i++) { const u = i / 29; P.push([20 + u * (W - 40), H / 2 + Math.sin(u * 9) * 40]); } P.forEach(([px, py], i) => i ? x.lineTo(px, py) : x.moveTo(px, py)); x.stroke(); x.setLineDash([]);
-      P.forEach(([px, py], i) => { x.fillStyle = i < lit ? '#ff4a3a' : '#6a5a48'; x.beginPath(); x.arc(px, py, i < lit ? 5 : 3.5, 0, 7); x.fill(); }); x.fillStyle = '#4a3a2a'; x.font = 'bold 18px sans-serif'; x.fillText('★', P[29][0] - 6, P[29][1] - 10); });
+  function makeMap(lit = 6) { const t = canvasTex(512, 320, (x, W, H) => { let sd = 5 + lit; const r = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+      // aged parchment: warm base, darker burnt edges, stains and fibres
+      const bg = x.createRadialGradient(W / 2, H / 2, 40, W / 2, H / 2, W * 0.62); bg.addColorStop(0, '#f6e7c1'); bg.addColorStop(0.7, '#e7cf98'); bg.addColorStop(1, '#a87a3e'); x.fillStyle = bg; x.fillRect(0, 0, W, H);
+      for (let i = 0; i < 18; i++) { const g2 = x.createRadialGradient(r() * W, r() * H, 2, r() * W, r() * H, 20 + r() * 50); g2.addColorStop(0, 'rgba(150,100,45,0.16)'); g2.addColorStop(1, 'rgba(150,100,45,0)'); x.fillStyle = g2; x.fillRect(0, 0, W, H); }
+      for (let i = 0; i < 400; i++) { x.fillStyle = `rgba(110,75,35,${r() * 0.12})`; x.fillRect(r() * W, r() * H, 1 + r() * 9, 1); }
+      // the reef's coastline and a few islands of coral, in faded sepia ink
+      x.strokeStyle = 'rgba(95,62,28,0.55)'; x.lineWidth = 3; x.beginPath(); for (let i = 0; i <= 40; i++) { const u = i / 40, px = 24 + u * (W - 48), py = 60 + Math.sin(u * 7 + 1) * 18 + Math.sin(u * 19) * 6; i ? x.lineTo(px, py) : x.moveTo(px, py); } x.stroke();
+      for (let k = 0; k < 6; k++) { const cx = 60 + r() * (W - 120), cy = 120 + r() * 150, rr = 10 + r() * 14; x.beginPath(); for (let i = 0; i <= 14; i++) { const a = i / 14 * Math.PI * 2, q = rr * (0.75 + 0.35 * Math.sin(a * 3 + k)); i ? x.lineTo(cx + Math.cos(a) * q, cy + Math.sin(a) * q * 0.7) : x.moveTo(cx + Math.cos(a) * q, cy + Math.sin(a) * q * 0.7); } x.stroke(); }
+      // the route of the thirty vaults: a dotted path, a rune ring at each gate (awake ones glow red-gold)
+      const P = []; for (let i = 0; i < 30; i++) { const u = i / 29; P.push([40 + u * (W - 80), H * 0.56 + Math.sin(u * 9) * 70 * (0.6 + 0.4 * Math.sin(u * 3))]); }
+      x.strokeStyle = '#7a4f22'; x.lineWidth = 3; x.setLineDash([8, 7]); x.beginPath(); P.forEach(([px, py], i) => i ? x.lineTo(px, py) : x.moveTo(px, py)); x.stroke(); x.setLineDash([]);
+      P.forEach(([px, py], i) => { const on = i < lit; x.lineWidth = 2.5; x.strokeStyle = on ? '#c8401e' : '#6a5038'; x.fillStyle = on ? '#ff6a3a' : 'rgba(106,80,56,0.35)'; x.beginPath(); x.arc(px, py, on ? 8 : 6, 0, 7); x.fill(); x.stroke(); if (on) { x.fillStyle = '#ffe9a0'; x.beginPath(); x.arc(px, py, 3, 0, 7); x.fill(); } });
+      // the Lantern at the end of the road, and a compass rose
+      { const [lx, ly] = P[29]; x.fillStyle = '#7a4f22'; x.beginPath(); x.moveTo(lx - 7, ly + 4); x.lineTo(lx, ly - 26); x.lineTo(lx + 7, ly + 4); x.fill(); x.fillStyle = '#ffd25a'; x.beginPath(); x.arc(lx, ly - 28, 6, 0, 7); x.fill(); }
+      { const cx = 70, cy = H - 62; x.strokeStyle = '#6a4520'; x.lineWidth = 2; x.beginPath(); x.arc(cx, cy, 26, 0, 7); x.stroke(); x.fillStyle = '#6a4520'; for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2; x.beginPath(); x.moveTo(cx + Math.cos(a) * 34, cy + Math.sin(a) * 34); x.lineTo(cx + Math.cos(a + 1.3) * 7, cy + Math.sin(a + 1.3) * 7); x.lineTo(cx + Math.cos(a - 1.3) * 7, cy + Math.sin(a - 1.3) * 7); x.fill(); } x.font = 'bold 16px serif'; x.fillText('N', cx - 5, cy - 38); }
+      x.strokeStyle = 'rgba(90,55,20,0.6)'; x.lineWidth = 5; x.strokeRect(6, 6, W - 12, H - 12); });
     const g = new THREE.Group(); const m = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.32), new THREE.MeshStandardMaterial({ map: t, side: THREE.DoubleSide, emissive: 0xffe0a0, emissiveMap: t, emissiveIntensity: 0.35 })); g.add(m);
     for (const x of [-0.26, 0.26]) { const r = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.36, 10), SM({ color: 0xc89a5a })); r.position.x = x; g.add(r); }
     const gl = glowSpr(0xffe6a0, 0.9, 0.35); gl.position.z = -0.05; g.add(gl); return g; }
@@ -2806,11 +2819,21 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const gl = glowSpr(0x5ff0ff, 1.5, 0); gl.position.y = h * 0.62; g.add(gl);
     g.userData = { setLit(k) { ringM.color.setRGB(0.16 + k * 0.4, 0.23 + k * 0.72, 0.35 + k * 0.65); gl.material.opacity = k * 0.5; } }; return shadowOf(g); }
   // the coral arch: a stone arc crusted with coral, lamps along it that light one by one
-  function makeArch(lamps = 9) { const g = new THREE.Group(); const rock = SM({ color: 0x9a6a5a, roughness: 0.9 });
-    const arc = new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.42, 14, 40, Math.PI), rock); arc.scale.set(1, 1.05, 0.8); g.add(arc);
-    for (const x of [-2.4, 2.4]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.6, 0.6, 12), rock); leg.position.set(x, -0.1, 0); g.add(leg); }
-    const L = []; for (let i = 0; i < lamps; i++) { const a = Math.PI * (0.08 + 0.84 * i / (lamps - 1)), m = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 8), new THREE.MeshBasicMaterial({ color: 0x3a2a2a })); m.position.set(Math.cos(a) * 2.4, Math.sin(a) * 2.5, 0.38); g.add(m); const gl = glowSpr(0xffb060, 0.9, 0); gl.position.copy(m.position); g.add(gl); L.push({ m, gl }); }
-    g.userData = { L, setLit(k) { L.forEach((l, i) => { const on = Math.min(1, Math.max(0, k * L.length - i)); l.m.material.color.setRGB(0.23 + on * 0.77, 0.16 + on * 0.6, 0.16 + on * 0.25); l.gl.material.opacity = on * 0.75; }); } }; return shadowOf(g); }
+  // the Keeper's arch: an ancient gateway of carved stone blocks (the Light Vaults' stone), a rune keystone, coral and weed grown over it,
+  // lamps set in brass cups along the curve. setLit(k) wakes the lamps one by one; setRune(k) lights the keystone.
+  function makeArch(lamps = 9) { const g = new THREE.Group(), M = vaultMats(), moss = SM({ color: 0x3f7a52, roughness: 1 }), R = 2.5, nB = 13;
+    for (let i = 0; i < nB; i++) { const a0 = Math.PI * i / nB, a1 = Math.PI * (i + 1) / nB, am = (a0 + a1) / 2, w = R * (a1 - a0) * 0.97;
+      const blk = new THREE.Mesh(new THREE.BoxGeometry(w, i === (nB - 1) / 2 ? 0.95 : 0.78, i === (nB - 1) / 2 ? 0.8 : 0.66), M.vaultStone); blk.position.set(Math.cos(am) * R, Math.sin(am) * R, 0); blk.rotation.z = am - Math.PI / 2; blk.castShadow = blk.receiveShadow = true; g.add(blk);
+      if (i % 3 === 1) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.2 + (i % 2) * 0.08, 8, 6), moss); m.scale.set(1.4, 0.45, 1); m.position.set(Math.cos(am) * (R + 0.38), Math.sin(am) * (R + 0.38), 0.18); g.add(m); } }
+    for (const x of [-R, R]) { for (let k = 0; k < 2; k++) { const pb = new THREE.Mesh(new THREE.BoxGeometry(0.92 - k * 0.1, 0.42, 0.82 - k * 0.1), M.vaultStone); pb.position.set(x, -0.45 + k * 0.42, 0); pb.castShadow = pb.receiveShadow = true; g.add(pb); }
+      const base = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.22, 1.0), M.vaultBaseSide); base.position.set(x, -0.72, 0); g.add(base); }
+    const ks = runeDisc(0.2); ks.position.set(0, R + 0.02, 0.42); g.add(ks);
+    const L = []; for (let i = 0; i < lamps; i++) { const a = Math.PI * (0.09 + 0.82 * i / (lamps - 1)), pos = new V3(Math.cos(a) * R, Math.sin(a) * R, 0.36);
+      const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.08, 0.1, 12), M.vaultBrass); cup.rotation.x = Math.PI / 2; cup.position.copy(pos); g.add(cup);
+      const m = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 8), new THREE.MeshStandardMaterial({ color: 0x3a2a2a, emissive: 0xffa040, emissiveIntensity: 0, roughness: 0.3 })); m.position.copy(pos).add(new V3(0, 0, 0.06)); g.add(m);
+      const gl = glowSpr(0xffb060, 1.1, 0); gl.position.copy(m.position); g.add(gl); L.push({ m, gl }); }
+    g.position.y = 0.72;
+    g.userData = { L, setLit(k) { L.forEach((l, i) => { const on = Math.min(1, Math.max(0, k * L.length - i)); l.m.material.emissiveIntensity = on * 2.2; l.m.material.color.setRGB(0.23 + on * 0.77, 0.16 + on * 0.6, 0.16 + on * 0.25); l.gl.material.opacity = on * 0.75; }); ks.userData.glow.material.opacity = 0.35 * Math.min(1, k * 1.5); } }; return shadowOf(g); }
   // an old wreck lying on the sand: a split hull of planks, ribs showing, a broken mast
   function makeWreck() { const g = new THREE.Group(); const planks = canvasTex(256, 256, (x, W, H) => { for (let i = 0; i < 16; i++) { x.fillStyle = ['#6b4a2e', '#5a3c24', '#7a5634', '#4e3420'][i % 4]; x.fillRect(0, i * 16, W, 15); } x.fillStyle = 'rgba(60,110,70,0.35)'; for (let i = 0; i < 300; i++) x.fillRect(Math.random() * W, Math.random() * H, 3, 3); }, true);
     planks.repeat.set(3, 1); const wood = SM({ map: planks, roughness: 0.9, side: THREE.DoubleSide });
@@ -2989,14 +3012,14 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   // 2, a walk-and-talk: the two swim side by side down a winding kelp corridor while Pip talks; the camera leads them, travelling
   // backwards so we see both faces. On the storm line the water dims and two red eyes glow far ahead, then fade; on "I sparkled!"
   // Pip lights up and loops round the diver. They come out into the clearing with the next vault ahead.
-  RECIPES.kelp = { live: true, tail: 2.2, talkMove: 1.4, own: () => true,
+  RECIPES.kelp = { live: true, tail: 3.8, talkMove: 1.4, own: () => true,
     setup(S, c) { S.tankAt(3.2, -12.5, -0.25); c.pip = S.add(makePip(0xffc23a, S.glow)); c.pipL = new THREE.PointLight(0xffd070, 0, 3, 1.6); c.pip.add(c.pipL);
       c.P = s => new V3(Math.sin(s * 2.4) * 1.3, 1.0, 9 - s * 10.5); c.D = s => { const a = c.P(s), b = c.P(s + 0.01); return b.sub(a).setY(0).normalize(); };
       let sd = 31; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
       for (let i = 0; i < 46; i++) { const u = -0.15 + i / 46 * 1.05, side = i % 2 ? 1 : -1, P = c.P(u), d = c.D(u), lat = new V3(-d.z, 0, d.x), off = (2.5 + rnd() * 1.1) * side;
         const x = P.x + lat.x * off, z = P.z + lat.z * off, k = S.spr('weed' + [1, 3, 5, 7, 9][i % 5], 2.2 + rnd() * 1.6, x, z); k.userData.keep = 1; k.userData.sw = i; (S.kelp = S.kelp || []).push(k);
         if (i % 3 === 0) { const co = S.spr(['coral1', 'coral3', 'coral5'][i % 3], 0.5 + rnd() * 0.4, x - lat.x * side * 0.6, z - lat.z * side * 0.6); co.userData.keep = 1; } }
-      c.eyes = [0, 1].map(k => { const e = glowSpr(0xff2a14, 0.7, 0); e.material.fog = false; S.scene.add(e); return e; });
+      c.eyes = [0, 1].map(k => { const e = glowSpr(0xff2a14, 1.3, 0); e.material.fog = false; S.scene.add(e); return e; });
       S.clear.push([0, 9, 3], [0, -1, 3.2]); },
     run(S, c, t) { const tm = S.time, a2 = S.at(2), a3 = S.at(3), T = isFinite(S.T) ? S.T : a3 + 6, tEnd = Math.max(6, T - 3.2);
       const s = Math.min(1, 0.04 + 0.96 * Math.max(0, (t - 0.2) / (tEnd - 0.2))), ss = s < 1 ? s : 1, P = c.P(ss), d = c.D(Math.min(0.99, ss)), lat = new V3(-d.z, 0, d.x), land = sm01((t - tEnd + 0.6) / 1.4);
@@ -3008,11 +3031,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       c.pip.position.copy(pp); { const v = c.pip.userData.lastP ? pp.clone().sub(c.pip.userData.lastP) : d.clone(); c.pip.userData.lastP = pp.clone(); if (v.lengthSq() > 1e-6) c.pip.rotation.y = Math.atan2(-v.z, v.x); }
       const gl = Math.min(1, 0.15 + 0.85 * sm01((t - a3) / 0.4) * (1 - sm01((t - a3 - 2.2) / 1.5))); c.pip.userData.setGlow(S.glow + gl * 0.5); c.pipL.intensity = gl * 2.5; c.pip.userData.tick(tm * (lp > 0 && lp < 1 ? 2.4 : 1.2));
       // the storm line: the kelp darkens, two red eyes glow far down the corridor, then they're gone
-      const dm = sm01((t - a2 - 0.4) / 0.8) * (1 - sm01((t - a2 - 3.4) / 1.0)); S.expoMul = 1 - 0.35 * dm;
+      const dm = sm01((t - a2 - 0.4) / 0.8) * (1 - sm01((t - a2 - 3.4) / 1.0)); S.expoMul = 1 - 0.5 * dm;
       { const ahead = c.P(Math.max(-0.2, ss - 0.42)); c.eyes.forEach((e, k) => { e.position.copy(ahead).addScaledVector(lat, (k ? 0.35 : -0.35)).setY(1.7); e.material.opacity = 0.85 * sm01((dm - 0.4) / 0.4) * (0.7 + 0.3 * Math.sin(tm * 3)); }); }
       // the camera leads them down the corridor (3/4 front, a little high), then swings behind-right as they come out to the vault
       const ahead = p.clone().addScaledVector(d, 3.4).addScaledVector(lat, -0.45).setY(1.2), mid = p.clone().lerp(pp, 0.5); mid.y = 1.05;
-      const beh = p.clone().sub(fT.clone().multiplyScalar(3.0)).addScaledVector(new V3(-fT.z, 0, fT.x), 1.4).setY(1.6), endL = S.tankP().clone().setY(1.6), e2 = sm01((t - tEnd + 0.2) / 2.8);
+      const beh = p.clone().sub(fT.clone().multiplyScalar(3.0)).addScaledVector(new V3(-fT.z, 0, fT.x), 1.4).setY(1.6), endL = S.tankP().clone().setY(1.6), e2 = sm01((t - tEnd + 0.2) / 4.5);
       S.cam(S.arc(p, ahead, beh, e2), mid.lerp(endL, sm01((e2 - 0.45) / 0.55)));
       return { mode: land > 0.6 ? 'stand' : 'float', face: f, arms: t > a3 && t < a3 + 1.6 ? 'cheer' : null, armK: sm01((t - a3) / 0.4) * (1 - sm01((t - a3 - 1.2) / 0.4)) }; } };
   // 3: Shelly swims in, the diver hops on, they glide off together
@@ -3029,11 +3052,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       c.tu.position.copy(tp); const toD = new V3().subVectors(D, tp).setY(0).normalize(), toV = new V3().subVectors(S.tankP(), tp).setY(0).normalize();
       const tf = t < 2.4 ? new V3(-1, 0, 0).lerp(toD, sm01((t - 1.4) / 1.0)).normalize() : toD.clone().lerp(toV, sm01((t - go - 0.6) / 1.2)).normalize(); c.tu.rotation.y = Math.atan2(-tf.z, tf.x); c.tu.userData.tick(tm, fly > 0 ? 1.4 : 0.6);
       // the diver: stands with Pip, then one arcing hop onto the shell and rides
-      let p = D.clone(); if (ride > 0) { p = D.clone().lerp(tp.clone().setY(tp.y + 0.62), ride); p.y += Math.sin(ride * Math.PI) * 0.55; }
+      if (c.top === undefined && !S.probe) { c.tu.updateMatrixWorld(true); const B = new THREE.Box3().setFromObject(c.tu.userData.cast || c.tu); c.top = B.max.y - c.tu.position.y; } const top = (c.top ?? 0.6) + 0.42; /* sit on the shell, not in it */
+      let p = D.clone(); if (ride > 0) { p = D.clone().lerp(tp.clone().setY(tp.y + top), ride); p.y += Math.sin(ride * Math.PI) * 0.55; }
       const f = ride > 0.5 ? tf : new V3().subVectors(tp, D).setY(0).normalize(); S.dv(p, f);
       // camera: the director does the conversation; the opening watches her glide in, the ending tracks the ride side-on
       const side = new V3(-toV.z, 0, toV.x); let cp = new V3(-2.6, 1.15, 3.6), cl = new V3(1.4, 0.85, 0.1);
-      if (fly > 0) { const k = sm01(fly / 2.4); cp = cp.lerp(tp.clone().addScaledVector(side, -4.2).addScaledVector(toV, -1.6).setY(tp.y + 1.0), k); cl = cl.lerp(tp.clone().addScaledVector(toV, 1.2).setY(tp.y + 0.5), k); }
+      if (fly > 0) { const k = sm01(fly / 2.4); cp = S.arc(tp, cp, tp.clone().addScaledVector(side, -4.8).addScaledVector(toV, 0.6).setY(tp.y + 1.2), k); cl = cl.lerp(tp.clone().addScaledVector(toV, 1.2).setY(tp.y + 0.5), k); }
       S.cam(cp, cl);
       return { mode: 'stand', arms: ride > 0.9 ? 'grip' : t < 1.8 ? 'wave' : null, armK: ride > 0.9 ? 1 : sm01((t - 0.6) / 0.4) * (1 - sm01((t - 1.6) / 0.3)), face: f }; } };
   // 4: a parade of crabs carrying pearls; the diver dances along and high-fives the leader
@@ -3042,24 +3066,62 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const bob = t < 4.8 ? Math.abs(Math.sin(t * 5)) * 0.12 : 0, p = new V3(0.9, 0.5 + bob, 0.45), f = t < 4.8 ? new V3(Math.sin(t * 2.5) * 0.6, 0, 1).normalize() : new V3(-0.9, 0, -0.45).normalize(); S.dv(p, f);
       S.cam(K(t, [[0, [2.8, 1.2, 3.4]], [4.4, [2.2, 1.0, 3.0]], [6.6, [2.9, 1.05, 2.4]]]), K(t, [[0, [-1.5, 0.6, -0.4]], [6.6, [0.5, 0.7, -2.5]]]));
       return { mode: 'stand', arms: t < 4.8 ? 'cheer' : 'point', armK: t < 4.8 ? 0.6 + 0.4 * Math.sin(t * 5) : sm01((t - 5) / 0.4), face: f, target: c.crabs[0].position.clone().add(new V3(0, 0.4, 0)) }; } };
-  // 5: up a stair of bouncing jellyfish to a ledge
-  RECIPES.jelly = { dur: 6.8, setup(S, c) { c.js = [[-1.4, 0.8, 0], [-0.2, 1.7, -0.9], [1.0, 2.6, -1.8]].map(([x, y, z]) => { const j = S.add(makeJelly()); j.scale.setScalar(1.6); j.position.set(x, y, z); j.userData.base = j.position.clone(); return j; });
+  // 5, staged on its lines: three jellyfish drift into a glowing staircase up to a rock ledge; Pip cheers; on "Boing…" the diver bounces
+  // up them (filmed side-on, nothing between lens and jump); on "A captain does NOT bounce" Clack bounces after him and flips; the jelly
+  // garden run; then the three of them on the ledge, looking out to the next vault.
+  RECIPES.jelly = { live: true, tail: 2.6, gap(i) { return i === 2 ? 0.3 : 0; }, own: (i) => i === 2 || i === 3,
+    setup(S, c) { const J = c.Jp = [[-1.4, 0.8, 0], [-0.2, 1.7, -0.9], [1.0, 2.6, -1.8]];
+      c.js = J.map(([x, y, z], n) => { const j = S.add(makeJelly()); j.scale.setScalar(1.6); j.position.set(x - 3, y + 3, z); const gl = glowSpr([0xff9ae0, 0x9ae8ff, 0xfff09a][n], 2.2, 0.5); j.add(gl); j.userData.gl = gl; return j; });
       { const geo = new THREE.DodecahedronGeometry(1.5, 2); const P = geo.attributes.position; for (let v = 0; v < P.count; v++) { const x = P.getX(v), y = P.getY(v), z = P.getZ(v), n = 1 + Math.sin(x * 3.1) * Math.sin(z * 2.7) * 0.08 + Math.sin(y * 4.3) * 0.05; P.setXYZ(v, x * n, y * n * 1.25, z * n); } geo.computeVertexNormals();
-        c.ledge = S.add(new THREE.Mesh(geo, SM({ map: TEX.rockCol || null, color: 0xc8a080, roughness: 0.95 }))); c.ledge.position.set(2.6, 1.95, -2.8); c.ledge.receiveShadow = c.ledge.castShadow = true; }
-      for (const [x, z, n, h] of [[2.1, -2.3, 'coral3', 0.6], [3.0, -2.2, 'weed5', 0.7], [2.4, -3.3, 'coral1', 0.5]]) S.spr(n, h, x, z, 3.4); S.tankAt(5.4, -13, -0.45); S.clear.push([0.5, -1, 3.5]); },
-    run(S, c, t) { const hops = [[-2.6, 0.5, 0.8], [-1.4, 1.35, 0], [-0.2, 2.25, -0.9], [1.0, 3.15, -1.8], [2.5, 3.9, -2.6]], seg = Math.min(3.999, Math.max(0, (t - 0.6) / 1.15)), i = Math.floor(seg), k = seg - i, a = hops[i], b = hops[i + 1];
-      const p = new V3(a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k + Math.sin(k * Math.PI) * 0.9, a[2] + (b[2] - a[2]) * k); if (t < 0.6) p.set(...hops[0]);
-      c.js.forEach((j, n) => { const land = n === i - 1 ? Math.max(0, 1 - k * 3) : 0; j.scale.set(1.6 * (1 + land * 0.25), 1.6 * (1 - land * 0.3), 1.6 * (1 + land * 0.25)); j.position.y = j.userData.base.y + Math.sin(S.time * 1.6 + n) * 0.08; if (j.userData.bell) j.userData.bell.scale.y = 1 + Math.sin(S.time * 3 + n) * 0.06; });
-      const f = new V3(b[0] - a[0], 0, b[2] - a[2]).normalize(); const done = t > 5.2; S.dv(done ? new V3(2.5, 3.9, -2.6) : p, done ? new V3(0.4, 0, -1).normalize() : f);
-      S.cam(K(t, [[0, [-3.6, 2.0, 4.2]], [5.2, [-0.4, 3.2, 2.4]], [6.8, [-0.2, 3.8, 1.0]]]), K(t, [[0, [-1, 1.2, -0.5]], [5.2, [2.2, 3.4, -2.8]], [6.8, [4.4, 2.6, -8]]]));
-      return { mode: done ? 'stand' : 'float', arms: 'cheer', armK: done ? sm01((t - 5.3) / 0.4) : 0.4 * Math.sin(k * Math.PI), face: done ? new V3(0.4, 0, -1).normalize() : f }; } };
+        if (!TEX.rockCol) massMat(0); c.ledge = S.add(new THREE.Mesh(geo, SM({ map: TEX.rockCol || null, color: 0xc8a080, roughness: 0.95 }))); c.ledge.position.set(2.6, 1.95, -2.8); c.ledge.receiveShadow = c.ledge.castShadow = true; }
+      for (const [x, z, n, h] of [[2.1, -2.3, 'coral3', 0.6], [3.0, -2.2, 'weed5', 0.7], [2.4, -3.3, 'coral1', 0.5]]) { const sp = S.spr(n, h, x, z, 3.4); sp.userData.keep = 1; }
+      c.clack = S.add(makeClack()); S.tankAt(5.4, -13, -0.45); S.clear.push([0.5, -1, 3.5], [-3, 1, 3]); },
+    run(S, c, t) { const tm = S.time, a1 = S.at(1), a2 = S.at(2), a3 = S.at(3), e3 = S.end(3), aQ = S.qDone ? S.at(4) : 1e9, T = isFinite(S.T) ? S.T : e3 + 8;
+      const hops = [[-2.6, 0.5, 0.8], [-1.4, 1.35, 0], [-0.2, 2.25, -0.9], [1.0, 3.15, -1.8], [2.45, 3.9, -2.45]], top = new V3(2.45, 3.9, -2.45);
+      const hopAt = (u, H) => { const sg = Math.min(3.999, Math.max(0, u * 4)), i = Math.floor(sg), k = sg - i, A = H[i], B = H[i + 1]; return { p: new V3(A[0] + (B[0] - A[0]) * k, A[1] + (B[1] - A[1]) * k + Math.sin(k * Math.PI) * 0.9, A[2] + (B[2] - A[2]) * k), i, k, d: new V3(B[0] - A[0], 0, B[2] - A[2]).normalize() }; };
+      // the jellies drift down into their places, humming (glow pulse); each squashes when someone lands on it
+      const arrive = sm01(t / 3.2), du = Math.max(2.8, S.end(2) - a2), uD = (t - a2 + 0.1) / du, uC = (t - a3 - 0.2) / Math.max(2.6, e3 - a3);
+      c.js.forEach((j, n) => { const P = c.Jp[n]; let land = 0; for (const [u, on] of [[uD, 1], [uC, 1]]) { if (u > 0 && u < 1) { const h = hopAt(u, hops); if (h.i - 1 === n) land = Math.max(land, 1 - h.k * 3); } }
+        j.position.set(P[0] - 3 * (1 - arrive), P[1] + 3 * (1 - arrive) + Math.sin(tm * 1.6 + n) * 0.08, P[2]); j.scale.set(1.6 * (1 + land * 0.25), 1.6 * (1 - land * 0.3), 1.6 * (1 + land * 0.25)); j.userData.gl.material.opacity = 0.35 + 0.25 * Math.sin(tm * 2.4 + n * 2); if (j.userData.bell) j.userData.bell.scale.y = 1 + Math.sin(tm * 3 + n) * 0.06; });
+      // the diver bounces up during his line; afterwards he waits on the ledge
+      let p = new V3(...hops[0]), f = new V3(1, 0, -0.3).normalize(), up = false;
+      if (uD > 0 && uD < 1) { const h = hopAt(uD, hops); p = h.p; f = h.d; up = true; } else if (uD >= 1) { p = top.clone(); f = new V3().subVectors(S.tankP(), top).setY(0).normalize().lerp(new V3(-1, 0, 0.4).normalize(), aQ < 1e8 && t > aQ - 0.2 ? 0.6 : 0.85).normalize(); }
+      S.dv(p, f);
+      // Clack: starts at the foot, bounces up on his line (one flip on the third hop: "WHEEEE!"), then stands beside the diver
+      { let q = new V3(-2.1, S.groundY(-2.1, 1.3) + 0.22, 1.3), ry = 0.3, rz = 0;
+        if (uC > 0 && uC < 1) { const h = hopAt(uC, [[-2.1, 0.22, 1.3], ...hops.slice(1, 4), [2.0, 3.76, -2.0]]); q = h.p; ry = Math.atan2(h.d.x, h.d.z); if (h.i === 2) rz = h.k * Math.PI * 2; } else if (uC >= 1) { q = new V3(3.05, 3.74, -2.85); const d = S.cam0.position.clone().sub(q); ry = Math.atan2(d.x, d.z) * 0.7; }
+        c.clack.position.copy(q); c.clack.rotation.set(rz, ry, 0); }
+      // camera: wide on the jellies arriving; side-on tracking for each bounce; the ledge top looking out to the vault at the end
+      let cp = K(t, [[0, [-4.6, 1.5, 5.6]], [Math.max(3, a1), [-3.6, 1.8, 4.6]]]), cl = K(t, [[0, [-0.8, 1.9, -1]], [Math.max(3, a1), [-0.6, 1.9, -1.0]]]);
+      if (t > a2 - 0.6 && t < e3 + 0.4) { const sub = t < a3 - 0.2 ? p : c.clack.position, k = sm01((t - a2 + 0.6) / 0.8); cp = cp.clone().lerp(new V3(sub.x - 0.3, Math.max(1.4, sub.y + 0.5), 4.9), k); cl = cl.clone().lerp(new V3(sub.x + 0.4, sub.y + 0.3, sub.z), k); }
+      const fin = sm01((t - Math.max(e3 + 0.4, aQ < 1e8 ? T - 3.4 : 1e9)) / 2.4); if (fin > 0) { cp = cp.clone().lerp(top.clone().add(new V3(-2.2, 1.5, 2.1)), fin); cl = cl.clone().lerp(S.tankP().clone().setY(2.2), fin); }
+      S.cam(cp, cl);
+      return { mode: up ? 'float' : 'stand', arms: up ? 'cheer' : uD >= 1 && t > e3 ? 'wave' : null, armK: up ? 0.5 * Math.sin(hopAt(uD, hops).k * Math.PI) : sm01((t - e3 - 0.3) / 0.5) * (1 - sm01((t - e3 - 1.6) / 0.4)), face: f }; } };
   // 6: the old wreck, a chest, and the map of the thirty gates
-  RECIPES.wreck = { dur: 7.4, setup(S, c) { c.wr = S.add(makeWreck()); c.wr.position.set(-2.6, 0, -5.0); c.wr.rotation.y = 0.95; c.ch = S.add(makeChest()); c.ch.position.set(0.2, 0, -1.2); c.ch.rotation.y = 0.35; c.map = S.add(makeMap(6)); c.map.visible = false; S.tankAt(5.4, -12, -0.4); S.clear.push([-1, -2.5, 3.6]); },
-    run(S, c, t) { const p = K(t, [[0, [1.6, 0.5, 2.6]], [2.0, [0.65, 0.5, -0.35]]]), toC = new V3().subVectors(c.ch.position, p).setY(0).normalize(); const open = sm01((t - 2.4) / 0.8); c.ch.userData.setOpen(open);
-      const up = sm01((t - 3.3) / 1.0); c.map.visible = t > 3.1; const hand = p.clone().add(new V3(0, 0.55 + up * 0.25, 0)).addScaledVector(toC, 0.18); c.map.position.copy(c.ch.position.clone().add(new V3(0, 0.6, 0)).lerp(hand, up)); c.map.lookAt(S.cam0.position); c.map.rotation.z += Math.sin(S.time * 2) * 0.05;
-      const f = t < 4.6 ? toC : toC.clone().lerp(new V3().subVectors(S.cam0.position, p).setY(0).normalize(), sm01((t - 4.6) / 0.6) * 0.75).normalize(); S.dv(p, f);
-      if (t < 2.3) S.cam(new V3(3.2, 1.3, 3.0), K(t, [[0, [0, 0.8, -1]], [2.3, [0.3, 0.6, -1.0]]])); else if (t < 4.6) S.cam(K(t, [[2.3, [1.9, 0.9, 0.7]], [4.6, [1.7, 0.8, 0.9]]]), new V3(0.3, 0.75, -0.9)); else S.cam(K(t, [[4.6, [2.4, 1.0, 1.8]], [7.4, [2.8, 1.0, 2.2]]]), new V3(-0.2, 0.9, -2.6));
-      return { mode: t < 2 ? 'walk' : 'stand', speed: t < 2 ? 1.5 : 0, arms: t < 3.3 ? 'reach' : 'hold', armK: t < 2.2 ? 0 : t < 3.3 ? sm01((t - 2.2) / 0.4) : 1, face: f, target: c.ch.position.clone().add(new V3(0, 0.5, 0)), lift: up }; } };
+  // 6, staged on its lines: past the wreck's hull to the chest; Pip dithers ("Open it! No!"); the lid lifts, gold light spills out and the
+  // map rises; the Keeper's words over a close-up of the glowing map; Clack scuttles in, takes it and salutes, holding it upside down;
+  // Pip says so, to his face.
+  RECIPES.wreck = { live: true, tail: 2.6, to: (i) => i === 4 ? 'clack' : undefined, own: (i) => i === 2,
+    setup(S, c) { c.wr = S.add(makeWreck()); c.wr.position.set(-2.6, 0, -5.0); c.wr.rotation.y = 0.95; c.ch = S.add(makeChest()); c.ch.position.set(0.2, 0, -1.2); c.ch.rotation.y = 0.35; c.map = S.add(makeMap(6)); c.map.visible = false;
+      c.gl = glowSpr(0xffd27a, 2.4, 0); c.gl.position.copy(c.ch.position).add(new V3(0, 0.55, 0)); S.scene.add(c.gl); c.gL = new THREE.PointLight(0xffc870, 0, 5, 1.5); c.gL.position.copy(c.gl.position); S.scene.add(c.gL);
+      c.clack = S.add(makeClack()); S.tankAt(5.4, -12, -0.4); S.clear.push([-1, -2.5, 3.6], [1.5, 1.5, 2.5]); },
+    run(S, c, t) { const tm = S.time, a1 = S.at(1), e1 = S.end(1), a2 = S.at(2), a3 = S.at(3), a4 = S.at(4), T = isFinite(S.T) ? S.T : S.end(4) + 3;
+      const p = K(t, [[0, [1.7, 0.5, 2.7]], [Math.max(2.6, a1 - 0.2), [0.7, 0.5, -0.3]]]), walking = t < Math.max(2.6, a1 - 0.2), toC = new V3().subVectors(c.ch.position, p).setY(0).normalize();
+      const open = sm01((t - e1 - 0.1) / 0.9), up = sm01((t - e1 - 0.6) / 1.2); c.ch.userData.setOpen(open); c.gl.material.opacity = 0.75 * open * (1 - 0.6 * sm01((t - a3) / 1.5)); c.gL.intensity = 5 * open;
+      if (open > 0.1 && open < 1 && !S.probe && Math.random() < 0.5) S.parts.emit(c.ch.position.x + (Math.random() - 0.5) * 0.4, 0.6, c.ch.position.z + (Math.random() - 0.5) * 0.3, 1, { color: new THREE.Color(1, 0.85, 0.5), speed: 0.4, life: 1.2, size: 0.06 });
+      // Clack scuttles in on his line, takes the map and holds it up (upside down)
+      const cin = sm01((t - a3 + 0.3) / 1.4), cq = new V3(3.6, 0, 0.4).lerp(new V3(1.45, 0, 0.05), cin); cq.y = S.groundY(cq.x, cq.z) + 0.22 + (cin > 0 && cin < 1 ? Math.abs(Math.sin(tm * 9)) * 0.05 : 0); c.clack.position.copy(cq);
+      { const d = cin < 1 ? new V3(-1, 0, -0.2) : S.cam0.position.clone().sub(cq).setY(0).normalize().lerp(new V3().subVectors(p, cq).setY(0).normalize(), 0.5); c.clack.rotation.y = Math.atan2(d.x, d.z); }
+      const grab = sm01((t - a3 - 1.0) / 0.6), hand = p.clone().add(new V3(0, 0.5 + up * 0.25, 0)).addScaledVector(toC, 0.18), claw = cq.clone().add(new V3(0, 0.75, 0));
+      c.map.visible = t > e1 + 0.5; c.map.position.copy(c.ch.position.clone().add(new V3(0, 0.6, 0)).lerp(hand, up).lerp(claw, grab)); c.map.lookAt(S.cam0.position); c.map.rotation.z += Math.sin(tm * 2) * 0.05 + Math.PI * grab; /* upside down */
+      if (t > a3 + 1.2 && !S.probe && c.clack.userData.setMood) c.clack.userData.setMood('happy');
+      const f = walking ? toC : t < a3 + 0.8 ? toC : new V3().subVectors(cq, p).setY(0).normalize(); S.dv(p, f);
+      // camera: glide past the hull to the chest; (director for the talk); a slow close-up of the glowing map for the Keeper's words; wide at the end
+      let cp = K(t, [[0, [3.6, 1.5, 3.6]], [Math.max(2.6, a1 - 0.2), [2.3, 1.05, 1.5]]]), cl = K(t, [[0, [-1.2, 1.2, -3.2]], [Math.max(2.6, a1 - 0.2), [0.25, 0.7, -0.9]]]);
+      const cu = sm01((t - a2 + 0.3) / 1.0) * (1 - sm01((t - a3 + 0.4) / 1.0)); if (cu > 0) { const mp = c.map.position, back = mp.clone().addScaledVector(toC, -1.25).add(new V3(0.35, 0.25, 0.45)); cp = cp.clone().lerp(back, cu); cl = cl.clone().lerp(mp, cu); }
+      const fin = sm01((t - T + 2.6) / 2.2); if (fin > 0) { cp = S.arc(new V3(0.9, 0.7, -0.2), cp, new V3(-1.2, 1.6, 3.6), fin); cl = cl.clone().lerp(new V3(1.2, 0.9, -1.6), fin); }
+      S.cam(cp, cl);
+      return { mode: walking ? 'walk' : 'stand', arms: t > e1 && t < a3 + 1.0 ? 'hold' : t < e1 && t > a1 ? 'reach' : null, armK: t > e1 && t < a3 + 1.0 ? sm01((t - e1 - 0.4) / 0.5) * (1 - grab) : sm01((t - a1) / 0.5), face: f, target: c.ch.position.clone().add(new V3(0, 0.5, 0)), lift: up }; } };
   // 7: a warm whirlpool lifts the diver, spins him round and sets him down by the next tank
   RECIPES.current = { dur: 6.6, setup(S, c) { const tex = canvasTex(256, 64, (x, W, H) => { for (let i = 0; i < 8; i++) { const gr = x.createLinearGradient(i * 32, 0, i * 32 + 32, 0); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(0.5, 'rgba(220,250,255,0.9)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = gr; x.fillRect(i * 32, 0, 32, H); } }, true); S.own.push(tex);
       c.vm = new THREE.MeshBasicMaterial({ map: tex, color: 0x9ff0ff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }); S.mats.push(c.vm); tex.repeat.set(3, 1);
@@ -3071,37 +3133,93 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (Math.random() < 0.6 && t < 4.6) S.parts.bubbles((Math.random() - 0.5) * 2.5, Math.random() * 4.5, -1 + (Math.random() - 0.5) * 2.5, 1, 0.05 + Math.random() * 0.06, 0.3);
       S.cam(K(t, [[0, [0.8, 1.3, 4.6]], [3.6, [1.2, 2.6, 4.6]], [6.6, [0.2, 1.0, -1.6]]]), K(t, [[0, [0, 1.2, -1]], [3.6, [0, 2.6, -1]], [6.6, [4.0, 0.9, -8.5]]]));
       return { mode: t < 1 || t > 5 ? 'stand' : 'float', arms: t < 4.6 ? 'cheer' : 'wave', armK: t < 1 ? 0 : t < 4.6 ? 0.8 : sm01((t - 5.2) / 0.4), face: f }; } };
-  // 8: a school of fish swirls into an arrow that points the way
-  RECIPES.school = { dur: 6.6, setup(S, c) { c.f = []; for (let i = 0; i < 46; i++) { const sp = sprPlane(['fishA', 'fishC', 'fishE', 'fishH'][i % 4], 0.2, false, null); sp.material = sp.material.clone(); S.mats.push(sp.material); S.scene.add(sp); c.f.push(sp); }
-      // arrow formation points (in the arrow's own frame: +x = forward)
-      c.arrow = []; for (let i = 0; i < 46; i++) { if (i < 22) c.arrow.push([-2.2 + i * 0.2, 0, 0]); else { const s = i < 34 ? 1 : -1, k = (i - (i < 34 ? 22 : 34)) / 11; c.arrow.push([2.2 - k * 1.3, s * k * 1.1, 0]); } } S.tankAt(4.8, -11, -0.3); },
-    run(S, c, t) { const form = sm01((t - 1.4) / 1.6), dir = new V3().subVectors(S.tankP(), new V3(0, 0, 0)).setY(0).normalize(), ang = Math.atan2(-dir.z, dir.x), cen = new V3(0.6, 2.3, -3.4);
-      c.f.forEach((sp, i) => { const a = S.time * 1.6 + i * 0.37, ball = new V3(Math.cos(a) * 1.1, Math.sin(a * 1.3 + i) * 0.6, Math.sin(a) * 1.1); const [ax, ay] = c.arrow[i], ar = new V3(ax * 0.8, ay * 0.8, 0); // the arrow faces the camera and points right, toward the tank
-        const q = ball.lerp(ar, form).add(cen); q.x += form * Math.sin(S.time * 4 + i) * 0.04; sp.position.copy(q); sp.lookAt(S.cam0.position); sp.scale.x = form > 0.5 ? (Math.cos(ang - Math.atan2(S.cam0.position.x - q.x, S.cam0.position.z - q.z) + Math.PI / 2) > 0 ? -1 : 1) : 1; });
-      const p = K(t, [[0, [-1.6, 0.5, 1.6]], [3.4, [-0.6, 0.5, 0.4]], [5.4, [0.4, 0.5, -0.8]]]), f = t < 3.4 ? new V3(0.3, 0, -1).normalize() : new V3().subVectors(S.tankP(), p).setY(0).normalize(); S.dv(p, f);
-      S.cam(K(t, [[0, [1.8, 1.0, 4.0]], [3.4, [2.2, 1.3, 3.6]], [6.6, [-1.6, 1.1, 2.6]]]), K(t, [[0, [0, 1.6, -2]], [3.4, [0.4, 1.8, -2.2]], [6.6, [2.6, 1.4, -5]]]));
-      return { mode: t < 5.4 ? 'walk' : 'stand', speed: t < 5.4 ? 1.2 : 0, arms: t < 3.4 ? null : 'point', armK: sm01((t - 3.6) / 0.5), face: f, target: S.tankP().clone().setY(1.4) }; } };
+  // 8, staged on its lines: the three of them together, Pip drooping, a school of fish circling slowly above; the choice; on the
+  // narration the camera tilts up from low as the school sweeps into one big silver arrow pointing at the next vault; Clack takes the
+  // credit; Pip cheers up; they set off under the arrow.
+  RECIPES.school = { live: true, tail: 3.2, own: (i, sh) => !sh.who,
+    setup(S, c) { const N = 80; c.f = []; for (let i = 0; i < N; i++) { const sp = sprPlane(['fishA', 'fishC', 'fishE', 'fishH'][i % 4], 0.24, false, null); sp.material = sp.material.clone(); sp.material.color.setRGB(0.85, 0.92, 1.0); S.mats.push(sp.material); S.scene.add(sp); c.f.push(sp); }
+      c.arrow = []; for (let i = 0; i < N; i++) { if (i < 40) c.arrow.push([-3.0 + i * 0.13, ((i * 37) % 7 - 3) * 0.03, 0]); else { const s2 = i < 60 ? 1 : -1, k = (i - (i < 60 ? 40 : 60)) / 19; c.arrow.push([2.3 - k * 1.7, s2 * k * 1.45, 0]); } }
+      c.pip = S.add(makePip(0xffc23a, S.glow)); c.clack = S.add(makeClack()); S.tankAt(4.8, -11, -0.3); S.clear.push([0, 0.5, 3]); },
+    run(S, c, t) { const tm = S.time, aL = S.qDone ? S.at(3) : 1e9, e5 = S.qDone ? S.end(5) : 1e9, T = isFinite(S.T) ? S.T : e5 + 4;
+      const form = sm01((t - aL - 0.3) / 2.6), dir = new V3().subVectors(S.tankP(), new V3(0, 0, 0)).setY(0).normalize(), cen = new V3(0.4, 3.2, -3.2), go = sm01((t - e5 - 0.2) / 3.0);
+      c.f.forEach((sp, i) => { const a = tm * 0.9 + i * 0.29, ball = new V3(Math.cos(a) * 2.2, Math.sin(a * 1.3 + i) * 0.5, Math.sin(a) * 2.2); const [ax, ay] = c.arrow[i];
+        const ar = new V3(dir.x * ax * 1.15, 0.2 + ay * 1.15, dir.z * ax * 1.15).addScaledVector(new V3(-dir.z, 0, dir.x), ay * 0.25); /* the arrow lies along the way to the vault */
+        const q = ball.lerp(ar, form).add(cen).addScaledVector(dir, go * 3); q.y += form * Math.sin(tm * 4 + i) * 0.04; sp.position.copy(q); sp.lookAt(S.cam0.position);
+        const vx = form > 0.5 ? dir.x : -Math.sin(a); sp.scale.x = (vx * (S.cam0.position.z - q.z) > 0) ? -1 : 1; });
+      // the three of them: Pip sags at first; when the arrow forms they all look up; at the end they set off under it
+      const home = new V3(-0.6, 0.5, 0.4), p = home.clone().addScaledVector(dir, go * 2.6), up = form; S.dv(p, new V3().subVectors(form > 0.3 ? cen : new V3(0.6, 0.5, 1.6), p).setY(0).normalize().lerp(dir, go).normalize());
+      const sad = 1 - sm01((t - S.at(2)) / 1.5); c.pip.position.copy(p).add(new V3(-0.75, 0.75 - 0.15 * sad + Math.sin(tm * 2) * 0.05 + up * 0.25, 0.25)); c.pip.userData.tick(tm * (1 + form));
+      { const d = (form > 0.3 && form < 0.99 ? cen : S.cam0.position).clone().sub(c.pip.position); c.pip.rotation.y = Math.atan2(-d.z, d.x); }
+      { const q = home.clone().add(new V3(0.95, 0, 0.15)).addScaledVector(dir, go * 2.6); q.y = S.groundY(q.x, q.z) + 0.22 + (go > 0 && go < 1 ? Math.abs(Math.sin(tm * 9)) * 0.05 : 0); c.clack.position.copy(q); const d = S.cam0.position.clone().sub(q).setY(0).normalize(); c.clack.rotation.y = Math.atan2(d.x, d.z) * 0.6 + (form > 0.3 ? 0.4 : 0); }
+      // camera: on the three; the narration tilts up from low to the arrow; at the end it follows them under it toward the vault
+      let cp = new V3(1.9, 1.1, 3.9), cl = new V3(-0.2, 1.0, 0.0); const ar = sm01((t - aL + 0.2) / 2.2) * (1 - sm01((t - S.at(4) + 0.4) / 1.4));
+      if (ar > 0) { cp = cp.clone().lerp(new V3(1.2, 0.55, 3.4), ar); cl = cl.clone().lerp(cen.clone().add(new V3(0, 0.2, 0)), ar); }
+      if (go > 0) { cp = S.arc(p, cp, p.clone().addScaledVector(dir, -3.4).add(new V3(0.8, 1.3, 0)), go); cl = cl.clone().lerp(S.tankP().clone().setY(2.0), go); }
+      S.cam(cp, cl);
+      return { mode: go > 0.02 && go < 0.98 ? 'walk' : 'stand', arms: form > 0.5 && t < e5 ? 'point' : null, armK: sm01((t - aL - 1.6) / 0.5) * (1 - go), target: cen.clone() }; } };
   // 9: sliding down the big dune
-  RECIPES.dune = { dur: 6.4, set: { dune: true }, setup(S, c) { S.tankAt(6.5, -10, -0.5); S.clear.push([-2, 0, 5]); },
-    run(S, c, t) { const x = K(t, [[0, -6.2], [0.8, -5.6], [3.6, 1.2], [4.2, 1.6]]), y = S.groundY(x, 0); const sliding = t > 0.8 && t < 3.8;
-      const p = new V3(x, y + 0.5 + (sliding ? -0.15 : 0), 0.2), slope = (S.groundY(x + 0.2, 0) - S.groundY(x - 0.2, 0)) / 0.4, f = t < 4.4 ? new V3(1, 0, 0) : new V3().subVectors(S.tankP(), p).setY(0).normalize();
-      S.dv(p, f, sliding ? -0.9 + Math.atan(slope) * 0.6 : 0); if (sliding && Math.random() < 0.8) S.parts.emit(p.x - 0.3, p.y - 0.4, p.z, 2, { color: new THREE.Color(1, 0.85, 0.55), speed: 1.4, life: 0.7, size: 0.14, spread: 0.3 });
-      S.cam(K(t, [[0, [-4.6, 3.4, 5.0]], [3.6, [0.5, 1.4, 5.0]], [6.4, [-0.4, 1.0, 3.0]]]), K(t, [[0, [-5, 2.6, 0]], [3.6, [1.0, 0.7, 0]], [6.4, [3.6, 0.9, -5]]]));
-      return { mode: sliding ? 'float' : t < 0.8 ? 'walk' : 'stand', speed: 1, arms: sliding ? 'cheer' : t > 4.4 ? 'cheer' : null, armK: sliding ? 0.9 : sm01((t - 4.5) / 0.4), face: f }; } };
+  // 9, staged on its lines: all three slide down the big dune (Clack tumbling); the torn map corner flutters on a coral; Pip spots it,
+  // the diver picks it up and looks (close on the scrap); Clack shudders at "cliffs"; then the camera rises past them to dark ink
+  // hanging in the water beyond the dune.
+  RECIPES.dune = { live: true, set: { dune: true }, tail: 3.0, gap(i) { return i === 0 ? 3.1 : 0; }, own: (i, sh) => !sh.who || i === 1,
+    setup(S, c) { c.pip = S.add(makePip(0xffc23a, S.glow)); c.clack = S.add(makeClack()); c.piece = S.add(makeMap(1)); c.piece.scale.setScalar(0.85);
+      const co = S.spr('coral3', 0.7, 2.6, -0.7); co.userData.keep = 1; S.tankAt(6.5, -10, -0.5); S.clear.push([-2, 0, 5], [2.6, -0.7, 1.2]); },
+    run(S, c, t) { const tm = S.time, a0 = S.at(0), a1 = S.at(1), a2 = S.at(2), a3 = S.at(3), e3 = S.end(3), T = isFinite(S.T) ? S.T : e3 + 3;
+      // the slide: everyone down the face of the dune, sand spraying; the diver then walks to the scrap and picks it up
+      const sl = (x0, x1, t0, t1) => K(t, [[t0, x0], [t1, x1]]), slid = t > 0.4 && t < 3.2;
+      let x = sl(-6.2, 1.0, 0.4, 3.2); if (t > a0 + 1.2) x = 1.0 + 1.0 * sm01((t - a0 - 1.2) / 1.4); const y = S.groundY(x, 0.2), slope = (S.groundY(x + 0.2, 0) - S.groundY(x - 0.2, 0)) / 0.4;
+      const p = new V3(x, y + 0.5 + (slid ? -0.15 : 0), 0.2), toP = new V3().subVectors(c.piece.position, p).setY(0).normalize(), fA = t < 3.4 ? new V3(1, 0, 0) : t < a3 ? toP : new V3(1, 0, -0.5).normalize();
+      S.dv(p, fA, slid ? -0.9 + Math.atan(slope) * 0.6 : 0); if (slid && !S.probe && Math.random() < 0.8) S.parts.emit(p.x - 0.3, p.y - 0.4, p.z, 2, { color: new THREE.Color(1, 0.85, 0.55), speed: 1.4, life: 0.7, size: 0.14, spread: 0.3 });
+      { const cx = sl(-6.8, 0.2, 0.6, 3.5), cy = S.groundY(cx, 0.9) + 0.22, q = new V3(cx, cy, 0.9); c.clack.position.copy(q); const tum = t > 0.6 && t < 3.5 ? (t - 0.6) * 5 : 0; const d = S.cam0.position.clone().sub(q).setY(0).normalize(); c.clack.rotation.set(tum, Math.atan2(d.x, d.z) * 0.6, 0); }
+      { const px = sl(-5.8, 0.6, 0.3, 2.9); let q = new V3(px, S.groundY(px, -0.5) + 1.0 + Math.sin(tm * 3) * 0.05, -0.5); const dart = sm01((t - a0 - 0.2) / 0.8) * (1 - sm01((t - a1) / 1.0)); q = q.lerp(c.piece.position.clone().add(new V3(-0.35, 0.35, 0.3)), dart);
+        if (t > a1) q = p.clone().add(new V3(0.45, 0.85 + Math.sin(tm * 2.4) * 0.05, -0.55)); c.pip.position.copy(q); const d = S.cam0.position.clone().sub(q); c.pip.rotation.y = Math.atan2(-d.z, d.x); c.pip.userData.tick(tm * (dart > 0 && dart < 1 ? 2.5 : 1)); }
+      // the scrap: flutters on the coral, then in the diver's hands
+      const take = sm01((t - a0 - 2.4) / 0.6), hand = p.clone().add(new V3(0, 0.55 + take * 0.3, 0)).addScaledVector(fA, 0.3);
+      c.piece.position.copy(new V3(2.6, 0.75 + Math.sin(tm * 2) * 0.04, -0.65)).lerp(hand, take); c.piece.lookAt(S.cam0.position); c.piece.rotation.z += Math.sin(tm * 3) * 0.12 * (1 - take);
+      // the ink beyond the dune, on the last line: dark clouds hanging in the water; the light cools
+      const ink = sm01((t - a3) / 1.5); if (ink > 0 && !S.probe && Math.random() < 0.7) S.inkBurst(new V3(3.8 + Math.random() * 3.5, 0.9 + Math.random() * 2.2, -2.5 - Math.random() * 3.5), 2, 3.2); S.expoMul = 1 - 0.3 * ink;
+      // camera: high on the dune following the slide; down with them; a close look at the scrap on his line; up past them to the ink
+      let cp = K(t, [[0, [-4.6, 3.4, 5.0]], [3.2, [0.2, 1.5, 4.6]], [a0 + 1.2, [0.8, 1.3, 3.9]]]), cl = K(t, [[0, [-5, 2.6, 0]], [3.2, [1.2, 0.8, -0.2]], [a0 + 1.2, [2.0, 0.9, -0.4]]]);
+      const cu = sm01((t - a1 + 0.3) / 1.0) * (1 - sm01((t - S.end(1) - 0.1) / 1.0)); if (cu > 0) { const back = hand.clone().addScaledVector(fA, -1.2).add(new V3(-0.25, 0.3, 0.75)); cp = cp.clone().lerp(back, cu); cl = cl.clone().lerp(hand, cu); }
+      const up = sm01((t - a3 + 0.2) / 2.4); if (up > 0) { cp = S.arc(p, cp, p.clone().add(new V3(-2.4, 1.9, 1.8)), up); cl = cl.clone().lerp(new V3(5.4, 1.7, -4.2), up); }
+      S.cam(cp, cl);
+      return { mode: slid ? 'float' : t > a0 + 1.2 && t < a0 + 2.6 ? 'walk' : 'stand', arms: slid ? 'cheer' : t > a0 + 2.4 && t < a3 + 0.5 ? 'hold' : null, armK: slid ? 0.9 : sm01((t - a0 - 2.4) / 0.4) * (1 - sm01((t - a3) / 0.6)), lift: take, face: fA }; } };
   // 10: the edge of the shallows; the Coral Caves glow violet far below
-  RECIPES.descent = { dur: 6.8, set: { cliff: -3, dark: 0.4 }, setup(S, c) { c.pip = S.add(makePip(0xffc23a, S.glow)); c.snip = S.add(makeFish('snip')); c.snap = S.add(makeFish('snap')); c.snip.scale.setScalar(1.3); c.snap.scale.setScalar(1.45); c.snip.visible = c.snap.visible = false; S.tankAt(5.0, -11, -0.35, -3); c.cave = S.add(makeCrystals(0xb57cff, 12, 2.2, 7)); c.cave.position.set(2.5, -3, -9); c.cave.userData.setLit(0.55);
-      const pl = new THREE.PointLight(0xb57cff, 9, 14, 1.4); pl.position.set(3, -1.6, -9); S.scene.add(pl); S.clear.push([0, 0, 3]); },
-    run(S, c, t) { const p = K(t, [[0, [-1.6, 0.5, 1.6]], [2.6, [-0.1, 0.5, -1.8]]]), f = new V3(0.35, 0, -1).normalize(), fall = sm01((t - 4.9) / 1.7);
-      if (t > 4.9) { p.x += (t - 4.9) * 0.3; p.y -= 5.5 * fall; p.z -= 1.6 * sm01((t - 4.9) / 1.2); }
-      S.dv(p, f, t > 4.9 ? 0.35 + 0.9 * sm01((t - 4.9) / 0.4) : t > 2.6 ? 0.35 * sm01((t - 2.6) / 0.6) : 0);
-      [[c.snip, -0.55, 0], [c.snap, 0.6, 0.25]].forEach(([F, ox, dl]) => { F.visible = t > 3.5 + dl; if (!F.visible) return; const k = sm01((t - 3.5 - dl) / 1.1), edge = new V3(-0.1 + ox, 1.0 + ox * 0.3, -1.0);
-        const fp = new V3(-4.5 + ox, 1.6, 2.2).lerp(t < 4.9 ? p.clone().add(new V3(ox, 0.55, 0.9)) : edge, t < 4.9 ? k : 1); fp.y += Math.sin(S.time * 3 + ox) * 0.06; F.position.copy(fp);
-        const d = new V3().subVectors(p, fp).setY(0); if (d.lengthSq() > 1e-4) F.rotation.y = Math.atan2(-d.z, d.x); if (F.userData.jaw) F.userData.jaw.rotation.z = -0.15 - Math.abs(Math.sin(S.time * 10 + ox)) * 0.45; if (F.userData.tail) F.userData.tail.rotation.y = Math.sin(S.time * 14 + ox) * 0.6; });
-      c.pip.position.set(p.x - 0.7 + Math.sin(S.time * 9) * 0.03 * (t > 3 ? 1 : 0), p.y + 0.75 + Math.sin(S.time * 2) * 0.06, p.z + 0.3 - (t > 4.6 ? 0.5 * sm01((t - 4.6) / 0.8) : 0)); c.pip.rotation.y = 0.6; c.pip.userData.tick(S.time);
-      S.cam(K(t, [[0, [1.5, 1.2, 3.4]], [2.6, [1.4, 1.5, 1.0]], [6.8, [1.2, 2.4, 0.9]]]), K(t, [[0, [-0.5, 0.8, -1]], [2.6, [0.5, -0.5, -5]], [6.8, [3.4, -0.6, -9.5]]]));
-      return { mode: t < 2.6 ? 'walk' : 'stand', speed: 1.3, arms: t > 4.2 ? 'point' : null, armK: sm01((t - 4.3) / 0.5), face: f, target: c.cave.position.clone() }; } };
+  // 10, staged on its lines: the three of them on the cliff edge, the camera over their shoulders down to the violet caves far below;
+  // Snip & Snap swoop up and circle them; the escape dive (a run); at the bottom Pip cheers, the piranhas squabble up on the edge, and
+  // Clack comes tumbling all the way down ("WELLLLL!"), landing in a puff of sand beside them at the cave mouth.
+  RECIPES.descent = { live: true, set: { cliff: -9, dark: 0.35 }, tail: 3.0, own: (i, sh) => !sh.who || i === 0 || i === 4 || i === 5,
+    setup(S, c) { c.pip = S.add(makePip(0xffc23a, S.glow)); c.snip = S.add(makeFish('snip')); c.snap = S.add(makeFish('snap')); c.snip.scale.setScalar(1.3); c.snap.scale.setScalar(1.45); c.clack = S.add(makeClack());
+      S.tankAt(4.6, -13.5, -0.35, -9); c.cave = S.add(makeCrystals(0xb57cff, 14, 2.6, 7)); c.cave.position.set(2.6, -9, -10.5); c.cave.userData.setLit(0.7);
+      for (const [x, z, k] of [[-2.5, -8.5, 1.2], [-0.6, -11, 1.6], [6.5, -9.5, 1.3], [-4, -12, 1.9]]) { const cr = S.add(makeCrystals(k > 1.5 ? 0x6fe0ff : 0xb57cff, 7, k, 11 + x | 0)); cr.position.set(x, S.groundY(x, z), z); cr.userData.setLit(0.6); }
+      const pl = new THREE.PointLight(0xb57cff, 14, 18, 1.3); pl.position.set(2.6, -6.8, -10); S.scene.add(pl); S.clear.push([0, -1, 3], [1, -8.5, 3.5]);
+      if (!TEX.rockCol) massMat(0); const rm = new THREE.MeshStandardMaterial({ map: TEX.rockCol, color: 0x8a7a8a, roughness: 0.95 }); S.mats.push(rm); /* the cliff face: a wall of rock down to the caves */
+      for (let i = 0; i < 16; i++) { const x = -9 + i * 1.25, sz = 1.3 + ((i * 7) % 5) * 0.18, geo = new THREE.IcosahedronGeometry(sz, 2), P = geo.attributes.position; for (let v = 0; v < P.count; v++) { const X = P.getX(v), Y = P.getY(v), Z = P.getZ(v), n = 1 + 0.14 * Math.sin(X * 2 + i) * Math.sin(Y * 2.4 + Z); P.setXYZ(v, X * n * 0.8, Y * n * 2.4, Z * n * 0.6); } geo.computeVertexNormals();
+        for (const y of [-7.2, -4.4]) { const r = S.add(new THREE.Mesh(geo, rm)); r.position.set(x + (y > -5 ? 0.5 : 0), y, -4.15 - (i % 3) * 0.2); r.rotation.y = i; r.castShadow = r.receiveShadow = true; } } },
+    run(S, c, t) { const tm = S.time, a1 = S.at(1), a2 = S.at(2), post = S.qDone, a3 = S.at(3), a4 = S.at(4), a5 = S.at(5), e5 = S.end(5), T = isFinite(S.T) ? S.T : e5 + 3;
+      const top = new V3(-0.1, 0.5, -1.9), bot = new V3(0.3, -8.5, -8.2), f0 = new V3(0.1, 0, -1).normalize();
+      // on the edge before the run; at the foot of the cliff after it
+      const p = post ? bot.clone() : K(t, [[0, [-1.4, 0.5, 1.4]], [2.6, [top.x, top.y, top.z]]]); const fB = new V3(-0.3, 0, 1).normalize(); S.dv(p, post ? (t > a5 - 0.2 ? new V3(0.3, 0, 0.5).normalize() : fB) : f0);
+      c.pip.position.copy(p).add(new V3(-0.7, 0.72 + Math.sin(tm * 2.2) * 0.05, 0.3)); { const d = S.cam0.position.clone().sub(c.pip.position); c.pip.rotation.y = Math.atan2(-d.z, d.x) * 0.6 + (post ? 0 : 0.5); } c.pip.userData.tick(tm);
+      // Snip & Snap: up from below the edge on Snip's line, circling the two; after the run they bicker up on the edge
+      [[c.snip, 0, 1.0], [c.snap, Math.PI, 1.15]].forEach(([F, ph, r], k) => { let fp;
+        if (!post) { const up = sm01((t - a1 + 0.9) / 1.2), an = tm * 0.9 + ph; fp = top.clone().add(new V3(Math.cos(an) * (r + 0.4), 0.7 + Math.sin(an * 1.6) * 0.15, Math.sin(an) * r * 0.8 - 0.4)); fp.y -= (1 - up) * 3.5; F.visible = up > 0.01; }
+        else { const an = tm * 2.4 + ph; fp = new V3(0.4 + Math.cos(an) * 0.7, -2.8 + Math.sin(an * 2) * 0.3, -5.9 + Math.sin(an) * 0.4); F.visible = t < e5 + 2; } /* confused, spinning partway down the cliff */
+        F.position.copy(fp); const d = (post ? new V3(Math.cos(tm * 2.4 + ph + 1.57), 0, Math.sin(tm * 2.4 + ph + 1.57)) : new V3().subVectors(p, fp)).setY(0); if (d.lengthSq() > 1e-4) F.rotation.y = Math.atan2(-d.z, d.x);
+        if (F.userData.tail) F.userData.tail.rotation.y = Math.sin(tm * 14 + ph) * 0.6; });
+      // Clack: beside the diver on the edge; after the run he falls all the way down on his line and lands in a puff of sand
+      { let q; if (!post) q = new V3(top.x + 0.85, 0, top.z + 0.25); else { const fk = sm01((t - a5 - 0.1) / Math.max(1.8, S.end(5) - a5)); q = new V3(0.9, 0, -2.6).lerp(new V3(1.2, 0, -8.0), sm01(fk * 1.3)); q.y = (1 - fk * fk) * 0.22 + fk * fk * -8.78 + Math.sin(fk * Math.PI) * 0.8;
+          if (fk > 0.97 && !c.puff && !S.probe) { c.puff = 1; S.parts.emit(1.2, -8.7, -8.0, 26, { color: new THREE.Color(1, 0.9, 0.7), speed: 1.6, life: 0.9, size: 0.14, spread: 0.6 }); } c.clack.rotation.set(fk < 0.97 ? fk * 14 : 0, 0.4, 0); if (t < a5) q.set(0.9, 0.22, -2.6); }
+        if (!post) { q.y = S.groundY(q.x, q.z) + 0.22; const d = S.cam0.position.clone().sub(q).setY(0).normalize(); c.clack.rotation.set(0, Math.atan2(d.x, d.z) * 0.5, 0); } c.clack.position.copy(q); }
+      // camera: behind them down over the edge; (director for the piranhas); at the bottom: up at the bickering pair, then following Clack's fall
+      let cp = K(t, [[0, [1.6, 1.4, 3.4]], [2.4, [1.2, 1.9, 0.7]]]), cl = K(t, [[0, [-0.4, 0.8, -1]], [2.4, [1.8, -6.0, -10]]]); /* over their shoulders, down to the caves */
+      if (post) { cp = new V3(2.6, -7.5, -6.9); cl = bot.clone().add(new V3(0, 0.5, 0)); const up = sm01((t - a4 + 0.3) / 1.2) * (1 - sm01((t - a5 + 0.2) / 1.2)); cp = cp.clone().lerp(new V3(2.6, -7.3, -10.2), up); cl = cl.clone().lerp(new V3(0.4, -3.0, -5.9), up);
+        const fl = sm01((t - a5 + 0.2) / 0.8) * (1 - sm01((t - e5 - 0.4) / 1.4)); if (fl > 0) { cp = cp.clone().lerp(new V3(3.6, -7.0, -10.8), fl); cl = cl.clone().lerp(c.clack.position, fl); } /* follow Clack all the way down */
+        const fin = sm01((t - e5 + 0.2) / 2.4); if (fin > 0) { cp = S.arc(bot, cp, bot.clone().add(new V3(-1.6, 1.4, 3.2)), fin); cl = cl.clone().lerp(S.tankP().clone().setY(-7.6), fin); } }
+      S.cam(cp, cl);
+      return { mode: !post && t < 2.6 ? 'walk' : 'stand', arms: !post && t > 1.8 && t < a1 ? 'point' : post && t > e5 ? 'wave' : null, armK: !post ? sm01((t - 1.9) / 0.5) * (1 - sm01((t - a1 + 0.5) / 0.5)) : sm01((t - e5) / 0.5), face: f0, target: c.cave.position.clone() }; } };
   // 11: the lamp wakes crystal clusters one by one
-  RECIPES.crystals = { dur: 6.8, set: { dark: 0.55 }, setup(S, c) { c.cr = []; for (let i = 0; i < 9; i++) { const g = S.add(makeCrystals(i % 3 ? 0xb57cff : 0x6fe0ff, 6, 0.9 + (i % 3) * 0.35, 11 + i)); const side = i % 2 ? 1 : -1; g.position.set(side * (1.2 + (i % 3) * 0.5), 0, 3 - i * 0.9); c.cr.push(g); }
+  RECIPES.crystals = { dur: 6.8, set: { dark: 0.78, night: 0.35 }, expo: 0.95, setup(S, c) { c.cr = []; for (let i = 0; i < 9; i++) { const g = S.add(makeCrystals(i % 3 ? 0xb57cff : 0x6fe0ff, 6, 0.9 + (i % 3) * 0.35, 11 + i)); const side = i % 2 ? 1 : -1; g.position.set(side * (1.2 + (i % 3) * 0.5), 0, 3 - i * 0.9); c.cr.push(g); }
       c.lamp = new THREE.SpotLight(0xfff0c0, 18, 8, 0.6, 0.6, 1.2); S.scene.add(c.lamp, c.lamp.target); S.tankAt(3.6, -9, -0.25); },
     run(S, c, t) { const z = K(t, [[0, 4.2], [5.0, -3.4]]), p = new V3(Math.sin(t * 0.8) * 0.25, 0.5, z), f = t < 5.2 ? new V3(Math.sin(t * 1.6) * 0.5, 0, -1).normalize() : new V3().subVectors(S.tankP(), p).setY(0).normalize(); S.dv(p, f);
       c.lamp.position.copy(p).add(new V3(0, 0.95, 0)); c.lamp.target.position.copy(p).addScaledVector(f, 3).setY(0.3);
@@ -3129,20 +3247,48 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const f = t < 2.0 ? new V3(-1, 0, -0.4).normalize() : mf; S.dv(p, f);
       S.cam(K(t, [[0, [1.4, 1.2, 4.0]], [2.6, [1.0, 1.4, 3.4]], [5.8, [1.2, 3.2, -3.6]], [7, [1.0, 2.0, -5.0]]]), K(t, [[0, [-1.5, 0.9, 0]], [2.6, [0, 1, 0]], [5.8, [3.6, 1.7, -9]], [7, [5.0, 1.4, -11]]]));
       return { mode: 'stand', arms: t < 2.6 ? 'wave' : t < 5.8 ? 'grip' : 'wave', armK: t < 2.0 ? sm01((t - 0.9) / 0.4) : t < 2.6 ? 0 : t < 5.8 ? 1 : sm01((t - 6) / 0.4), face: f }; } };
-  // 15: a huge eye opens in the dark; something big slides away; Pip hides behind the diver
-  RECIPES.shadow = { dur: 7.0, set: { dark: 0.8 }, setup(S, c) { c.o = S.add(makeOctopus(0x3a2266)); c.o.position.set(-0.6, 0.2, -8.0); c.o.rotation.y = -Math.PI / 2 + 0.15; c.o.scale.setScalar(1.7); c.eg = c.o.userData.eyes.map(E => { const g = glowSpr(0xfff3a0, 0.9, 0); g.position.z = 0.2; E.eg.add(g); return g; });
-      c.pip = S.add(makePip(0xffc23a, S.glow)); for (let i = 0; i < 5; i++) { const r = S.add(new THREE.Mesh(new THREE.DodecahedronGeometry(1.4 + (i % 2) * 0.5, 1), SM({ color: 0x2a2440, roughness: 1, flatShading: true }))); r.position.set(-4 + i * 1.8, 0.6 + (i % 2) * 0.6, -6.8 - (i % 3) * 0.4); } S.tankAt(4.2, -8.5, -0.3); S.clear.push([0, -2, 3]); },
-    run(S, c, t) { const open = sm01((t - 1.4) / 0.4) * (1 - sm01((t - 2.6) / 0.12) * (1 - sm01((t - 2.8) / 0.12))) * (1 - sm01((t - 4.4) / 0.6)); c.o.userData.setSad(1 - open); c.eg.forEach(g => { g.material.opacity = open * 0.9; }); c.o.position.x = -0.6 - sm01((t - 4.2) / 1.6) * 4; c.o.position.y = 0.2 - sm01((t - 4.2) / 1.2) * 2.5; c.o.userData.tick(S.time, 0.6);
-      const p = K(t, [[0, [0.6, 0.5, 1.6]], [1.4, [0.4, 0.5, 0.2]], [2.6, [0.4, 0.5, 0.2]], [3.4, [0.7, 0.5, 0.9]]]), f = new V3(-0.15, 0, -1).normalize(); S.dv(p, f);
-      c.pip.position.copy(p).add(new V3(t > 2.6 ? 0.25 : -0.6, 0.9 - (t > 2.6 ? 0.35 : 0), t > 2.6 ? 0.45 : -0.3)); c.pip.rotation.y = t > 2.6 ? 1.2 : -1.4; c.pip.userData.tick(S.time * (t > 2.6 ? 3 : 1));
-      S.cam(K(t, [[0, [2.6, 1.1, 3.8]], [2.4, [1.6, 0.9, 2.6]], [7, [2.2, 1.0, 3.0]]]), K(t, [[0, [-0.4, 0.9, -3]], [2.4, [-0.6, 1.1, -5]], [7, [1.6, 0.9, -5.6]]]));
-      return { mode: t < 1.4 || (t > 2.6 && t < 3.4) ? 'walk' : 'stand', speed: t > 2.6 ? -0.8 : 0.6, arms: t > 4.6 ? 'point' : null, armK: sm01((t - 4.8) / 0.5), face: f, target: c.o.position.clone().add(new V3(0, 1.5, 0)) }; } };
+  // 16, staged on its lines: a dark hollow behind big boulders; two huge eyes glow open in the dark (Pip hides behind the diver);
+  // Murk rises shyly above the rocks, ink chains on him, and speaks to the diver; he stares at the lamp; then Grimtide's tail whips in,
+  // wraps him and drags him down into the dark; the eyes are gone; the two stare after him.
+  RECIPES.shadow = { live: true, set: { dark: 0.85, night: 0.35 }, tail: 3.0, expo: 0.95, own: (i, sh) => !sh.who || i === 0,
+    setup(S, c) { c.o = S.add(makeOctopus(0x3a2266)); c.o.rotation.y = -Math.PI / 2 + 0.1; c.o.scale.setScalar(1.7); c.eg = c.o.userData.eyes.map(E => { const g = glowSpr(0xfff3a0, 0.9, 0); g.position.z = 0.2; E.eg.add(g); return g; });
+      c.ch = S.add(makeInkChains(1.0)); c.eel = S.add(makeEel(12, 0.55)); c.eel.visible = false; c.pip = S.add(makePip(0xffc23a, S.glow)); c.oL = new THREE.PointLight(0xb8a0ff, 0, 7, 1.4); S.scene.add(c.oL);
+      if (!TEX.rockCol) massMat(0); const rm = new THREE.MeshStandardMaterial({ map: TEX.rockCol, color: 0x5a5470, roughness: 0.95 }); S.mats.push(rm);
+      for (const [x, z, sz] of [[-3.4, -6.0, 1.8], [-1.6, -6.4, 1.5], [0.6, -6.3, 1.6], [2.6, -6.0, 1.9], [-0.4, -9.5, 2.8], [3.6, -9, 2.4], [-4.0, -9, 2.4]]) { const geo = new THREE.IcosahedronGeometry(sz, 3), P = geo.attributes.position;
+        for (let v = 0; v < P.count; v++) { const X = P.getX(v), Y = P.getY(v), Z = P.getZ(v), n = 1 + 0.12 * Math.sin(X * 2.1 + Z) * Math.sin(Y * 2.6 + x) + 0.06 * Math.sin(X * 5 + Y * 4); P.setXYZ(v, X * n, Y * n * 0.75, Z * n); } geo.computeVertexNormals();
+        const r = S.add(new THREE.Mesh(geo, rm)); r.position.set(x, sz * 0.32, z); r.castShadow = r.receiveShadow = true; }
+      S.shaftMat.uniforms.uK.value = 0.04; S.bgMat.color.multiplyScalar(0.55); S.tankAt(4.2, -8.5, -0.3); S.clear.push([0, -2, 3]); },
+    run(S, c, t) { const tm = S.time, a1 = S.at(1), a2 = S.at(2), a3 = S.at(3), e3 = S.end(3), T = isFinite(S.T) ? S.T : e3 + 3;
+      // Murk: eyes in the dark during Pip's line; he rises above the rocks on his own line; the tail drags him away on the last
+      const eyes = sm01((t - 1.2) / 0.6), rise = sm01((t - a1 + 0.3) / 1.6), yank = sm01((t - a3 - 0.3) / 1.4), O = new V3(-0.4, -1.0 + 2.2 * rise, -7.3).lerp(new V3(-3.5, -3.5, -10), yank);
+      c.o.position.copy(O); c.o.userData.setSad(t > a2 + 1.2 ? 0 : 0.7); c.o.userData.tick(tm, 0.6); c.eg.forEach(g => { g.material.opacity = 0.9 * eyes * (1 - yank) * (Math.sin(tm * 0.8) > 0.97 ? 0.1 : 1); });
+      c.ch.position.copy(O).add(new V3(0, 1.2, 0)); c.ch.userData.melt(0); c.ch.visible = rise > 0.3 && yank < 0.9; c.oL.position.copy(O).add(new V3(1.6, 2.2, 2.4)); c.oL.intensity = 6 * rise * (1 - yank);
+      // the tail: whips in from the dark behind and wraps him
+      const tk = sm01((t - a3 + 0.1) / 0.6); c.eel.visible = tk > 0.01 && yank < 0.99; if (c.eel.visible) c.eel.userData.pose((u, tt) => { const tail = O.clone().add(new V3(Math.cos(u * 9 + tt * 2) * 1.1 * (1 - u * 0.5), 1.0 + u * 0.6, Math.sin(u * 9 + tt * 2) * 1.1 * (1 - u * 0.5))); return new V3(-6, 2.5, -14).lerp(tail, Math.min(1, tk * 1.4 - u * 0.4)); }, tm);
+      if (t > a3 - 0.1) S.fx('yank', 'roar');
+      // the diver walks up; Pip ducks behind him at the eyes and peeks out to look at Murk
+      const p = K(t, [[0, [0.7, 0.5, 2.0]], [2.0, [0.4, 0.5, 0.2]]]), f = new V3().subVectors(O.clone().setY(0.5), p).setY(0).normalize(); S.dv(p, t > a3 + 0.4 ? new V3(-0.3, 0, -1).normalize() : f);
+      const hide = sm01((t - 1.3) / 0.5) * (1 - sm01((t - a2) / 1.0)); c.pip.position.copy(p).add(new V3(-0.62 + hide * 0.8, 0.78 - hide * 0.25 + Math.sin(tm * 2.4) * 0.04, 0.2 + hide * 0.45)); { const d = O.clone().sub(c.pip.position); c.pip.rotation.y = Math.atan2(-d.z, d.x); } c.pip.userData.tick(tm * (1 + hide * 2));
+      // camera: over their shoulders at the rocks; up with Murk as he rises; the director takes the talk; the yank is seen wide
+      let cp = K(t, [[0, [2.4, 1.15, 3.8]], [2.0, [1.6, 1.0, 2.5]]]), cl = K(t, [[0, [-0.4, 1.0, -4]], [2.0, [-0.4, 1.3, -6.0]]]); const up = rise * (1 - sm01((t - a3 - 1.0) / 1.5)); cl = cl.clone().lerp(O.clone().add(new V3(0, 1.6, 0)), up * 0.8);
+      const wide = sm01((t - a3 + 0.4) / 0.8); if (wide > 0) { cp = cp.clone().lerp(new V3(2.2, 1.4, 3.4), wide); cl = cl.clone().lerp(new V3(-1.6, 0.8, -8), wide); }
+      S.cam(cp, cl);
+      return { mode: t < 2.0 ? 'walk' : 'stand', arms: t > a3 + 0.3 ? 'reach' : null, armK: sm01((t - a3 - 0.3) / 0.4) * (1 - sm01((t - a3 - 2.4) / 0.8)), face: f, target: O.clone().add(new V3(0, 1.2, 0)) }; } };
   // 16: swimming through the coral arch as its lamps wake
-  RECIPES.arch = { dur: 6.6, set: { dark: 0.35 }, setup(S, c) { c.a = S.add(makeArch(11)); c.a.position.set(0, 0.2, -1.6); for (const [x, n, h] of [[-2.6, 'coral1', 0.9], [-2.2, 'coral3', 0.7], [2.3, 'coral4', 0.8], [2.7, 'weed5', 1.0], [-2.8, 'weed3', 1.1]]) S.spr(n, h, x, -1.4, 0.4); S.tankAt(4.6, -11, -0.32); S.clear.push([0, -1.6, 2.6]); },
-    run(S, c, t) { const z = K(t, [[0, 3.4], [3.6, -2.2], [4.6, -2.4]]), p = new V3(Math.sin(t) * 0.2, K(t, [[0, 1.2], [3.6, 1.0], [4.6, 0.5]]), z); c.a.userData.setLit(sm01((1.8 - (z + 1.6)) / 3.2));
-      const f = t < 4.2 ? new V3(0, 0, -1) : new V3(0, 0, 1).lerp(new V3(1, 0, 0.4), 0.3).normalize(); S.dv(p, f);
-      S.cam(K(t, [[0, [1.6, 1.3, 6.0]], [3.6, [1.0, 1.4, 2.6]], [6.6, [1.4, 1.2, 3.2]]]), K(t, [[0, [0, 1.3, 0]], [3.6, [0, 1.4, -2]], [6.6, [0.6, 1.4, -2]]]));
-      return { mode: t < 3.6 ? 'swim' : 'stand', speed: 1.5, arms: 'cheer', armK: sm01((t - 4.6) / 0.5), face: f }; } };
+  // 17, staged on its lines: they swim up to the dark arch (seen whole, from the front); the tap beat lights the lamps one by one; the
+  // keystone glows and the Keeper's words appear on it; then they talk under the lit arch, filmed from the side so no post blocks the lens.
+  RECIPES.arch = { live: true, set: { dark: 0.5 }, tail: 2.8, own: (i, sh) => !sh.who || sh.who === 'arch',
+    setup(S, c) { c.a = S.add(makeArch(11)); c.a.position.set(0, 0.72, -1.6); for (const [x, n, h] of [[-3.3, 'coral1', 0.9], [-2.0, 'coral3', 0.7], [3.1, 'coral4', 0.8], [3.5, 'weed5', 1.0], [-3.6, 'weed3', 1.1]]) { const sp = S.spr(n, h, x, -1.2); sp.userData.keep = 1; }
+      c.aL = new THREE.PointLight(0xffb060, 0, 9, 1.4); c.aL.position.set(0, 2.4, -0.8); S.scene.add(c.aL); S.tankAt(4.6, -11, -0.32); S.clear.push([0, -1.6, 3.4], [0, 2, 2.5]); },
+    run(S, c, t) { const tm = S.time, tq = S.qDone ? S.at(1) - 0.3 : (isFinite(S.qAt) ? S.qAt : 1e9), a2 = S.qDone ? S.at(2) : 1e9, T = isFinite(S.T) ? S.T : a2 + 8;
+      const q = S.qte, lit = S.qDone ? sm01((t - tq) / 1.4) : q ? Math.min(1, q.prog) : 0; c.a.userData.setLit(lit); c.aL.intensity = 7 * lit;
+      // swim up to the arch, stop a little in front of it; after the lamps wake they float through and turn back to look at it
+      const thru = sm01((t - a2 - 0.2) / 2.6), p = K(t, [[0, [0.3, 1.2, 4.2]], [Math.max(3.0, tq), [0.2, 0.75, 1.1]]]).lerp(new V3(-0.6, 0.7, -2.6), thru), f = thru > 0.9 ? new V3(0.4, 0, 1).normalize() : new V3(0, 0, -1); S.dv(p, f);
+      // camera: behind them toward the dark arch; front-on wide for the lamps; then the side, under the lit arch
+      let cp = K(t, [[0, [1.4, 1.5, 6.6]], [Math.max(3.0, tq), [0.9, 1.5, 4.6]]]), cl = K(t, [[0, [0, 1.6, -1]], [Math.max(3.0, tq), [0, 2.0, -1.6]]]);
+      const side = sm01((t - a2 + 0.2) / 2.4); if (side > 0) { cp = S.arc(new V3(0, 1.2, -1.6), cp, new V3(4.6, 1.4, 0.6), side); cl = cl.clone().lerp(new V3(-0.4, 1.6, -1.6), side); }
+      S.cam(cp, cl);
+      return { mode: t < Math.max(3.0, tq) || (thru > 0.02 && thru < 0.98) ? 'swim' : 'float', arms: lit > 0.9 && t < a2 ? 'cheer' : null, armK: sm01((t - tq - 1.2) / 0.5) * (1 - sm01((t - a2) / 0.5)), face: f }; } };
   // 17: buried pearls float up like lanterns
   RECIPES.pearls = { dur: 6.6, set: { dark: 0.45 }, setup(S, c) { c.p = []; for (let i = 0; i < 14; i++) { const b = S.add(makeBall(true)); b.scale.setScalar(0.4 + (i % 3) * 0.08); const gl = glowSpr(0xff6a5a, 1.0, 0.55); b.add(gl); const a = i * 2.39, r = 0.9 + (i % 5) * 0.55; b.userData.o = [Math.cos(a) * r, Math.sin(a) * r - 1, 0.6 + (i % 4) * 0.4]; c.p.push(b); } S.tankAt(4.2, -10, -0.3); },
     run(S, c, t) { c.p.forEach((b, i) => { const [x, z, d] = b.userData.o, k = Math.max(0, t - 0.6 - i * 0.12); b.position.set(x + Math.sin(S.time + i) * 0.12 * Math.min(1, k), 0.15 + k * d, z); });
@@ -3397,29 +3543,67 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   const pathSweep = (hx, hy, hz, dir, L, amp, freq, speed) => (u, t) => new V3(hx - dir * u * L, hy + Math.sin(u * freq - t * speed) * amp * (0.3 + u), hz + Math.cos(u * freq * 0.7 - t * speed) * amp * 0.5 * u);
 
   // 7: a light in a dark hollow looks like a gate. It's Grimtide's lure: it snaps shut, ink bursts, his tail snatches the map
-  RECIPES.trap = { dur: 7.6, set: { dark: 0.55 }, setup(S, c) { c.map = S.add(makeMap(7)); c.lure = S.add(new THREE.Mesh(new THREE.SphereGeometry(0.35, 24, 16), new THREE.MeshBasicMaterial({ color: 0xbff4ff })));
+  RECIPES.trap = { live: true, set: { dark: 0.8, night: 0.5 }, tail: 2.6, gap(i) { return i === 4 ? 0.5 : 0; }, own: (i) => i === 4 || i === 5, expo: 0.85,
+    setup(S, c) { c.map = S.add(makeMap(7)); c.lure = S.add(new THREE.Mesh(new THREE.SphereGeometry(0.35, 24, 16), new THREE.MeshBasicMaterial({ color: 0xbff4ff })));
       c.lg = glowSpr(0x9ff0ff, 3.2, 0.8); c.lure.add(c.lg); c.lure.position.set(-0.4, 1.6, -4.2); c.ll = new THREE.PointLight(0x9ff0ff, 10, 8, 1.4); c.lure.add(c.ll);
-      c.eel = S.add(makeEel(10, 0.5)); c.eel.visible = false; c.pip = S.add(makePip(0xffc23a, 0.5));
-      for (let i = 0; i < 5; i++) { const r = S.add(new THREE.Mesh(new THREE.DodecahedronGeometry(1.5 + (i % 2) * 0.6, 1), SM({ color: 0x3a3048, roughness: 1, flatShading: true }))); r.position.set(-4 + i * 1.9, 0.8, -6 - (i % 2) * 0.6); }
-      S.tankAt(4.4, -9, -0.3); S.clear.push([0, -2, 3.5]); },
-    run(S, c, t) { const p = K(t, [[0, [0.8, 0.5, 1.4]], [2.6, [0.2, 0.5, -1.6]], [4.2, [0.2, 0.5, -1.6]], [5.2, [0.7, 0.5, -0.4]]]), f = new V3(-0.15, 0, -1).normalize(); S.dv(p, f);
-      const snap = sm01((t - 3.4) / 0.25); c.lure.scale.setScalar(Math.max(0.01, 1 - snap)); c.lg.material.opacity = 0.8 * (1 - snap) * (0.8 + 0.2 * Math.sin(S.time * 9)); c.ll.intensity = 10 * (1 - snap);
-      if (t > 3.4) S.fx('ink', 'flash'); if (t > 3.45) S.inkBurst(new V3(-0.2, 1.4, -3.4), 26, 1.4);
-      const held = t < 4.0; c.map.visible = t < 5.6; const hand = p.clone().add(new V3(0.15, 0.95, 0.1)); c.map.position.copy(held ? hand : hand.lerp(new V3(-3, 2.4, -7), sm01((t - 4.0) / 1.4))); c.map.lookAt(S.cam0.position);
-      c.eel.visible = t > 3.6 && t < 6.2; if (c.eel.visible) { const k = (t - 3.6) / 2.6; c.eel.userData.pose(pathSweep(4 - k * 12, 1.8 + Math.sin(k * 3) * 0.4, -3.2, 1, 9, 0.35, 7, 4), S.time); }
-      c.pip.position.copy(p).add(new V3(-0.55, 0.95 + Math.sin(S.time * 3) * 0.05, 0.2)); c.pip.rotation.y = t < 3.4 ? -1.2 : 1.2; c.pip.userData.tick(S.time * (t > 3.4 ? 3 : 1)); c.pip.userData.setGlow(t < 3.4 ? 0.5 : 0.5 * (1 - sm01((t - 5.6) / 1.6)) + 0.05);
-      S.cam(K(t, [[0, [2.4, 1.3, 3.6]], [3.2, [1.8, 1.2, 1.4]], [5.0, [2.6, 1.6, 2.8]], [7.6, [2.4, 1.2, 2.2]]]), K(t, [[0, [-0.3, 1.2, -3]], [3.2, [-0.3, 1.4, -4]], [5.0, [-0.6, 1.6, -4]], [7.6, [0.2, 0.9, -1.6]]]));
-      return { mode: t < 2.6 || (t > 4.2 && t < 5.2) ? 'walk' : 'stand', speed: t > 4.2 ? -1.2 : 1, arms: t < 3.4 ? 'hold' : t < 4.2 ? 'cheer' : 'reach', armK: t < 3.4 ? 0.6 : 1, lift: 0.4, face: f, target: c.map.position.clone() }; } };
+      c.eel = S.add(makeEel(10, 0.5)); c.eel.visible = false; c.eL = new THREE.PointLight(0xff6a50, 0, 6, 1.4); S.scene.add(c.eL); c.pip = S.add(makePip(0xffc23a, 0.5)); c.corner = S.add(makeMap(1)); c.corner.scale.setScalar(0.4); c.corner.visible = false;
+      if (!TEX.rockCol) massMat(0); const rm = new THREE.MeshStandardMaterial({ map: TEX.rockCol, color: 0x7a6e88, roughness: 0.95 }); S.mats.push(rm);
+      for (const [x, z, sz] of [[-3.6, -5.4, 1.9], [-2.2, -7.0, 2.4], [2.0, -6.8, 2.3], [3.4, -5.2, 1.7], [-0.6, -8.4, 2.6], [1.0, -8.6, 2.2]]) { const geo = new THREE.IcosahedronGeometry(sz, 3), P = geo.attributes.position;
+        for (let v = 0; v < P.count; v++) { const X = P.getX(v), Y = P.getY(v), Z = P.getZ(v), n = 1 + 0.12 * Math.sin(X * 2.1 + Z) * Math.sin(Y * 2.6 + x) + 0.06 * Math.sin(X * 5 + Y * 4); P.setXYZ(v, X * n, Y * n * 0.8, Z * n); } geo.computeVertexNormals();
+        const r = S.add(new THREE.Mesh(geo, rm)); r.position.set(x, sz * 0.35, z); r.castShadow = r.receiveShadow = true; } /* the hollow: smooth dark rocks on either side and behind */
+      S.shaftMat.uniforms.uK.value = 0.03; S.bgMat.color.multiplyScalar(0.45); S.tankAt(4.4, -9, -0.3); S.clear.push([0, -2, 3.5]); },
+    run(S, c, t) { const tm = S.time, a1 = S.at(1), tq = S.qDone ? S.at(2) - 0.4 : (isFinite(S.qAt) ? S.qAt : 1e9), a3 = S.at(3), a4 = S.at(4), e5 = S.end(5), a6 = S.at(6), T = isFinite(S.T) ? S.T : e5 + 5;
+      // the diver walks toward the "gate", map in hand, and stops; the lure winks at the end of Pip's line
+      const p = K(t, [[0, [0.9, 0.5, 1.5]], [Math.max(3.2, a1), [0.25, 0.5, -1.4]]]), f = new V3(-0.15, 0, -1).normalize(); S.dv(p, f);
+      const wink = Math.max(0, 1 - Math.abs(t - (S.end(1) - 0.3)) * 6), snap = sm01((t - tq + 0.25) / 0.22);
+      c.lure.scale.set(Math.max(0.01, 1 - snap), Math.max(0.01, (1 - snap) * (1 - 0.85 * wink)), Math.max(0.01, 1 - snap)); c.lg.material.opacity = 0.8 * (1 - snap) * (0.8 + 0.2 * Math.sin(tm * 3)); c.ll.intensity = 10 * (1 - snap);
+      if (t > tq - 0.25) { S.fx('ink', 'flash'); S.inkBurst(new V3(-0.2, 1.4, -3.4), 26, 1.4); }
+      // Grimtide: out of the hollow at the snap, jaws on the map; the tug (the tap beat); after the tear he looms and talks, then slides back into the dark
+      const hand = p.clone().add(new V3(0.0, 0.58, 0)).addScaledVector(f, 0.38), tug = t > tq ? Math.sin(tm * 14) * 0.08 * (S.qDone ? 1 - sm01((t - a3) / 0.6) : 1) : 0;
+      let H = new V3(-0.4, 1.6, -4.4); if (snap > 0) H = H.lerp(hand.clone().addScaledVector(f, 0.55).add(new V3(0, 0.05 + tug, tug)), sm01((t - tq + 0.1) / 0.35));
+      if (a3 < 1e8) H = H.lerp(new V3(-0.25, 1.95, -2.6), sm01((t - a3 - 0.2) / 1.4)); if (e5 < 1e8) H = H.lerp(new V3(-0.5, 1.7, -8.5), sm01((t - e5 - 0.2) / 2.2));
+      c.eel.visible = snap > 0.01 && t < e5 + 2.6; if (c.eel.visible) { const E = c.eel.userData; E.pose((u, tt) => new V3(H.x + Math.sin(u * 5 - tt * 1.5) * 0.45 * u, H.y - u * 0.5, H.z - u * 9.5), tm); E.setGlow(1 - sm01((t - e5) / 2.2)); E.jaw.rotation.x = 0.15 + (a3 < 1e8 && t > a3 ? 0.25 : 0.05); } c.eL.position.copy(H).add(new V3(0.8, 1.0, 1.4)); c.eL.intensity = c.eel.visible ? 7 * (1 - sm01((t - e5) / 2.2)) : 0; /* a dim red light on his face so he reads in the dark */
+      // the map: in his hands, then between hands and jaws; it tears: the big piece goes with Grimtide, a corner drifts off into the dark
+      const torn = a3 < 1e8 ? sm01((t - a3 + 0.2) / 0.3) : 0, mouth = c.eel.visible ? c.eel.userData.head.getWorldPosition(new V3()).addScaledVector(f, 0.4) : hand;
+      c.map.position.copy(hand).lerp(mouth, snap > 0 ? 0.5 + 0.5 * torn : 0); c.map.lookAt(S.cam0.position); c.map.rotation.z += tug * 2; c.map.visible = t < e5 + 2.4;
+      c.corner.visible = torn > 0.01; if (c.corner.visible) { const k = Math.max(0, t - a3); c.corner.position.copy(hand).add(new V3(0.6 * k, 0.25 * k + Math.sin(k * 2) * 0.2, 0.15 * k)); c.corner.rotation.set(k * 0.6, k * 1.1, k * 0.4); }
+      // Pip at the diver's shoulder: wary, then dimming on his last line
+      c.pip.position.copy(p).add(new V3(-0.6, 0.85 + Math.sin(tm * 3) * 0.05, 0.2)); { const d = S.cam0.position.clone().sub(c.pip.position); c.pip.rotation.y = snap > 0 && snap < 1 ? 1.2 : Math.atan2(-d.z, d.x) * 0.5 - 0.6; }
+      c.pip.userData.tick(tm * (snap > 0 && t < a3 ? 3 : 1)); c.pip.userData.setGlow(Math.max(0.05, 0.5 - 0.45 * sm01((t - a6) / 2.0)));
+      // camera: behind-right, slowly in toward the light; a tense side shot for the snap and the tug; the director takes the dialogue; pull back into the dark at the end
+      let cp = K(t, [[0, [2.4, 1.3, 3.6]], [Math.max(3.2, a1), [1.7, 1.15, 1.6]]]), cl = K(t, [[0, [-0.3, 1.25, -3]], [Math.max(3.2, a1), [-0.3, 1.4, -3.6]]]);
+      const sd = sm01((t - tq + 0.4) / 0.9); if (sd > 0) { cp = S.arc(new V3(0, 1.2, -1.6), cp, new V3(2.9, 1.35, -1.1), sd); cl = cl.clone().lerp(hand.clone().lerp(H, 0.5), sd); }
+      const gk = sm01((t - a4 + 0.4) / 1.2) * (1 - sm01((t - e5) / 1.2)); if (gk > 0) { cp = S.arc(new V3(0, 1.3, -1.8), cp, new V3(2.3, 1.05, 1.2), gk); cl = cl.clone().lerp(H.clone().lerp(p.clone().setY(1.0), 0.45), gk); } /* Grimtide's lines: his head and the diver together */
+      const fin = sm01((t - T + 2.6) / 2.4); if (fin > 0) { cp = cp.clone().lerp(new V3(2.2, 1.5, 3.2), fin); cl = cl.clone().lerp(new V3(-0.4, 1.4, -6), fin); }
+      S.cam(cp, cl);
+      return { mode: t < Math.max(3.2, a1) ? 'walk' : 'stand', arms: snap > 0 && torn < 1 ? 'grip' : torn > 0.9 && t < a4 ? 'reach' : 'hold', armK: snap > 0 && torn < 1 ? 1 : torn > 0.9 ? 1 - sm01((t - a3 - 0.6) / 1.0) : 0.6, lift: 0.4, face: f, target: c.corner.position.clone() }; } };
   // 13: Grimtide's storm: the water goes black, the eel sweeps in, Shelly shields the little ones and sinks to the sand
-  RECIPES.storm = { dur: 7.6, set: { dark: 0.7 }, setup(S, c) { c.tu = S.add(makeTurtle()); c.tu.scale.setScalar(1.35); c.eel = S.add(makeEel(13, 0.62)); c.pip = S.add(makePip(0xffc23a, S.glow)); S.tankAt(4.4, -10, -0.3); S.clear.push([0, -1, 4]); },
-    run(S, c, t) { const p = new V3(0.9, 0.5, 1.0), f = new V3(-0.6, 0, -1).normalize(); S.dv(p, f, 0, 0, t > 2 && t < 4.4 ? Math.sin(S.time * 18) * 0.04 : 0);
-      if (t > 0.4 && t < 6) S.inkBurst(new V3((Math.random() - 0.5) * 10, 1 + Math.random() * 3, -4 - Math.random() * 3), 1, 1.8);
-      if (t > 1.8) S.fx('storm1', 'thunder'); if (t > 4.1) S.fx('storm2', 'flash');
-      const ek = (t - 1.6) / 3.2; c.eel.visible = ek > 0 && ek < 1; if (c.eel.visible) c.eel.userData.pose(pathSweep(-7 + ek * 16, 1.6 + Math.sin(ek * 4) * 0.5, -1.2 - Math.sin(ek * 3) * 0.6, -1, 12, 0.6, 6, 5), S.time);
-      const hit = sm01((t - 4.1) / 1.4), tp = K(t, [[0, [3.4, 0.8, -0.2]], [2.4, [0.0, 0.9, -0.2]], [4.1, [-0.2, 1.0, -0.4]], [5.6, [-0.6, 0.35, -0.9]]]); c.tu.position.copy(tp); c.tu.rotation.set(hit * 0.35, Math.PI * 0.9 + hit * 0.6, hit * 0.5); c.tu.userData.tick(S.time, 1 - hit * 0.9);
-      c.pip.position.copy(p).add(new V3(0.5, 0.8 + Math.sin(S.time * 9) * 0.03, 0.4)); c.pip.rotation.y = 2.4; c.pip.userData.tick(S.time * 2);
-      S.cam(K(t, [[0, [2.6, 1.2, 4.0]], [4.1, [2.2, 1.4, 3.4]], [7.6, [2.0, 1.0, 2.8]]]), K(t, [[0, [0, 1.2, -1]], [4.1, [-0.2, 1.3, -1]], [7.6, [-0.6, 0.5, -0.9]]]));
-      return { mode: 'stand', arms: t < 4.4 ? 'hold' : 'reach', armK: t < 1.8 ? 0 : 1, lift: 0.2, face: f, target: c.tu.position.clone() }; } };
+  // 13, staged on its lines: the day goes black (ink, lightning, thunder); Grimtide sweeps right over them; Shelly turns and spreads her
+  // flippers, the two behind her shell; the storm run; then the blow: his tail strikes, she spins and sinks slowly to the sand; "One down."
+  // as his eyes slide away into the dark and the two rush to her.
+  RECIPES.storm = { live: true, set: { dark: 0.6, night: 0.2 }, tail: 3.0, expo: 0.95, own: (i, sh) => !sh.who || i === 1 || i === 6,
+    setup(S, c) { c.tu = S.add(makeTurtle()); c.tu.scale.setScalar(1.35); c.eel = S.add(makeEel(16, 0.75)); c.pip = S.add(makePip(0xffc23a, S.glow)); S.tankAt(4.4, -10, -0.3); S.clear.push([0, -1, 4]);
+      c.flash = new THREE.PointLight(0xc8dcff, 0, 40, 1); c.flash.position.set(-2, 9, 2); S.scene.add(c.flash); },
+    run(S, c, t) { const tm = S.time, a1 = S.at(1), a2 = S.at(2), post = S.qDone, a5 = S.at(5), a6 = S.at(6), e6 = S.end(6), T = isFinite(S.T) ? S.T : e6 + 3;
+      // the black: light falls away over the first line; ink drifts through; lightning now and then (and on the blow)
+      const blk = sm01((t - 0.3) / 2.6); S.expoMul = 1 - 0.5 * blk; S.nightK = 0.2 + 0.55 * blk; S.key.intensity = (3.2 * (1 - S.dark * 0.75) + 0.2) * (1 - 0.7 * blk);
+      if (blk > 0.2 && !S.probe && Math.random() < 0.25) S.inkBurst(new V3((Math.random() - 0.5) * 12, 1 + Math.random() * 3.5, -3 - Math.random() * 5), 1, 2.2);
+      const strike = post && a5 < 1e8 ? t - a5 - 0.5 : -9, lt = (Math.sin(tm * 0.7) > 0.985 ? 1 : 0) + (strike > 0 && strike < 0.25 ? 3 : 0); c.flash.intensity = lt * 18 * blk; if (t > 2.0) S.fx('thunder1', 'thunder'); if (strike > 0) S.fx('blow', 'thunder');
+      // Shelly: before the run she settles and spreads her flippers in front of them; the blow spins her and she sinks to the sand
+      const base = new V3(0.1, 0.95, -0.4), sink = strike > 0 ? sm01(strike / 3.0) : 0, spin = strike > 0 ? sm01(strike / 1.2) : 0; const tp = base.clone().lerp(new V3(-0.5, 0.35, -0.9), sink); tp.y += Math.sin(tm * 1.2) * 0.04 * (1 - sink);
+      c.tu.position.copy(tp); c.tu.rotation.set(sink * 0.35, -Math.PI / 2 + spin * 2.4, sink * 0.45); c.tu.userData.tick(tm, 1 - sink * 0.95);
+      // the two of them: behind her shell; after the blow they rush to her
+      const hide = new V3(0.35, 0.5, -1.7), rush = post ? sm01((t - a6 + 0.2) / 1.6) : 0, p = hide.clone().lerp(new V3(0.4, 0.5, 0.15), rush), f = rush > 0.1 ? new V3().subVectors(tp, p).setY(0).normalize() : new V3(0, 0, 1);
+      S.dv(p, f, 0, 0, t > a2 && !post ? Math.sin(tm * 18) * 0.03 : 0); c.pip.position.copy(p).add(new V3(-0.55, 0.62 + Math.sin(tm * 9) * 0.02, 0.15)); c.pip.rotation.y = Math.atan2(-(tp.z - c.pip.position.z), tp.x - c.pip.position.x); c.pip.userData.tick(tm * 2);
+      // Grimtide: sweeps low over them on his first line; strikes after the run; on "One down." he slides off into the dark above
+      const sw = sm01((t - a1 + 0.8) / Math.max(3, S.end(1) - a1 + 1.6)), H = new V3(-9 + sw * 18, 3.4 - Math.sin(sw * Math.PI) * 1.2, -2.6 - Math.sin(sw * Math.PI) * 0.8);
+      let vis = sw > 0 && sw < 1; if (post && strike > -0.8) { const k = sm01((strike + 0.8) / 1.0), out = sm01((t - a6) / 2.6); H.set(5 - k * 4.6 - out * 6, 2.0 + out * 3, -1.6 - out * 4); vis = out < 0.99; }
+      c.eel.visible = vis; if (vis) { c.eel.userData.pose((u, tt) => new V3(H.x - u * 15 * (sw < 1 && !post ? 1 : -0.6), H.y + Math.sin(u * 6 - tt * 3) * 0.6 * u, H.z - u * 2 + Math.cos(u * 5 - tt * 2) * 0.6 * u), tm); c.eel.userData.setGlow(1); }
+      // camera: wide as the black comes in; low under him as he sweeps; (director for Shelly); a slow push on her sinking; his exit over them
+      let cp = new V3(2.6, 1.3, 4.2), cl = new V3(0, 1.3, -1); const lo = sm01((t - a1 + 0.6) / 1.0) * (1 - sm01((t - S.end(1) - 0.2) / 1.2)); if (lo > 0) { cp = cp.clone().lerp(new V3(1.8, 0.55, 2.4), lo); cl = cl.clone().lerp(H.clone().setY(H.y - 0.4), lo); }
+      if (post) { const sk = sm01((t - a5) / 1.4); cp = cp.clone().lerp(new V3(3.6, 1.3, 3.0), sk); cl = cl.clone().lerp(tp, sk); const ex = sm01((t - a6 + 0.3) / 1.4); if (ex > 0) { cp = cp.clone().lerp(new V3(2.8, 1.0, 3.6), ex); cl = cl.clone().lerp(tp.clone().lerp(H, 0.35), ex); } }
+      S.cam(cp, cl);
+      return { mode: rush > 0.05 && rush < 0.95 ? 'walk' : 'stand', arms: t > a2 && !post ? 'hold' : rush > 0.5 ? 'reach' : null, armK: 1, lift: 0.2, face: f, target: tp.clone() }; } };
   // 14: Shelly lies on the sand; the diver kneels beside her, glimmer jellies gather to keep her warm
   RECIPES.shellyrest = { dur: 8.0, set: { dark: 0.55 }, setup(S, c) { c.tu = S.add(makeTurtle()); c.tu.scale.setScalar(1.35); c.tu.position.set(-0.4, 0.35, -0.8); c.tu.rotation.set(0.25, Math.PI * 0.75, 0.32);
       c.j = []; for (let i = 0; i < 12; i++) { const j = S.add(makeJelly()); j.scale.setScalar(0.38 + (i % 3) * 0.1); j.add(glowSpr([0xff9ae0, 0x9ae8ff, 0xfff09a][i % 3], 0.8, 0.5)); c.j.push(j); }
@@ -3668,7 +3852,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       { const spk = new Set([...(this.ch.L || []), ...this.qAll()].map(l => l[0])); this.comp = [];
         if (spk.has('pip') && !this.c.pip && !this.c.h) { this.c.pip = this.add(makePip(0xffc23a, this.glow)); this.comp.push('pip'); }
         if (spk.has('lumen') && !this.c.lumen && this.ch.r !== 'angler') { this.c.lumen = this.add(makeAngler()); this.c.lumen.scale.multiplyScalar(0.7); this.comp.push('lumen'); }
-        if (spk.has('clack') && !this.c.clack && !this.c.crabs) { this.c.clack = this.add(makeClack()); this.comp.push('clack'); } }
+        if (spk.has('clack') && !this.c.clack && !this.c.crabs) { this.c.clack = this.add(makeClack()); this.comp.push('clack'); }
+        if (spk.has('shelly') && !this.c.tu) { this.c.tu = this.add(makeTurtle()); this.c.tu.scale.setScalar(1.2); this.comp.push('shelly'); } }
       { const P0 = this.parts; this.parts = { emit() {}, bubbles() {} }; this.probe = true; this.camPts = []; const who = [...new Set([...(this.ch.L || []), ...this.qAll()].map(l => l[0]).filter(w => w))];
         const PT = this.live ? (isFinite(this.T) ? this.T : this.qAt + 10) : this.dur; for (let i = 0; i <= 40; i++) { try { this.rc.run(this, this.c, PT * i / 40); this.companions(); } catch (er) {} const base = this.cam0.position.clone(); this.camPts.push(base);
           if (i % 2 === 0) for (const w of who) { const q = this.castOf(w); if (!q) continue; for (const to of ['you', ...who]) { if (to === w) continue; const b = this.castOf(to); if (!b) continue; const sh = { who: w, to };
@@ -3708,9 +3893,10 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     skipAll() { this.simon = null; if (!this.qDone) { if (!this.qte) this.qte = { kind: this.Q.kind, n: 1, el: 0, prog: 0, r: this.rQ }; this.qteEnd(false); } this.t = Math.max(this.t, this.T - 0.05); this.li = this.capI = this.seq.length; if (this.o.onCap) this.o.onCap(null); }
     companions() { if (!this.comp || !this.comp.length) return; const f = this.face || new V3(1, 0, 0), up = new V3(0, 1, 0), r = new V3().crossVectors(f, up).normalize(), h = this.hold.position, tm = this.time;
       const sp = this.shot && this.t < this.shot.l.t1 ? this.shot.who : '', cam = this.cam0.position;
-      for (const k of this.comp) { const o = this.c[k]; let d = new V3().subVectors(cam, o.position).setY(0).normalize(), talking = sp === k;
-        if (k === 'pip') { o.position.copy(h).addScaledVector(r, 0.62).addScaledVector(f, 0.1); o.position.y += 1.05 + Math.sin(tm * 2.2) * 0.06; const g = talking ? d.applyAxisAngle(up, -0.6) : f; o.rotation.set(0, Math.atan2(-g.z, g.x), 0); if (o.userData.tick) o.userData.tick(tm); }
+      for (const k of this.comp) { const o = k === 'shelly' ? this.c.tu : this.c[k]; if (!o) continue; let d = new V3().subVectors(cam, o.position).setY(0).normalize(), talking = sp === k;
+        if (k === 'pip') { o.position.copy(h).addScaledVector(r, 0.66).addScaledVector(f, 0.12); o.position.y += 0.72 + Math.sin(tm * 2.2) * 0.05; const g = talking ? d.applyAxisAngle(up, -0.6) : f; o.rotation.set(0, Math.atan2(-g.z, g.x), 0); if (o.userData.tick) o.userData.tick(tm); }
         else if (k === 'lumen') { o.position.copy(h).addScaledVector(r, -0.95).addScaledVector(f, -0.15); o.position.y += 1.15 + Math.sin(tm * 1.7) * 0.08; const g = talking ? d.applyAxisAngle(up, 0.5) : f; o.rotation.set(0, Math.atan2(-g.z, g.x), 0); if (o.userData.tail) o.userData.tail.rotation.y = Math.sin(tm * 6) * 0.4; }
+        else if (k === 'shelly') { o.position.copy(h).addScaledVector(r, -1.7).addScaledVector(f, -0.5); o.position.y = Math.max(h.y, 0.5) + 0.35 + Math.sin(tm * 1.1) * 0.06; const g = talking ? d : f; o.rotation.set(0, Math.atan2(-g.z, g.x), 0); if (o.userData.tick) o.userData.tick(tm, 0.6); }
         else if (k === 'clack') { const x = h.x + r.x * 0.75 + f.x * 0.4, z = h.z + r.z * 0.75 + f.z * 0.4; const gy = this.groundY(x, z); o.position.set(x, (h.y < gy - 0.3 ? h.y + 0.1 : gy + 0.22) + Math.abs(Math.sin(tm * 6)) * 0.02, z); /* falls with the diver off a cliff */ const g = talking ? d : f; o.rotation.set(0, Math.atan2(g.x, g.z), 0); } } }
     // ---- who is speaking: the cast member on screen, its size, and a close-up camera on it (shot/reverse-shot from the recipe's camera)
     castOf(who) { const c = this.c; let o = null, s = 1, y = 0;
@@ -3815,7 +4001,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (!this.frozen && t >= this.T) { this.frozen = true; if (this.o.onCap) this.o.onCap(null); if (this.o.onFreeze) this.o.onFreeze(); }
       if (!this.frozen) while (this.li < this.seq.length && this.seq[this.li].t0 !== undefined && this.t >= this.seq[this.li].t0) { const l = this.seq[this.li]; if (this.o.onCap) this.o.onCap(l, this.li, this.ch);
         { const q = l.who && this.castOf(l.who); if (q && q.o.userData && q.o.userData.setMood) q.o.userData.setMood(l.mood); } this.shot = { who: l.who, to: this.addressee(this.li), l, i: this.li }; this.li++; this.capI = this.li; }
-      this.stage(dt); this.shotCam(dt);
+      this.stage(dt); this.shotCam(dt); this.voiceEyes(dt);
       this.shaftMat.uniforms.uT.value = this.world.time;
       if (this.kelp) this.kelp.forEach(k => { k.rotation.z = Math.sin(this.world.time * 0.9 + k.userData.sw) * 0.06; });
       for (const f of this.fish) { const F = f.userData.f; F.x += F.v * dt; if (F.x > 14) F.x = -14; if (F.x < -14) F.x = 14; f.position.set(F.x, F.y + Math.sin(this.world.time * 1.3 + F.ph) * 0.15, F.z); f.scale.x = F.v > 0 ? -1 : 1; }
@@ -3838,11 +4024,21 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const jump = !want && this._bp && bp.distanceTo(this._bp) > 2.2 && (!R || R.sw <= 0); /* the recipe cut to a new place: follow it at once */
       if (!R || jump) R = this.rig = { look: tgt.look.clone(), vl: new V3(), az: tg.az, el: tg.el, r: tg.r, vaz: 0, vel: 0, vr: 0, fov: tgt.fov, vf: 0, mode: !!want, sw: 0, pos: tgt.pos.clone(), vp: new V3() };
       else { if (!!want !== R.mode) { R.mode = !!want; R.sw = 2.4; } R.sw = Math.max(0, R.sw - dt); const T = R.sw > 0 ? 1.35 : 0.55, Tl = R.sw > 0 ? 1.0 : 0.4;
-        damp3(R.look, R.vl, tgt.look, Tl, dt); const f = damp1(R.fov, R.vf, tgt.fov, 1.0, dt); R.fov = f[0]; R.vf = f[1];
+        const f = damp1(R.fov, R.vf, tgt.fov, 1.0, dt); R.fov = f[0]; R.vf = f[1];
+        if (want) damp3(R.look, R.vl, tgt.look, Tl, dt);
+        else { /* the film's own moves: the aim turns (eased, ≤ 1.2 rad/s) rather than sliding the look point across the scene */
+          const d0 = R.look.clone().sub(R.pos), l0 = d0.length() || 1, d1 = tgt.look.clone().sub(R.pos), l1 = d1.length() || 1; d0.divideScalar(l0); d1.divideScalar(l1);
+          const ang = Math.acos(Math.max(-1, Math.min(1, d0.dot(d1)))), A = damp1(0, R.vang || 0, ang, Tl, dt), st = Math.min(ang, Math.max(0, A[0]), 1.2 * dt); R.vang = Math.min(1.2, A[1]);
+          const ax = new V3().crossVectors(d0, d1); if (ax.lengthSq() > 1e-10 && ang > 1e-5) d0.applyAxisAngle(ax.normalize(), st); const ld = l0 + (l1 - l0) * Math.min(1, dt / Math.max(0.05, Tl));
+          R.look.copy(R.pos).addScaledVector(d0, ld); R.vl.set(0, 0, 0); }
         if (want) { let da = tg.az - R.az; da = Math.atan2(Math.sin(da), Math.cos(da)); const A = damp1(0, R.vaz, da, T, dt); R.az += A[0]; R.vaz = Math.max(-0.85, Math.min(0.85, A[1])); /* dialogue: orbit round the speakers */
           const E = damp1(R.el, R.vel, tg.el, T, dt); R.el = E[0]; R.vel = E[1]; const D = damp1(R.r, R.vr, tg.r, T, dt); R.r = D[0]; R.vr = D[1];
           R.pos.set(R.look.x + R.r * Math.sin(R.az) * Math.cos(R.el), R.look.y + R.r * Math.sin(R.el), R.look.z + R.r * Math.cos(R.az) * Math.cos(R.el)); R.vp.set(0, 0, 0); }
-        else { damp3(R.pos, R.vp, tgt.pos, T, dt); const o = sph(R.pos, R.look); R.az = o.az; R.el = o.el; R.r = o.r; R.vaz = R.vel = R.vr = 0; } } /* the film's own moves: a straight glide (the aim can travel far) */
+        else { damp3(R.pos, R.vp, tgt.pos, T, dt);
+          if (R.cdir) { const L = R.look.clone().sub(R.pos), Ln = L.length() || 1, d1 = L.divideScalar(Ln), an = Math.acos(Math.max(-1, Math.min(1, R.cdir.dot(d1)))), mx = 1.3 * dt; /* the view itself never turns faster than ~75°/s */
+            if (an > mx) { const ax = new V3().crossVectors(R.cdir, d1); if (ax.lengthSq() > 1e-10) { const d = R.cdir.clone().applyAxisAngle(ax.normalize(), mx); R.look.copy(R.pos).addScaledVector(d, Ln); } } }
+          const o = sph(R.pos, R.look); R.az = o.az; R.el = o.el; R.r = o.r; R.vaz = R.vel = R.vr = 0; }
+        R.cdir = R.look.clone().sub(R.pos).normalize(); } /* the film's own moves: a straight glide (the aim can travel far) */
 
       { const gy = this.groundY(R.pos.x, R.pos.z) + 0.25; if (R.pos.y < gy) R.pos.y = gy; }
       this._bp = bp; c.position.copy(R.pos); c.up.set(0, 1, 0); c.lookAt(R.look); if (this.camRoll && !want) c.rotateZ(this.camRoll); if (Math.abs(c.fov - R.fov) > 0.01) { c.fov = R.fov; c.updateProjectionMatrix(); }
@@ -3859,6 +4055,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           else if (em === 'droop') { const k = sm01((t - sh.l.t0) / 0.6); dy -= S * 0.07 * k; rz += 0.14 * k; } // sinks a little for the whole line
           spk.o.position.y += dy; spk.o.rotation.z += rz; spk.o.rotation.y += ry; this._tb = { o: spk.o, dy, rz, ry };
           const ud = spk.o.userData || {}; if (ud.talk) { ud.talk(a); this._talk = ud; } else if (ud.mouth) { const m = ud.mouth; m.visible = a > 0.1; m.scale.y = m.userData.h * (0.3 + 0.9 * a); this._mouth = m; } else if (ud.jaw) { ud.jaw.rotation.z = -0.15 - 0.55 * a; this._jaw = ud.jaw; } } } }
+    // Grimtide speaking off-screen: two red eyes open in the dark ahead of the lens while he talks, blink, and fade when he stops
+    voiceEyes(dt) { const sh = this.shot, on = !!(sh && sh.who === 'grimtide' && this.t < sh.l.t1 + 0.5 && !this.frozen && !this.castOf('grimtide'));
+      if (!on && !this._ve) return; if (!this._ve) { this._ve = { k: 0, s: [0, 1].map(() => { const e = glowSpr(0xff2a14, 1.4, 0); e.material.fog = false; this.scene.add(e); this.mats.push(e.material); return e; }) }; }
+      const V = this._ve; if (on && !V.p) { const c = this.cam0, d = new V3(); c.getWorldDirection(d); d.y = 0; d.normalize(); V.p = c.position.clone().addScaledVector(d, 13); V.p.y = c.position.y + 1.4; V.r = new V3(-d.z, 0, d.x); }
+      V.k += ((on ? 1 : 0) - V.k) * Math.min(1, dt * 2.2); const bl = Math.sin(this.time * 0.9) > 0.96 ? 0.1 : 1; V.s.forEach((e, i) => { e.position.copy(V.p || new V3()).addScaledVector(V.r || new V3(1, 0, 0), i ? 0.5 : -0.5); e.material.opacity = 0.9 * V.k * bl; });
+      if (!on && V.k < 0.01) V.p = null; }
     // who a line is said to: a speaker talks to the diver; the diver answers whoever spoke just before (or speaks next)
     addressee(i) { const L = this.seq, l = L[i]; if (this.rc.to) { const r = this.rc.to(i, l, this); if (r !== undefined) return r; } if (!l || !l.who || !this.castOf(l.who)) return null; const ok = w => w && w !== l.who && w !== 'grimtide' && this.castOf(w) ? w : null;
       if (l.who !== 'you') return this.castOf('you') ? 'you' : null;
@@ -3910,7 +4112,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         for (const h of hits) { const o = h.object, m = o.material; if (!o.isMesh || own(o) || !m || m.side === THREE.BackSide || (m.transparent && (m.opacity ?? 1) < 0.35) || m.blending === THREE.AdditiveBlending) continue;
           let vis = true; for (let a = o; a; a = a.parent) if (!a.visible) { vis = false; break; } if (vis) return false; } } return true; }
     // the last second slides the picture aside for the card (right on wide screens, bottom on phones)
-    render(post) { { const ex = (FILM_EXPO[this.n] || 1) * (this.expoMul ?? 1); if (post.compMat) post.compMat.uniforms.expo.value = this.run ? 1 : ex; this.world.renderer.toneMappingExposure = this.run ? 1 : ex; } if (this.run) { if (post.compMat) post.compMat.uniforms.night.value = 0; this.cam0.clearViewOffset(); post.render(this.run.scene, this.run.cam, this.world.time); return; }
+    render(post) { { const ex = (this.rc.expo ?? FILM_EXPO[this.n] ?? 1) * (this.expoMul ?? 1); if (post.compMat) post.compMat.uniforms.expo.value = this.run ? 1 : ex; this.world.renderer.toneMappingExposure = this.run ? 1 : ex; } if (this.run) { if (post.compMat) post.compMat.uniforms.night.value = 0; this.cam0.clearViewOffset(); post.render(this.run.scene, this.run.cam, this.world.time); return; }
       if (this.set.night && post.compMat) post.compMat.uniforms.night.value = this.nightK ?? this.set.night; /* the moonlit night grade */ const w = innerWidth, h = innerHeight, c = this.cam0, k = sm01((this.t - (this.T - 1.1)) / 1.0); if (k > 0) { if (this.port) c.setViewOffset(w, h, 0, h * 0.26 * k, w, h); else c.setViewOffset(w, h, w * 0.13 * k, 0, w, h); } else c.clearViewOffset();
       post.render(this.scene, c, this.world.time); }
     dispose() { if (this.run) { this.run.dispose(); this.run = null; } this.scene.traverse(o => { if (o.isSkinnedMesh && o.skeleton) o.skeleton.dispose(); });
