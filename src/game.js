@@ -3607,7 +3607,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.disposeLevel(); this.levelGroup.clear(); this.entShadows = []; this.entities.clear(); this.particles.n = 0; this.particles.bub.n = 0;
       this.gateObj = null; this.gateFx = null; this.pops = []; this.coachCells = null; this.sandInst = null; this.treasures = []; this.digChunks = []; if (this.warn) this.warn.visible = false; this.ghosts = []; this.absorbing = []; this.deathTint = 0; this.setFx('');
     }
-    loadLevel(e) { this.arr = null; this.mood = null; this.quakeT = 0; this.flickT = 0; this.cond = null; this.relic = null; this.revealQ = null; if (this.dangerPool) { this.setDanger(null); this.dangerPool.forEach(sp => { sp.userData.k = 0; sp.visible = false; }); }
+    loadLevel(e) { this.arr = null; this.mood = null; this.quakeT = 0; this.flickT = 0; this.relic = null; this.revealQ = null; if (this.dangerPool) { this.setDanger(null); this.dangerPool.forEach(sp => { sp.userData.k = 0; sp.visible = false; }); }
       this.clearLevel(); this.e = e; this.shadowDirty = true; this.mood = null; this.playerAct = null; this.lastHup = -9; const ART = ART_SETS[NEW_ART_LEVELS.has(e.name) || e.menu || e.daily ? 'new' : 'old']; this.newArt = ART === ART_SETS.new; MAT.sandNew.value = this.newArt ? 1 : 0; this.tickMs = e.tickMs; this.menuMode = !!e.menu; this.playing = false; this.lead.set(0, 0); this.lastMove = -99; this.zoomK = 1.12; this.playerPos = null;
       const W = e.w, H = e.h; this.particles.top = 1;
       const sand = [], blocks = [], cobbles = [], solid = [];
@@ -4608,7 +4608,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         // sand/rock/water around them and the far corners of the tank fall gently into shadow. Never dark: it adds depth, not gloom.
         const e0 = this.e, play = !!(e0 && !this.menuMode && !this.cineCam), wl = e0 && !e0.menu && !e0.cine ? worldOf(e0.name) : 0;
         const L = [[0.7, 0.1, 0.94], [0.95, 0.24, 0.7], [1.2, 0.36, 0.5]][wl] || [0.7, 0.1, 0.94], pp = this.playerPos;
-        const dk = play ? ({ dark: 1, dim: 0.4 }[this.cond] || 0) : 0; // story: lights out (only your lamp) / dimmed
+        const dk = play && !e0.photo && e0.name === this.condFor ? ({ dark: 1, dim: 0.4 }[this.cond] || 0) : 0; // story: lights out (only your lamp) / dimmed
         const goal = play && pp && e0.state !== 'won' ? 1 : 0; this.lampK = (this.lampK || 0) + (goal - (this.lampK || 0)) * Math.min(1, dt * 2.5);
         if (this.cineCam && this.cineFx && pp) { MAT.lamp.value.set(pp.x + 0.15, pp.y + 0.25, 2.8, this.cineFx.lamp * 1.1); MAT.lampAmb.value = 0; }
         else { if (pp) MAT.lamp.value.set(pp.x + 0.1, pp.y + 0.2, 3.3 - dk * 0.35, L[0] * this.lampK * (1 + dk * 0.5)); else MAT.lamp.value.w = 0; MAT.lampAmb.value = Math.min(0.75, L[1] + dk * 0.42) * this.lampK; }
@@ -4713,7 +4713,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (m.pip != null) { M.pip = makePip(0xffc23a, m.pip); M.pip.scale.setScalar(1.5); M.pip.position.set(x0 + 1, yT + 0.75, 0.45); this.levelGroup.add(M.pip); M.x0 = x0; M.x1 = x1; M.yT = yT; }
       if (m.ink) { M.ink = []; for (let i = 0; i < 9; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.dot, color: 0x0a0614, transparent: true, opacity: 0.35, depthWrite: false })); sp.scale.setScalar(2 + (i % 3)); sp.position.set(x0 + (i / 8) * (x1 - x0), yB + 1 + (i % 4) * (yT - yB) / 4, -1.2 - (i % 3)); sp.userData.ph = i * 1.7; this.levelGroup.add(sp); M.ink.push(sp); } }
       if (m.eyes > 0) { M.eyes = []; for (let i = 0; i < 2; i++) { const g = new THREE.Group(); for (const sx of [-0.35, 0.35]) { const sp = glowSpr(0xff2a1a, 0.7, 0); sp.position.x = sx; g.add(sp); } const side = i ? 1 : -1; g.position.set(side < 0 ? x0 - 3.5 : x1 + 3.5, (yT + yB) / 2 + i, -7); g.userData.ph = i * 9; this.levelGroup.add(g); M.eyes.push(g); } } }
-    setCond(c) { this.cond = c || null; }
+    setCond(c) { this.cond = c || null; this.condFor = this.e && this.e.name; } // tied to the level by name: photos and undo reload the scene
     pipNod() { if (this.mood && this.mood.pip) this.mood.nod = 1; }
     // a story moment inside a level: Grimtide's tail sweeps over the tank, his eyes watch from beside it (or stare in, during a cutscene),
     // the tank shakes, ink drifts by, the lights flicker; friends glow and fish stream past. Nothing touches the board.
