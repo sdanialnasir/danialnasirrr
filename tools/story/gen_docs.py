@@ -1,24 +1,32 @@
-# story v4 -> tools/voices.json, docs/voice-script.md, docs/story.md.  Run: python3 tools/story/gen_docs.py  (edit tools/story/story_v4.py first; the game copy of the lines lives in src/game.js)
+# story v5 -> tools/voices.json, docs/voice-script.md, docs/story.md.  Run: python3 tools/story/gen_docs.py  (edit tools/story/story_v5.py first; the game copy of the lines lives in src/game.js)
 import json, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import importlib; D = importlib.import_module('story_v4')
+import importlib; D = importlib.import_module('story_v5')
 R = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + '/'
 P = R + 'tools/voices.json'; d = json.load(open(P))
 role = lambda w: D.SPEAKERS[w][1]
 name = lambda w: D.SPEAKERS[w][0] or 'Narrator'
-STORY_ID = re.compile(r'^(s\d+_(\d+|ok\d+|no\d+)|l\d+_[spmg]|k_[a-z]+_\d+|m\d+)$')
+STORY_ID = re.compile(r'^(s\d+_(\d+(_[a-z]+)?|ok\d+|no\d+|c[a-z]+_\d+)|l\d+_[spmg]|k_[a-z]+_\d+|m\d+)$')
 base = [l for l in d['lines'] if not STORY_ID.match(l['id'])]
 for l in base: l['set'] = 'base'
 new = []
 def add(id, who, text, tag, when):
+    if isinstance(text, dict):  # a line that depends on the player's style: one clip per style
+        for k, t in text.items(): add(f'{id}_{k}', who, t, tag, f'{when} (if the player is mostly {k})')
+        return
     new.append({'id': id, 'role': role(who), 'text': f'[{tag}] {text}', 'when': when, 'max_seconds': 0, 'set': 'story', 'who': name(who)})
+CHN = lambda n, c: (f"Chapter {n} · {c['t']}" if n else f"Prologue · {c['t']}")
 for n, c in enumerate(D.CH):
     if not c: continue
-    for i, (w, t, g) in enumerate(c['L']): add(f's{n}_{i+1}', w, t, g, f"Chapter {n} · {c['t']}")
+    for i, l in enumerate(c['L']): add(f's{n}_{i+1}', l[0], l[1], l[2], CHN(n, c))
     if 'Q' in c:
         q = c['Q']
-        for j, (w, t, g) in enumerate(q['ok']): add(f's{n}_ok{j+1}', w, t, g, f"Chapter {n} · {c['t']} — after “{q['label']}” (done in time)")
-        for j, (w, t, g) in enumerate(q['no']): add(f's{n}_no{j+1}', w, t, g, f"Chapter {n} · {c['t']} — after “{q['label']}” (missed)")
+        if q['kind'] == 'choice':
+            for k, lab, ls in q['opts']:
+                for j, l in enumerate(ls): add(f's{n}_c{k}_{j+1}', l[0], l[1], l[2], f"{CHN(n, c)} — choice “{q['label']}”: {k} answer “{lab}”")
+        else:
+            for j, l in enumerate(q['ok']): add(f's{n}_ok{j+1}', l[0], l[1], l[2], f"{CHN(n, c)} — after “{q['label']}” (done in time)")
+            for j, l in enumerate(q['no']): add(f's{n}_no{j+1}', l[0], l[1], l[2], f"{CHN(n, c)} — after “{q['label']}” (missed)")
 ON = {'s': 'level starts', 'p': 'first pearl in', 'm': 'after 24 s of play', 'g': 'gate opens'}
 for n, lv in enumerate(D.BEATS):
     if not lv: continue
@@ -89,7 +97,7 @@ ARC = {'wonder': 'wonder', 'hope': 'hope ↑', 'dread': 'dread ↓', 'fun': 'fun
        'courage': 'courage ↑', 'menace': 'menace ↓', 'bittersweet': 'bittersweet', 'danger': 'danger ↓↓', 'sad': 'grief ↓↓', 'grief': 'GRIEF ↓↓↓', 'mystery': 'mystery',
        'resolve': 'resolve ↑', 'joy': 'joy ↑↑', 'rescue': 'rescue ↑↑', 'rally': 'rally ↑↑', 'showdown': 'showdown ↓', 'victory': 'REVENGE ↑↑↑'}
 W = lambda w: D.SPEAKERS[w][0]
-o = ['# Aqua Energizer: The Thirty Gates (story v4)', '',
+o = ['# Aqua Energizer: The Thirty Gates (story v5)', '',
  '## The story in one breath',
  'Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls as tribute until the Reef Keeper built thirty gates and drove him into the abyss. '
  'On the storm night (the intro film) he came back, swallowed the reef’s light, and the Keeper gave all her own light to the Great Lantern to save it. '
@@ -108,10 +116,12 @@ o = ['# Aqua Energizer: The Thirty Gates (story v4)', '',
  '- **The Reef Keeper** [keeper] — heard in her journal (6) and in the 30 hidden gold coins (one per level): her memories tell her own story.', '',
  '## Ups and downs', '', '| ch | chapter | feel | interactive beat |', '|---|---|---|---|']
 for n, c in enumerate(D.CH):
-    if c: o.append(f"| {n} | {c['t']} | {ARC.get(c['mood'], c['mood'])} | {c['Q']['label'] + ' (' + c['Q']['kind'] + ')' if 'Q' in c else ''} |")
+    if c: o.append(f"| {n or 'prologue'} | {c['t']} | {ARC.get(c['mood'], c['mood'])} | {c['Q']['label'] + ' (' + c['Q']['kind'] + ')' if 'Q' in c else ''} |")
 o += ['', '## How the story is told',
  '- **Films** (after each level): every line has its speaker on screen; the camera cuts to a close-up of whoever talks and they animate as they speak. '
  'Characters who aren’t part of a scene’s action ride along (Pip at Spark’s shoulder, Lumen glowing beside, Clack at the feet).',
+ '- **Choices** in eight films (1, 4, 8, 11, 14, 19, 25, 27): three answers (brave ⚡ / funny 😄 / kind 💛), 9 s to pick; each has its own reply. '
+ 'The style the player picks most changes Pip’s line in the finale (s30_7_<style>). The film slows while you choose.',
  '- **Interactive beats** in eight films: tap fast, hold, or swipe. The film slows to 15% while you act; success and failure each have their own line, and the story continues either way.',
  '- **Inside the levels:** the level card line, a talk bubble when the level starts / the first pearl goes in / after 24 s / the gate opens, and attacks around the tank '
  '(the tank shakes, Grimtide’s tail sweeps over it, his eyes watch, ink drifts by, the lights flicker). Levels 11, 24 and 29 open with a short in-level cutscene '
@@ -121,17 +131,22 @@ o += ['', '## How the story is told',
  '## Chapters', '']
 for n, c in enumerate(D.CH):
     if not c: continue
-    o.append(f"### Level {n}: {D.LEVEL_STORY[n]}")
-    for b in D.BEATS[n]:
+    if n == 0: o.append('### Prologue (the intro film, before level 1)')
+    else: o.append(f"### Level {n}: {D.LEVEL_STORY[n]}")
+    for b in (D.BEATS[n] or []) if n else []:
         o.append(f"- {ON[b['on']]}{' · ' + b['fx'] if b.get('fx') else ''}{' · cutscene' if b.get('cut') else ''} (`l{n}_{b['on']}`): " + (f"**{W(b['who'])}:** " if b['who'] else '') + b['text'])
-    if D.MEM[n]: o.append(f"- Keeper’s coin (`m{n}`): “{D.MEM[n]}”")
-    o.append(''); o.append(f"**Chapter {n} · {c['t']}** (film `{c['r']}`, arrival `{c['a']}`, {ARC.get(c['mood'], c['mood'])})"); o.append('')
+    if n and D.MEM[n]: o.append(f"- Keeper’s coin (`m{n}`): “{D.MEM[n]}”")
+    o.append(''); o.append(f"**{CHN(n, c)}** (film `{c['r']}`, arrival `{c['a']}`, {ARC.get(c['mood'], c['mood'])})"); o.append('')
     seq = list(enumerate(c['L']))
     q = c.get('Q')
-    for i, (w, t, g) in seq:
+    say = lambda ls: ' / '.join((f"**{W(l[0])}:** " if l[0] else '') + (' | '.join(f'({k}) {v}' for k, v in l[1].items()) if isinstance(l[1], dict) else l[1]) for l in ls)
+    for i, l in seq:
+        w, t = l[0], l[1]
         if q and i == q['at']:
-            o.append(f"- ▶ **{q['label']}** ({q['kind']}) — in time: " + ' / '.join((f"**{W(w2)}:** " if w2 else '') + t2 for w2, t2, _ in q['ok']) + ' — missed: ' + ' / '.join((f"**{W(w2)}:** " if w2 else '') + t2 for w2, t2, _ in q['no']))
-        o.append(f"- `s{n}_{i+1}` " + (f"**{W(w)}:** {t}" if w else f"*{t}*"))
+            if q['kind'] == 'choice': o.append(f"- ▶ **Choice: {q['label']}** — " + ' — '.join(f"{k} “{lab}”: " + say(ls) for k, lab, ls in q['opts']))
+            else: o.append(f"- ▶ **{q['label']}** ({q['kind']}) — in time: " + say(q['ok']) + ' — missed: ' + say(q['no']))
+        if isinstance(t, dict): t = ' | '.join(f'({k}) {v}' for k, v in t.items())
+        o.append(f"- `s{n}_{i+1}` " + (f"**{W(w)}:** {t}" if w else f"*{t}*") + (f" _({l[3]})_" if len(l) > 3 and l[3] else ''))
     o.append('')
 o += ['## When a dive fails', '']
 for cause, L in D.DEATH.items():

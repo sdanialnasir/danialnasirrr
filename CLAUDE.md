@@ -856,3 +856,24 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   injects a pack when its world is near (boot: the unlocked world; startLevel: this world, and the next from x8). `window.AQ_VOICE` merges a pack. `AQ_DATA.VOP` lists the packs that exist (no request for a missing file). Checked with dummy clips: packs build, load per world, lengths right.
 - Close-ups re-check the line of sight every 0.25 s (`sh.chk`): someone swims in front → cut to the other side, else back to the wide shot.
 - Gotcha (again): a `//` comment inside a one-line JS statement swallowed the rest of the line twice this pass; use `/* */` mid-line.
+
+## Story v5: the polish pass (owner: "don't scrap it, polish it": funnier, less static, more game)
+- **Script:** `tools/story/story_v5.py` (imports the unchanged pieces from story_v4: speakers, roles, beats, deaths, memories). Same 30 chapters,
+  same films and events; lines tightened and funny-first (running gags: Pip's "my fins are just cold", Clack's "exactly as I planned" / Deputy
+  Assistant Vice Captain, Grimtide's "setting my table", Lumen's sock, Clack back alive in ch. 30). `CH[0]` = the **prologue** (intro film).
+  Lines are `(who, text, delivery[, emote])`. `python3 tools/story/gen_docs.py` regenerates voices.json + docs/story.md + docs/voice-script.md;
+  the game's copy (CHAPTERS / PROLOGUE in game.js) is injected from the same data (JSON shape: `[who, text, emote?]`), so change both.
+- **Prologue film** (`RECIPES.prologue`, n = 0, voice ids `s0_<i>`): the festival, Grimtide rising and drinking the lights, the Keeper giving her
+  light to the Lantern, darkness, Pip alone; then `cineTick` hands over to the tank part of the intro (first dig → gate). Low tier adds `#cineDark`.
+- **Talking:** Pip / Shelly / Clack / Murk have a mouth (`talkMouth`) that opens with the syllables in every shot; Grimtide's jaw works;
+  fish characters have both eyes. **Emotes** (`hop spin shake laugh salute droop nod`) play on the speaker over a line's first 0.9 s
+  (droop holds for the line); applied in `shotCam` through `_tb` (dy / rz / ry, undone next frame).
+- **Choices** (`Q.kind 'choice'`, chapters 1, 4, 8, 11, 14, 19, 25, 27): `#choice` card (prompt + brave ⚡ / funny 😄 / kind 💛 buttons, keys 1–3,
+  9 s bar). No answer = the player's usual style (`topTrait()` from `save.trait`), else the first option. Each answer has its own reply lines
+  (`s<n>_c<key>_<j>`). Picks count into `save.trait`; a text can be `{brave, funny, kind}` (Pip's line in ch. 30, ids `s30_7_<style>`), the
+  journal shows the player's version. Tap/hold/swipe beats are unchanged (7, 10, 13, 17, 24, 26, 29, 30).
+- **Story conditions in levels** (`LEVEL_COND`, look only, the board never changes): `dim` 8–9, `dark` 14/24/25 (the lamp pool is all you
+  get: `world.setCond` → stronger lamp + `lampAmb`, darker backdrop, deeper vignette), `storm` 13/29/30 (every ~13 s a flicker + thunder or a
+  quake), `ink` 16/18/26 (ink drifts by). The level card shows a chip (`COND_CHIP`). Not in Daily Dive / custom levels.
+- **Voices: the owner must not record until the v5 script is approved.** Voice maker is Eleven v4 only (`fallback_models: []`), no name prompts.
+- Debug: `__dc.watch(n)` plays chapter n like the journal; `__dc.qte('pick', 'funny')` answers a choice.

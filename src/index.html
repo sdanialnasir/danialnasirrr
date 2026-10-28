@@ -1806,6 +1806,30 @@ body.cut #cutBars i { transform: none; } body.cut #hud, body.cut #hudB, body.cut
 .jt p[data-who="grimtide"] em { color: #ff6a5a; } .jt p[data-who="clack"] em { color: #ffb36a; } .jt p[data-who="keeper"] em, .jt p[data-who="keeper"] { color: #ffe08a; } .jt p[data-who="snip"] em, .jt p[data-who="snap"] em { color: #ff9a5a; }
 body.story.qte-on #storyCap { opacity: 0; transition: opacity .2s; }
 @media (prefers-reduced-motion: reduce) { #sfx { display: none; } #qte .qt-ring i { animation: none; } }
+
+/* story v5: a choice in a film (brave / funny / kind), 9 s to answer */
+#choice { position: fixed; right: 4vw; bottom: 7vh; z-index: 61; width: min(25rem, 40vw); display: grid; gap: 0.5rem; padding: 0.9rem; border-radius: 1.3rem;
+  background: linear-gradient(180deg, rgba(22, 58, 140, 0.94), rgba(9, 28, 82, 0.95)); border: 2px solid rgba(120, 200, 255, 0.75); box-shadow: 0 0 0 2px #061640, 0 0.8rem 2rem rgba(0, 0, 0, 0.45);
+  opacity: 0; transform: translateY(1rem) scale(0.96); transition: opacity .25s, transform .35s cubic-bezier(.2,1.5,.4,1); }
+#choice.on { opacity: 1; transform: none; }
+#choice > b { font-family: var(--display); font-size: 1.15rem; color: #ffe08a; letter-spacing: 0.02em; text-align: center; }
+#choice .ch-opts { display: grid; gap: 0.45rem; }
+#choice .ch-o { display: flex; align-items: center; gap: 0.65rem; width: 100%; text-align: left; padding: 0.6rem 0.75rem; border-radius: 0.95rem; border: 2px solid rgba(150, 215, 255, 0.45);
+  background: rgba(255, 255, 255, 0.08); color: #fff; font: 800 0.98rem/1.25 var(--text, Nunito, sans-serif); cursor: pointer; transition: transform .15s, background .2s, border-color .2s, opacity .3s; }
+#choice .ch-o:hover, #choice .ch-o:focus-visible { background: rgba(255, 255, 255, 0.18); border-color: #ffe08a; transform: translateX(0.2rem); outline: none; }
+#choice .ch-o:active { transform: scale(0.97); }
+#choice .ch-o i { flex: none; width: 2rem; height: 2rem; display: grid; place-items: center; border-radius: 50%; font-style: normal; font-size: 1.05rem; }
+#choice .c-brave i { background: linear-gradient(#ffcf4a, #f08a1c); } #choice .c-funny i { background: linear-gradient(#ff9ad1, #d9478e); } #choice .c-kind i { background: linear-gradient(#8ef0b4, #22a86a); }
+#choice .ch-o span { flex: 1; } #choice kbd { font: 800 0.75rem/1 var(--text, Nunito, sans-serif); color: #9ec8ff; border: 1px solid rgba(158, 200, 255, 0.5); border-radius: 0.35rem; padding: 0.2rem 0.4rem; }
+#choice .ch-tm { display: block; height: 0.3rem; border-radius: 1rem; background: #ffe08a; transform-origin: left; }
+#choice.on .ch-tm { animation: chTm 9s linear forwards; } #choice.done .ch-tm { animation: none; opacity: 0; }
+#choice.done .ch-o:not(.picked) { opacity: 0.25; } #choice .ch-o.picked { border-color: #ffe08a; background: rgba(255, 224, 138, 0.22); transform: scale(1.03); }
+@keyframes chTm { to { transform: scaleX(0); } }
+@media (orientation: portrait), (max-width: 700px) { #choice { left: 4vw; right: 4vw; width: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 5vh); } }
+@media (prefers-reduced-motion: reduce) { #choice.on .ch-tm { animation: none; } }
+
+html body:is(.ui-art, :not(.ui-art)) .kit.k-cond { background: linear-gradient(180deg, #3a2a6e, #1c1440); border-color: rgba(190, 160, 255, 0.6); }
+.kit .kic.e { display: grid; place-items: center; font-style: normal; font-size: 1.05rem; background: none; -webkit-mask: none; mask: none; }
 </style>
 </head>
 <body data-state="splash">
@@ -2109,6 +2133,7 @@ body.story.qte-on #storyCap { opacity: 0; transition: opacity .2s; }
 </section>
 
 <div id="sfx" aria-hidden="true"></div><div id="cutBars" aria-hidden="true"><i></i><i></i></div>
+<div id="choice" hidden aria-live="assertive"><b></b><div class="ch-opts"></div><i class="ch-tm" aria-hidden="true"></i></div>
 <div id="qte" hidden aria-live="assertive"><div class="qt-ring"><i></i></div><b></b><small></small></div>
 <div id="talk" aria-live="polite"><i class="tk-ic" aria-hidden="true"></i><div><b></b><p></p></div></div>
 <div id="storyCap" aria-live="polite"><small></small><b></b><p></p></div>
