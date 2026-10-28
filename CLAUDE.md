@@ -771,3 +771,26 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - **Arrival:** Continue sets `arriveNext`; `beginPlay` calls `world.arrive()`: a small pipe (R 0.3) pops out of the sand in the tank's
   bottom-left corner (z 0.3, in front of the walls), the diver arcs out of it to his start cell, the pipe sinks after ~2.3 s; the first move
   ends the pop-out. A spotlight tutorial on that level waits 1.7 s for it. Debug: `__dc.story()`.
+
+## Colour match to the reference (owner: "brighter and vibrancy… much closer comparison")
+- Measured per material against `04_arrival` (sand / rock / water / sky above the tank) with a small stats script, then tuned at the source:
+  sand ×1.5 golden (`uRef` path), world-1 rock = darker earth (`#5f412f`) with lumpy stones (`bp()` blob outlines), lit top-left and shaded
+  bottom-right, grain; bump ×9.5; the painted backdrop gets a cyan push + sunlit lift where blue (`MAT.bgLift`, per world 1 / 0.45 / 0.2);
+  stage-light dimming in world 1 much lighter (`L` table); in-tank water deeper cyan and the back panel more opaque; hazy reef silhouettes behind
+  the water are distinct blue-violet with coral tufts (`silA` raises the panel alpha there); post vignette 0.58 → 0.74 and +5% exposure (day only).
+  Result (ref → ours): sand 212,155,67 → 210,146,65; rock 132,96,79 → 135,101,84. More face corals and bubble streams.
+- Bug to remember: a `//` comment placed before `gC.restore()` on the same line left a canvas clip active and broke the whole rock texture.
+
+## The story: 29 chapter films (owner: "each level will have story… every cutscene different")
+- `CHAPTERS[n]` (World section) = the chapter shown after level n: title `t`, two caption lines `cap` ([seconds, text]), recipe `r`, world `w`,
+  arrival `a` ('pipe' | 'drop' | 'swirl' | 'bubble'). Story bible + table: `docs/story.md` (regenerate it from CHAPTERS if lines change).
+- `RECIPES[r]` = `{ dur, set, setup(S, c), run(S, c, t) }`. `run` places the camera (`S.cam(pos, look)`; phones pull back ×1.4), the diver
+  (`S.dv(pos, facing, pitch, yawOff, roll)`) and the cast, and returns `{ mode: swim|walk|stand|float, speed, arms, armK, face, target }`.
+  Arm poses (world-space bone aiming, `Story.arms`): wave, cheer, point, reach, hold, clap, offer, grip. `K(t, keys)` = smooth keyframes.
+- Set options: `dark` (0..1, plus a base darkness per world), `dune`, `cliff` (ground drops beyond z −3), `trench`. `S.tankAt(x, z, ry, y)` places
+  the next level's tank photo. Before playing, the recipe is probed at 41 times to collect camera positions; decor near the camera path is removed.
+- Cast (procedural, `make*` before `class Story`): Pip the seahorse (glow grows with the chapter), Shelly the turtle (glowing spots in the deep),
+  manta, whale, Murk the octopus (`setSad`), clams, chest + map, crystals, columns, coral arch, wreck, the Great Lantern tower (`lit`, `heart`),
+  Lumen the anglerfish. Plus the game's crab, jelly, pearls, fish sprites, sheet corals.
+- Controller: `startStory` passes `ch`/`n`; captions in `#storyCap` (chapter, title, line; top on phones); the card kicker becomes
+  "Chapter n · title"; Continue → `arriveNext = ch.a` → `world.arrive(kind)`. Tests: a gallery script renders every chapter at 30% / 65% / end.

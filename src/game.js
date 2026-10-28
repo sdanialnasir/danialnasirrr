@@ -2587,7 +2587,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   function shadowOf(m) { m.traverse(o => { if (o.isMesh) o.castShadow = true; }); return m; }
   // Pip: a little seahorse, a chain of shrinking beads that curls into a tail, a snout, big eyes, a fluttering back fin. glow 0..1
   function makePip(col = 0xffc23a, glow = 0.4) { const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-    const mat = SP({ color: col, emissive: col, emissiveIntensity: 0.25 + glow * 0.6, roughness: 0.3, sheen: 0.6, sheenColor: 0xffffff }), belly = SP({ color: new THREE.Color(col).lerp(new THREE.Color(0xfff4d8), 0.6), emissive: col, emissiveIntensity: 0.15 + glow * 0.4 });
+    const mat = SP({ color: col, emissive: col, emissiveIntensity: 0.06 + glow * 0.22, roughness: 0.35 }), belly = SP({ color: new THREE.Color(col).lerp(new THREE.Color(0xfff0c8), 0.45), emissive: col, emissiveIntensity: 0.04 + glow * 0.15 });
     const segs = []; const pts = [[0.02, 0.2, 0.085], [0.0, 0.13, 0.095], [-0.01, 0.06, 0.1], [0.0, -0.01, 0.092], [0.02, -0.07, 0.078], [0.03, -0.12, 0.064], [0.02, -0.165, 0.052], [-0.01, -0.2, 0.042], [-0.05, -0.22, 0.034], [-0.085, -0.205, 0.028], [-0.1, -0.17, 0.024], [-0.085, -0.14, 0.02]];
     let parent = body; pts.forEach(([x, y, r], i) => { const piv = new THREE.Group(); piv.position.set(x - (i ? pts[i - 1][0] : 0), y - (i ? pts[i - 1][1] : 0), 0); parent.add(piv); const m = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), i > 0 && i < 5 ? belly : mat); m.scale.set(1, 1, 0.82); piv.add(m); segs.push(piv); parent = piv; });
     const head = new THREE.Group(); head.position.set(0.04, 0.3, 0); body.add(head);
@@ -2597,8 +2597,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       for (const z of [-1, 1]) { const e = cartoonEye(0.045, [0.4, 0]); e.position.set(0.03, 0.02, z * 0.062); e.rotation.y = z * 0.5; head.add(e); }
       for (let i = 0; i < 4; i++) { const cr = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.06, 6), mat); cr.position.set(-0.04 - i * 0.025, 0.075 - i * 0.012, 0); cr.rotation.z = 0.5 + i * 0.25; head.add(cr); } }
     const fin = new THREE.Mesh(new THREE.CircleGeometry(0.07, 16, -0.4, 2.2), new THREE.MeshStandardMaterial({ color: 0xfff1b8, emissive: col, emissiveIntensity: 0.5, transparent: true, opacity: 0.7, side: THREE.DoubleSide })); fin.position.set(-0.07, 0.07, 0); fin.rotation.y = Math.PI / 2; body.add(fin);
-    const halo = glowSpr(col, 0.9, 0.18 + glow * 0.5); halo.position.set(0, 0.05, 0); g.add(halo);
-    g.userData = { body, head, segs, fin, halo, mat, setGlow(k) { mat.emissiveIntensity = 0.25 + k * 0.6; halo.material.opacity = 0.18 + k * 0.5; },
+    const halo = glowSpr(col, 0.8, 0.08 + glow * 0.22); halo.position.set(0, 0.05, 0); g.add(halo);
+    g.userData = { body, head, segs, fin, halo, mat, setGlow(k) { mat.emissiveIntensity = 0.06 + k * 0.22; halo.material.opacity = 0.08 + k * 0.22; },
       tick(t) { body.position.y = Math.sin(t * 2.4) * 0.03; segs.forEach((s, i) => { if (i > 5) s.rotation.z = Math.sin(t * 2 + i * 0.6) * 0.12; }); fin.scale.x = 0.8 + Math.sin(t * 22) * 0.2; head.rotation.z = Math.sin(t * 1.3) * 0.08; } };
     return shadowOf(g); }
   // Shelly: a big friendly sea turtle (shell with painted plates, four paddling flippers, a sleepy smile)
@@ -2623,13 +2623,13 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     return shadowOf(g); }
   // a manta ray: two wings that flap, cephalic lobes, a thin tail; dark top, pale belly
   function makeManta() { const g = new THREE.Group(), b = new THREE.Group(); g.add(b);
-    const top = SP({ color: 0x24406e, roughness: 0.45 }), bot = SM({ color: 0xe8f0ff });
+    const top = SP({ color: 0x24406e, roughness: 0.45 }), bot = SM({ color: 0x9fb4d8 });
     const wing = (side) => { const sh = new THREE.Shape(); sh.moveTo(0.7, 0); sh.quadraticCurveTo(0.35, 0.5 * side, -0.1, 1.6 * side); sh.quadraticCurveTo(-0.3, 0.6 * side, -0.75, 0.05 * side); sh.lineTo(0.7, 0);
       const geo = new THREE.ShapeGeometry(sh, 24); geo.rotateX(Math.PI / 2); const p = new THREE.Group(); const m1 = new THREE.Mesh(geo, top); m1.position.y = 0.012; const m2 = new THREE.Mesh(geo, bot); m2.position.y = -0.012; m2.material.side = THREE.DoubleSide; m1.material.side = THREE.DoubleSide; p.add(m1, m2); return p; };
     const wl = wing(1), wr = wing(-1); b.add(wl, wr);
     const body = new THREE.Mesh(new THREE.SphereGeometry(0.42, 24, 12), top); body.scale.set(1.6, 0.32, 0.9); b.add(body);
     for (const z of [-1, 1]) { const lobe = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.22, 4, 8), top); lobe.rotation.set(Math.PI / 2, 0, -0.3 * z); lobe.position.set(0.72, -0.02, z * 0.2); b.add(lobe); const e = cartoonEye(0.05, [0.5, 0]); e.position.set(0.6, 0.06, z * 0.26); e.rotation.y = z * 0.9; b.add(e); }
-    const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.03, 1.3, 6), top); tail.rotation.z = Math.PI / 2; tail.position.set(-1.2, 0, 0); b.add(tail);
+    const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.03, 0.7, 6), top); tail.rotation.z = Math.PI / 2; tail.position.set(-1.0, 0, 0); b.add(tail);
     for (let i = 0; i < 6; i++) { const sp = new THREE.Mesh(new THREE.CircleGeometry(0.05 + (i % 2) * 0.02, 10), new THREE.MeshBasicMaterial({ color: 0xbfe6ff, transparent: true, opacity: 0.6 })); sp.rotation.x = -Math.PI / 2; sp.position.set(-0.2 + (i % 3) * 0.2, 0.15, (i < 3 ? 1 : -1) * (0.45 + (i % 2) * 0.15)); b.add(sp); }
     g.userData = { b, wl, wr, tick(t, k = 1) { const a = Math.sin(t * 2.1 * k) * 0.38; wl.rotation.x = a; wr.rotation.x = -a; b.position.y = -Math.sin(t * 2.1 * k) * 0.06; } };
     return shadowOf(g); }
@@ -2657,7 +2657,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const curve = new THREE.CatmullRomCurve3(pts), geo = new THREE.TubeGeometry(curve, 24, 0.13, 10); const P = geo.attributes.position; // taper toward the tip
       for (let v = 0; v < P.count; v++) { const seg = Math.floor(v / 11) / 24; const cx = curve.getPoint(Math.min(1, seg)); const p = new V3(P.getX(v), P.getY(v), P.getZ(v)); p.sub(cx).multiplyScalar(1 - seg * 0.8).add(cx); P.setXYZ(v, p.x, p.y, p.z); }
       geo.computeVertexNormals(); const tm = new THREE.Mesh(geo, skin); piv.add(tm); tents.push(piv); }
-    g.userData = { b, eyes, mouth, tents, glow: null, setSad(k) { eyes.forEach(E => { E.lid.rotation.x = -0.2 - k * 0.9; E.lid.visible = k > 0.02; }); mouth.rotation.z = k > 0.5 ? Math.PI : 0; mouth.position.y = k > 0.5 ? 0.55 : 0.62; },
+    g.userData = { b, eyes, mouth, tents, glow: null, setSad(k) { eyes.forEach(E => { E.lid.rotation.x = -0.2 - k * 0.9; E.lid.visible = k > 0.02; }); mouth.rotation.z = k > 0.5 ? 0 : Math.PI; mouth.position.y = k > 0.5 ? 0.55 : 0.62; },
       tick(t, k = 1) { tents.forEach((p, i) => { p.rotation.z = Math.sin(t * 1.3 * k + i * 0.8) * 0.22 - 0.1; p.rotation.x = Math.cos(t * 1.1 * k + i) * 0.12; }); b.position.y = Math.sin(t * 1.2) * 0.08; } };
     g.userData.setSad(0); return shadowOf(g); }
   // a giant clam with a glowing pearl; open 0..1
@@ -2689,7 +2689,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     for (let i = 0; i < n; i++) { const geo = new THREE.OctahedronGeometry(0.22 * size * (0.6 + r() * 0.8), 0); geo.scale(0.5, 1.8, 0.5); const m = new THREE.Mesh(geo, mat); m.position.set((r() - 0.5) * 0.7 * size, 0.25 * size, (r() - 0.5) * 0.5 * size); m.rotation.set((r() - 0.5) * 0.7, r() * 3, (r() - 0.5) * 0.7); g.add(m); shards.push(m); }
     const gl = glowSpr(col, 2.2 * size, 0); gl.position.y = 0.4 * size; g.add(gl); g.userData = { mat, gl, setLit(k) { mat.emissiveIntensity = k * 1.6; gl.material.opacity = k * 0.55; } }; return shadowOf(g); }
   // ruins of the sea city: fluted columns, some broken, a light ring on each that can wake
-  function makeColumn(h = 3, broken = false) { const g = new THREE.Group(), stone = SM({ color: 0x8f9ab0, roughness: 0.85 });
+  function makeColumn(h = 3, broken = false) { const g = new THREE.Group(), stone = SM({ map: TEX.rockCol || null, color: 0x7a8aa8, roughness: 0.9 });
     const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, h, 16), stone); sh.position.y = h / 2; g.add(sh);
     const base = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.22, 0.8), stone); base.position.y = 0.11; g.add(base);
     if (!broken) { const cap = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.2, 0.8), stone); cap.position.y = h + 0.1; g.add(cap); } else { const tip = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.4, 7), stone); tip.position.y = h + 0.15; tip.rotation.z = 0.4; g.add(tip); }
@@ -2709,9 +2709,10 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     for (let i = 0; i < 6; i++) { const rib = new THREE.Mesh(new THREE.TorusGeometry(1.45, 0.06, 6, 20, Math.PI * 0.9), SM({ color: 0x4a3220 })); rib.rotation.set(0, Math.PI / 2, Math.PI * 1.05); rib.position.set(-2.5 + i, 0.6, 0); rib.scale.set(0.8, 1, 1); g.add(rib); }
     const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.13, 4.5, 10), wood); mast.position.set(0.6, 1.9, -0.4); mast.rotation.z = -0.55; g.add(mast);
     const spar = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.2, 8), wood); spar.position.set(1.4, 2.9, -0.4); spar.rotation.z = 0.9; g.add(spar);
-    g.rotation.z = 0.08; return shadowOf(g); }
+    const bow = new THREE.Mesh(new THREE.ConeGeometry(1.25, 2.4, 20, 1, true, Math.PI * 0.55, Math.PI * 1.1), wood); bow.rotation.z = -Math.PI / 2; bow.scale.set(1, 1, 0.8); bow.position.set(4.2, 0.6, 0); g.add(bow);
+    g.rotation.z = 0.08; g.rotation.x = -0.12; return shadowOf(g); }
   // the Great Lantern: a tall coral tower with a spiral of 30 lights (one per gate) and a lens on top
-  function makeTower(lit = 0, heart = 0) { const g = new THREE.Group(); const stone = SM({ color: 0x6a7fa0, roughness: 0.85 });
+  function makeTower(lit = 0, heart = 0) { const g = new THREE.Group(); const stone = SM({ map: TEX.rockCol || null, color: 0x8a7a9a, roughness: 0.9 });
     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.8, 12, 24, 6), stone); body.position.y = 6; g.add(body);
     for (let i = 0; i < 5; i++) { const r = new THREE.Mesh(new THREE.TorusGeometry(1.75 - i * 0.18, 0.12, 8, 30), SM({ color: 0xc9a25a, metalness: 0.6, roughness: 0.35 })); r.rotation.x = Math.PI / 2; r.position.y = 1 + i * 2.4; g.add(r); }
     const L = []; for (let i = 0; i < 30; i++) { const u = i / 29, y = 0.8 + u * 10.5, rad = 1.8 - u * 0.85 + 0.08, a = u * Math.PI * 6; const m = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), new THREE.MeshBasicMaterial({ color: i < lit ? 0xff5a3a : 0x2a2a3a })); m.position.set(Math.cos(a) * rad, y, Math.sin(a) * rad); g.add(m);
@@ -2800,7 +2801,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       return { mode: 'stand', arms: t < 4.8 ? 'cheer' : 'point', armK: t < 4.8 ? 0.6 + 0.4 * Math.sin(t * 5) : sm01((t - 5) / 0.4), face: f, target: c.crabs[0].position.clone().add(new V3(0, 0.4, 0)) }; } };
   // 5: up a stair of bouncing jellyfish to a ledge
   RECIPES.jelly = { dur: 6.8, setup(S, c) { c.js = [[-1.4, 0.8, 0], [-0.2, 1.7, -0.9], [1.0, 2.6, -1.8]].map(([x, y, z]) => { const j = S.add(makeJelly()); j.scale.setScalar(1.6); j.position.set(x, y, z); j.userData.base = j.position.clone(); return j; });
-      c.ledge = S.add(new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.5, 3.4, 9), SM({ color: 0x8d6a52, roughness: 0.95, flatShading: true }))); c.ledge.position.set(2.6, 1.7, -2.8); c.ledge.receiveShadow = true;
+      { const geo = new THREE.DodecahedronGeometry(1.5, 2); const P = geo.attributes.position; for (let v = 0; v < P.count; v++) { const x = P.getX(v), y = P.getY(v), z = P.getZ(v), n = 1 + Math.sin(x * 3.1) * Math.sin(z * 2.7) * 0.08 + Math.sin(y * 4.3) * 0.05; P.setXYZ(v, x * n, y * n * 1.25, z * n); } geo.computeVertexNormals();
+        c.ledge = S.add(new THREE.Mesh(geo, SM({ map: TEX.rockCol || null, color: 0xc8a080, roughness: 0.95 }))); c.ledge.position.set(2.6, 1.95, -2.8); c.ledge.receiveShadow = c.ledge.castShadow = true; }
       for (const [x, z, n, h] of [[2.1, -2.3, 'coral3', 0.6], [3.0, -2.2, 'weed5', 0.7], [2.4, -3.3, 'coral1', 0.5]]) S.spr(n, h, x, z, 3.4); S.tankAt(5.4, -13, -0.45); S.clear.push([0.5, -1, 3.5]); },
     run(S, c, t) { const hops = [[-2.6, 0.5, 0.8], [-1.4, 1.35, 0], [-0.2, 2.25, -0.9], [1.0, 3.15, -1.8], [2.5, 3.9, -2.6]], seg = Math.min(3.999, Math.max(0, (t - 0.6) / 1.15)), i = Math.floor(seg), k = seg - i, a = hops[i], b = hops[i + 1];
       const p = new V3(a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k + Math.sin(k * Math.PI) * 0.9, a[2] + (b[2] - a[2]) * k); if (t < 0.6) p.set(...hops[0]);
@@ -2809,7 +2811,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       S.cam(K(t, [[0, [-3.6, 2.0, 4.2]], [5.2, [-0.4, 3.2, 2.4]], [6.8, [-0.2, 3.8, 1.0]]]), K(t, [[0, [-1, 1.2, -0.5]], [5.2, [2.2, 3.4, -2.8]], [6.8, [4.4, 2.6, -8]]]));
       return { mode: done ? 'stand' : 'float', arms: 'cheer', armK: done ? sm01((t - 5.3) / 0.4) : 0.4 * Math.sin(k * Math.PI), face: done ? new V3(0.4, 0, -1).normalize() : f }; } };
   // 6: the old wreck, a chest, and the map of the thirty gates
-  RECIPES.wreck = { dur: 7.4, setup(S, c) { c.wr = S.add(makeWreck()); c.wr.position.set(-2.4, 0, -4.2); c.wr.rotation.y = 0.5; c.ch = S.add(makeChest()); c.ch.position.set(0.2, 0, -1.2); c.ch.rotation.y = 0.35; c.map = S.add(makeMap(6)); c.map.visible = false; S.tankAt(5.4, -12, -0.4); S.clear.push([-1, -2.5, 3.6]); },
+  RECIPES.wreck = { dur: 7.4, setup(S, c) { c.wr = S.add(makeWreck()); c.wr.position.set(-2.6, 0, -5.0); c.wr.rotation.y = 0.95; c.ch = S.add(makeChest()); c.ch.position.set(0.2, 0, -1.2); c.ch.rotation.y = 0.35; c.map = S.add(makeMap(6)); c.map.visible = false; S.tankAt(5.4, -12, -0.4); S.clear.push([-1, -2.5, 3.6]); },
     run(S, c, t) { const p = K(t, [[0, [1.6, 0.5, 2.6]], [2.0, [0.65, 0.5, -0.35]]]), toC = new V3().subVectors(c.ch.position, p).setY(0).normalize(); const open = sm01((t - 2.4) / 0.8); c.ch.userData.setOpen(open);
       const up = sm01((t - 3.3) / 1.0); c.map.visible = t > 3.1; const hand = p.clone().add(new V3(0, 0.55 + up * 0.25, 0)).addScaledVector(toC, 0.18); c.map.position.copy(c.ch.position.clone().add(new V3(0, 0.6, 0)).lerp(hand, up)); c.map.lookAt(S.cam0.position); c.map.rotation.z += Math.sin(S.time * 2) * 0.05;
       const f = t < 4.6 ? toC : toC.clone().lerp(new V3().subVectors(S.cam0.position, p).setY(0).normalize(), sm01((t - 4.6) / 0.6) * 0.75).normalize(); S.dv(p, f);
@@ -2817,9 +2819,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       return { mode: t < 2 ? 'walk' : 'stand', speed: t < 2 ? 1.5 : 0, arms: t < 3.3 ? 'reach' : 'hold', armK: t < 2.2 ? 0 : t < 3.3 ? sm01((t - 2.2) / 0.4) : 1, face: f, target: c.ch.position.clone().add(new V3(0, 0.5, 0)), lift: up }; } };
   // 7: a warm whirlpool lifts the diver, spins him round and sets him down by the next tank
   RECIPES.current = { dur: 6.6, setup(S, c) { const tex = canvasTex(256, 64, (x, W, H) => { for (let i = 0; i < 8; i++) { const gr = x.createLinearGradient(i * 32, 0, i * 32 + 32, 0); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(0.5, 'rgba(220,250,255,0.9)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = gr; x.fillRect(i * 32, 0, 32, H); } }, true); S.own.push(tex);
-      c.vm = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }); S.mats.push(c.vm); tex.repeat.set(3, 1);
+      c.vm = new THREE.MeshBasicMaterial({ map: tex, color: 0x9ff0ff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }); S.mats.push(c.vm); tex.repeat.set(3, 1);
       c.v = S.add(new THREE.Mesh(new THREE.CylinderGeometry(1.6, 0.4, 5, 32, 1, true), c.vm)); c.v.position.set(0, 2.5, -1); S.tankAt(4.6, -10, -0.35); S.clear.push([0, -1, 2.5]); },
-    run(S, c, t) { c.vm.opacity = 0.35 * sm01(t / 0.8) * (1 - sm01((t - 4.6) / 0.8)); c.vm.map.offset.x = -S.time * 0.8; c.v.rotation.y = S.time * 2;
+    run(S, c, t) { c.vm.opacity = 0.16 * sm01(t / 0.8) * (1 - sm01((t - 4.6) / 0.8)); c.vm.map.offset.x = -S.time * 0.8; c.v.rotation.y = S.time * 2;
       const lift = K(t, [[0, 0], [1.0, 0], [2.6, 1], [3.6, 1], [5.0, 0]]), ang = t * 5.5 * (t < 4.6 ? 1 : 0.2), rad = 0.9 * lift, land = sm01((t - 3.6) / 1.4);
       const p = new V3(Math.cos(ang) * rad, 0.5 + lift * 2.6, -1 + Math.sin(ang) * rad).lerp(new V3(2.4, 0.5, -5.2), land); if (t < 1.0) p.set(0, 0.5, -1);
       const f = t < 4.8 ? new V3(-Math.sin(ang), 0, Math.cos(ang)) : new V3().subVectors(S.tankP(), p).setY(0).normalize(); S.dv(p, f, 0, 0, Math.sin(t * 3) * 0.3 * lift);
@@ -2827,11 +2829,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       S.cam(K(t, [[0, [0.8, 1.3, 4.6]], [3.6, [1.2, 2.6, 4.6]], [6.6, [0.2, 1.0, -1.6]]]), K(t, [[0, [0, 1.2, -1]], [3.6, [0, 2.6, -1]], [6.6, [4.0, 0.9, -8.5]]]));
       return { mode: t < 1 || t > 5 ? 'stand' : 'float', arms: t < 4.6 ? 'cheer' : 'wave', armK: t < 1 ? 0 : t < 4.6 ? 0.8 : sm01((t - 5.2) / 0.4), face: f }; } };
   // 8: a school of fish swirls into an arrow that points the way
-  RECIPES.school = { dur: 6.6, setup(S, c) { c.f = []; for (let i = 0; i < 46; i++) { const sp = sprPlane(['fishA', 'fishC', 'fishE', 'fishH'][i % 4], 0.32, false, null); sp.material = sp.material.clone(); S.mats.push(sp.material); S.scene.add(sp); c.f.push(sp); }
+  RECIPES.school = { dur: 6.6, setup(S, c) { c.f = []; for (let i = 0; i < 46; i++) { const sp = sprPlane(['fishA', 'fishC', 'fishE', 'fishH'][i % 4], 0.2, false, null); sp.material = sp.material.clone(); S.mats.push(sp.material); S.scene.add(sp); c.f.push(sp); }
       // arrow formation points (in the arrow's own frame: +x = forward)
       c.arrow = []; for (let i = 0; i < 46; i++) { if (i < 22) c.arrow.push([-2.2 + i * 0.2, 0, 0]); else { const s = i < 34 ? 1 : -1, k = (i - (i < 34 ? 22 : 34)) / 11; c.arrow.push([2.2 - k * 1.3, s * k * 1.1, 0]); } } S.tankAt(4.8, -11, -0.3); },
-    run(S, c, t) { const form = sm01((t - 1.4) / 1.6), dir = new V3().subVectors(S.tankP(), new V3(0, 0, 0)).setY(0).normalize(), ang = Math.atan2(-dir.z, dir.x), cen = new V3(0.4, 2.0, -2.2);
-      c.f.forEach((sp, i) => { const a = S.time * 1.6 + i * 0.37, ball = new V3(Math.cos(a) * 1.1, Math.sin(a * 1.3 + i) * 0.6, Math.sin(a) * 1.1); const [ax, ay] = c.arrow[i], ar = new V3(ax * Math.cos(ang), ay, -ax * Math.sin(ang));
+    run(S, c, t) { const form = sm01((t - 1.4) / 1.6), dir = new V3().subVectors(S.tankP(), new V3(0, 0, 0)).setY(0).normalize(), ang = Math.atan2(-dir.z, dir.x), cen = new V3(0.6, 2.3, -3.4);
+      c.f.forEach((sp, i) => { const a = S.time * 1.6 + i * 0.37, ball = new V3(Math.cos(a) * 1.1, Math.sin(a * 1.3 + i) * 0.6, Math.sin(a) * 1.1); const [ax, ay] = c.arrow[i], ar = new V3(ax * 0.8, ay * 0.8, 0); // the arrow faces the camera and points right, toward the tank
         const q = ball.lerp(ar, form).add(cen); q.x += form * Math.sin(S.time * 4 + i) * 0.04; sp.position.copy(q); sp.lookAt(S.cam0.position); sp.scale.x = form > 0.5 ? (Math.cos(ang - Math.atan2(S.cam0.position.x - q.x, S.cam0.position.z - q.z) + Math.PI / 2) > 0 ? -1 : 1) : 1; });
       const p = K(t, [[0, [-1.6, 0.5, 1.6]], [3.4, [-0.6, 0.5, 0.4]], [5.4, [0.4, 0.5, -0.8]]]), f = t < 3.4 ? new V3(0.3, 0, -1).normalize() : new V3().subVectors(S.tankP(), p).setY(0).normalize(); S.dv(p, f);
       S.cam(K(t, [[0, [1.8, 1.0, 4.0]], [3.4, [2.2, 1.3, 3.6]], [6.6, [-1.6, 1.1, 2.6]]]), K(t, [[0, [0, 1.6, -2]], [3.4, [0.4, 1.8, -2.2]], [6.6, [2.6, 1.4, -5]]]));
@@ -2844,11 +2846,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       S.cam(K(t, [[0, [-4.6, 3.4, 5.0]], [3.6, [0.5, 1.4, 5.0]], [6.4, [-0.4, 1.0, 3.0]]]), K(t, [[0, [-5, 2.6, 0]], [3.6, [1.0, 0.7, 0]], [6.4, [3.6, 0.9, -5]]]));
       return { mode: sliding ? 'float' : t < 0.8 ? 'walk' : 'stand', speed: 1, arms: sliding ? 'cheer' : t > 4.4 ? 'cheer' : null, armK: sliding ? 0.9 : sm01((t - 4.5) / 0.4), face: f }; } };
   // 10: the edge of the shallows; the Coral Caves glow violet far below
-  RECIPES.descent = { dur: 6.8, set: { cliff: -3 }, setup(S, c) { c.pip = S.add(makePip(0xffc23a, S.glow)); S.tankAt(5.0, -11, -0.35, -3); c.cave = S.add(makeCrystals(0xb57cff, 12, 2.2, 7)); c.cave.position.set(2.5, -3, -9); c.cave.userData.setLit(1);
-      const pl = new THREE.PointLight(0xb57cff, 30, 18, 1.3); pl.position.set(3, -1.6, -9); S.scene.add(pl); S.clear.push([0, 0, 3]); },
+  RECIPES.descent = { dur: 6.8, set: { cliff: -3, dark: 0.4 }, setup(S, c) { c.pip = S.add(makePip(0xffc23a, S.glow)); S.tankAt(5.0, -11, -0.35, -3); c.cave = S.add(makeCrystals(0xb57cff, 12, 2.2, 7)); c.cave.position.set(2.5, -3, -9); c.cave.userData.setLit(0.55);
+      const pl = new THREE.PointLight(0xb57cff, 9, 14, 1.4); pl.position.set(3, -1.6, -9); S.scene.add(pl); S.clear.push([0, 0, 3]); },
     run(S, c, t) { const p = K(t, [[0, [-1.6, 0.5, 1.6]], [2.6, [-0.1, 0.5, -1.8]]]), f = new V3(0.35, 0, -1).normalize(); S.dv(p, f, t > 2.6 ? 0.35 * sm01((t - 2.6) / 0.6) : 0);
       c.pip.position.set(p.x - 0.7 + Math.sin(S.time * 9) * 0.03 * (t > 3 ? 1 : 0), 1.25 + Math.sin(S.time * 2) * 0.06, p.z + 0.3 - (t > 4.6 ? 0.5 * sm01((t - 4.6) / 0.8) : 0)); c.pip.rotation.y = 0.6; c.pip.userData.tick(S.time);
-      S.cam(K(t, [[0, [1.5, 1.2, 3.4]], [2.6, [1.4, 1.5, 1.0]], [6.8, [1.2, 2.4, 0.9]]]), K(t, [[0, [-0.5, 0.8, -1]], [2.6, [0.5, -0.5, -5]], [6.8, [3.4, -2.2, -9.5]]]));
+      S.cam(K(t, [[0, [1.5, 1.2, 3.4]], [2.6, [1.4, 1.5, 1.0]], [6.8, [1.2, 2.4, 0.9]]]), K(t, [[0, [-0.5, 0.8, -1]], [2.6, [0.5, -0.5, -5]], [6.8, [3.4, -0.6, -9.5]]]));
       return { mode: t < 2.6 ? 'walk' : 'stand', speed: 1.3, arms: t > 4.2 ? 'point' : null, armK: sm01((t - 4.3) / 0.5), face: f, target: c.cave.position.clone() }; } };
   // 11: the lamp wakes crystal clusters one by one
   RECIPES.crystals = { dur: 6.8, set: { dark: 0.55 }, setup(S, c) { c.cr = []; for (let i = 0; i < 9; i++) { const g = S.add(makeCrystals(i % 3 ? 0xb57cff : 0x6fe0ff, 6, 0.9 + (i % 3) * 0.35, 11 + i)); const side = i % 2 ? 1 : -1; g.position.set(side * (1.2 + (i % 3) * 0.5), 0, 3 - i * 0.9); c.cr.push(g); }
@@ -2861,7 +2863,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   // 12: a choir of giant clams opens one after another; the diver claps along
   RECIPES.clams = { dur: 6.8, set: { dark: 0.3 }, setup(S, c) { c.cl = []; for (let i = 0; i < 5; i++) { const g = S.add(makeClam([0xc59ae8, 0xf0a0c8, 0x9ad0f0][i % 3])); const a = -0.9 + i * 0.45; g.position.set(Math.sin(a) * 2.6, 0, -1.2 - Math.cos(a) * 1.6); g.rotation.y = -a + Math.PI / 2; g.scale.setScalar(1.1); c.cl.push(g); c.rung = c.rung || []; }
       S.tankAt(4.4, -11, -0.3); S.clear.push([0, -1, 3.2]); },
-    run(S, c, t) { c.cl.forEach((g, i) => { const k = sm01((t - 0.8 - i * 0.55) / 0.35) * (0.85 + 0.15 * Math.sin(S.time * 4 + i)); g.userData.setOpen(k); if (k > 0.5 && !c.rung[i]) { c.rung[i] = true; try { Audio.pearl(i); } catch (er) {} } });
+    run(S, c, t) { c.cl.forEach((g, i) => { const k = sm01((t - 0.8 - i * 0.55) / 0.35) * (0.85 + 0.15 * Math.sin(S.time * 4 + i)); g.userData.setOpen(k); if (k > 0.5 && !c.rung[i] && !S.probe) { c.rung[i] = true; try { Audio.pearl(i); } catch (er) {} } });
       const p = new V3(0, 0.5 + (t > 4 ? Math.abs(Math.sin(t * 4)) * 0.06 : 0), 0.6), f = t < 4.6 ? new V3(0, 0, -1) : new V3(0.25, 0, -1).normalize(); S.dv(p, f);
       S.cam(K(t, [[0, [0.3, 2.2, 4.2]], [4.0, [1.6, 1.2, 3.2]], [6.8, [2.0, 1.0, 2.6]]]), K(t, [[0, [0, 0.4, -1.5]], [4.0, [0, 0.6, -1.2]], [6.8, [1.8, 0.9, -4]]]));
       return { mode: 'stand', arms: t > 3.6 ? 'clap' : null, armK: sm01((t - 3.7) / 0.3), face: f }; } };
@@ -2880,9 +2882,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       S.cam(K(t, [[0, [1.4, 1.2, 4.0]], [2.6, [1.0, 1.4, 3.4]], [5.8, [1.2, 3.2, -3.6]], [7, [1.0, 2.0, -5.0]]]), K(t, [[0, [-1.5, 0.9, 0]], [2.6, [0, 1, 0]], [5.8, [3.6, 1.7, -9]], [7, [5.0, 1.4, -11]]]));
       return { mode: 'stand', arms: t < 2.6 ? 'wave' : t < 5.8 ? 'grip' : 'wave', armK: t < 2.0 ? sm01((t - 0.9) / 0.4) : t < 2.6 ? 0 : t < 5.8 ? 1 : sm01((t - 6) / 0.4), face: f }; } };
   // 15: a huge eye opens in the dark; something big slides away; Pip hides behind the diver
-  RECIPES.shadow = { dur: 7.0, set: { dark: 0.8 }, setup(S, c) { c.o = S.add(makeOctopus(0x4a2a7a)); c.o.position.set(-0.6, -0.4, -5.2); c.o.rotation.y = -Math.PI / 2 + 0.2; c.o.scale.setScalar(1.6);
+  RECIPES.shadow = { dur: 7.0, set: { dark: 0.8 }, setup(S, c) { c.o = S.add(makeOctopus(0x3a2266)); c.o.position.set(-0.6, 0.2, -8.0); c.o.rotation.y = -Math.PI / 2 + 0.15; c.o.scale.setScalar(1.7); c.eg = c.o.userData.eyes.map(E => { const g = glowSpr(0xfff3a0, 0.9, 0); g.position.z = 0.2; E.eg.add(g); return g; });
       c.pip = S.add(makePip(0xffc23a, S.glow)); for (let i = 0; i < 5; i++) { const r = S.add(new THREE.Mesh(new THREE.DodecahedronGeometry(1.4 + (i % 2) * 0.5, 1), SM({ color: 0x2a2440, roughness: 1, flatShading: true }))); r.position.set(-4 + i * 1.8, 0.6 + (i % 2) * 0.6, -6.8 - (i % 3) * 0.4); } S.tankAt(4.2, -8.5, -0.3); S.clear.push([0, -2, 3]); },
-    run(S, c, t) { const open = sm01((t - 1.4) / 0.4) * (1 - sm01((t - 2.6) / 0.12) * (1 - sm01((t - 2.8) / 0.12))) * (1 - sm01((t - 4.4) / 0.6)); c.o.userData.setSad(1 - open); c.o.position.x = -0.6 - sm01((t - 4.2) / 1.6) * 4; c.o.userData.tick(S.time, 0.6);
+    run(S, c, t) { const open = sm01((t - 1.4) / 0.4) * (1 - sm01((t - 2.6) / 0.12) * (1 - sm01((t - 2.8) / 0.12))) * (1 - sm01((t - 4.4) / 0.6)); c.o.userData.setSad(1 - open); c.eg.forEach(g => { g.material.opacity = open * 0.9; }); c.o.position.x = -0.6 - sm01((t - 4.2) / 1.6) * 4; c.o.position.y = 0.2 - sm01((t - 4.2) / 1.2) * 2.5; c.o.userData.tick(S.time, 0.6);
       const p = K(t, [[0, [0.6, 0.5, 1.6]], [1.4, [0.4, 0.5, 0.2]], [2.6, [0.4, 0.5, 0.2]], [3.4, [0.7, 0.5, 0.9]]]), f = new V3(-0.15, 0, -1).normalize(); S.dv(p, f);
       c.pip.position.copy(p).add(new V3(t > 2.6 ? 0.25 : -0.6, 0.9 - (t > 2.6 ? 0.35 : 0), t > 2.6 ? 0.45 : -0.3)); c.pip.rotation.y = t > 2.6 ? 1.2 : -1.4; c.pip.userData.tick(S.time * (t > 2.6 ? 3 : 1));
       S.cam(K(t, [[0, [2.6, 1.1, 3.8]], [2.4, [1.6, 0.9, 2.6]], [7, [2.2, 1.0, 3.0]]]), K(t, [[0, [-0.4, 0.9, -3]], [2.4, [-0.6, 1.1, -5]], [7, [1.6, 0.9, -5.6]]]));
@@ -2919,15 +2921,15 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       return { mode: t > 4.4 ? 'walk' : 'stand', speed: 1, arms: t > 3 && t < 4.6 ? 'wave' : null, armK: sm01((t - 3.1) / 0.3) * (1 - sm01((t - 4.4) / 0.2)), face: f }; } };
   // 21: a whale passes overhead singing
   RECIPES.whale = { dur: 7.0, set: { dark: 0.6 }, setup(S, c) { c.wh = S.add(makeWhale()); c.wh.scale.setScalar(1.2); S.tankAt(4.4, -10, -0.3); S.clear.push([0, 0, 2]); },
-    run(S, c, t) { c.wh.position.set(K(t, [[0, -16], [7, 9]]), 8.5 + Math.sin(t * 0.6) * 0.3, -6); c.wh.rotation.y = 0.15; c.wh.userData.tick(S.time);
-      const p = new V3(0, 0.5, 0.6), f = new V3(Math.sin(t * 0.35) * 0.6, 0, -1).normalize(); S.dv(p, f); if (t > 1.6 && !c.sang) { c.sang = true; try { Audio.play('gateOpen'); } catch (er) {} }
+    run(S, c, t) { c.wh.position.set(K(t, [[0, -16], [7, 3.5]]), 8.5 + Math.sin(t * 0.6) * 0.3, -6); c.wh.rotation.y = 0.15; c.wh.userData.tick(S.time);
+      const p = new V3(0, 0.5, 0.6), f = new V3(Math.sin(t * 0.35) * 0.6, 0, -1).normalize(); S.dv(p, f); if (t > 1.6 && !c.sang && !S.probe) { c.sang = true; try { Audio.play('gateOpen'); } catch (er) {} }
       S.cam(K(t, [[0, [1.4, 0.6, 3.4]], [7, [1.8, 0.7, 3.2]]]), K(t, [[0, [-0.4, 3.0, -2]], [4.6, [0.4, 4.2, -3]], [7, [1.4, 2.0, -4]]]));
       return { mode: 'stand', arms: t > 2.2 ? 'wave' : null, armK: sm01((t - 2.3) / 0.4), face: f, look: c.wh.position }; } };
   // 22: walking the sunken city; columns light up as the diver passes
-  RECIPES.ruins = { dur: 6.8, set: { dark: 0.6 }, setup(S, c) { c.c = []; for (let i = 0; i < 8; i++) { const side = i % 2 ? 1 : -1, col = S.add(makeColumn(2.6 + (i % 3) * 0.7, i % 4 === 3)); col.position.set(side * 1.7, 0, 3.4 - Math.floor(i / 2) * 1.9); c.c.push(col); } S.tankAt(3.4, -10, -0.2); },
+  RECIPES.ruins = { dur: 6.8, set: { dark: 0.6 }, setup(S, c) { c.c = []; for (let i = 0; i < 8; i++) { const side = i % 2 ? 1 : -1, col = S.add(makeColumn(2.6 + (i % 3) * 0.7, i % 4 === 3)); col.position.set(side * 2.3, 0, 3.4 - Math.floor(i / 2) * 1.9); c.c.push(col); } S.tankAt(3.4, -10, -0.2); },
     run(S, c, t) { const z = K(t, [[0, 4.6], [5.0, -2.8]]), p = new V3(0, 0.5, z), f = t < 5.2 ? new V3(0, 0, -1) : new V3().subVectors(S.tankP(), p).setY(0).normalize(); S.dv(p, f);
       c.c.forEach(col => col.userData.setLit(sm01((1.6 - (col.position.z - z)) / 1.2)));
-      S.cam(K(t, [[0, [0.6, 2.2, 8.2]], [5.0, [0.8, 1.5, 0.6]], [6.8, [1.0, 1.2, 0.6]]]), K(t, [[0, [0, 0.8, 3]], [5.0, [0, 0.9, -3]], [6.8, [2.4, 1.0, -7]]]));
+      S.cam(K(t, [[0, [0.6, 2.2, 8.2]], [5.0, [0.5, 1.5, 0.6]], [6.8, [0.4, 1.2, 0.8]]]), K(t, [[0, [0, 0.8, 3]], [5.0, [0, 0.9, -3]], [6.8, [2.4, 1.0, -7]]]));
       return { mode: t < 5 ? 'walk' : 'stand', speed: 1.4, arms: 'cheer', armK: sm01((t - 5.4) / 0.4), face: f }; } };
   // 23: Shelly again, glowing in the deep; seen riding straight at the camera, then from the side
   RECIPES.turtle2 = { dur: 6.8, set: { dark: 0.55 }, setup(S, c) { c.tu = S.add(makeTurtle(true)); c.tu.scale.setScalar(1.35); S.tankAt(-3.6, -9, 0.4); S.clear.push([0, -2, 4]); },
@@ -2935,25 +2937,25 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const p = tp.clone().setY(tp.y + 0.62); S.dv(p, tf); S.cam(t < 3.4 ? new V3(0.4, 1.4, 2.6) : K(t, [[3.4, [2.2, 1.6, 1.4]], [6.8, [1.2, 1.3, -1.2]]]), t < 3.4 ? tp.clone().add(new V3(0, 0.5, 0)) : tp.clone().add(new V3(-0.6, 0.5, -1.2)));
       return { mode: 'stand', arms: t < 5.4 ? 'grip' : 'wave', armK: t < 5.4 ? 1 : sm01((t - 5.6) / 0.4), face: tf }; } };
   // 24: Murk's den, full of pearls; he looks sad and scared
-  RECIPES.murkden = { dur: 7.0, set: { dark: 0.6 }, setup(S, c) { c.o = S.add(makeOctopus(0x8a4fd8)); c.o.position.set(0, -0.2, -4.4); c.o.rotation.y = Math.PI / 2; c.o.scale.setScalar(1.3); c.o.userData.setSad(0.9);
+  RECIPES.murkden = { dur: 7.0, set: { dark: 0.6 }, setup(S, c) { c.o = S.add(makeOctopus(0x8a4fd8)); c.o.position.set(0, -0.2, -4.4); c.o.rotation.y = -Math.PI / 2 + 0.25; c.o.scale.setScalar(1.3); c.o.userData.setSad(0.9);
       for (let i = 0; i < 12; i++) { const b = S.add(makeBall(true)); b.scale.setScalar(0.35); const a = i * 0.55 - 3, r = 2.0 + (i % 3) * 0.3; b.position.set(Math.sin(a) * r, 0.15, -4.4 + Math.cos(a) * r * 0.6 + 0.5); }
       for (let i = 0; i < 6; i++) { const r = S.add(new THREE.Mesh(new THREE.DodecahedronGeometry(1.6, 1), SM({ color: 0x3a3050, roughness: 1, flatShading: true }))); r.position.set(-4.4 + i * 1.8, 1.4 + (i % 2) * 0.8, -6.6); } S.tankAt(4.6, -9, -0.3); S.clear.push([0, -2, 3]); },
     run(S, c, t) { c.o.userData.tick(S.time, 0.5); const p = K(t, [[0, [0.8, 0.5, 2.4]], [3.6, [0.3, 0.5, -1.2]]]), f = new V3(-0.1, 0, -1).normalize(); S.dv(p, f);
       S.cam(K(t, [[0, [2.4, 1.6, 4.4]], [3.6, [2.0, 1.2, 1.4]], [7, [2.4, 1.1, 1.2]]]), K(t, [[0, [0, 1.0, -3]], [3.6, [0, 1.3, -4]], [7, [-0.4, 1.4, -4.6]]]));
       return { mode: t < 3.6 ? 'walk' : 'stand', speed: 0.7, arms: t > 4.2 ? 'reach' : null, armK: sm01((t - 4.3) / 0.6), face: f, target: c.o.position.clone().add(new V3(0, 1.2, 0)) }; } };
   // 25: the diver gives Murk a glowing pearl; Murk lights up and smiles
-  RECIPES.gift = { dur: 7.0, set: { dark: 0.55 }, setup(S, c) { c.o = S.add(makeOctopus(0x8a4fd8)); c.o.position.set(-0.4, -0.2, -3.6); c.o.rotation.y = Math.PI / 2 - 0.3; c.o.scale.setScalar(1.25); c.pe = S.add(makeBall(true)); c.pe.scale.setScalar(0.5); c.pe.add(glowSpr(0xff7a6a, 1.4, 0.7));
+  RECIPES.gift = { dur: 7.0, set: { dark: 0.55 }, setup(S, c) { c.o = S.add(makeOctopus(0x8a4fd8)); c.o.position.set(-0.4, -0.2, -3.6); c.o.rotation.y = -Math.PI / 2 + 0.45; c.o.scale.setScalar(1.25); c.pe = S.add(makeBall(true)); c.pe.scale.setScalar(0.5); c.pe.add(glowSpr(0xff7a6a, 1.4, 0.7));
       c.gl = new THREE.PointLight(0xffa080, 0, 8, 1.4); S.scene.add(c.gl); S.tankAt(4.2, -9, -0.3); S.clear.push([0, -1, 3]); },
-    run(S, c, t) { const p = new V3(0.6, 0.5, 0.2), f = new V3(-0.3, 0, -1).normalize(); S.dv(p, f); const fly = sm01((t - 1.8) / 1.6), hand = p.clone().add(new V3(-0.1, 0.75, -0.25)), mouth = c.o.position.clone().add(new V3(0.4, 1.7, 0.9));
-      c.pe.position.copy(hand.clone().lerp(mouth, fly)); c.pe.position.y += Math.sin(fly * Math.PI) * 0.6; c.pe.visible = fly < 0.98; const happy = sm01((t - 3.5) / 0.6); c.o.userData.setSad(0.9 * (1 - happy)); c.gl.position.copy(c.o.position).add(new V3(0.5, 1.6, 1.2)); c.gl.intensity = happy * 14;
+    run(S, c, t) { const p = new V3(0.6, 0.5, 0.2), f = new V3(-0.3, 0, -1).normalize(); S.dv(p, f); const fly = sm01((t - 1.8) / 1.6), hand = p.clone().add(new V3(-0.1, 0.75, -0.25)), mouth = c.o.position.clone().add(new V3(0.3, 0.9, 1.1));
+      c.pe.position.copy(hand.clone().lerp(mouth, fly)); c.pe.position.y += Math.sin(fly * Math.PI) * 0.6; c.pe.visible = fly < 0.98; const happy = sm01((t - 3.5) / 0.6); c.o.userData.setSad(0.9 * (1 - happy)); c.gl.position.copy(c.o.position).add(new V3(0.5, 1.6, 1.2)); c.gl.intensity = happy * 5;
       c.o.userData.tick(S.time, 0.6 + happy); c.o.userData.tents[0].rotation.z = happy * (0.6 + Math.sin(S.time * 6) * 0.4);
       S.cam(K(t, [[0, [2.4, 1.2, 2.8]], [3.4, [2.2, 1.6, 2.6]], [7, [2.8, 1.3, 2.4]]]), K(t, [[0, [0, 1.1, -1.5]], [3.4, [-0.2, 1.6, -3]], [7, [-0.4, 1.4, -3.2]]]));
       return { mode: 'stand', arms: t < 2 ? 'offer' : 'wave', armK: t < 2 ? sm01((t - 0.4) / 0.5) : sm01((t - 4.2) / 0.4), face: f }; } };
   // 26: Murk carries the diver across the abyss and sets him down
   RECIPES.murkride = { dur: 7.0, set: { trench: 7, dark: 0.55 }, setup(S, c) { c.o = S.add(makeOctopus(0x8a4fd8)); c.o.scale.setScalar(0.9); S.tankAt(4.6, -13, -0.4); S.clear.push([0, -4, 6]); },
     run(S, c, t) { const op = K(t, [[0, [-3.6, 0.0, 1.0]], [1.2, [-3.4, 0.2, 0.8]], [5.6, [2.8, 0.4, -8.6]], [7, [3.0, -0.1, -9.0]]]); c.o.position.copy(op); const of = t < 1.2 ? new V3(1, 0, 0) : new V3(0.6, 0, -1).normalize(); c.o.rotation.y = Math.atan2(-of.z, of.x); c.o.userData.tick(S.time, 1.8); c.o.userData.setSad(0);
-      const head = op.clone().add(new V3(0, 2.2 * 0.9 + 0.05, 0)); let p = t < 6 ? head : head.clone().lerp(op.clone().addScaledVector(of, 1.4).setY(0.5 + op.y), sm01((t - 6) / 0.6)); S.dv(p, of);
-      S.cam(K(t, [[0, [-1.0, 2.6, 4.4]], [5.6, [0.8, 3.2, -3.4]], [7, [0.2, 2.2, -4.6]]]), K(t, [[0, [-3, 1.6, 0.5]], [5.6, [3.0, 1.6, -9]], [7, [4.0, 1.4, -10]]]));
+      const head = op.clone().add(new V3(0, 2.6, 0)); let p = t < 6 ? head : head.clone().lerp(op.clone().addScaledVector(of, 1.4).setY(0.5 + op.y), sm01((t - 6) / 0.6)); S.dv(p, of);
+      S.cam(K(t, [[0, [1.2, 2.2, 4.6]], [5.6, [5.6, 2.8, -4.0]], [7, [5.2, 2.0, -5.2]]]), K(t, [[0, [-3, 1.6, 0.5]], [5.6, [2.8, 1.6, -8.6]], [7, [3.4, 1.3, -9.4]]]));
       return { mode: 'stand', arms: t < 6 ? 'cheer' : 'wave', armK: t < 6 ? 0.6 : sm01((t - 6.3) / 0.4), face: of }; } };
   // 27: waving arms light up the plankton
   RECIPES.plankton = { dur: 6.6, set: { dark: 0.85 }, setup(S, c) { S.tankAt(4.0, -9, -0.3); S.clear.push([0, 0, 2]); },
@@ -2971,7 +2973,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   RECIPES.heart = { dur: 7.4, set: { dark: 0.4 }, setup(S, c) { c.tw = S.add(makeTower(29, 0.25)); c.tw.position.set(-3.4, 0, -9); c.o = S.add(makeOctopus(0x8a4fd8)); c.o.scale.setScalar(1.0); c.o.userData.setSad(0);
       c.hp = S.add(new THREE.Mesh(new THREE.SphereGeometry(0.55, 32, 24), SP({ color: 0xfff4f0, emissive: 0xffb0a0, emissiveIntensity: 1.2, roughness: 0.08, iridescence: 1 }))); c.hp.add(glowSpr(0xffd0c0, 3.2, 0.8)); c.hl = new THREE.PointLight(0xffc0a0, 12, 9, 1.3); c.hp.add(c.hl);
       c.ped = S.add(new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.7, 0.8, 16), SM({ color: 0xc9a25a, metalness: 0.5, roughness: 0.4 }))); c.ped.position.set(-0.6, 0.4, -2.6); c.pip = S.add(makePip(0xffc23a, S.glow)); S.tankAt(4.6, -10, -0.35); S.clear.push([-1, -3, 3.5]); },
-    run(S, c, t) { const op = K(t, [[0, [-5, 0, -4]], [3.2, [-1.8, 0, -3.0]], [7.4, [-2.0, 0, -3.2]]]); c.o.position.copy(op); c.o.rotation.y = 0.2; c.o.userData.tick(S.time, 1);
+    run(S, c, t) { const op = K(t, [[0, [-5, 0, -4]], [3.2, [-1.8, 0, -3.0]], [7.4, [-2.0, 0, -3.2]]]); c.o.position.copy(op); c.o.rotation.y = -0.9; c.o.userData.tick(S.time, 1);
       const set = sm01((t - 3.2) / 1.2); c.hp.position.copy(op.clone().add(new V3(1.0, 1.4, 0.5)).lerp(c.ped.position.clone().add(new V3(0, 0.95, 0)), set)); c.hp.position.y += Math.sin(set * Math.PI) * 0.4;
       const p = new V3(1.0, 0.5, -0.6), f = new V3().subVectors(c.hp.position, p).setY(0).normalize(); S.dv(p, f); c.pip.position.set(1.7, 1.3 + Math.sin(S.time * 2) * 0.08, -0.4); c.pip.rotation.y = 2.4; c.pip.userData.tick(S.time); c.pip.userData.setGlow(0.9);
       S.cam(K(t, [[0, [2.6, 1.4, 3.2]], [4.4, [2.8, 1.2, 2.6]], [7.4, [3.0, 1.1, 2.4]]]), K(t, [[0, [-2, 1.4, -3]], [4.4, [-0.6, 1.3, -2.6]], [7.4, [-1.0, 1.6, -3.4]]]));
@@ -2979,23 +2981,23 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
 
   class Story {
     constructor(world, o) { this.world = world; this.o = o; this.t = 0; this.frozen = false; this.ch = o.ch || CHAPTERS[1]; this.rc = RECIPES[this.ch.r] || RECIPES.pipe; this.dur = this.rc.dur;
-      const w = this.w = this.ch.w ?? o.w ?? 0, WS = WORLD_STYLE[w], set = Object.assign({}, this.rc.set || {}, this.ch.set || {}); this.set = set; const dark = this.dark = set.dark || 0;
+      const w = this.w = this.ch.w ?? o.w ?? 0, WS = WORLD_STYLE[w], set = Object.assign({}, this.rc.set || {}, this.ch.set || {}); this.set = set; const dark = this.dark = Math.min(0.92, (set.dark || 0) * 0.8 + [0, 0.22, 0.42][w]);
       this.glow = Math.min(1, 0.1 + (o.n || 1) / 30); this.own = []; this.mats = []; this.clear = []; this.time = 0;
       const S = this.scene = new THREE.Scene(); S.environment = world.scene.environment;
       const fogC = new THREE.Color().setRGB(...WS.lo).lerp(new THREE.Color().setRGB(...WS.hi), 0.55).multiplyScalar(1 - dark * 0.55); S.background = fogC.clone(); S.fog = new THREE.Fog(fogC, 9 - dark * 3, 46 - dark * 14);
       this.cam0 = new THREE.PerspectiveCamera(46, 1, 0.08, 220);
-      S.add(new THREE.HemisphereLight(0xd6f0ff, 0x8a6a3a, (w === 2 ? 0.7 : 1.05) * (1 - dark * 0.6)));
-      const key = this.key = new THREE.DirectionalLight(0xfff1d8, (w === 2 ? 2.2 : 3.2) * (1 - dark * 0.65)); key.position.set(-3, 12, -5); key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.bias = -0.0008; key.shadow.normalBias = 0.03;
+      S.add(new THREE.HemisphereLight(0xd6f0ff, 0x8a6a3a, (w === 2 ? 0.7 : 1.05) * (1 - dark * 0.7) + 0.08));
+      const key = this.key = new THREE.DirectionalLight(w ? 0xc8d8ff : 0xfff1d8, (w === 2 ? 2.2 : 3.2) * (1 - dark * 0.75) + 0.2); key.position.set(-3, 12, -5); key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.bias = -0.0008; key.shadow.normalBias = 0.03;
       { const c = key.shadow.camera; c.left = -9; c.right = 9; c.top = 9; c.bottom = -9; c.near = 1; c.far = 44; } key.target.position.set(0, 0, -1); S.add(key, key.target);
       const fill = new THREE.DirectionalLight(0x9fd8ff, 1.1 * (1 - dark * 0.4)); fill.position.set(4, 3, 8); S.add(fill);
       { const im = PHOTO_W[w] || PHOTO_W[0], tex = new THREE.Texture(im); tex.colorSpace = THREE.SRGBColorSpace; tex.wrapS = THREE.MirroredRepeatWrapping; tex.repeat.set(4, 1); tex.needsUpdate = true; this.own.push(tex);
         const Rr = 40, Hh = Rr * 2 * Math.PI / 4 / 1.78, geo = new THREE.CylinderGeometry(Rr, Rr, Hh, 72, 1, true);
-        const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false, color: new THREE.Color(WORLD_TINT[w]).lerp(new THREE.Color(0xffffff), w ? 0.08 : 0).multiplyScalar(1 - dark * 0.7) }); this.mats.push(mat);
+        const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false, color: new THREE.Color(WORLD_TINT[w]).lerp(new THREE.Color(0xffffff), w ? 0.08 : 0).multiplyScalar(1 - dark * 0.85) }); this.mats.push(mat);
         const ring = new THREE.Mesh(geo, mat); ring.position.y = Hh * 0.3 + (set.cliff || 0) * 0.6; ring.rotation.y = -Math.PI / 2 - 0.9; S.add(ring); }
       { const t = TEX.sandRef.clone(); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(30, 30); t.needsUpdate = true; this.own.push(t);
         const geo = new THREE.PlaneGeometry(90, 90, 120, 120); geo.rotateX(-Math.PI / 2); const P = geo.attributes.position;
         for (let i = 0; i < P.count; i++) { const x = P.getX(i), z = P.getZ(i); P.setY(i, this.groundY(x, z)); } geo.computeVertexNormals();
-        const tint = [new THREE.Color(1.25, 1.12, 0.9), new THREE.Color(0.95, 0.85, 1.05), new THREE.Color(0.7, 0.85, 0.95)][w].multiplyScalar(1 - dark * 0.35);
+        const tint = [new THREE.Color(1.25, 1.12, 0.9), new THREE.Color(0.75, 0.62, 0.95), new THREE.Color(0.45, 0.6, 0.8)][w].multiplyScalar(1 - dark * 0.55);
         const mat = new THREE.MeshStandardMaterial({ map: t, color: tint, roughness: 0.95 }); this.mats.push(mat); const sand = new THREE.Mesh(geo, mat); sand.receiveShadow = true; S.add(sand); }
       { const sm = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, uniforms: { uT: { value: 0 }, uK: { value: 0.16 * (1 - dark * 0.7) } },
           vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
@@ -3004,7 +3006,9 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.hold = new THREE.Group(); S.add(this.hold); this.diver = makeDiver(); this.hold.add(this.diver); this.u = this.diver.userData; this.diver.traverse(c => { if (c.isMesh) c.castShadow = true; });
       if (this.u.glb) { const bones = this.u.glb.mesh.skeleton.bones, B = n => bones.find(b => b.name === n); this.armR = [B('RightArm'), B('RightForeArm'), B('RightHand')]; this.armL = [B('LeftArm'), B('LeftForeArm'), B('LeftHand')]; }
       this.parts = new Particles(S, 500); this.bubT = 0;
-      this.tankPos = new V3(5.2, 0, -12); this.tankRY = -0.38; this.tankY = 0; this.c = {}; this.rc.setup(this, this.c, this.ch);
+      this.tankPos = new V3(5.2, 0, -12); this.tankRY = -0.38; this.tankY = 0; this.c = {}; this.decor = []; this.rc.setup(this, this.c, this.ch);
+      { const P0 = this.parts; this.parts = { emit() {}, bubbles() {} }; this.probe = true; this.camPts = []; for (let i = 0; i <= 40; i++) { try { this.rc.run(this, this.c, this.dur * i / 40); } catch (er) {} this.camPts.push(this.cam0.position.clone()); } this.probe = false; this.parts = P0; this.c.rung = []; this.c.sang = false; // keep the lens clear: no plant may sit on the camera's path
+        this.decor = this.decor.filter(d => { if (this.camPts.some(q => (q.x - d.position.x) ** 2 + (q.z - d.position.z) ** 2 < 1.6 * 1.6)) { this.scene.remove(d); return false; } return true; }); }
       if (o.tank) this.buildTank(o.tank, WS);
       this.scatter(w); this.resize(); this.capI = 0; }
     // ---- helpers the recipes use
@@ -3013,11 +3017,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (S.cliff) y += S.cliff * sm01((-z - 3.2) / 2.2);
       if (S.trench) y -= S.trench * (sm01((-z - 1.6) / 1.4) - sm01((-z - 7.2) / 1.4)) * sm01((10 - Math.abs(x)) / 4); return y; }
     add(o) { this.scene.add(o); return o; }
-    spr(n, h, x, z, y = null) { const sp = sprPlane(n, h, true, null); sp.position.set(x, y ?? this.groundY(x, z) - 0.02, z); this.scene.add(sp); return sp; }
+    spr(n, h, x, z, y = null) { const sp = sprPlane(n, h, true, null); sp.position.set(x, y ?? this.groundY(x, z) - 0.02, z); this.scene.add(sp); this.decor.push(sp); return sp; }
     tankAt(x, z, ry, y = 0) { this.tankPos.set(x, y, z); this.tankRY = ry; this.tankY = y; this.clear.push([x, z, 4.4]); }
     tankP() { return this.tankPos; }
     clearPath(M, d, s0, s1, w) { for (let s = s0; s <= s1; s += 1) this.clear.push([M.x + d.x * s, M.z + d.z * s, w]); }
-    kelpWalls(x0, z0, x1, z1, n) { for (let i = 0; i < n; i++) { const side = i % 2 ? 1 : -1, z = z0 - (i / n) * (z0 - z1) * 1.6, x = side * (1.4 + (i % 3) * 0.6) + (x0 + x1) / 2 * 0; const k = this.spr('weed' + [1, 3, 5, 7, 9][i % 5], 2.2 + (i % 4) * 0.6, x, z); k.userData.sw = i; (this.kelp = this.kelp || []).push(k); } }
+    kelpWalls(x0, z0, x1, z1, n) { for (let i = 0; i < n; i++) { const side = i % 2 ? 1 : -1, z = z0 - (i / n) * (z0 - z1) * 1.6, x = side < 0 ? -1.5 - (i % 3) * 0.7 : 4.0 + (i % 3) * 0.8; const k = this.spr('weed' + [1, 3, 5, 7, 9][i % 5], 2.2 + (i % 4) * 0.6, x, z); k.userData.sw = i; (this.kelp = this.kelp || []).push(k); } }
     camRaw(pos, look, roll = 0) { const c = this.cam0; c.position.copy(pos); c.up.set(0, 1, 0); c.lookAt(look); if (roll) c.rotateZ(roll); }
     cam(pos, look) { if (this.port) pos = look.clone().add(pos.clone().sub(look).multiplyScalar(1.4)); this.camRaw(pos, look); }
     dv(p, f, pitch = 0, yawOff = 0, roll = 0) { this.hold.position.copy(p); this.face = f.clone ? f.clone().setY(0).normalize() : new V3(1, 0, 0); this.hold.rotation.set(0, Math.atan2(-this.face.z, this.face.x) + yawOff, 0); this.diver.rotation.set(roll, 0, pitch); }
@@ -3031,7 +3035,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const halo = glowSpr(0x7ff0ff, 1, 0.28 + this.dark * 0.2); halo.scale.set(tw * 2.2, th * 2.4, 1); halo.material.fog = false; halo.position.set(0, 0.55 + th / 2, -0.6); g.add(halo); }
     scatter(w) { let s = 77 + w * 13 + (this.o.n || 1) * 31; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
       const NM = w === 2 ? ['coral2', 'coral4', 'weed3', 'weed7', 'rockA', 'rockB', 'rockC', 'shellA', 'starC'] : ['coral1', 'coral2', 'coral3', 'coral4', 'coral5', 'weed1', 'weed3', 'weed5', 'weed7', 'weed9', 'rockA', 'rockB', 'rockC', 'shellA', 'shellC', 'starA', 'starC'];
-      const ok = (x, z) => !this.clear.some(([cx, cz, r]) => (x - cx) ** 2 + (z - cz) ** 2 < r * r);
+      const ok = (x, z) => !this.clear.some(([cx, cz, r]) => (x - cx) ** 2 + (z - cz) ** 2 < r * r) && !(this.camPts || []).some(q => (q.x - x) ** 2 + (q.z - z) ** 2 < 2.2 * 2.2);
       for (let i = 0; i < 150; i++) { const a = rnd() * Math.PI * 2, r = 1.6 + Math.pow(rnd(), 0.7) * 22, x = Math.cos(a) * r, z = Math.sin(a) * r - 4; if (!ok(x, z) || (this.set.cliff && z < -3) || (this.set.trench && z < -1.2 && z > -8.8)) continue;
         const nm = NM[Math.floor(rnd() * NM.length)], big = nm.startsWith('rock') ? 0.6 : nm.startsWith('shell') || nm.startsWith('star') ? 0.22 : 0.55; const sp = this.spr(nm, big * (0.8 + rnd() * 0.9) * (1 + r * 0.03), x, z); if (rnd() < 0.5) sp.scale.x = -1; }
       if (w) for (let i = 0; i < 10; i++) { const x = (rnd() - 0.5) * 20, z = -2 - rnd() * 14; if (!ok(x, z) || (this.set.cliff && z < -3)) continue; const cr = makeCrystals(WORLD_STYLE[w].crystals || 0xb57cff, 5, 0.8 + rnd(), 5 + i); cr.position.set(x, this.groundY(x, z), z); cr.userData.setLit(0.7); this.scene.add(cr); }
