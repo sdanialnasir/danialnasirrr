@@ -853,5 +853,6 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   prints the character count and asks y/n, auditions ask which roles. `tools/import_voices.py`: base clips 64 kbps, story 48 kbps.
   `build_assets.py` embeds base clips in the page and writes story clips to `src/assets/voice-<world>.js` (copied to dist/assets/);
   `AQ_DATA.VOD` / pack `VOD` = clip lengths from the MP3 headers (`mp3_seconds`), so nothing loads clips just to time lines. `loadVoice(w)`
-  injects a pack when its world is near (boot: the unlocked world; startLevel: this world, and the next from x8). `window.AQ_VOICE` merges a pack.
+  injects a pack when its world is near (boot: the unlocked world; startLevel: this world, and the next from x8). `window.AQ_VOICE` merges a pack. `AQ_DATA.VOP` lists the packs that exist (no request for a missing file). Checked with dummy clips: packs build, load per world, lengths right.
+- Close-ups re-check the line of sight every 0.25 s (`sh.chk`): someone swims in front → cut to the other side, else back to the wide shot.
 - Gotcha (again): a `//` comment inside a one-line JS statement swallowed the rest of the line twice this pass; use `/* */` mid-line.

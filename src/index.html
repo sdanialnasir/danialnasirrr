@@ -1804,7 +1804,7 @@ body.cut #cutBars i { transform: none; } body.cut #hud, body.cut #hudB, body.cut
 #storyCap[data-who="snip"] b, #storyCap[data-who="snap"] b { color: #ff9a5a; } #storyCap[data-who="keeper"] b { color: #ffe08a; } #storyCap[data-who="keeper"] p { font-style: italic; }
 #storyCap[data-who="grimtide"] { background: linear-gradient(180deg, rgba(60, 10, 30, 0.9), rgba(20, 4, 14, 0.92)); border-color: rgba(255, 90, 80, 0.55); }
 .jt p[data-who="grimtide"] em { color: #ff6a5a; } .jt p[data-who="clack"] em { color: #ffb36a; } .jt p[data-who="keeper"] em, .jt p[data-who="keeper"] { color: #ffe08a; } .jt p[data-who="snip"] em, .jt p[data-who="snap"] em { color: #ff9a5a; }
-body.story.qte-on #storyCap { opacity: 0.35; }
+body.story.qte-on #storyCap { opacity: 0; transition: opacity .2s; }
 @media (prefers-reduced-motion: reduce) { #sfx { display: none; } #qte .qt-ring i { animation: none; } }
 </style>
 </head>

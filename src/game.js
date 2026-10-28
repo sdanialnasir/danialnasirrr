@@ -3298,9 +3298,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     shotCam(dt) { const sh = this.shot, t = this.t; let q = null;
       if (sh && sh.cut && sh.who && !this.qte && !this.frozen) { const base = this.cam0.position.clone(); sh.wide = true; // pick a side with a clear view of the speaker (a big shell or a rock in the way: try the other side, else stay wide)
         for (const sd of [sh.side, -sh.side]) { const tg = this.dialogCam(sh.who, sd, 0, base); if (tg && this.clearView(tg.pos, tg.q)) { sh.side = sd; sh.wide = false; break; } } }
-      if (sh && !sh.wide && !this.qte && !this.frozen && t < sh.l.t1 + 0.15 && sh.who) { const prog = Math.min(1, (t - sh.l.t0) / Math.max(0.1, sh.l.t1 - sh.l.t0)), tg = this.dialogCam(sh.who, sh.side, prog, this.cam0.position.clone());
-        if (tg) { q = tg.q; if (sh.cut || !this.camCur) { this.camCur = { pos: tg.pos.clone(), look: tg.look.clone() }; sh.cut = false; } else { this.camCur.pos.lerp(tg.pos, 1 - Math.exp(-dt * 10)); this.camCur.look.copy(tg.look); } this.camRaw(this.camCur.pos, this.camCur.look); } }
-      else if (this.frozen && this.camCur && sh && sh.who && t < sh.l.t1 + 0.15) this.camRaw(this.camCur.pos, this.camCur.look);
+      if (sh && !sh.wide && !this.qte && !this.frozen && t < sh.l.t1 + 0.15 && sh.who) { const prog = Math.min(1, (t - sh.l.t0) / Math.max(0.1, sh.l.t1 - sh.l.t0)), base = this.cam0.position.clone();
+        let tg = this.dialogCam(sh.who, sh.side, prog, base);
+        if (tg && (sh.chk = (sh.chk || 0) - dt) <= 0) { sh.chk = 0.25; // someone swam into the shot: cut to the other side, or back to the wide shot
+          if (!this.clearView(tg.pos, tg.q)) { const t2 = this.dialogCam(sh.who, -sh.side, prog, base); if (t2 && this.clearView(t2.pos, t2.q)) { sh.side = -sh.side; sh.cut = true; tg = t2; } else { sh.wide = true; tg = null; } } }
+        if (tg) { q = tg.q; if (sh.cut || !this.camCur) { this.camCur = { pos: tg.pos.clone(), look: tg.look.clone() }; sh.cut = false; } else { this.camCur.pos.lerp(tg.pos, 1 - Math.exp(-dt * 10)); this.camCur.look.copy(tg.look); }
+          this.camRaw(this.camCur.pos, this.camCur.look); } }
       if (!q) this.camCur = null;
       if (this.qte) { const k = 0.02 + 0.03 * this.qte.prog; this.cam0.position.x += (Math.random() - 0.5) * k; this.cam0.position.y += (Math.random() - 0.5) * k; }
       // the speaker talks: a little bob and sway (Grimtide's jaw works instead)
@@ -5020,7 +5023,7 @@ window.__T = T;
   const DVK = { pearl: 0.55, phew: 0.6, undo: 0.5 }; let dvAt = 0;
   const hasVo = id => !!(window.AQ_DATA && AQ_DATA.VO && AQ_DATA.VO[id]);
   // the story's voice packs load in the background, one per world, when that world is near (missing files are fine: subtitles only)
-  const voicePack = {}; function loadVoice(w) { if (w < 1 || w > 3 || voicePack[w]) return; voicePack[w] = 1; try { const sc = document.createElement('script'); sc.src = `assets/voice-${w}.js`; sc.async = true; sc.onerror = () => sc.remove(); document.head.appendChild(sc); } catch (er) {} }
+  const voicePack = {}; function loadVoice(w) { const have = window.AQ_DATA && AQ_DATA.VOP; if (w < 1 || w > 3 || voicePack[w] || !have || !have.includes(w)) return; voicePack[w] = 1; try { const sc = document.createElement('script'); sc.src = `assets/voice-${w}.js`; sc.async = true; sc.onerror = () => sc.remove(); document.head.appendChild(sc); } catch (er) {} }
   const packOf = n => Math.min(3, Math.max(1, Math.floor((n - 1) / 10) + 1));
   function dvoice(kind) { if (replay || CLIP || state === 'cine' || !DV[kind]) return; const now = performance.now(); if (now - dvAt < 6000) return; if (Math.random() > (DVK[kind] ?? 1)) return;
     const L = DV[kind].filter(hasVo); if (!L.length) return; dvAt = now; Audio.vo(L[Math.random() * L.length | 0]); }
@@ -6020,7 +6023,7 @@ window.__T = T;
   // lines are [speaker, text]; a voice clip s<n>_<i> plays with its line when it exists (tools/voices.json lists them all)
   const storyVoLen = id => { const d = Audio.voDur(id); return d ? d + 0.45 : 0; };
   // an interactive beat in a film: big prompt, a ring that fills (tap / hold) or an arrow (swipe), gold burst on success
-  function qteUI(Q, ev, prog) { const el = $('#qte'); if (!el) return; if (ev === 'hide') { el.className = ''; el.hidden = true; return; }
+  function qteUI(Q, ev, prog) { const el = $('#qte'); if (!el) return; document.body.classList.toggle('qte-on', ev === 'start' || ev === 'prog'); if (ev === 'hide') { el.className = ''; el.hidden = true; return; }
     if (ev === 'start') { el.hidden = false; el.className = 'on k-' + Q.kind + (Q.dir ? ' d-' + Q.dir : ''); el.querySelector('b').textContent = Q.label;
       el.querySelector('small').textContent = Q.kind === 'tap' ? (isTouch ? 'Tap, tap, tap!' : 'Tap Space fast!') : Q.kind === 'hold' ? (isTouch ? 'Press and hold!' : 'Hold Space!') : (isTouch ? 'Swipe!' : 'Press an arrow key!');
       el.style.setProperty('--qp', 0); Audio.play('hint'); buzz([30, 30, 30]); return; }
