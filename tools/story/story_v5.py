@@ -43,7 +43,7 @@ CH = [PROLOGUE,
    ('shelly', 'Red eyes? Hmph. Two hundred years I have lived, and I have seen red eyes once.', 'slow, gravelly, dry'),
    ('shelly', 'Grimtide. An eel as long as a shipwreck, with an ego twice that size. He drinks light.', 'deadpan'),
    ('pip', 'Drinks it? Like a smoothie?', 'horrified', 'shake'),
-   ('shelly', 'Like a smoothie. The Keeper built thirty gates to stop him. You woke one, so now he knows about you. Hop on.', 'deadpan, urgent', 'nod'),
+   ('shelly', 'Like a smoothie. The Keeper hid her light in thirty vaults, each with a gate. You woke one, so now he knows about you. Hop on.', 'deadpan, urgent', 'nod'),
    ('pip', "I'm not scared. My fins are just cold.", 'trembling, pretending', 'shake')]),
  C('Captain Clack', 'crabs', 'bubble', 'fun', [
    ('clack', 'HALT! In the name of the Crack Crab Crew! State your name, rank, and favourite snack!', 'booming, pompous', 'salute'),

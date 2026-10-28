@@ -2821,14 +2821,78 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const bow = new THREE.Mesh(new THREE.ConeGeometry(1.25, 2.4, 20, 1, true, Math.PI * 0.55, Math.PI * 1.1), wood); bow.rotation.z = -Math.PI / 2; bow.scale.set(1, 1, 0.8); bow.position.set(4.2, 0.6, 0); g.add(bow);
     g.rotation.z = 0.08; g.rotation.x = -0.12; return shadowOf(g); }
   // the Great Lantern: a tall coral tower with a spiral of 30 lights (one per gate) and a lens on top
-  function makeTower(lit = 0, heart = 0) { const g = new THREE.Group(); const stone = SM({ map: TEX.rockCol || null, color: 0x8a7a9a, roughness: 0.9 });
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.8, 12, 24, 6), stone); body.position.y = 6; g.add(body);
-    for (let i = 0; i < 5; i++) { const r = new THREE.Mesh(new THREE.TorusGeometry(1.75 - i * 0.18, 0.12, 8, 30), SM({ color: 0xc9a25a, metalness: 0.6, roughness: 0.35 })); r.rotation.x = Math.PI / 2; r.position.y = 1 + i * 2.4; g.add(r); }
-    const L = []; for (let i = 0; i < 30; i++) { const u = i / 29, y = 0.8 + u * 10.5, rad = 1.8 - u * 0.85 + 0.08, a = u * Math.PI * 6; const m = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), new THREE.MeshBasicMaterial({ color: i < lit ? 0xff5a3a : 0x2a2a3a })); m.position.set(Math.cos(a) * rad, y, Math.sin(a) * rad); g.add(m);
-      if (i < lit) { const gl = glowSpr(0xff7a4a, 0.8, 0.6); gl.position.copy(m.position); g.add(gl); } L.push(m); }
-    const lens = new THREE.Mesh(new THREE.SphereGeometry(0.9, 24, 16), SP({ color: 0xbfefff, transparent: true, opacity: 0.85, roughness: 0.05, emissive: 0xfff0c0, emissiveIntensity: heart * 2 })); lens.position.y = 12.7; g.add(lens);
-    const cap = new THREE.Mesh(new THREE.ConeGeometry(1.1, 1.2, 16), SM({ color: 0xc9a25a, metalness: 0.6, roughness: 0.35 })); cap.position.y = 13.9; g.add(cap);
-    const big = glowSpr(0xfff0b0, 9, heart * 0.8); big.position.y = 12.7; g.add(big); g.userData = { lens, big }; return shadowOf(g); }
+  // ---- the Light Vaults: the Keeper's sealed glass chambers. Carved reef-stone pillars and lintel with brass inlay, brass rune
+  // medallions at the corners, a glowing keystone rune, a stone pedestal. (The air trapped under the roof is where you breathe.)
+  function runeTex() { if (TEX.rune) return TEX.rune; const cv = document.createElement('canvas'); cv.width = cv.height = 128; const g = cv.getContext('2d'); g.strokeStyle = '#fff'; g.lineCap = 'round'; g.shadowColor = '#fff'; g.shadowBlur = 6;
+    g.lineWidth = 6; g.beginPath(); g.arc(64, 64, 50, 0, Math.PI * 2); g.stroke(); g.lineWidth = 7; g.beginPath(); g.moveTo(64, 100); g.lineTo(64, 30); g.moveTo(40, 40); g.quadraticCurveTo(40, 70, 64, 72); g.quadraticCurveTo(88, 70, 88, 40); g.stroke();
+    for (const x of [40, 64, 88]) { g.beginPath(); g.moveTo(x - 6, 40); g.lineTo(x, 28); g.lineTo(x + 6, 40); g.stroke(); } const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return (TEX.rune = t); }
+  function stoneTex() { if (TEX.vaultStone) return TEX.vaultStone; const cv = document.createElement('canvas'); cv.width = cv.height = 512; const g = cv.getContext('2d'); let sd = 91; const r = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    g.fillStyle = '#d9cdb8'; g.fillRect(0, 0, 512, 512);
+    for (let row = 0; row < 8; row++) { const y = row * 64, off = row % 2 ? 64 : 0; for (let x = -off; x < 512; x += 128) { const v = 0.86 + r() * 0.2, c = [217 * v, 205 * v, 184 * v].map(q => q | 0); g.fillStyle = `rgb(${c})`; g.fillRect(x + 3, y + 3, 122, 58);
+        for (let k = 0; k < 90; k++) { const a = r() * 0.12; g.fillStyle = r() < 0.5 ? `rgba(255,250,235,${a})` : `rgba(90,70,50,${a})`; g.fillRect(x + 3 + r() * 120, y + 3 + r() * 56, 1 + r() * 6, 1 + r() * 2); } } } /* chisel grain */
+    g.strokeStyle = 'rgba(70,55,40,0.55)'; g.lineWidth = 4; for (let row = 0; row <= 8; row++) { g.beginPath(); g.moveTo(0, row * 64); g.lineTo(512, row * 64); g.stroke(); const off = row % 2 ? 64 : 0; for (let x = -off; x < 512; x += 128) { g.beginPath(); g.moveTo(x, row * 64); g.lineTo(x, row * 64 + 64); g.stroke(); } }
+    const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return (TEX.vaultStone = t); }
+  function vaultMats(trim) { if (!MAT.vaultStone) { const rt = stoneTex().clone(); rt.wrapS = rt.wrapT = THREE.RepeatWrapping; rt.repeat.set(1.4, 1.4); rt.needsUpdate = true;
+      MAT.vaultStone = new THREE.MeshStandardMaterial({ map: rt, color: 0xffffff, roughness: 0.8 }); MAT.vaultBase = new THREE.MeshStandardMaterial({ map: rt, color: 0xd8cbb8, roughness: 0.86 }); MAT.vaultBaseSide = new THREE.MeshStandardMaterial({ map: rt, color: 0xa89a86, roughness: 0.9 });
+      MAT.vaultBrass = new THREE.MeshStandardMaterial({ color: 0xe0b45a, metalness: 0.85, roughness: 0.28 }); MAT.vaultRune = new THREE.MeshBasicMaterial({ map: runeTex(), color: 0x7ff6ff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }); }
+    if (trim !== undefined) MAT.vaultStone.color.set(0xffffff).lerp(new THREE.Color(trim).offsetHSL(0, -0.2, 0.25), 0.22); return MAT; }
+  // a rune medallion (brass coin, glowing rune) facing +z
+  function runeDisc(r) { const g = new THREE.Group(), M = vaultMats(); const d = new THREE.Mesh(new THREE.CylinderGeometry(r, r, r * 0.35, 28), M.vaultBrass); d.rotation.x = Math.PI / 2; d.castShadow = true; g.add(d);
+    const rn = new THREE.Mesh(new THREE.PlaneGeometry(r * 1.5, r * 1.5), M.vaultRune); rn.position.z = r * 0.19; g.add(rn); const gl = glowSpr(0x7ff6ff, r * 4, 0.35); gl.position.z = r * 0.25; g.add(gl); g.userData.glow = gl; return g; }
+  // a thin soft ring of light (a shockwave seen face-on), drawn once
+  function ringThin() { if (TEX.ringThin) return TEX.ringThin; const cv = document.createElement('canvas'); cv.width = cv.height = 256; const g = cv.getContext('2d'), gr = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+    gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(0.72, 'rgba(255,255,255,0)'); gr.addColorStop(0.86, 'rgba(255,255,255,0.9)'); gr.addColorStop(0.9, 'rgba(255,255,255,1)'); gr.addColorStop(0.95, 'rgba(255,255,255,0.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, 256, 256); const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return (TEX.ringThin = t); }
+  // a soft volumetric beam from the origin along +z: bright in the middle, fading to the edges and along its length, a slow shimmer of dust
+  function softBeam(len, r0, r1, col, k = 0.3) { const geo = new THREE.CylinderGeometry(r0, r1, len, 40, 12, true); geo.translate(0, -len / 2, 0); geo.rotateX(-Math.PI / 2);
+    const mat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false, uniforms: { uCol: { value: new THREE.Color(col) }, uK: { value: k }, uT: { value: 0 } },
+      vertexShader: 'varying vec2 vUv; varying vec3 vN, vV; void main(){ vUv = uv; vec4 mv = modelViewMatrix * vec4(position, 1.0); vV = -mv.xyz; vN = normalMatrix * normal; gl_Position = projectionMatrix * mv; }',
+      fragmentShader: 'uniform vec3 uCol; uniform float uK, uT; varying vec2 vUv; varying vec3 vN, vV; void main(){ float f = abs(dot(normalize(vN), normalize(vV))); float a = pow(f, 2.2) * pow(vUv.y, 1.4) * smoothstep(1.0, 0.93, vUv.y); a *= 0.8 + 0.2 * sin(vUv.y * 37.0 - uT * 1.3 + vUv.x * 25.0) * sin(vUv.y * 11.0 + uT * 0.7); gl_FragColor = vec4(uCol * a * uK, a * uK); }' });
+    const m = new THREE.Mesh(geo, mat); m.userData.mat = mat; m.renderOrder = 5; return m; }
+  // the Great Lantern: a lighthouse grown out of reef stone. A twisting, tapering spire on a rocky mound; brass bands and a gallery near the top;
+  // a brass cage holding the Heart (a glowing pearl); three slow sweeping beams; 30 gate lights spiralling up the stone (lit = how many are awake).
+  // setGlow(k) drives the whole lamp (pearl, halo, beams and the light it throws), so a film can dim it, flare it or put it out; tick(t) sweeps the beams.
+  function makeTower(lit = 0, heart = 0) { const g = new THREE.Group(), H = 11;
+    if (!TEX.rockCol) massMat(0); const rt = (TEX.rockCol || TEX.cobbleRock).clone(); rt.wrapS = rt.wrapT = THREE.RepeatWrapping; rt.repeat.set(4, 5); rt.needsUpdate = true;
+    const stone = new THREE.MeshStandardMaterial({ map: rt, vertexColors: true, roughness: 0.88 }), gold = new THREE.MeshStandardMaterial({ color: 0xd9a441, metalness: 0.85, roughness: 0.3 });
+    const prof = [[2.7, 0], [2.3, 0.35], [1.95, 1.1], [1.62, 3], [1.36, 6], [1.18, 8.8], [1.12, 10.1], [1.55, 10.45], [1.6, 10.85], [1.22, 11.05], [0.001, 11.1]];
+    const rOf = y => { for (let i = 1; i < prof.length; i++) if (y <= prof[i][1]) { const [r0, y0] = prof[i - 1], [r1, y1] = prof[i]; return r0 + (r1 - r0) * (y - y0) / (y1 - y0); } return 0.5; };
+    { const geo = new THREE.LatheGeometry(prof.map(([r, y]) => new THREE.Vector2(r, y)), 72); const P = geo.attributes.position, col = new Float32Array(P.count * 3), c0 = new THREE.Color(0x5f7f86), c1 = new THREE.Color(0xe2cfae), cc = new THREE.Color();
+      for (let i = 0; i < P.count; i++) { const x = P.getX(i), y = P.getY(i), z = P.getZ(i), r = Math.hypot(x, z), v = y / H; const an = Math.atan2(z, x);
+        const rib = Math.sin(an * 7 + y * 0.9), ridge = 0.07 * rib + 0.03 * Math.sin(an * 15 - y * 1.9) + 0.05 * Math.pow(Math.abs(Math.sin(y * 2.3)), 10);
+        if (r > 1e-3 && y < 10.2) { const k = (r + ridge * (1 - v * 0.4)) / r; P.setX(i, x * k); P.setZ(i, z * k); }
+        cc.copy(c0).lerp(c1, sm01(v * 1.15 + 0.08 * Math.sin(an * 3))); const ao = 0.72 + 0.28 * (0.5 + 0.5 * rib); col[i * 3] = cc.r * ao; col[i * 3 + 1] = cc.g * ao; col[i * 3 + 2] = cc.b * ao; }
+      geo.setAttribute('color', new THREE.BufferAttribute(col, 3)); geo.computeVertexNormals(); const m = new THREE.Mesh(geo, stone); m.castShadow = m.receiveShadow = true; g.add(m);
+      const sp = new THREE.Mesh(geo, new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, uniforms: { uK: { value: 0 } },
+        vertexShader: 'varying float vY; varying vec3 vN, vV; void main(){ vY = position.y; vec4 mv = modelViewMatrix * vec4(position, 1.0); vV = -mv.xyz; vN = normalMatrix * normal; gl_Position = projectionMatrix * mv; }',
+        fragmentShader: 'uniform float uK; varying float vY; varying vec3 vN, vV; void main(){ float f = 0.45 + 0.55 * abs(dot(normalize(vN), normalize(vV))); float a = pow(smoothstep(3.5, 11.0, vY), 1.6) * f * uK; gl_FragColor = vec4(vec3(1.0, 0.78, 0.45) * a, a); }' }));
+      sp.scale.set(1.004, 1, 1.004); sp.renderOrder = 4; g.add(sp); g.userData.spill = sp.material; }
+    // the mound it stands on
+    { const rm = SM({ color: 0x3f5a63, roughness: 0.95 }); for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2 + 0.3, R = 2.4 + (i % 3) * 0.5, geo = new THREE.DodecahedronGeometry(1 + (i % 4) * 0.28, 1), P = geo.attributes.position;
+        for (let k = 0; k < P.count; k++) { const x = P.getX(k), y = P.getY(k), z = P.getZ(k), n = 1 + 0.16 * Math.sin(x * 3.1 + y * 2.3 + i) * Math.sin(z * 2.7 - y + i); P.setXYZ(k, x * n, y * n * 0.62, z * n); } geo.computeVertexNormals();
+        const r = new THREE.Mesh(geo, rm); r.position.set(Math.cos(a) * R, 0.1, Math.sin(a) * R); r.rotation.y = a * 1.7; r.castShadow = r.receiveShadow = true; g.add(r); } }
+    // brass: three bands, the gallery with its railing, the cage of curved ribs, base plate, cap and finial
+    for (const y of [0.9, 4.3, 7.7]) { const b = new THREE.Mesh(new THREE.TorusGeometry(rOf(y) + 0.06, 0.09, 8, 48), gold); b.rotation.x = Math.PI / 2; b.position.y = y; g.add(b); }
+    { const r1 = new THREE.Mesh(new THREE.TorusGeometry(1.66, 0.05, 6, 48), gold); r1.rotation.x = Math.PI / 2; r1.position.y = 11.45; g.add(r1);
+      for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI * 2, pst = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.42, 5), gold); pst.position.set(Math.cos(a) * 1.66, 11.24, Math.sin(a) * 1.66); g.add(pst); } }
+    { const pl = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.35, 0.2, 32), gold); pl.position.y = 11.2; g.add(pl);
+      for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2, pts = [[1.2, 11.3], [1.42, 12.2], [1.25, 13.2], [0.62, 13.95], [0.12, 14.25]].map(([r, y]) => new V3(Math.cos(a) * r, y, Math.sin(a) * r));
+        const rib = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 24, 0.055, 6), gold); rib.castShadow = true; g.add(rib); }
+      const cap = new THREE.Mesh(new THREE.ConeGeometry(0.42, 0.9, 16), gold); cap.position.y = 14.6; g.add(cap); const orb = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 8), gold); orb.position.y = 15.12; g.add(orb); }
+    // the Heart and its light
+    const HY = 12.45, lens = new THREE.Mesh(new THREE.SphereGeometry(0.78, 32, 20), new THREE.MeshStandardMaterial({ color: 0xffe6b8, emissive: 0xffb24a, emissiveIntensity: 2, roughness: 0.18 })); lens.position.y = HY; g.add(lens);
+    const inner = glowSpr(0xffe6a8, 3.4, 0.9); inner.position.y = HY; g.add(inner); const big = glowSpr(0xffd49a, 15, 0.5); big.position.y = HY; big.material.fog = false; g.add(big);
+    const beams = new THREE.Group(); beams.position.y = HY; g.add(beams); for (let i = 0; i < 3; i++) { const bm = softBeam(30, 0.5, 5.5, 0xffe7b4, 0.3); bm.rotation.y = i / 3 * Math.PI * 2; bm.rotation.x = 0.1; beams.add(bm); }
+    const light = new THREE.PointLight(0xffd39a, 10, 44, 1.5); light.position.y = HY; g.add(light);
+    // the gate lights, set into the stone in a spiral
+    const L = []; for (let i = 0; i < 30; i++) { const u = i / 29, y = 1.2 + u * 9, a = u * Math.PI * 6, rad = rOf(y) + 0.02, on = i < lit;
+      const m = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), new THREE.MeshStandardMaterial({ color: on ? 0xff6a40 : 0x2a2a3a, emissive: on ? 0xff5a30 : 0x000000, emissiveIntensity: on ? 1.6 : 0, roughness: 0.4 })); m.position.set(Math.cos(a) * rad, y, Math.sin(a) * rad); g.add(m);
+      if (on) { const gl = glowSpr(0xff7a4a, 0.8, 0.6); gl.position.copy(m.position); g.add(gl); } L.push(m); }
+    const setGlow = k => { lens.material.emissiveIntensity = 2.6 * k; lens.material.color.setScalar(0.35 + 0.65 * Math.min(1, k)); inner.material.opacity = 0.9 * Math.min(1, k); big.material.opacity = 0.5 * Math.min(1.6, k);
+      beams.children.forEach(b => { b.userData.mat.uniforms.uK.value = 0.3 * k; }); beams.visible = k > 0.02; light.intensity = 10 * k; if (g.userData.spill) g.userData.spill.uniforms.uK.value = 0.32 * Math.min(1.8, k); g.userData.k = k; };
+    const spill = g.userData.spill, glows = g.children.filter(o => o.isSprite && o !== inner && o !== big);
+    g.userData = { lens, big, inner, beams, light, setGlow, spill, lights: L, setGates(k) { L.forEach(m => { if (m.material.emissiveIntensity > 0 || m.userData.on) { m.userData.on = 1; m.material.emissiveIntensity = 1.6 * k; m.material.color.setHex(k > 0.1 ? 0xff6a40 : 0x2a2a3a); } }); glows.forEach(gl => { gl.material.opacity = 0.6 * k; }); }, tick(t) { beams.rotation.y = t * 0.22; beams.children.forEach(b => { b.userData.mat.uniforms.uT.value = t; }); } };
+    setGlow(heart); return g; }
   // Lumen: an anglerfish (the piranha model, bigger and darker) with a glowing lure
   function makeAngler() { const g = makeFish(null); g.traverse(o => { if (o.isMesh && o.material && o.material.color) { o.material = o.material.clone(); o.material.color.multiplyScalar(0.45); } }); g.scale.setScalar(1.8);
     const pts = [new V3(0.05, 0.25, 0), new V3(0.15, 0.48, 0), new V3(0.35, 0.52, 0), new V3(0.47, 0.38, 0)]; const stalk = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.012, 6), SM({ color: 0x2a2a44 })); g.add(stalk);
@@ -2843,7 +2907,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   const CHAPTERS = [null,
     {"t": "Through the Old Pipe", "r": "pipe", "a": "pipe", "L": [["", "The first gate wakes, and its light shoots down an old pipe. With you in it.", "", "happy"], ["pip", "AAAH! A light! A real light! Are you a light? Are you a fish? Are you a light-fish?", "hop", "happy"], ["pip", "I'm Pip! And you're a spark. That's your name now. Spark. No take-backs.", "spin", "happy"], ["", "Far away, in the dark, something very big opens one red eye.", "", "sad"]], "Q": {"at": 2, "kind": "choice", "label": "Who are you?", "opts": [["brave", "I'm here to turn the lights back on.", [["you", "I'm the one who's going to turn the lights back on."], ["pip", "Ooh. Cool. Can I come? I'm very brave. Mostly in my head.", "hop", "happy"]]], ["funny", "A lost tourist. Gift shop?", [["you", "Just a very lost tourist. Is there a gift shop?", "", "happy"], ["pip", "Ha! A funny one! The reef has been SO not funny lately.", "laugh", "happy"]]], ["kind", "A friend. You okay?", [["you", "A friend. Are you okay, little guy?", "", "happy"], ["pip", "Nobody's asked me that since the storm. I'm… better now.", "nod"]]]]}},
     {"t": "Pip’s Glow", "r": "kelp", "a": "swirl", "L": [["pip", "Real talk, Spark. I used to GLOW. People called me Pip the Bright.", "spin", "happy"], ["you", "Who called you that?"], ["pip", "…Me. I called me that. But then the storm came, and it had EYES. Red ones. And it ate every light in the reef.", "shake", "wide"], ["pip", "But when your gate woke up, I sparkled! Just a teeny bit! Do it again! Do it again!", "hop", "happy"]]},
-    {"t": "Shelly’s Tale", "r": "turtle", "a": "drop", "L": [["shelly", "Red eyes? Hmph. Two hundred years I have lived, and I have seen red eyes once."], ["shelly", "Grimtide. An eel as long as a shipwreck, with an ego twice that size. He drinks light."], ["pip", "Drinks it? Like a smoothie?", "shake", "wide"], ["shelly", "Like a smoothie. The Keeper built thirty gates to stop him. You woke one, so now he knows about you. Hop on.", "nod"], ["pip", "I'm not scared. My fins are just cold.", "shake", "wide"]]},
+    {"t": "Shelly’s Tale", "r": "turtle", "a": "drop", "L": [["shelly", "Red eyes? Hmph. Two hundred years I have lived, and I have seen red eyes once."], ["shelly", "Grimtide. An eel as long as a shipwreck, with an ego twice that size. He drinks light."], ["pip", "Drinks it? Like a smoothie?", "shake", "wide"], ["shelly", "Like a smoothie. The Keeper hid her light in thirty vaults, each with a gate. You woke one, so now he knows about you. Hop on.", "nod"], ["pip", "I'm not scared. My fins are just cold.", "shake", "wide"]]},
     {"t": "Captain Clack", "r": "crabs", "a": "bubble", "L": [["clack", "HALT! In the name of the Crack Crab Crew! State your name, rank, and favourite snack!", "salute", "happy"], ["clack", "We rescued these pearls from the sand. Grimtide’s tail took the rest. Thick as a mast! Thicker! Two masts!", "shake", "wide"], ["clack", "The Crack Crab Crew sails with you! Pip, you're promoted to Deputy Assistant Vice Captain.", "salute", "happy"], ["pip", "I've been here five seconds."], ["clack", "And already a natural!", "laugh", "happy"]], "Q": {"at": 1, "kind": "choice", "label": "Name, rank, snack?", "opts": [["brave", "Spark. Snacks later, heroics now.", [["you", "Spark. Gate-waker. Snacks later, heroics now."], ["clack", "HA! A diver with priorities! I like you already!", "salute", "happy"]]], ["funny", "Spark. Seaweed chips.", [["you", "Spark. Professional tourist. Seaweed chips, extra salty.", "", "happy"], ["clack", "Seaweed chips! A diver of TASTE! Crew, this one is one of us!", "laugh", "happy"]]], ["kind", "The famous captain, I presume?", [["you", "Spark. And you must be the famous captain everyone talks about.", "", "happy"], ["clack", "Famous? Me? Well. Yes. Obviously. Crew, did you HEAR that?", "hop", "happy"]]]]}},
     {"t": "Jelly Bounce", "r": "jelly", "a": "drop", "L": [["", "Five gates awake, and the jellyfish are humming. They want to help.", "", "happy"], ["pip", "They're making a bouncy staircase! Jump, Spark! Jump!", "hop", "happy"], ["you", "Boing… boing… whoa-ho-HO!", "", "happy"], ["clack", "A captain does NOT bounce. A captain ascends. With dignity. WHEEEE!", "hop", "happy"]], "Q": {"at": 4, "kind": "run", "v": "bounce", "dur": 20, "label": "Bounce through the jelly garden!", "ok": [["pip", "Again! Again! My tummy is doing loop-the-loops!", "spin", "happy"], ["clack", "Dignified. Extremely dignified. Nobody saw me squeal.", "", "happy"]], "no": [["pip", "Ow, stingy! Are jellies supposed to be stingy?", "shake", "wide"], ["clack", "Tactical retreat, crew! Very tactical!"]]}},
     {"t": "The Keeper’s Map", "r": "wreck", "a": "swirl", "L": [["", "Inside the old wreck: a chest with a seashell lock.", "", "sad"], ["pip", "Open it! No, wait, what if it bites? Open it! No! Okay. Open it.", "shake", "wide"], ["keeper", "“If Grimtide returns, wake the gates. Shared light is the one thing he cannot drink.”"], ["clack", "A treasure map! Hand it here, crew. Captains are excellent with maps.", "salute", "happy"], ["pip", "You're holding it upside down."]]},
@@ -2880,34 +2944,98 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     return Array.isArray(a) ? new V3(a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k) : a + (b - a) * k; }
   const RECIPES = {};
   // the first chapter: the original tunnel film (inside the pipe, out onto the sand, wave at the next tank), plus Pip peeking out
-  RECIPES.pipe = { dur: 5.9, setup(S, c) { const R = 1.05; c.R = R; c.dir = new V3(0.72, 0, 0.69).normalize(); c.M = new V3(-2.1, R * 0.82, -0.4);
+  // 1, staged on its lines: through the glowing pipe and out onto the sand; Pip shoots up from behind the rim, shrieks, circles the new
+  // light and stops face to face with it; the choice and the names; then the camera drifts past them into the far dark, where one huge
+  // red eye opens, and settles behind the two of them looking toward the next vault.
+  RECIPES.pipe = { live: true, tail: 3.4, gap(i) { return i === 1 ? 1.4 : 0; }, own: (i, sh, S) => !sh.who,
+    setup(S, c) { const R = 1.05; c.R = R; c.dir = new V3(0.72, 0, 0.69).normalize(); c.M = new V3(-2.1, R * 0.82, -0.4);
       c.pipe = makePipe(S.w, R, 9); c.pipe.rotation.y = Math.atan2(c.dir.x, c.dir.z); c.pipe.position.copy(c.M); S.scene.add(c.pipe); S.mats.push(...c.pipe.userData.pipe.mats);
       { const warm = new THREE.PointLight(0xff9a62, 3.2, 5, 1.6); warm.position.set(0, R * 0.55, -R * 0.9); c.pipe.add(warm); const cool = new THREE.PointLight(0x8fe8ff, 4, 7, 1.4); cool.position.set(0, 0, -R * 0.4); c.pipe.add(cool); }
-      S.clearPath(c.M, c.dir, -9, 4.5, 1.5); c.pip = S.add(makePip(0xffc23a, 0.05)); c.pip.visible = false; },
-    run(S, c, t) { const d = c.dir, M = c.M, side = new V3(d.z, 0, -d.x), at = (s, y) => new V3(M.x + d.x * s, y, M.z + d.z * s); pipeTick(c.pipe, S.time);
-      if (t < 2.7) { const k = t / 2.7, cs = -4.4 + k * 1.3; S.camRaw(at(cs, M.y + 0.28).addScaledVector(side, -0.2), at(cs + 6, M.y - 0.12), 0.06);
-        S.dv(at(cs + 1.15 + sm01(k) * 1.7, M.y - 0.3 + Math.sin(t * 3.2) * 0.04).addScaledVector(side, 0.28), d, -0.15 + Math.sin(t * 3.2) * 0.05, -0.35); return { mode: 'swim', speed: 2.4 }; }
-      const t2 = t - 2.7, Df = at(1.75, 0.5), fF = new V3().subVectors(S.tankP(), Df).setY(0).normalize(), rgt = new V3(-fF.z, 0, fF.x);
-      S.cam(Df.clone().addScaledVector(fF, -3.0 + 0.35 * sm01(t2 / 3.2)).addScaledVector(rgt, 0.95).setY(0.9), Df.clone().addScaledVector(fF, 6).addScaledVector(rgt, 0.9).setY(0.8));
-      const p = at(-0.5 + 2.25 * sm01(t2 / 1.8), 0.5).addScaledVector(side, 0.1 * sm01(t2 / 1.8)); if (t2 < 0.25) p.y += Math.sin(t2 / 0.25 * Math.PI) * 0.12;
-      const f = d.clone().lerp(new V3().subVectors(S.tankP(), p).setY(0).normalize(), sm01((t2 - 1.6) / 0.7)).normalize(); S.dv(p, f);
-      c.pip.visible = t2 > 1.9; c.pip.position.copy(at(0.15, 0.55 + sm01((t2 - 1.9) / 0.8) * 0.5)).addScaledVector(side, -0.55); c.pip.rotation.y = Math.atan2(-(S.cam0.position.z - c.pip.position.z), S.cam0.position.x - c.pip.position.x) * 0.6;
-      const walk = t2 < 1.9 ? 1 : t2 < 2.4 ? 1 - (t2 - 1.9) / 0.5 : 0; return { mode: walk > 0.05 ? 'walk' : 'stand', speed: walk * 1.8, arms: 'wave', armK: sm01((t2 - 2.2) / 0.5), face: f }; } };
+      S.clearPath(c.M, c.dir, -9, 5.5, 1.6); c.pip = S.add(makePip(0xffc23a, 0.08)); c.pip.visible = false;
+      // far away in the dark: a single huge eye (fog can't hide it) that opens near the end
+      { const eg = c.eye = new THREE.Group(), red = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 0.18, 0.08), fog: false }), blk = new THREE.MeshBasicMaterial({ color: 0x080002, fog: false }); S.mats.push(red, blk);
+        const ball = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), red); ball.scale.set(1.6, 1, 0.5); eg.add(ball); const slit = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), blk); slit.scale.set(0.16, 0.85, 0.3); slit.position.z = 0.3; eg.add(slit);
+        const gl = glowSpr(0xff2a10, 9, 0); gl.material.fog = false; eg.add(gl); c.eyeG = gl; eg.position.set(13, 3.6, -27); eg.lookAt(0, 1, 0); eg.scale.set(1, 0.01, 1); S.scene.add(eg); } },
+    run(S, c, t) { const d = c.dir, M = c.M, side = new V3(d.z, 0, -d.x), at = (s, y) => new V3(M.x + d.x * s, y, M.z + d.z * s), tm = S.time; pipeTick(c.pipe, tm);
+      const a1 = S.at(1), aL = S.lastAt(), T = isFinite(S.T) ? S.T : aL + 6, tIn = Math.max(2.6, a1 - 2.1);
+      // the diver: swims down the pipe, shoots out of the mouth and lands on the sand a little way out
+      const p = t < tIn ? at(-6.5 + 6.0 * sm01(t / tIn) * 0.85 + 0.15 * (t / tIn), M.y - 0.3 + Math.sin(t * 3.2) * 0.05).addScaledVector(side, 0.25)
+        : at(-0.5 + 2.1 * sm01((t - tIn) / 1.3), 0.5 + Math.sin(Math.min(1, (t - tIn) / 1.3) * Math.PI) * 0.45 * (1 - sm01((t - tIn) / 1.3))).addScaledVector(side, 0.25 - 0.2 * sm01((t - tIn) / 1.3));
+      const look = (aL < 1e8 ? sm01((t - aL - 1.4) / 2.0) : 0), fT = new V3().subVectors(S.tankP(), p).setY(0).normalize(), f = d.clone().lerp(fT, look).normalize();
+      S.dv(p, f, t < tIn ? -0.15 + Math.sin(t * 3.2) * 0.05 : 0, t < tIn ? -0.35 : 0);
+      // Pip: shoots up from behind the rim, a loop around the newcomer, then stops face to face (a little to the left, at helmet height)
+      const pu = a1 - 0.25, k1 = (t - pu) / 0.45, loop = sm01((t - pu - 0.45) / 1.9), hide = at(0.25, 0.05).addScaledVector(side, -1.25);
+      const front = p.clone().addScaledVector(d, 1.25).addScaledVector(side, -0.35); front.y = 1.15 + Math.sin(tm * 2.1) * 0.05;
+      let pp; if (t < pu) pp = hide; else if (k1 < 1) pp = hide.clone().lerp(new V3(hide.x, 1.5, hide.z), sm01(k1)); else { const ang = loop * Math.PI * 2 + 2.2, r = 1.15 * (1 - sm01((loop - 0.75) / 0.25)) + 0.001;
+        pp = new V3(p.x + Math.cos(ang) * r, 1.25 + Math.sin(loop * Math.PI * 2) * 0.25, p.z + Math.sin(ang) * r).lerp(front, sm01((loop - 0.7) / 0.3)); if (loop < 0.02) pp.lerp(new V3(hide.x, 1.5, hide.z), 1 - loop / 0.02); }
+      if (aL < 1e8) { const k = sm01((t - aL - 2.6) / 2.2), sh = at(1.6, 0.5).addScaledVector(new V3(-fT.z, 0, fT.x), -0.75).addScaledVector(fT, 0.25).setY(1.05 + Math.sin(tm * 2) * 0.04); pp = pp.clone().lerp(sh, k); } /* Pip floats to the diver's shoulder to look too */
+      c.pip.visible = t > pu; c.pip.position.copy(pp); { const v = c.pip.userData.lastP ? pp.clone().sub(c.pip.userData.lastP) : new V3(); c.pip.userData.lastP = pp.clone(); if (v.lengthSq() > 1e-5 && loop < 0.9) c.pip.rotation.y = Math.atan2(-v.z, v.x); else { const q = p.clone().sub(pp); c.pip.rotation.y = Math.atan2(-q.z, q.x); } }
+      c.pip.userData.tick(tm * (loop > 0 && loop < 1 ? 2.4 : 1)); c.pip.userData.setGlow(0.08 + 0.05 * Math.sin(tm * 3));
+      // the eye far away opens on the last line
+      const eo = aL < 1e8 ? sm01((t - aL - 1.2) / 1.6) : 0; c.eye.scale.y = 0.01 + 0.99 * eo * (1 - 0.9 * Math.max(0, Math.sin((t - aL - 3.2) * 2.2)) * (t > aL + 3.2 && t < aL + 3.6 ? 1 : 0)); c.eyeG.material.opacity = 0.75 * eo;
+      // camera: behind the diver in the pipe; out through the mouth; a 3/4 view of the two; on the last line it drifts past them toward the eye
+      // (a longer lens), then settles behind the pair looking toward the next vault
+      const out = sm01((t - tIn + 0.2) / 2.8), cIn = at(-7.6 + 6.0 * sm01(t / tIn) * 0.85 + 0.15 * (t / tIn), M.y + 0.15).addScaledVector(side, -0.15), lIn = at(2, M.y - 0.15);
+      const P2 = at(1.6, 0.5), cOut = P2.clone().addScaledVector(side, 2.9).addScaledVector(d, 2.1).setY(1.25), lOut = P2.clone().addScaledVector(side, -0.3).addScaledVector(d, 0.4).setY(0.95);
+      const cMid = at(0.6, M.y + 0.05).addScaledVector(side, 0.2), lMid = at(4, 0.7);
+      let cp = t < tIn ? cIn : out < 0.5 ? cIn.clone().lerp(cMid, sm01(out * 2)) : S.arc(at(1.6, 0.5), cMid, cOut, out * 2 - 1), lp = t < tIn ? lIn : out < 0.6 ? lIn.clone().lerp(lMid, sm01(out / 0.6)) : lMid.clone().lerp(lOut, sm01((out - 0.6) / 0.4));
+      const e1 = aL < 1e8 ? sm01((t - aL + 0.1) / 4.0) : 0, e2 = aL < 1e8 ? sm01((t - aL - 3.6) / 3.0) : 0, dk = aL < 1e8 ? sm01((t - aL) / 1.4) * (1 - sm01((t - aL - 3.6) / 1.8)) : 0;
+      S.expoMul = 1 - 0.55 * dk; c.eye.children[0].material.color.setRGB(1.6 * (1 + 1.6 * dk), 0.18, 0.08); /* the reef dims around the eye */
+      if (e1 > 0) { const ed = c.eye.position.clone().sub(P2).setY(0).normalize(), over = P2.clone().addScaledVector(ed, -2.6).addScaledVector(new V3(-ed.z, 0, ed.x), -0.9).setY(1.45); cp = S.arc(P2, cp, over, e1); lp = lp.clone().lerp(c.eye.position.clone().setY(2.2), e1); }
+      if (e2 > 0) { const pr = new V3(-fT.z, 0, fT.x), beh = P2.clone().sub(fT.clone().multiplyScalar(3.0)).addScaledVector(pr, 1.5).setY(1.55); cp = S.arc(P2, cp, beh, e2); lp = lp.clone().lerp(S.tankP().clone().setY(1.6), e2); }
+      S.lens = e1 > 0 ? 44 - 14 * e1 * (1 - e2) : null; { const pf = S.port ? 1 + 0.4 * out : 1; S.camRaw(lp.clone().add(cp.clone().sub(lp).multiplyScalar(pf)), lp, 0.05 * (1 - out)); } /* phones pull back as it leaves the pipe */
+      return { mode: t < tIn + 1.0 ? 'swim' : 'stand', face: f, arms: look > 0.5 ? 'point' : null, armK: look * 0.0, target: S.tankP().clone().setY(1.5) }; } };
   // 2: through a kelp forest after Pip, into a clearing
-  RECIPES.kelp = { dur: 6.6, setup(S, c) { S.tankAt(4.6, -11, -0.3); S.kelpWalls(-1.2, 5, -2.5, 2.2, 26); c.pip = S.add(makePip(0xffc23a, S.glow)); },
-    run(S, c, t) { const dz = K(t, [[0, 5.5], [3.4, 0.4], [4.6, -0.9]]), p = new V3(-0.2 + Math.sin(t * 1.4) * 0.2, K(t, [[0, 1.2], [3.4, 1.0], [4.6, 0.5]]), dz);
-      const f = t < 4 ? new V3(0, 0, -1) : new V3().subVectors(S.tankP(), p).setY(0).normalize(); S.dv(p, f, t < 3.8 ? 0.0 : 0);
-      c.pip.position.set(Math.sin(t * 2.3) * 0.35 + (t > 4.4 ? -0.9 : 0), p.y + 0.4 + Math.sin(t * 3) * 0.1, dz - 1.1 + (t > 4.4 ? 0.6 : 0)); c.pip.rotation.y = t < 4.4 ? Math.PI / 2 : -0.4 + t * 2.5 * (t < 5.4 ? 1 : 0); c.pip.userData.tick(S.time);
-      if (t < 3.4) S.cam(new V3(2.4, 1.5, dz + 1.6), new V3(-0.3, 1.0, dz - 0.6)); else S.cam(K(t, [[3.4, [2.4, 1.5, 2.0]], [5.0, [1.5, 0.95, 2.1]]]), K(t, [[3.4, [-0.3, 1.0, -0.2]], [5.0, [2.0, 0.85, -5]]]));
-      return { mode: t < 3.4 ? 'swim' : t < 4.6 ? 'walk' : 'stand', speed: t < 4.6 ? 1.6 : 0, arms: 'wave', armK: sm01((t - 5.0) / 0.4), face: f }; } };
+  // 2, a walk-and-talk: the two swim side by side down a winding kelp corridor while Pip talks; the camera leads them, travelling
+  // backwards so we see both faces. On the storm line the water dims and two red eyes glow far ahead, then fade; on "I sparkled!"
+  // Pip lights up and loops round the diver. They come out into the clearing with the next vault ahead.
+  RECIPES.kelp = { live: true, tail: 2.2, talkMove: 1.4, own: () => true,
+    setup(S, c) { S.tankAt(3.2, -12.5, -0.25); c.pip = S.add(makePip(0xffc23a, S.glow)); c.pipL = new THREE.PointLight(0xffd070, 0, 3, 1.6); c.pip.add(c.pipL);
+      c.P = s => new V3(Math.sin(s * 2.4) * 1.3, 1.0, 9 - s * 10.5); c.D = s => { const a = c.P(s), b = c.P(s + 0.01); return b.sub(a).setY(0).normalize(); };
+      let sd = 31; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+      for (let i = 0; i < 46; i++) { const u = -0.15 + i / 46 * 1.05, side = i % 2 ? 1 : -1, P = c.P(u), d = c.D(u), lat = new V3(-d.z, 0, d.x), off = (2.5 + rnd() * 1.1) * side;
+        const x = P.x + lat.x * off, z = P.z + lat.z * off, k = S.spr('weed' + [1, 3, 5, 7, 9][i % 5], 2.2 + rnd() * 1.6, x, z); k.userData.keep = 1; k.userData.sw = i; (S.kelp = S.kelp || []).push(k);
+        if (i % 3 === 0) { const co = S.spr(['coral1', 'coral3', 'coral5'][i % 3], 0.5 + rnd() * 0.4, x - lat.x * side * 0.6, z - lat.z * side * 0.6); co.userData.keep = 1; } }
+      c.eyes = [0, 1].map(k => { const e = glowSpr(0xff2a14, 0.7, 0); e.material.fog = false; S.scene.add(e); return e; });
+      S.clear.push([0, 9, 3], [0, -1, 3.2]); },
+    run(S, c, t) { const tm = S.time, a2 = S.at(2), a3 = S.at(3), T = isFinite(S.T) ? S.T : a3 + 6, tEnd = Math.max(6, T - 3.2);
+      const s = Math.min(1, 0.04 + 0.96 * Math.max(0, (t - 0.2) / (tEnd - 0.2))), ss = s < 1 ? s : 1, P = c.P(ss), d = c.D(Math.min(0.99, ss)), lat = new V3(-d.z, 0, d.x), land = sm01((t - tEnd + 0.6) / 1.4);
+      const p = P.clone(); p.y = 0.95 + Math.sin(tm * 1.6) * 0.04 - 0.45 * land; const fT = new V3().subVectors(S.tankP(), p).setY(0).normalize(), f = d.clone().lerp(fT, land).normalize(); S.dv(p, f);
+      // Pip beside the diver's shoulder, a little ahead; a loop of joy on "I sparkled!"
+      const lp = sm01((t - a3 - 0.3) / 1.6), ang = lp * Math.PI * 2;
+      let pp = p.clone().addScaledVector(lat, -0.78).addScaledVector(d, 0.25); pp.y = p.y + 0.35 + Math.sin(tm * 2.3) * 0.06;
+      if (lp > 0 && lp < 1) pp = p.clone().add(new V3(Math.cos(ang + 3.6) * 0.9, 0.4 + Math.sin(ang) * 0.35, Math.sin(ang + 3.6) * 0.9));
+      c.pip.position.copy(pp); { const v = c.pip.userData.lastP ? pp.clone().sub(c.pip.userData.lastP) : d.clone(); c.pip.userData.lastP = pp.clone(); if (v.lengthSq() > 1e-6) c.pip.rotation.y = Math.atan2(-v.z, v.x); }
+      const gl = Math.min(1, 0.15 + 0.85 * sm01((t - a3) / 0.4) * (1 - sm01((t - a3 - 2.2) / 1.5))); c.pip.userData.setGlow(S.glow + gl * 0.5); c.pipL.intensity = gl * 2.5; c.pip.userData.tick(tm * (lp > 0 && lp < 1 ? 2.4 : 1.2));
+      // the storm line: the kelp darkens, two red eyes glow far down the corridor, then they're gone
+      const dm = sm01((t - a2 - 0.4) / 0.8) * (1 - sm01((t - a2 - 3.4) / 1.0)); S.expoMul = 1 - 0.35 * dm;
+      { const ahead = c.P(Math.max(-0.2, ss - 0.42)); c.eyes.forEach((e, k) => { e.position.copy(ahead).addScaledVector(lat, (k ? 0.35 : -0.35)).setY(1.7); e.material.opacity = 0.85 * sm01((dm - 0.4) / 0.4) * (0.7 + 0.3 * Math.sin(tm * 3)); }); }
+      // the camera leads them down the corridor (3/4 front, a little high), then swings behind-right as they come out to the vault
+      const ahead = p.clone().addScaledVector(d, 3.4).addScaledVector(lat, -0.45).setY(1.2), mid = p.clone().lerp(pp, 0.5); mid.y = 1.05;
+      const beh = p.clone().sub(fT.clone().multiplyScalar(3.0)).addScaledVector(new V3(-fT.z, 0, fT.x), 1.4).setY(1.6), endL = S.tankP().clone().setY(1.6), e2 = sm01((t - tEnd + 0.2) / 2.8);
+      S.cam(S.arc(p, ahead, beh, e2), mid.lerp(endL, sm01((e2 - 0.45) / 0.55)));
+      return { mode: land > 0.6 ? 'stand' : 'float', face: f, arms: t > a3 && t < a3 + 1.6 ? 'cheer' : null, armK: sm01((t - a3) / 0.4) * (1 - sm01((t - a3 - 1.2) / 0.4)) }; } };
   // 3: Shelly swims in, the diver hops on, they glide off together
-  RECIPES.turtle = { dur: 7.0, setup(S, c) { c.tu = S.add(makeTurtle()); c.tu.scale.setScalar(1.35); S.tankAt(5.5, -12, -0.42); S.clear.push([2, -4, 4]); },
-    run(S, c, t) { const tp = K(t, [[0, [6, 0.6, 0.5]], [2.2, [0.9, 0.55, 0.2]], [3.0, [0.9, 0.7, 0.2]], [6.2, [3.6, 1.4, -7.6]], [7, [3.7, 0.7, -8.0]]]);
-      c.tu.position.copy(tp); const tf = t < 2.2 ? new V3(-1, 0, 0) : t < 3 ? new V3(-1, 0, -0.3).lerp(new V3(0.3, 0, -1), sm01((t - 2.2) / 0.8)).normalize() : new V3(0.33, 0, -1).normalize(); c.tu.rotation.y = Math.atan2(-tf.z, tf.x); c.tu.userData.tick(S.time, t > 3 ? 1.4 : 1);
-      let p; if (t < 2.2) p = new V3(-0.4, 0.5, 0.6); else if (t < 3.0) { const k = (t - 2.2) / 0.8; p = new V3(-0.4, 0.5, 0.6).lerp(tp.clone().setY(tp.y + 0.62), sm01(k)); p.y += Math.sin(k * Math.PI) * 0.6; } else p = tp.clone().setY(tp.y + 0.62);
-      const f = t < 2.2 ? new V3(1, 0, -0.1).normalize() : tf; S.dv(p, f);
-      if (t < 3.0) S.cam(new V3(-2.6, 1.1, 3.6), new V3(1.2, 0.9, 0)); else S.cam(K(t, [[3, [-2.6, 1.1, 3.6]], [6.2, [0.2, 2.2, -2.6]], [7, [0.4, 1.7, -3.2]]]), tp.clone().add(new V3(1.5, 0.3, -2.5)));
-      return { mode: t < 2.2 ? 'stand' : 'stand', arms: t > 3 && t < 6.2 ? 'grip' : 'wave', armK: t < 2.2 ? sm01((t - 0.6) / 0.4) * (1 - sm01((t - 1.8) / 0.3)) : t < 6.2 ? 1 : sm01((t - 6.3) / 0.4), face: f }; } };
+  // 3, staged on its lines: Shelly glides in and settles facing the diver (Pip at his shoulder); the conversation plays in two-shots;
+  // only after "Hop on." does the diver swim up onto her shell (Pip clinging on, "my fins are just cold"); she glides off toward the
+  // next vault in a side-on tracking shot.
+  RECIPES.turtle = { live: true, tail: 3.0, gap(i) { return i === 0 ? 1.4 : 0; },
+    setup(S, c) { c.tu = S.add(makeTurtle()); c.tu.scale.setScalar(1.35); S.tankAt(5.5, -12, -0.42); S.clear.push([2, -4, 4], [0, 0.6, 3.5]); },
+    run(S, c, t) { const tm = S.time, a3 = S.at(3), e3 = S.end(3), T = isFinite(S.T) ? S.T : e3 + 6;
+      const D = new V3(-0.4, 0.5, 0.6), home = new V3(1.25, 0.55, 0.25), go = e3 < 1e8 ? e3 + 0.5 : 1e9, ride = sm01((t - go) / 1.0), fly = Math.max(0, t - go - 1.0);
+      // Shelly: glides in from the right, turns to face the diver; after "Hop on" she waits for him, then lifts off toward the vault
+      const tIn = sm01(t / 2.4), dest = S.tankP().clone().add(new V3(-2.2, 0, 3.2)), travel = sm01(fly / Math.max(2, T - go - 1.5));
+      const tp = new V3(6, 0.6, 0.6).lerp(home, tIn).lerp(dest.setY(1.3), travel); tp.y += Math.sin(tm * 1.3) * 0.04 + ride * 0.2 * (1 - travel);
+      c.tu.position.copy(tp); const toD = new V3().subVectors(D, tp).setY(0).normalize(), toV = new V3().subVectors(S.tankP(), tp).setY(0).normalize();
+      const tf = t < 2.4 ? new V3(-1, 0, 0).lerp(toD, sm01((t - 1.4) / 1.0)).normalize() : toD.clone().lerp(toV, sm01((t - go - 0.6) / 1.2)).normalize(); c.tu.rotation.y = Math.atan2(-tf.z, tf.x); c.tu.userData.tick(tm, fly > 0 ? 1.4 : 0.6);
+      // the diver: stands with Pip, then one arcing hop onto the shell and rides
+      let p = D.clone(); if (ride > 0) { p = D.clone().lerp(tp.clone().setY(tp.y + 0.62), ride); p.y += Math.sin(ride * Math.PI) * 0.55; }
+      const f = ride > 0.5 ? tf : new V3().subVectors(tp, D).setY(0).normalize(); S.dv(p, f);
+      // camera: the director does the conversation; the opening watches her glide in, the ending tracks the ride side-on
+      const side = new V3(-toV.z, 0, toV.x); let cp = new V3(-2.6, 1.15, 3.6), cl = new V3(1.4, 0.85, 0.1);
+      if (fly > 0) { const k = sm01(fly / 2.4); cp = cp.lerp(tp.clone().addScaledVector(side, -4.2).addScaledVector(toV, -1.6).setY(tp.y + 1.0), k); cl = cl.lerp(tp.clone().addScaledVector(toV, 1.2).setY(tp.y + 0.5), k); }
+      S.cam(cp, cl);
+      return { mode: 'stand', arms: ride > 0.9 ? 'grip' : t < 1.8 ? 'wave' : null, armK: ride > 0.9 ? 1 : sm01((t - 0.6) / 0.4) * (1 - sm01((t - 1.6) / 0.3)), face: f }; } };
   // 4: a parade of crabs carrying pearls; the diver dances along and high-fives the leader
   RECIPES.crabs = { dur: 6.6, setup(S, c) { c.crabs = []; for (let i = 0; i < 6; i++) { const cr = S.add(i ? makeCrab() : makeClack()); cr.scale.setScalar(i ? 1.0 : 1.25); if (i) { const pe = makeBall(true); pe.scale.setScalar(0.42); pe.position.y = 0.35; cr.add(pe); } c.crabs.push(cr); } c.clack = c.crabs[0]; S.tankAt(4.4, -11, -0.3); S.clear.push([0, 0, 3.5]); },
     run(S, c, t) { c.crabs.forEach((cr, i) => { const x = K(t, [[0, -6 - i * 1.1], [4.6, 1.8 - i * 1.1 + (i ? 0 : 0)], [6.6, (i ? 2.4 - i * 1.1 : 1.9)]]); cr.position.set(x, 0.22 + Math.abs(Math.sin(S.time * 7 + i)) * 0.05, -0.6 + (i % 2) * 0.15); cr.rotation.y = (i ? -Math.PI / 2 : Math.atan2(S.cam0.position.x - cr.position.x, S.cam0.position.z - cr.position.z)) + Math.sin(S.time * 7 + i) * 0.12; /* Clack crab-walks facing us */ if (cr.userData.clawL) cr.userData.clawL.rotation.z = Math.sin(S.time * 9 + i) * 0.4; });
@@ -3062,47 +3190,82 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   // the prologue (the first thing a player sees): the reef's night festival under the Great Lantern; Grimtide erupts from the abyss and
   // drinks the lights; the Reef Keeper (the diver model, on her rock) gives all her light to the Lantern and drives him off; then darkness,
   // and little Pip alone. The intro film then cuts into the level-1 tank, where a new lamp clicks on.
-  RECIPES.prologue = { dur: 16, set: { dark: 0.85, night: 0.9 }, setup(S, c) {
-      c.tw = S.add(makeTower(30, 1)); c.tw.position.set(-3.5, 0, -19);
-      c.pip = S.add(makePip(0xffc23a, 1));
-      c.crabs = [0, 1, 2].map(() => { const cr = S.add(makeCrab()); cr.scale.setScalar(0.9); const pe = makeBall(true); pe.scale.setScalar(0.4); pe.position.y = 0.34; cr.add(pe); const gl = glowSpr(0xff8a5a, 0.9, 0.6); gl.position.y = 0.34; cr.add(gl); cr.userData.gl = gl; return cr; });
-      c.js = [0, 1, 2, 3].map(i => { const j = S.add(makeJelly()); j.scale.setScalar(0.7); const gl = glowSpr([0xff9ae0, 0x9ae8ff, 0xfff09a, 0xb8ff9a][i], 1.2, 0.6); j.add(gl); j.userData.gl = gl; return j; });
+  // The prologue, staged line by line (a live film): a night festival under the Great Lantern; Pip shows off; two red eyes open beyond the
+  // Lantern and Grimtide rises out of the abyss, looming over it; every light streams into his jaws; the Keeper on her rock gathers her own
+  // light and gives it to the Lantern: it flares, a ring of light throws him back into the deep, she fades into motes; then every light goes
+  // out, and Pip is alone in the dark. One slow camera path, keyed to the lines; nothing cuts.
+  RECIPES.prologue = { live: true, set: { dark: 0.9, night: 1, cliff: -16, cliffZ: 22, cliffW: 3 }, tail: 1.8, own: () => true, to: () => null,
+    gap(i) { return [0, 0, 1.6, 0.2, 0.4, 0.2, 1.5][i] || 0; },
+    setup(S, c) {
+      S.key.color.set(0x8aa6ff); S.key.intensity = 0.5; S.hemi.intensity = 0.3; S.hemi.color.set(0x8ab0ff); S.fill.intensity = 0.18; S.shaftMat.uniforms.uK.value = 0.015; S.bgMat.color.multiplyScalar(0.32);
+      S.scene.fog.color.set(0x07163a); S.scene.background.set(0x07163a); S.scene.fog.near = 7; S.scene.fog.far = 52;
+      c.tw = S.add(makeTower(30, 1)); c.tw.position.set(0, 0, -17);
+      c.pip = S.add(makePip(0xffc23a, 1)); c.pipL = new THREE.PointLight(0xffc860, 2.4, 3.5, 1.6); c.pip.add(c.pipL);
+      c.crabs = [0, 1, 2].map(() => { const cr = S.add(makeCrab()); cr.scale.setScalar(0.9); cr.traverse(o => { if (o.isMesh && o.material && o.material.color) { o.material = o.material.clone(); o.material.color.multiplyScalar(0.5); S.mats.push(o.material); } }); const pe = makeBall(true); pe.scale.setScalar(0.4); pe.position.y = 0.34; cr.add(pe); const gl = glowSpr(0xff8a5a, 0.9, 0.6); gl.position.y = 0.34; cr.add(gl); cr.userData.gl = gl; return cr; });
+      c.js = [0, 1, 2, 3, 4].map(i => { const j = S.add(makeJelly()); j.scale.setScalar(0.7); const gl = glowSpr([0xff9ae0, 0x9ae8ff, 0xfff09a, 0xb8ff9a, 0xffb0ff][i], 1.3, 0.6); j.add(gl); j.userData.gl = gl; return j; });
       c.eel = S.add(makeEel(42, 2.1)); c.eel.visible = false;
-      c.motes = []; for (let i = 0; i < 26; i++) { const m = glowSpr([0xffd27a, 0xff9ae0, 0x9ae8ff][i % 3], 0.35, 0.7); S.scene.add(m); c.motes.push({ m, p0: new V3((Math.random() - 0.5) * 10, 0.4 + Math.random() * 3, -2 - Math.random() * 8), d: Math.random() * 0.8 }); }
-      const bm = new THREE.MeshBasicMaterial({ color: 0xfff2c0, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }); S.mats.push(bm);
-      c.beam = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.9, 1, 16, 1, true), bm); S.scene.add(c.beam);
-      c.lamp = glowSpr(0xfff2c0, 1.4, 0); S.scene.add(c.lamp); c.lampL = new THREE.PointLight(0xfff0c0, 0, 10, 1.4); S.scene.add(c.lampL);
-      c.rock = S.add(new THREE.Mesh(new THREE.DodecahedronGeometry(0.9, 1), SM({ color: 0x5a5068, roughness: 1, flatShading: true }))); c.rock.position.set(4.2, 0.1, -5.4); c.rock.scale.set(1.3, 0.7, 1.1);
-      S.clear.push([0, 0, 4], [4.2, -5.4, 2.5], [-3.5, -19, 5], [6, -1.6, 2]); },
-    run(S, c, t) { const T0 = c.tw.position, mouthP = new V3(-1, 6, -13);
-      const drink = sm01((t - 6.6) / 3.2), dark = sm01((t - 12.4) / 1.6), keeperK = sm01((t - 10.8) / 0.5), panic = sm01((t - 6.2) / 0.6);
-      // festival: jellies bob, crabs march with their glowing pearls (and scatter when he comes)
-      c.js.forEach((j, i) => { j.position.set(-3 + i * 2.1, 1.4 + (i % 2) * 0.8 + Math.sin(S.time * 1.2 + i) * 0.2, -4 - (i % 2) * 2.5); j.userData.gl.material.opacity = 0.6 * (1 - drink); });
-      c.crabs.forEach((cr, i) => { const x = -2.5 + i * 0.8 + Math.min(t, 6.2) * 0.25 + panic * (t - 6.2) * (i % 2 ? 2.2 : -2.2), z = -2.2 - i * 0.3; cr.position.set(x, S.groundY(x, z) + 0.22 + Math.abs(Math.sin(S.time * 7 + i)) * 0.04, z); cr.rotation.y = panic > 0.5 ? (i % 2 ? 0 : Math.PI) : -Math.PI / 2; cr.userData.gl.material.opacity = 0.6 * (1 - drink); });
-      // Grimtide erupts from the abyss in front of the Lantern, coils and opens his jaws; every light streams into his mouth
-      const rise = sm01((t - 4.6) / 1.8), back = sm01((t - 11.6) / 1.6); c.eel.visible = t > 4.5 && back < 0.99;
-      if (c.eel.visible) { c.eel.userData.pose((u, tt) => { const a = u * 7 + tt * 0.6, r = 3.2 + u * 1.5; return new V3(T0.x + 2.5 + Math.cos(a) * r * (0.4 + 0.6 * u), -9 + (rise * 16 - back * 18) * (1 - u * 0.55) + Math.sin(u * 9 - tt * 2) * 0.9, T0.z + 9 + Math.sin(a) * r * 0.6); }, S.time); // towering, just in front of the Lantern
-        c.eel.userData.setGlow(1 - back * 0.8); c.eel.userData.head.getWorldPosition(mouthP); c.eel.userData.jaw.rotation.x += drink * (1 - back) * 0.6; }
-      if (t > 4.9) S.fx('erupt', 'roar'); if (t > 6.4) S.fx('crack', 'thunder');
-      c.motes.forEach((q, i) => { const k = sm01((t - 6.6 - q.d) / 2.6); q.m.material.opacity = k >= 0.99 ? 0 : 0.7; q.m.position.copy(q.p0).lerp(mouthP, k); q.m.position.y += Math.sin(S.time * 1.4 + i) * 0.15 * (1 - k); });
-      // the Lantern dims as he drinks; the Keeper's gift blazes it up for a heartbeat, then the whole reef goes dark
-      const gift = sm01((t - 11.2) / 0.5) * (1 - sm01((t - 12.6) / 1.4));
-      c.tw.userData.big.material.opacity = 0.8 * Math.max(1 - drink * 0.75, gift) * (1 - dark * 0.92); c.tw.userData.lens.material.emissiveIntensity = 2 * Math.max(1 - drink * 0.8, gift * 1.6) * (1 - dark * 0.9);
-      S.key.intensity = ((3.2 * (1 - S.dark * 0.75) + 0.2) * (1 - drink * 0.5) + gift * 6) * (1 - dark * 0.85) + 0.1; S.nightK = 0.9 + dark * 0.1 - gift * 0.5; if (t > 11.2) S.fx('gift', 'flash');
-      // the Keeper on her rock: lamp up, a beam of light to the Lantern
-      const kp = new V3(4.2, c.rock.position.y + 0.55, -5.4), kf = new V3().subVectors(T0, kp).setY(0).normalize(); S.dv(kp, kf);
-      const lampP = kp.clone().add(new V3(kf.x * 0.25, 1.35 + keeperK * 0.35, kf.z * 0.25)); c.lamp.position.copy(lampP); c.lamp.material.opacity = (0.5 + gift * 0.5) * (t > 9.4 ? 1 : 0) * (1 - dark);
-      c.lampL.position.copy(lampP); c.lampL.intensity = ((t > 9.4 ? 4 : 0) + gift * 20) * (1 - dark);
-      { const to = T0.clone().add(new V3(0, 12.7, 0)), L = lampP.distanceTo(to); c.beam.position.copy(lampP).lerp(to, 0.5); c.beam.scale.set(1, L, 1); c.beam.lookAt(to); c.beam.rotateX(Math.PI / 2); c.beam.material.opacity = Math.min(1, gift * 1.1); }
-      // Pip: loops of joy at the festival, hides when Grimtide comes, then alone and dim in the dark
-      const pp = t < 5.2 ? new V3(-0.6 + Math.cos(t * 2.4) * 0.8, 1.3 + Math.sin(t * 2.4) * 0.5, 1.2) : t < 13.6 ? new V3(-1.2, 0.5 + Math.sin(S.time * 9) * 0.02, 0.4) : new V3(-0.4, 0.8 + Math.sin(S.time * 1.4) * 0.05, 1.4);
-      c.pip.position.lerp(pp, t < 0.05 ? 1 : 0.12); c.pip.rotation.y = t < 5.2 ? -t * 2.4 : 0.4; c.pip.userData.setGlow(t < 5.2 ? 1 : t < 13.6 ? 1 - drink * 0.9 : 0.06); c.pip.userData.tick(S.time * (t < 5.2 ? 2 : 1));
-      // cameras: drift through the festival; low and looking up at the eruption; the Keeper; then close on Pip in the dark
-      if (t < 4.6) S.cam(K(t, [[0, [2.6, 1.4, 6.5]], [4.6, [1.2, 1.5, 4.2]]]), K(t, [[0, [-1.5, 2.6, -8]], [4.6, [-0.8, 1.6, 0]]]));
-      else if (t < 9.6) S.cam(K(t, [[4.6, [2.2, 0.4, 5]], [9.6, [3.0, 0.6, 4]]]), K(t, [[4.6, [-1.6, 4, -12]], [9.6, [-1.5, 6.5, -13]]]));
-      else if (t < 13.4) S.cam(K(t, [[9.6, [6.6, 0.9, -0.9]], [11.6, [6.2, 0.9, -1.3]], [13.4, [6.0, 1.1, -1.2]]]), K(t, [[9.6, [4.0, 1.6, -5.6]], [11.6, [3.9, 1.8, -5.8]], [13.4, [-0.5, 4.5, -13]]])); // the Keeper in silhouette, Grimtide looming behind her
-      else S.cam(K(t, [[13.4, [0.6, 1.0, 3.8]], [16, [0.1, 0.9, 2.9]]]), K(t, [[13.4, [-0.4, 0.8, 1.4]], [16, [-0.4, 0.8, 1.4]]]));
-      return { mode: 'stand', arms: t > 10.8 ? 'hold' : null, armK: keeperK, lift: 1, face: kf }; } };
+      // the festival: drifting lights of every colour, and glowing coral on the sand
+      let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647; c.motes = [];
+      for (let i = 0; i < 64; i++) { const col = [0xffc25a, 0xff7ad0, 0x6ae6ff, 0xb48aff, 0xffe08a][i % 5], sz = 0.45 + rnd() * 0.6, m = glowSpr(col, sz, 0.5), core = glowSpr(0xfff6e0, sz * 0.28, 1); m.add(core); core.scale.setScalar(0.28); S.scene.add(m);
+        const p0 = new V3((rnd() - 0.5) * 18, 0.5 + rnd() * 5.4, -15 + rnd() * 17); if (p0.z > 1 && Math.abs(p0.x) < 3) p0.x += 4; c.motes.push({ m, core, p0, ph: rnd() * 6, ts: rnd(), s0: m.scale.x }); }
+      c.fl = [[-4.5, 1.4, -4, 0xff6ac8], [2.2, 1.1, -2.6, 0xffb44a], [-1.2, 2.2, -9.5, 0x5ae0ff], [5.2, 1.6, -9.5, 0xa87aff], [-6.5, 1.1, -0.5, 0xffc860]].map(([x, y, z, col]) => { const l = new THREE.PointLight(col, 4, 8, 1.4); l.position.set(x, y, z); S.scene.add(l); return l; });
+      c.moon = new THREE.DirectionalLight(0x7f9fff, 0.7); c.moon.position.set(2, 18, -40); c.moon.target.position.set(1, 8, -18); S.scene.add(c.moon, c.moon.target);
+      c.cor = []; for (let i = 0; i < 16; i++) { const x = (rnd() - 0.5) * 16, z = -13 + rnd() * 12; if (Math.abs(x - 3.6) < 1.6 && Math.abs(z + 6.5) < 1.6) continue; const sp = S.spr(['coral1', 'coral2', 'coral3', 'coral4', 'coral5'][i % 5], 0.7 + rnd() * 0.7, x, z);
+        const gl = glowSpr([0xff7ad0, 0x7ae8ff, 0xffd07a][i % 3], 1.1, 0.5); gl.position.set(x, S.groundY(x, z) + 0.6, z); S.scene.add(gl); c.cor.push(gl); }
+      c.rock = S.add(new THREE.Mesh(new THREE.DodecahedronGeometry(0.9, 1), SM({ color: 0x4a4a62, roughness: 1 }))); c.rock.position.set(3.6, 0.1, -6.5); c.rock.scale.set(1.3, 0.7, 1.1); c.rock.castShadow = c.rock.receiveShadow = true;
+      // the Keeper's gift: light gathering in her hands, a beam to the Heart, a ring of light, her motes rising
+      c.orb = glowSpr(0xffe0a0, 0.6, 0); S.scene.add(c.orb); c.orbL = new THREE.PointLight(0xfff0c8, 0, 7, 1.4); S.scene.add(c.orbL);
+      c.beam = softBeam(1, 0.12, 0.5, 0xfff2cc, 0); S.scene.add(c.beam);
+      c.ring = new THREE.Sprite(new THREE.SpriteMaterial({ map: ringThin(), color: 0xfff0c8, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); S.mats.push(c.ring.material); S.scene.add(c.ring);
+      { const km = S.u.glb && S.u.glb.mesh; if (km) { km.material = km.material.clone(); km.material.transparent = true; S.mats.push(km.material); c.km = km.material; } }
+      S.clear.push([0, 2, 4.2], [3.6, -6.5, 2.2], [0, -17, 4.5], [5.5, -2, 2.2], [1.6, 6, 2.5]); },
+    run(S, c, t) { const a1 = S.at(1), a2 = S.at(2), a3 = S.at(3), a4 = S.at(4), a5 = S.at(5), a6 = S.at(6), T = isFinite(S.T) ? S.T : a6 + 4, tm = S.time;
+      if (S.fish && !c.fishDim) { c.fishDim = 1; S.fish.forEach(f => f.material.color.multiplyScalar(0.25)); } /* the reef's fish, in the dark */
+      const T0 = c.tw.position, eyesOn = sm01((t - (a2 - 1.4)) / 0.8), rise = sm01((t - (a2 - 0.7)) / 3.2), drink = sm01((t - (a3 + 0.3)) / 3.6), gift = t - (a5 + 0.8);
+      const flare = gift > 0 ? Math.exp(-Math.max(0, gift - 0.35) * 1.6) * sm01(gift / 0.35) : 0, recoil = sm01((t - (a5 + 0.9)) / 0.9), sink = sm01((t - (a5 + 1.6)) / 2.0), dark = sm01((t - (a5 + 2.4)) / 1.8);
+      // Grimtide: hidden in the abyss, then rises behind the Lantern and leans over it; recoils from the flare and sinks away
+      let H = new V3(1.5, -14, -27); if (t > a2 - 1.6) H = new V3(1.5, -14 + 28.5 * rise, -24 + 2.6 * rise);
+      H.lerp(new V3(0.8, 14.4, -19.0), drink * 0.85); if (t > a4 - 0.3) H.lerp(new V3(2.4, 13.6, -19), sm01((t - a4 + 0.3) / 1.2) * (1 - recoil));
+      if (recoil > 0) H.lerp(new V3(1.0, 18.5, -27), recoil * (1 - sink)); if (sink > 0) H.lerp(new V3(0.5, -16, -32), sink);
+      c.eel.visible = t > a2 - 1.7 && sink < 0.995;
+      if (c.eel.visible) { const E = c.eel.userData; if (E.grim && E.grim.material.fog) { E.grim.material.fog = false; E.grim.material.needsUpdate = true; } E.pose((u, tt) => new V3(H.x + Math.sin(u * 6 - tt * 0.8) * 1.6 * u + 0.6 * u, H.y + 5 * (1 - Math.exp(-u * 9)) - 44 * Math.pow(Math.max(0, u - 0.2), 1.3), H.z - u * 17 - Math.cos(u * 4 - tt * 0.6) * 1.1 * u), tm);
+        E.jaw.rotation.x = 0.2 + 0.5 * drink * (1 - recoil) + 0.55 * recoil * (1 - sink) + 0.08 * Math.sin(tm * 1.7); E.setGlow(0.25 + 0.9 * eyesOn + 0.7 * drink); E.eyes.forEach(e => { e.material.opacity = 0.95 * eyesOn * (1 - sink); }); }
+      if (t > a2 - 0.6) S.fx('rise', 'roar'); if (t > a5 + 0.95) S.fx('recoil', 'roar');
+      const mouth = c.eel.visible ? c.eel.userData.head.getWorldPosition(new V3()) : new V3(1, 14, -20);
+      // the festival lights: they bob and drift; while he drinks, each one is pulled along a curve into his jaws
+      c.motes.forEach((q, i) => { const ts = a3 + 0.2 + q.ts * 3.0, k = sm01((t - ts) / 1.7), m = q.m; let p = q.p0.clone(); p.y += Math.sin(tm * 0.8 + q.ph) * 0.18; p.x += Math.sin(tm * 0.21 + q.ph) * 0.3;
+        if (k > 0) { const ctl = p.clone().lerp(mouth, 0.5); ctl.y += 4; const u = k, a = p.clone().multiplyScalar((1 - u) * (1 - u)).addScaledVector(ctl, 2 * u * (1 - u)).addScaledVector(mouth, u * u); p = a; }
+        const op = (k >= 0.98 ? 0 : 1 - sm01((k - 0.8) / 0.2)) * (0.8 + 0.2 * Math.sin(tm * 2 + q.ph)) * (1 - 0.35 * eyesOn * (1 - k)); m.position.copy(p); m.material.opacity = 0.5 * op; q.core.material.opacity = op; m.scale.setScalar(q.s0 * (1 - 0.5 * k));
+        if (k > 0.05 && k < 0.9 && !S.probe && (i + Math.floor(tm * 30)) % 3 === 0) S.parts.emit(p.x, p.y, p.z, 1, { color: new THREE.Color(m.material.color), speed: 0.05, life: 0.5, size: 0.08 }); });
+      c.fl.forEach((l, i) => { l.intensity = 4 * (1 - drink) * (0.85 + 0.15 * Math.sin(tm * 1.7 + i)) * (1 - 0.3 * eyesOn); });
+      c.cor.forEach((g, i) => { g.material.opacity = 0.5 * (0.75 + 0.25 * Math.sin(tm * 1.3 + i)) * (1 - drink) * (1 - 0.4 * eyesOn); });
+      c.js.forEach((j, i) => { j.position.set([-6.5, -3.8, -1.2, 6.4, 8.6][i] + Math.sin(tm * 0.3 + i) * 0.4, 1.6 + (i % 2) * 1.1 + Math.sin(tm * 1.1 + i) * 0.25, -5 - (i % 3) * 2.4); j.userData.gl.material.opacity = 0.6 * (1 - drink); });
+      const panic = sm01((t - (a2 - 0.4)) / 0.6); c.crabs.forEach((cr, i) => { const x = -3.2 + i * 0.85 + Math.min(t, a2) * 0.22 + panic * (t - a2 + 0.4) * (i % 2 ? 1.8 : -1.8), z = -2.4 - i * 0.35;
+        cr.position.set(x, S.groundY(x, z) + 0.22 + Math.abs(Math.sin(tm * 7 + i)) * 0.04, z); cr.rotation.y = panic > 0.5 ? (i % 2 ? 0 : Math.PI) : -Math.PI / 2; cr.userData.gl.material.opacity = 0.6 * (1 - drink); });
+      // the Lantern: bright, dimming as he drinks, a flare as the Keeper gives her light, then an ember
+      const lk = Math.max(0.05, (1 - 0.8 * drink) * (1 - dark * 0.9)) + flare * 2.6; c.tw.userData.setGlow(t > a5 + 0.8 ? Math.max(lk, 0.1 * (1 - dark) + 0.05) : lk); c.tw.userData.tick(tm); c.tw.userData.setGates(1 - dark);
+      // the Keeper on her rock: faces the Lantern; raises her arms; the light gathers, leaves her as a beam and she fades into motes
+      const kp = new V3(3.6, c.rock.position.y + 0.55, -6.5), kf = new V3().subVectors(T0, kp).setY(0).normalize(); S.dv(kp, kf);
+      const gather = sm01((t - (a4 - 0.2)) / 1.8), fade = sm01((t - (a5 + 0.9)) / 1.6), hands = kp.clone().add(new V3(kf.x * 0.18, 0.78 + gather * 0.3, kf.z * 0.18));
+      c.orb.position.copy(hands); c.orb.scale.setScalar(0.3 + gather * 0.7 + flare * 0.8); c.orb.material.opacity = Math.min(1, gather * 0.9) * (1 - fade); c.orbL.position.copy(hands); c.orbL.intensity = (gather * 6 + flare * 14) * (1 - fade);
+      if (gather > 0.05 && gather < 1 && !S.probe && Math.random() < 0.5) { const d = new V3((Math.random() - 0.5) * 3, Math.random() * 2, (Math.random() - 0.5) * 3); S.parts.emit(hands.x + d.x, hands.y + d.y, hands.z + d.z, 1, { color: new THREE.Color(1, 0.95, 0.75), speed: 0.2, life: 0.7, size: 0.07 }); }
+      { const to = T0.clone().add(new V3(0, 12.45, 0)), L = hands.distanceTo(to), bk = sm01((t - (a5 + 0.2)) / 0.6) * (1 - sm01((t - (a5 + 1.6)) / 0.9)); c.beam.position.copy(hands); c.beam.lookAt(to); c.beam.scale.set(1 + bk, 1 + bk, L); c.beam.userData.mat.uniforms.uK.value = 0.9 * bk; c.beam.userData.mat.uniforms.uT.value = tm; }
+      if (c.km) c.km.opacity = 1 - fade; S.hold.visible = fade < 0.99; if (fade > 0.05 && fade < 0.95 && !S.probe && Math.random() < 0.6) S.parts.emit(kp.x + (Math.random() - 0.5) * 0.5, kp.y + Math.random() * 1.2, kp.z + (Math.random() - 0.5) * 0.5, 1, { color: new THREE.Color(1, 0.92, 0.7), speed: 0.6, life: 1.6, size: 0.06 });
+      { const rg = sm01(gift / 1.8); c.ring.position.copy(T0).add(new V3(0, 12.45, 0)); c.ring.scale.setScalar(2 + rg * 46); c.ring.material.opacity = gift > 0 ? 0.75 * (1 - rg) * sm01(gift / 0.2) : 0; }
+      // the night itself: the moonlit grade deepens as the lights die; the exposure falls with them
+      S.nightK = 0.5 + 0.5 * Math.max(eyesOn * 0.5, dark); S.expoMul = 1 - 0.36 * dark + 0.22 * flare; S.key.intensity = 0.5 * (1 - 0.5 * dark); c.moon.intensity = 0.7 * (1 - 0.6 * dark);
+      // Pip: loops through the festival, zooms up to show off, hides when the eyes open, then is alone in the dark
+      const pl = new V3(-1.2 + Math.cos(t * 1.6) * 1.6, 1.8 + Math.sin(t * 1.6) * 0.5, -1.5 + Math.sin(t * 0.8) * 0.8), pc = new V3(-0.45, 1.35 + Math.sin(tm * 2.2) * 0.06, 1.6), ph = new V3(-2.2, 0.55, -0.6), pa = new V3(-0.35, 0.95 + Math.sin(tm * 1.1) * 0.05, 1.0);
+      const k1 = sm01((t - (a1 - 0.9)) / 1.2), k2 = sm01((t - (a2 - 1.3)) / 0.9), k3 = sm01((t - (a6 - 1.3)) / 1.6);
+      c.pip.position.copy(pl).lerp(pc, k1).lerp(ph, k2).lerp(pa, k3); { const d = S.cam0.position.clone().sub(c.pip.position); c.pip.rotation.y = k1 < 0.5 ? -t * 1.6 : k2 > 0.5 && k3 < 0.5 ? -0.6 : Math.atan2(-d.z, d.x) + (k3 > 0.5 ? 0.3 : 0); } c.pip.userData.tick(tm * (k2 > 0.5 && k3 < 0.5 ? 2.5 : 1));
+      const pg = k3 > 0.5 ? 0.07 : 1 - 0.75 * k2; c.pip.userData.setGlow(pg); c.pipL.intensity = 2.4 * pg;
+      // one slow camera path: through the festival · Pip · low under the rising eel · the side as the lights stream in · over the Keeper · wide · Pip alone
+      S.cam(K(t, [[0, [2.4, 0.95, 10.5]], [a1, [1.5, 1.4, 6.4]], [a1 + 1.4, [1.0, 1.45, 4.6]], [a2 - 1.7, [0.75, 1.4, 3.9]], [a2 - 0.1, [1.8, 0.7, 5.9]], [a3, [2.0, 0.62, 5.0]],
+        [a3 + 1.8, [5.6, 2.2, -1.4]], [a4 - 0.2, [5.1, 2.6, -3.0]], [a4 + 1.1, [1.7, 0.75, -2.0]], [a5, [1.9, 0.8, -2.4]], [a5 + 1.6, [2.4, 2.0, 6.6]], [a6 - 0.6, [2.6, 2.3, 8.4]], [a6 + 0.9, [0.55, 1.15, 3.6]], [T, [0.25, 1.05, 2.9]]]),
+        K(t, [[0, [0, 6, -17]], [a1, [-0.2, 3.4, -10]], [a1 + 1.4, [-0.4, 1.35, 1.5]], [a2 - 1.7, [-0.45, 1.3, 1.45]], [a2 - 0.1, [0.6, 9, -17]], [a3, [0.9, 11.5, -18]],
+        [a3 + 1.8, [0.6, 11, -16]], [a4 - 0.2, [1.2, 11.6, -17]], [a4 + 1.1, [3.2, 2.3, -10]], [a5, [3.1, 2.9, -11]], [a5 + 1.6, [0.5, 6.4, -15]], [a6 - 0.6, [0.2, 5, -14]], [a6 + 0.9, [-0.35, 0.95, 1.0]], [T, [-0.35, 0.95, 1.0]]]));
+      return { mode: 'stand', arms: t > a4 - 0.4 ? 'cheer' : null, armK: gather * (1 - fade), face: kf }; } };
+
   // 25: Clack lies on his back in the sand, his hat beside him; the diver kneels with him; his claws go still; Shelly glides down out of the dark
   RECIPES.farewell = { dur: 8.4, set: { dark: 0.62 }, setup(S, c) { c.clack = S.add(makeClack()); c.clack.scale.setScalar(1.2); c.hat = S.add(makeCapHat()); c.hat.scale.setScalar(1.25); if (castOK('clack')) c.hat.visible = false; /* his model wears it */ c.tu = S.add(makeTurtle(true)); c.tu.scale.setScalar(1.35);
       c.soft = new THREE.PointLight(0xffd8a8, 5, 6, 1.5); c.soft.position.set(0.3, 1.7, 0.8); S.scene.add(c.soft); S.tankAt(-3.8, -10, 0.4); S.clear.push([0, 0, 3]); },
@@ -3179,10 +3342,38 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const brow = new THREE.Mesh(new THREE.BoxGeometry(R * 0.55, R * 0.12, R * 0.3), skin); brow.position.set(sx * R * 0.55, R * 0.62, R * 0.85); brow.rotation.z = sx * 0.45; head.add(brow);
       const gl = glowSpr(0xff3a1a, R * 1.6, 0.85); gl.position.copy(e.position); head.add(gl); eyes.push(gl); }
     const tmp = new V3(), tmp2 = new V3(); let sc = 1;
-    g.userData = { segs, head, jaw, eyes, len,
+    g.userData = { segs, head, jaw, eyes, len, R,
       pose(fn, t = 0) { for (let i = 0; i < N; i++) { const u = i / (N - 1), p = fn(u, t); const q = fn(Math.max(0, u - 0.02), t); segs[i].g.position.copy(p); tmp.copy(q); if (tmp.distanceToSquared(p) < 1e-8) tmp.copy(fn(u + 0.02, t)).sub(p).negate().add(p); segs[i].g.lookAt(tmp); } jaw.rotation.x = 0.25 + Math.sin(t * 2.2) * 0.15; },
-      setGlow(k) { eyes.forEach(e => { e.material.opacity = 0.85 * k; }); spotM.color.setRGB(k, 0.23 * k, 0.23 * k); } };
-    return shadowOf(g); }
+      setGlow(k) { eyes.forEach(e => { e.material.opacity = 0.85 * k; }); spotM.color.setRGB(k, 0.23 * k, 0.23 * k); if (g.userData.grim) g.userData.grim.material.emissiveIntensity = 0.35 + 1.5 * k; } };
+    shadowOf(g); if (window.AQ_GRIM) { try { grimSkin(g, segs, R, len); } catch (er) { console.warn('grim', er); } } return g; }
+  // the owner's Meshy Grimtide, straightened along its spine by tools/convert_grim.py (head tip at z = 0 facing +z, back up, tail along -z).
+  // It is skinned to the eel's 30 segments by distance along the spine, so every pose function that moves the procedural eel moves him.
+  // Each bone stretches along the body to the real spacing of the segments (no gaps whatever the path length); the jaw opens as a morph.
+  function grimGeo() { if (GEO.grim) return GEO.grim; const C = window.AQ_GRIM, n = C.n;
+    const dec = (b64, T) => { const b = atob(b64), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return new T(u.buffer); };
+    const q = dec(C.pos, Int16Array), u16 = dec(C.uv, Uint16Array), idx = dec(C.idx, Uint16Array), pos = new Float32Array(n * 3), uv = new Float32Array(n * 2);
+    for (let i = 0; i < n; i++) for (let a = 0; a < 3; a++) pos[i * 3 + a] = C.min[a] + (q[i * 3 + a] + 32768) / 65535 * (C.max[a] - C.min[a]);
+    for (let i = 0; i < n * 2; i++) uv[i] = u16[i] / 65535;
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex(new THREE.BufferAttribute(idx, 1)); g.computeVertexNormals();
+    { const N = g.attributes.normal.array, groups = new Map(); for (let i = 0; i < n; i++) { const k = q[i * 3] + ',' + q[i * 3 + 1] + ',' + q[i * 3 + 2]; const e = groups.get(k); if (e) e.push(i); else groups.set(k, [i]); }
+      for (const e of groups.values()) if (e.length > 1) { let x = 0, y = 0, z = 0; for (const i of e) { x += N[i * 3]; y += N[i * 3 + 1]; z += N[i * 3 + 2]; } const l = Math.hypot(x, y, z) || 1; for (const i of e) { N[i * 3] = x / l; N[i * 3 + 1] = y / l; N[i * 3 + 2] = z / l; } } }
+    const si = new Uint16Array(n * 4), sw = new Float32Array(n * 4), mo = new Float32Array(n * 3), hz = -0.42, hy = 0.1, ang = 0.6, ca = Math.cos(ang), sa = Math.sin(ang);
+    for (let i = 0; i < n; i++) { const y = pos[i * 3 + 1], z = pos[i * 3 + 2], u = Math.min(1, Math.max(0, -z / C.Lr)), f = u * 29, i0 = Math.min(28, Math.floor(f)), w = f - i0;
+      si[i * 4] = i0; si[i * 4 + 1] = i0 + 1; sw[i * 4] = 1 - w; sw[i * 4 + 1] = w;
+      const k = sm01((z - hz + 0.05) / 0.12) * sm01((hy + 0.03 - y) / 0.09); if (k > 0) { const dy = y - hy, dz = z - hz; mo[i * 3 + 1] = (hy + dy * ca - dz * sa - y) * k; mo[i * 3 + 2] = (hz + dy * sa + dz * ca - z) * k; } }
+    g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4)); g.setAttribute('skinWeight', new THREE.Float32BufferAttribute(sw, 4));
+    g.morphAttributes.position = [new THREE.BufferAttribute(mo, 3)]; g.morphTargetsRelative = true; g.computeBoundingSphere();
+    const ld = (src, srgb) => { const im = new Image(), t = new THREE.Texture(im); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.flipY = false; t.anisotropy = 4; im.onload = () => { t.needsUpdate = true; }; im.src = src; return t; };
+    TEX.grim = { map: ld(C.tex, true), nrm: C.nrm ? ld(C.nrm, false) : null, glow: ld(C.glow, true) }; GEO.grim = g; return g; }
+  function grimSkin(g, segs, R, len) { const geo = grimGeo(), C = window.AQ_GRIM, N = segs.length, ud = g.userData; g.traverse(o => { if (o.isMesh) o.visible = false; }); /* the spheres stay as the rig */
+    const kr = Math.max(R / C.Rm * 0.95, 0.72 * len / C.Lr), bones = [], inv = [], sp0 = C.Lr / (N - 1);
+    segs.forEach((sg, i) => { const b = new THREE.Bone(); b.scale.setScalar(kr); sg.g.add(b); bones.push(b); inv.push(new THREE.Matrix4().makeTranslation(0, 0, i * sp0)); });
+    const mat = new THREE.MeshStandardMaterial({ map: TEX.grim.map, normalMap: TEX.grim.nrm, emissiveMap: TEX.grim.glow, emissive: 0xffb84a, emissiveIntensity: 1.6, roughness: 0.66, metalness: 0 });
+    const m = new THREE.SkinnedMesh(geo, mat); m.bind(new THREE.Skeleton(bones, inv), new THREE.Matrix4()); m.frustumCulled = false; m.castShadow = true; m.receiveShadow = true; m.morphTargetInfluences = [0]; g.add(m);
+    m.onBeforeRender = () => { m.morphTargetInfluences[0] = Math.max(0, Math.min(1, (ud.jaw.rotation.x - 0.12) / 0.62)); };
+    ud.eyes.forEach((e, k) => { if (e.parent) e.parent.remove(e); bones[0].add(e); e.position.set(k ? 0.15 : -0.15, 0.29, -0.27); e.scale.setScalar(0.42); });
+    ud.grim = m; ud.kr = kr; ud.bones = bones; const P0 = ud.pose;
+    ud.pose = (fn, t) => { P0(fn, t); for (let i = 0; i < N; i++) { const a = segs[Math.max(0, i - 1)].g.position, b = segs[Math.min(N - 1, i + 1)].g.position, d = a.distanceTo(b) / (i > 0 && i < N - 1 ? 2 : 1); bones[i].scale.z = Math.max(0.25 * kr, d / sp0); } }; }
   // Captain Clack's tricorn hat (navy, gold band and badge)
   function makeCapHat() { const g = new THREE.Group(), navy = SM({ color: 0x1a2a5a, roughness: 0.6 }), gold = SM({ color: 0xe0a83a, metalness: 0.8, roughness: 0.3 });
     const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.025, 3), navy); brim.rotation.y = Math.PI / 6; g.add(brim);
@@ -3440,9 +3631,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   }
   // each film's exposure, measured (mean brightness of every line's frame) and evened out toward a target per world: shallows 145, caves 122, the Deep 104
   const FILM_EXPO = [1.1, 1.0, 0.88, 0.85, 0.84, 1.0, 0.89, 1.25, 0.85, 0.8, 0.87, 0.73, 0.76, 1.17, 0.97, 0.86, 1.42, 0.82, 1.24, 0.69, 1.2, 1.2, 1.02, 1.16, 1.31, 0.84, 1.35, 1.14, 1.16, 1.27, 0.85];
+  // critically damped smoothing (Unity's SmoothDamp): glides to the target without overshoot; T ≈ time to get most of the way there
+  function damp1(cur, vel, tgt, T, dt) { const w = 2 / Math.max(1e-3, T), x = w * dt, e = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x), ch = cur - tgt, tmp = (vel + w * ch) * dt; return [tgt + (ch + tmp) * e, (vel - w * tmp) * e]; }
+  function damp3(cur, vel, tgt, T, dt) { for (const k of ['x', 'y', 'z']) { const r = damp1(cur[k], vel[k], tgt[k], T, dt); cur[k] = r[0]; vel[k] = r[1]; } }
   class Story {
     constructor(world, o) { this.world = world; this.o = o; this.t = 0; this.frozen = false; this.ch = o.ch || CHAPTERS[1]; this.rc = RECIPES[this.ch.r] || RECIPES.pipe; this.dur = this.rc.dur;
-      this.n = o.n ?? 1; this.Q = this.ch.Q || null; this.qte = null; this.qDone = !this.Q; this.li = 0; this.shot = null; this.camCur = null; this.look = new V3();
+      this.live = !!this.rc.live; /* a line-timed film: the recipe runs on the film clock and stages each line itself */ this.n = o.n ?? 1; this.Q = this.ch.Q || null; this.qte = null; this.qDone = !this.Q; this.li = 0; this.shot = null; this.camCur = null; this.look = new V3();
       this.trait = o.trait || 'brave'; this.seq = (this.ch.L || []).map((l, i) => this.mkLine(l, `s${this.n}_${i + 1}`)); this.seqTail = this.Q ? this.seq.splice(this.Q.at) : [];
       this.lines = this.seq; this.plan(0, 0.35, 0, this.Q ? this.qLines(this.Q.kind === 'choice' ? this.Q.opts[0][0] : true).map(l => this.mkLine(l, '')).concat(this.seqTail) : null);
       const w = this.w = this.ch.w ?? o.w ?? 0, WS = WORLD_STYLE[w], set = Object.assign({}, this.rc.set || {}, this.ch.set || {}); this.set = set; const dark = this.dark = Math.min(0.92, (set.dark || 0) * 0.8 + [0, 0.22, 0.42][w]);
@@ -3450,13 +3644,13 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const S = this.scene = new THREE.Scene(); S.environment = world.scene.environment;
       const fogC = new THREE.Color().setRGB(...WS.lo).lerp(new THREE.Color().setRGB(...WS.hi), 0.55).multiplyScalar(1 - dark * 0.55); S.background = fogC.clone(); S.fog = new THREE.Fog(fogC, 9 - dark * 3, 46 - dark * 14);
       this.cam0 = new THREE.PerspectiveCamera(46, 1, 0.08, 220);
-      S.add(new THREE.HemisphereLight(0xd6f0ff, 0x8a6a3a, (w === 2 ? 0.7 : 1.05) * (1 - dark * 0.7) + 0.08));
+      this.hemi = new THREE.HemisphereLight(0xd6f0ff, 0x8a6a3a, (w === 2 ? 0.7 : 1.05) * (1 - dark * 0.7) + 0.08); S.add(this.hemi);
       const key = this.key = new THREE.DirectionalLight(w ? 0xc8d8ff : 0xfff1d8, (w === 2 ? 2.2 : 3.2) * (1 - dark * 0.75) + 0.2); key.position.set(-3, 12, -5); key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.bias = -0.0008; key.shadow.normalBias = 0.03;
       { const c = key.shadow.camera; c.left = -9; c.right = 9; c.top = 9; c.bottom = -9; c.near = 1; c.far = 44; } key.target.position.set(0, 0, -1); S.add(key, key.target);
-      const fill = new THREE.DirectionalLight(0x9fd8ff, 1.1 * (1 - dark * 0.4)); fill.position.set(4, 3, 8); S.add(fill);
+      const fill = this.fill = new THREE.DirectionalLight(0x9fd8ff, 1.1 * (1 - dark * 0.4)); fill.position.set(4, 3, 8); S.add(fill);
       { const im = PHOTO_W[w] || PHOTO_W[0], tex = new THREE.Texture(im); tex.colorSpace = THREE.SRGBColorSpace; tex.wrapS = THREE.MirroredRepeatWrapping; tex.repeat.set(4, 1); tex.needsUpdate = true; this.own.push(tex);
         const Rr = 40, Hh = Rr * 2 * Math.PI / 4 / 1.78, geo = new THREE.CylinderGeometry(Rr, Rr, Hh, 72, 1, true);
-        const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false, color: new THREE.Color(WORLD_TINT[w]).lerp(new THREE.Color(0xffffff), w ? 0.08 : 0).multiplyScalar(1 - dark * 0.85) }); this.mats.push(mat);
+        const mat = this.bgMat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false, color: new THREE.Color(WORLD_TINT[w]).lerp(new THREE.Color(0xffffff), w ? 0.08 : 0).multiplyScalar(1 - dark * 0.85) }); this.mats.push(mat);
         const ring = new THREE.Mesh(geo, mat); ring.position.y = Hh * 0.3 + (set.cliff || 0) * 0.6; ring.rotation.y = -Math.PI / 2 - 0.9; S.add(ring); }
       { const t = TEX.sandRef.clone(); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(30, 30); t.needsUpdate = true; this.own.push(t);
         const geo = new THREE.PlaneGeometry(90, 90, 120, 120); geo.rotateX(-Math.PI / 2); const P = geo.attributes.position;
@@ -3476,14 +3670,17 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         if (spk.has('lumen') && !this.c.lumen && this.ch.r !== 'angler') { this.c.lumen = this.add(makeAngler()); this.c.lumen.scale.multiplyScalar(0.7); this.comp.push('lumen'); }
         if (spk.has('clack') && !this.c.clack && !this.c.crabs) { this.c.clack = this.add(makeClack()); this.comp.push('clack'); } }
       { const P0 = this.parts; this.parts = { emit() {}, bubbles() {} }; this.probe = true; this.camPts = []; const who = [...new Set([...(this.ch.L || []), ...this.qAll()].map(l => l[0]).filter(w => w))];
-        for (let i = 0; i <= 40; i++) { try { this.rc.run(this, this.c, this.dur * i / 40); this.companions(); } catch (er) {} const base = this.cam0.position.clone(); this.camPts.push(base);
-          if (i % 2 === 0) for (const w of who) for (const sd of [-1, 1]) { const dc = this.dialogCam(w, sd, 0, base); if (dc) for (const k of [0, 0.35, 0.7]) this.camPts.push(dc.pos.clone().lerp(dc.q.p, k)); } } this.probe = false; this.parts = P0; this.c.rung = []; this.c.sang = false; // keep the lens clear: no plant may sit on the camera's path
-        this.decor = this.decor.filter(d => { if (this.camPts.some(q => (q.x - d.position.x) ** 2 + (q.z - d.position.z) ** 2 < 1.6 * 1.6)) { this.scene.remove(d); return false; } return true; }); }
+        const PT = this.live ? (isFinite(this.T) ? this.T : this.qAt + 10) : this.dur; for (let i = 0; i <= 40; i++) { try { this.rc.run(this, this.c, PT * i / 40); this.companions(); } catch (er) {} const base = this.cam0.position.clone(); this.camPts.push(base);
+          if (i % 2 === 0) for (const w of who) { const q = this.castOf(w); if (!q) continue; for (const to of ['you', ...who]) { if (to === w) continue; const b = this.castOf(to); if (!b) continue; const sh = { who: w, to };
+              for (const sd of [-1, 1]) for (const th of [0.5, 0.15]) { const f = this.frame(q, b, sh, { sd, th }, 0, base); if (f) for (const k of [0, 0.35, 0.7]) this.camPts.push(f.pos.clone().lerp(f.look, k)); } } } } this.probe = false; this.parts = P0; this.c.rung = []; this.c.sang = false; // keep the lens clear: no plant may sit on the camera's path
+        this.decor = this.decor.filter(d => { if (d.userData.keep) return true; if (this.camPts.some(q => (q.x - d.position.x) ** 2 + (q.z - d.position.z) ** 2 < 1.6 * 1.6)) { this.scene.remove(d); return false; } return true; }); }
       if (o.tank) this.buildTank(o.tank, WS);
       this.scatter(w); this.resize(); this.capI = 0; }
     // ---- the film's clock. plan() times lines from..end (clock t, recipe time r); prov = lines still to come after an interactive beat
     plan(from, tStart, rStart, prov) { const L = this.seq, dur = this.dur, vd = this.o.voDur;
       const lenOf = l => Math.max(2.4, 0.8 + l.text.split(/\s+/).length * 0.2, vd && l.id ? vd(l.id) : 0), wOf = l => l.who && l.who !== 'choir' && l.who !== 'arch' ? 0.45 : 1;
+      if (this.live) { let t = Math.max(tStart, 0.6); for (let i = from; i < L.length; i++) { const l = L[i]; t += this.rc.gap ? this.rc.gap(i, l, this) || 0 : 0; l.d = lenOf(l); l.t0 = l.r0 = t; t += l.d; l.t1 = l.r1 = t; t += 0.35; }
+        this.qAt = this.qDone ? Infinity : t; this.rQ = t; this.T = this.qDone ? t + (this.rc.tail ?? 1.3) : Infinity; return; }
       const all = L.slice(from).concat(prov || []); let tot = 0; all.forEach(l => { l.d = lenOf(l); tot += l.d * wOf(l); }); const sc = tot > 0 ? (dur - rStart) / tot : 0;
       let t = tStart, r = rStart; for (let i = from; i < L.length; i++) { const l = L[i]; l.t0 = t; l.r0 = r; t += l.d; r = Math.min(dur, r + l.d * wOf(l) * sc); l.t1 = t; l.r1 = r; }
       this.qAt = this.qDone ? Infinity : t; this.rQ = r; this.T = this.qDone ? t + 1.3 : Infinity; }
@@ -3491,7 +3688,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     mkLine(l, id) { const d = l[1] && typeof l[1] === 'object', tx = d ? (l[1][this.trait] || l[1].brave) : l[1]; return { who: l[0], text: tx, em: l[2] || '', mood: l[3] || '', id: d && id ? id + '_' + this.trait : id }; }
     qLines(k) { const Q = this.Q; if (!Q) return []; if (Q.kind === 'choice') { const o = Q.opts.find(o => o[0] === k) || Q.opts[0]; return o[2]; } return k ? Q.ok : Q.no; }
     qAll() { const Q = this.Q; if (!Q) return []; return Q.kind === 'choice' ? [].concat(...Q.opts.map(o => o[2])) : [...Q.ok, ...Q.no]; }
-    rtAt(t) { if (this.qte) return this.qte.r; const L = this.seq; if (!L.length || t <= L[0].t0) return 0;
+    rtAt(t) { if (this.live) return t; if (this.qte) return this.qte.r; const L = this.seq; if (!L.length || t <= L[0].t0) return 0;
       for (const l of L) if (t < l.t1) return l.r0 + (l.r1 - l.r0) * Math.max(0, (t - l.t0) / (l.t1 - l.t0));
       return this.qDone ? this.dur : this.rQ; }
     // ---- interactive beats: tap (fill the bar), hold, swipe. The film runs at 15% meanwhile; 6.5 s without success = the other outcome
@@ -3517,7 +3714,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         else if (k === 'clack') { const x = h.x + r.x * 0.75 + f.x * 0.4, z = h.z + r.z * 0.75 + f.z * 0.4; const gy = this.groundY(x, z); o.position.set(x, (h.y < gy - 0.3 ? h.y + 0.1 : gy + 0.22) + Math.abs(Math.sin(tm * 6)) * 0.02, z); /* falls with the diver off a cliff */ const g = talking ? d : f; o.rotation.set(0, Math.atan2(g.x, g.z), 0); } } }
     // ---- who is speaking: the cast member on screen, its size, and a close-up camera on it (shot/reverse-shot from the recipe's camera)
     castOf(who) { const c = this.c; let o = null, s = 1, y = 0;
-      switch (who) { case 'you': o = this.hold; y = 0.72; break; /* the Keeper is only ever seen in silhouette (no close-up) */ case 'pip': o = c.pip || (c.h && c.h[0]); s = 0.75; break; case 'cousin': o = c.h && c.h[1]; s = 0.7; break;
+      switch (who) { case 'you': o = this.hold; y = 0.2; s = 0.8; break; /* the Keeper is only ever seen in silhouette (no close-up) */ case 'pip': o = c.pip || (c.h && c.h[0]); s = 0.75; break; case 'cousin': o = c.h && c.h[1]; s = 0.7; break;
         case 'shelly': o = c.tu; s = 1.6; y = 0.35; break; case 'murk': o = c.o; s = 2.0; y = 1.0; break; case 'lumen': o = c.lumen || (this.ch.r === 'angler' ? c.a : null); s = 1.1; break;
         case 'mira': o = c.m; s = 1.9; break; case 'clack': o = c.clack || (c.crabs && c.crabs[0]); s = 0.55; y = 0.25; break;
         case 'grimtide': if (c.eel && c.eel.visible) { o = c.eel.userData.head; s = Math.max(1.6, c.eel.userData.segs[0].r * 3.2 * c.eel.scale.x); } break;
@@ -3537,9 +3734,15 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         if (this.diver) { const B = new THREE.Box3().setFromObject(this.diver); B.expandByScalar(0.15); this._cb.push(B); } }
       return this._cb.some(B => B.containsPoint(pos)); }
     // ---- helpers the recipes use
+    at(i, d = 0) { const l = this.seq[i]; return (l && l.t0 !== undefined ? l.t0 : 1e9) + d; } /* when line i starts (+ d seconds) */
+    end(i, d = 0) { const l = this.seq[i]; return (l && l.t1 !== undefined ? l.t1 : 1e9) + d; }
+    // a camera position on the arc round `c` from A to B (angle, distance and height eased): a swing round the characters, never through them
+    arc(c, A, B, k) { const a0 = Math.atan2(A.x - c.x, A.z - c.z), a1 = Math.atan2(B.x - c.x, B.z - c.z); let da = a1 - a0; da = Math.atan2(Math.sin(da), Math.cos(da)); const e = sm01(k), an = a0 + da * e;
+      const r0 = Math.hypot(A.x - c.x, A.z - c.z), r1 = Math.hypot(B.x - c.x, B.z - c.z), r = r0 + (r1 - r0) * e, y = A.y + (B.y - A.y) * e; return new V3(c.x + Math.sin(an) * r, y, c.z + Math.cos(an) * r); }
+    lastAt(d = 0) { return this.qDone ? this.at(this.seq.length - 1, d) : 1e9; } /* the closing line (known once any choice is made) */
     groundY(x, z) { const S = this.set, r = Math.hypot(x, z); let y = (Math.sin(x * 0.7 + z * 0.3) * 0.06 + Math.sin(z * 0.9 - x * 0.2) * 0.05) * Math.min(1, r / 3) + Math.max(0, r - 18) * 0.05;
       if (S.dune) y += Math.max(0, -x - 1.2) * 0.62 * sm01((x + 9) / 3) + (x < -9 ? 3.4 : 0) * 0;
-      if (S.cliff) y += S.cliff * sm01((-z - 3.2) / 2.2);
+      if (S.cliff) y += S.cliff * sm01((-z - (S.cliffZ ?? 3.2)) / (S.cliffW ?? 2.2));
       if (S.trench) y -= S.trench * (sm01((-z - 1.6) / 1.4) - sm01((-z - 7.2) / 1.4)) * sm01((10 - Math.abs(x)) / 4); return y; }
     add(o) { this.scene.add(o); return o; }
     fx(key, kind) { if (this.probe || this.frozen) return; this.fxDone = this.fxDone || {}; if (this.fxDone[key]) return; this.fxDone[key] = 1; if (this.o.onFx) this.o.onFx(kind); }
@@ -3551,16 +3754,18 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     tankP() { return this.tankPos; }
     clearPath(M, d, s0, s1, w) { for (let s = s0; s <= s1; s += 1) this.clear.push([M.x + d.x * s, M.z + d.z * s, w]); }
     kelpWalls(x0, z0, x1, z1, n) { for (let i = 0; i < n; i++) { const side = i % 2 ? 1 : -1, z = z0 - (i / n) * (z0 - z1) * 1.6, x = side < 0 ? -1.5 - (i % 3) * 0.7 : 4.0 + (i % 3) * 0.8; const k = this.spr('weed' + [1, 3, 5, 7, 9][i % 5], 2.2 + (i % 4) * 0.6, x, z); k.userData.sw = i; (this.kelp = this.kelp || []).push(k); } }
-    camRaw(pos, look, roll = 0) { const c = this.cam0; c.position.copy(pos); this.look.copy(look); c.up.set(0, 1, 0); c.lookAt(look); if (roll) c.rotateZ(roll); }
+    camRaw(pos, look, roll = 0) { const c = this.cam0; c.position.copy(pos); this.look.copy(look); this.camRoll = roll; c.up.set(0, 1, 0); c.lookAt(look); if (roll) c.rotateZ(roll); }
     cam(pos, look) { if (this.port) pos = look.clone().add(pos.clone().sub(look).multiplyScalar(1.4)); this.camRaw(pos, look); }
     dv(p, f, pitch = 0, yawOff = 0, roll = 0) { this.hold.position.copy(p); this.face = f.clone ? f.clone().setY(0).normalize() : new V3(1, 0, 0); this.hold.rotation.set(0, Math.atan2(-this.face.z, this.face.x) + yawOff, 0); this.diver.rotation.set(roll, 0, pitch); }
     buildTank(cv, WS) { const tw = 5.2, th = tw * cv.height / cv.width, g = this.tank = new THREE.Group(); g.position.copy(this.tankPos); g.rotation.y = this.tankRY; this.scene.add(g);
       const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; this.own.push(tex); const cr = 1 / 1.04; tex.repeat.set(cr, cr); tex.offset.set((1 - cr) / 2, (1 - cr) / 2);
       const face = new THREE.Mesh(new THREE.PlaneGeometry(tw, th), new THREE.MeshBasicMaterial({ map: tex, fog: true })); face.position.set(0, 0.55 + th / 2, 0); g.add(face);
-      const navy = new THREE.MeshStandardMaterial({ color: WS.trim, roughness: 0.4, metalness: 0.3 }), fr = 0.09;
-      for (const [x, y, bw, bh] of [[0, 0.55, tw + fr * 2, fr], [0, 0.55 + th, tw + fr * 2, fr], [-tw / 2, 0.55 + th / 2, fr, th], [tw / 2, 0.55 + th / 2, fr, th]]) { const b = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, 0.9), navy); b.position.set(x, y, -0.4); g.add(b); }
-      for (const [x, y] of [[-tw / 2, 0.55], [tw / 2, 0.55], [-tw / 2, 0.55 + th], [tw / 2, 0.55 + th]]) { const c = new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 8), MAT.pipeBrass || SM({ color: 0xd8a03e, metalness: 0.85, roughness: 0.3 })); c.position.set(x, y, 0.05); g.add(c); }
-      const st = new THREE.Mesh(new THREE.BoxGeometry(tw + 0.5, 0.55, 1.3), new THREE.MeshStandardMaterial({ color: 0x5a3b22, roughness: 0.7 })); st.position.set(0, 0.27, -0.4); st.castShadow = st.receiveShadow = true; g.add(st);
+      const M = vaultMats(WS.trim), fr = 0.2;
+      for (const [x, y, bw, bh] of [[0, 0.55, tw + fr * 2, fr], [0, 0.55 + th, tw + fr * 2, fr], [-tw / 2, 0.55 + th / 2, fr, th], [tw / 2, 0.55 + th / 2, fr, th]]) { const b = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, 0.9), M.vaultStone); b.position.set(x, y, -0.4); b.castShadow = true; g.add(b); }
+      for (const [x, y] of [[-tw / 2, 0.55 + th], [tw / 2, 0.55 + th]]) { const c = runeDisc(0.16); c.position.set(x, y, 0.08); g.add(c); }
+      { const ks = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.42, 0.95), M.vaultStone); ks.position.set(0, 0.62 + th, -0.38); g.add(ks); const kr = runeDisc(0.13); kr.position.set(0, 0.62 + th, 0.1); g.add(kr); }
+      const st = new THREE.Mesh(new THREE.BoxGeometry(tw + 0.5, 0.55, 1.3), [M.vaultBaseSide, M.vaultBaseSide, M.vaultBase, M.vaultBase, M.vaultBase, M.vaultBase]); st.position.set(0, 0.27, -0.4); st.castShadow = st.receiveShadow = true; g.add(st);
+      { const bb = new THREE.Mesh(new THREE.BoxGeometry(tw + 0.55, 0.06, 1.34), M.vaultBrass); bb.position.set(0, 0.56, -0.4); g.add(bb); }
       const halo = glowSpr(0x7ff0ff, 1, 0.28 + this.dark * 0.2); halo.scale.set(tw * 2.2, th * 2.4, 1); halo.material.fog = false; halo.position.set(0, 0.55 + th / 2, -0.6); g.add(halo); }
     scatter(w) { let s = 77 + w * 13 + (this.o.n || 1) * 31; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
       const NM = w === 2 ? ['coral2', 'coral4', 'weed3', 'weed7', 'rockA', 'rockB', 'rockC', 'shellA', 'starC'] : ['coral1', 'coral2', 'coral3', 'coral4', 'coral5', 'weed1', 'weed3', 'weed5', 'weed7', 'weed9', 'rockA', 'rockB', 'rockC', 'shellA', 'shellC', 'starA', 'starC'];
@@ -3602,12 +3807,15 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (!this.frozen && !this.qDone && !this.qte && t >= this.qAt) this.qteStart();
       const st = this.rc.run(this, this.c, this.rtAt(this.t)) || {}; this.st = st; this.companions();
       if (this.n === 30 && this.c.clack && !this.probe) this.c.clack.visible = this.seq.slice(0, this.li).some(l => l.who === 'clack'); /* his comeback is a surprise */ if (this.simon && this.qte) this.simonTick(dt);
-      if (this.u.glb && !this.frozen) { const m = st.mode || 'stand', sw = m === 'swim' || m === 'walk' ? 1 : 0, fl = m === 'walk' || m === 'stand' ? 1 : 0;
-        glbDrive(this.u, dt, { reach: 0, push: 0, dig: 0, swim: sw, floor: fl, speed: Math.abs(st.speed || (sw ? 1.4 : 0)), pushing: false }); this.arms(st); }
+      if (this.u.glb && !this.frozen) { const hp = this.hold.getWorldPosition(new V3()), sp = this._hp ? hp.distanceTo(this._hp) / Math.max(1e-3, dt) : 0; this._hp = hp; this.spd = this.spd === undefined ? sp : this.spd + (sp - this.spd) * Math.min(1, dt * 5);
+        let m = st.mode || 'stand'; if ((m === 'walk' || m === 'swim') && this.spd < 0.14 && !st.keep) m = m === 'walk' ? 'stand' : 'float'; /* the legs only move when the body does */
+        const sw = m === 'swim' || m === 'walk' ? 1 : 0, fl = m === 'walk' || m === 'stand' ? 1 : 0, A = this.u.glb.act;
+        glbDrive(this.u, dt, { reach: 0, push: 0, dig: 0, swim: sw, floor: fl, speed: 0, pushing: false }); /* strides keep pace with how fast the body really travels */
+        if (m === 'walk') A.walk.timeScale = Math.max(0.4, Math.min(2.4, this.spd / 0.75)); if (m === 'swim') A.swim.timeScale = Math.max(0.55, Math.min(2.2, this.spd / 0.95)); this.arms(st); }
       if (!this.frozen && t >= this.T) { this.frozen = true; if (this.o.onCap) this.o.onCap(null); if (this.o.onFreeze) this.o.onFreeze(); }
       if (!this.frozen) while (this.li < this.seq.length && this.seq[this.li].t0 !== undefined && this.t >= this.seq[this.li].t0) { const l = this.seq[this.li]; if (this.o.onCap) this.o.onCap(l, this.li, this.ch);
-        if (!REDUCED_MOTION) { if (/!/.test(l.text) || l.em === 'hop' || l.em === 'shake' || l.mood === 'wide') this.punch = 1; if (l.mood === 'wide' || l.em === 'shake') this.tremble = 0.6; } { const q = l.who && this.castOf(l.who); if (q && q.o.userData && q.o.userData.setMood) q.o.userData.setMood(l.mood); } this.shot = { who: l.who, side: this.li % 2 ? 1 : -1, l, cut: true }; this.li++; this.capI = this.li; }
-      this.shotCam(dt);
+        { const q = l.who && this.castOf(l.who); if (q && q.o.userData && q.o.userData.setMood) q.o.userData.setMood(l.mood); } this.shot = { who: l.who, to: this.addressee(this.li), l, i: this.li }; this.li++; this.capI = this.li; }
+      this.stage(dt); this.shotCam(dt);
       this.shaftMat.uniforms.uT.value = this.world.time;
       if (this.kelp) this.kelp.forEach(k => { k.rotation.z = Math.sin(this.world.time * 0.9 + k.userData.sw) * 0.06; });
       for (const f of this.fish) { const F = f.userData.f; F.x += F.v * dt; if (F.x > 14) F.x = -14; if (F.x < -14) F.x = 14; f.position.set(F.x, F.y + Math.sin(this.world.time * 1.3 + F.ph) * 0.15, F.z); f.scale.x = F.v > 0 ? -1 : 1; }
@@ -3616,20 +3824,29 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         k.sp.scale.setScalar(k.s0 * (0.6 + f * 1.3)); k.sp.material.opacity = 0.55 * Math.min(1, f * 6) * (1 - f); return true; });
       this.parts.update(dt, this.world.time); }
     // close-up on whoever speaks (cut in, then it drifts with them); narration and interactive beats keep the recipe's own camera
-    shotCam(dt) { const sh = this.shot, t = this.t; let q = null;
-      if (sh && sh.cut && sh.who && !this.qte && !this.frozen) { const base = this.cam0.position.clone(); sh.wide = true; // pick a side with a clear view of the speaker (a big shell or a rock in the way: try the other side, else stay wide)
-        for (const sd of [sh.side, -sh.side]) { const tg = this.dialogCam(sh.who, sd, 0, base); if (tg && this.clearView(tg.pos, tg.q)) { sh.side = sd; sh.wide = false; break; } } }
-      if (sh && !sh.wide && !this.qte && !this.frozen && t < sh.l.t1 + 0.15 && sh.who) { const prog = Math.min(1, (t - sh.l.t0) / Math.max(0.1, sh.l.t1 - sh.l.t0)), base = this.cam0.position.clone();
-        let tg = this.dialogCam(sh.who, sh.side, prog, base);
-        if (tg && (sh.chk = (sh.chk || 0) - dt) <= 0) { sh.chk = 0.25; // someone swam into the shot: cut to the other side, or back to the wide shot
-          if (!this.clearView(tg.pos, tg.q)) { const t2 = this.dialogCam(sh.who, -sh.side, prog, base); if (t2 && this.clearView(t2.pos, t2.q)) { sh.side = -sh.side; sh.cut = true; tg = t2; } else { sh.wide = true; tg = null; } } }
-        if (tg) { q = tg.q; if (sh.cut || !this.camCur) { this.camCur = { pos: tg.pos.clone(), look: tg.look.clone() }; sh.cut = false; } else { this.camCur.pos.lerp(tg.pos, 1 - Math.exp(-dt * 10)); this.camCur.look.copy(tg.look); }
-          this.camRaw(this.camCur.pos, this.camCur.look); } }
-      { this.punch = Math.max(0, (this.punch || 0) - dt * 2.4); const pk = this.punch > 0 ? Math.sin(Math.min(1, (1 - this.punch) * 3) * Math.PI / 2) * this.punch : 0; // a quick punch-in, then it settles
-        const fov = (q ? (this.port ? 40 : 28) : (this.port ? 62 : 44)) * (1 - 0.09 * pk), c = this.cam0; if (Math.abs(c.fov - fov) > 0.01) { c.fov = fov; c.updateProjectionMatrix(); }
-        this.tremble = Math.max(0, (this.tremble || 0) - dt); if (this.tremble > 0) { const k = 0.012 * this.tremble; c.position.x += (Math.random() - 0.5) * k; c.position.y += (Math.random() - 0.5) * k; } }
-      if (!q) this.camCur = null;
-      if (this.qte && this.qte.kind !== 'choice' && this.qte.kind !== 'simon') { const k = 0.02 + 0.03 * this.qte.prog; this.cam0.position.x += (Math.random() - 0.5) * k; this.cam0.position.y += (Math.random() - 0.5) * k; }
+    // ---- the director: one calm camera, never a cut. The recipe's camera is the wide shot; a line of dialogue glides into a two-shot of the
+    // speaker and whoever they talk to, framed over the listener's shoulder and kept on one side of the pair (the picture never flips).
+    // Every move is a critically damped glide (no overshoot), slower while changing shots.
+    shotCam(dt) { const sh = this.shot, t = this.t, c = this.cam0, bp = c.position.clone(), bl = this.look.clone(), baseFov = (this.lens || (this.port ? 62 : 44)) * (this.lens && this.port ? 1.25 : 1); let want = null, q = null;
+      if (sh && sh.who && !this.qte && !this.frozen && t < sh.l.t1 + 0.35 && !(this.rc.own && this.rc.own(sh.i, sh, this))) { q = this.castOf(sh.who); const b = sh.to ? this.castOf(sh.to) : null;
+        if (q) { if ((sh.chk = (sh.chk ?? 0) - dt) <= 0 || sh.pick === undefined) { sh.chk = 0.6; const pk = this.pickShot(q, b, sh, bp); if (pk || sh.pick === undefined) sh.pick = pk; }
+          if (sh.pick) want = this.frame(q, sh.pick.single ? null : b, sh, sh.pick, Math.min(1, (t - sh.l.t0) / Math.max(0.5, sh.l.t1 - sh.l.t0)), bp); } }
+      const tgt = want || { pos: bp, look: bl, fov: baseFov }; let R = this.rig;
+      // the rig orbits what it looks at (look point + angle round it + height + distance), so a change of shot swings round the
+      // characters at a distance instead of cutting straight through them
+      const sph = (P, Lk) => { const v = P.clone().sub(Lk), r = Math.max(0.3, v.length()); return { az: Math.atan2(v.x, v.z), el: Math.asin(Math.max(-0.99, Math.min(0.99, v.y / r))), r }; }, tg = sph(tgt.pos, tgt.look);
+      const jump = !want && this._bp && bp.distanceTo(this._bp) > 2.2 && (!R || R.sw <= 0); /* the recipe cut to a new place: follow it at once */
+      if (!R || jump) R = this.rig = { look: tgt.look.clone(), vl: new V3(), az: tg.az, el: tg.el, r: tg.r, vaz: 0, vel: 0, vr: 0, fov: tgt.fov, vf: 0, mode: !!want, sw: 0, pos: tgt.pos.clone(), vp: new V3() };
+      else { if (!!want !== R.mode) { R.mode = !!want; R.sw = 2.4; } R.sw = Math.max(0, R.sw - dt); const T = R.sw > 0 ? 1.35 : 0.55, Tl = R.sw > 0 ? 1.0 : 0.4;
+        damp3(R.look, R.vl, tgt.look, Tl, dt); const f = damp1(R.fov, R.vf, tgt.fov, 1.0, dt); R.fov = f[0]; R.vf = f[1];
+        if (want) { let da = tg.az - R.az; da = Math.atan2(Math.sin(da), Math.cos(da)); const A = damp1(0, R.vaz, da, T, dt); R.az += A[0]; R.vaz = Math.max(-0.85, Math.min(0.85, A[1])); /* dialogue: orbit round the speakers */
+          const E = damp1(R.el, R.vel, tg.el, T, dt); R.el = E[0]; R.vel = E[1]; const D = damp1(R.r, R.vr, tg.r, T, dt); R.r = D[0]; R.vr = D[1];
+          R.pos.set(R.look.x + R.r * Math.sin(R.az) * Math.cos(R.el), R.look.y + R.r * Math.sin(R.el), R.look.z + R.r * Math.cos(R.az) * Math.cos(R.el)); R.vp.set(0, 0, 0); }
+        else { damp3(R.pos, R.vp, tgt.pos, T, dt); const o = sph(R.pos, R.look); R.az = o.az; R.el = o.el; R.r = o.r; R.vaz = R.vel = R.vr = 0; } } /* the film's own moves: a straight glide (the aim can travel far) */
+
+      { const gy = this.groundY(R.pos.x, R.pos.z) + 0.25; if (R.pos.y < gy) R.pos.y = gy; }
+      this._bp = bp; c.position.copy(R.pos); c.up.set(0, 1, 0); c.lookAt(R.look); if (this.camRoll && !want) c.rotateZ(this.camRoll); if (Math.abs(c.fov - R.fov) > 0.01) { c.fov = R.fov; c.updateProjectionMatrix(); }
+      if (this.qte && this.qte.kind !== 'choice' && this.qte.kind !== 'simon' && !REDUCED_MOTION) { const k = 0.006 + 0.01 * this.qte.prog; c.position.x += (Math.random() - 0.5) * k; c.position.y += (Math.random() - 0.5) * k; }
       // the speaker talks: a little bob and sway (Grimtide's jaw works instead)
       if (this._mouth) { this._mouth.visible = false; this._mouth = null; } if (this._jaw) { this._jaw.rotation.z = -0.15; this._jaw = null; } if (this._talk) { this._talk.talk(0); this._talk = null; }
       const spk = sh && sh.who && !this.frozen && t < sh.l.t1 ? (q || this.castOf(sh.who)) : null; // the speaker talks in every shot, close or wide
@@ -3641,9 +3858,46 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           else if (em === 'salute') rz -= 0.22 * b; else if (em === 'nod') dy -= S * 0.06 * Math.abs(Math.sin(Math.min(1, Math.max(0, ek)) * Math.PI * 2));
           else if (em === 'droop') { const k = sm01((t - sh.l.t0) / 0.6); dy -= S * 0.07 * k; rz += 0.14 * k; } // sinks a little for the whole line
           spk.o.position.y += dy; spk.o.rotation.z += rz; spk.o.rotation.y += ry; this._tb = { o: spk.o, dy, rz, ry };
-          this.listen(sh, spk);
           const ud = spk.o.userData || {}; if (ud.talk) { ud.talk(a); this._talk = ud; } else if (ud.mouth) { const m = ud.mouth; m.visible = a > 0.1; m.scale.y = m.userData.h * (0.3 + 0.9 * a); this._mouth = m; } else if (ud.jaw) { ud.jaw.rotation.z = -0.15 - 0.55 * a; this._jaw = ud.jaw; } } } }
-    // the cast who aren't speaking look toward the one who is (40% of the way, ≤ 0.6 rad), and bob once on a happy line; undone next frame
+    // who a line is said to: a speaker talks to the diver; the diver answers whoever spoke just before (or speaks next)
+    addressee(i) { const L = this.seq, l = L[i]; if (this.rc.to) { const r = this.rc.to(i, l, this); if (r !== undefined) return r; } if (!l || !l.who || !this.castOf(l.who)) return null; const ok = w => w && w !== l.who && w !== 'grimtide' && this.castOf(w) ? w : null;
+      if (l.who !== 'you') return this.castOf('you') ? 'you' : null;
+      for (let k = i - 1; k >= Math.max(0, i - 3); k--) { const w = ok(L[k] && L[k].who); if (w) return w; }
+      for (let k = i + 1; k < Math.min(L.length, i + 3); k++) { const w = ok(L[k] && L[k].who); if (w) return w; }
+      let best = null, bd = 6; for (const w of ['pip', 'shelly', 'clack', 'lumen', 'mira', 'murk', 'cousin']) { const q = this.castOf(w); if (!q) continue; const d = q.p.distanceTo(this.hold.position); if (d < bd) { bd = d; best = w; } } return best; }
+    // a two-shot (speaker a + listener b) or a single (b = null). pk = {sd: side of the pair, th: how far round behind the listener}
+    frame(a, b, sh, pk, prog, base) { const asp = this.cam0.aspect || 1.6, fov = this.port ? 50 : 36, tv = Math.tan(fov * Math.PI / 360), th_ = tv * asp; let look, dir, dist;
+      if (b && b.o !== a.o) { const ab = b.p.clone().sub(a.p); ab.y = 0; let L = ab.length(); if (L < 0.2) { ab.set(1, 0, 0); L = 0.2; } ab.divideScalar(L);
+        if (L > 7.5) return this.frame(a, null, sh, pk, prog, base);
+        const flip = (sh.who || '') > (sh.to || '') ? -1 : 1, n = new V3(ab.z, 0, -ab.x).multiplyScalar(pk.sd * flip);
+        dir = pk.dir ? pk.dir.clone() : n.multiplyScalar(Math.cos(pk.th)).addScaledVector(ab, Math.sin(pk.th)).normalize(); look = a.p.clone().lerp(b.p, 0.42);
+        const big = Math.max(a.s, b.s), side_ = Math.abs(dir.x * ab.z - dir.z * ab.x), half = (L * side_ * 0.5 + big * 0.75) * 1.25; dist = Math.max(half / th_, (Math.abs(a.p.y - b.p.y) * 0.5 + big * 0.62) / tv, 1.6);
+        for (const q of [a, b]) { const along = q.p.clone().sub(look).dot(dir); dist = Math.max(dist, along + q.s * 2.4); } } /* the nearer one is never cut off by the lens */
+      else { const d = base.clone().sub(a.p); d.y = 0; if (d.lengthSq() < 1e-4) d.copy(a.fw.lengthSq() ? a.fw : new V3(0, 0, 1)); d.normalize(); const an = pk.sd * pk.th * 0.6, ca = Math.cos(an), sa = Math.sin(an);
+        dir = new V3(d.x * ca - d.z * sa, 0, d.x * sa + d.z * ca); look = a.p.clone(); dist = Math.max(1.3, (a.s * 1.15) / tv + 0.3); }
+      dist *= 1 - 0.06 * sm01(prog); const pos = look.clone().addScaledVector(dir, dist); pos.y = look.y + 0.12 + dist * 0.09; const gy = this.groundY(pos.x, pos.z) + 0.3; if (pos.y < gy) pos.y = gy;
+      look.y -= dist * 0.02; return { pos, look, fov }; }
+    // choose the side and angle once per line (re-checked twice a second): both faces clear of rocks/plants, the lens outside every body
+    pickShot(q, b, sh, base) { const key = [sh.who, sh.to || ''].sort().join('|'), P = this.pairSd || (this.pairSd = {}); let sd0 = P[key];
+      if (!sd0) { const f = this.frame(q, b, sh, { sd: 1, th: 0.5 }, 0, base); sd0 = f && f.pos.distanceTo(base) > this.frame(q, b, sh, { sd: -1, th: 0.5 }, 0, base).pos.distanceTo(base) ? -1 : 1; }
+      const tryIt = (bb, sd, th) => { const f = this.frame(q, bb, sh, { sd, th }, 0, base); if (!f || this.insideCast(f.pos, q.o) || (bb && this.insideCast(f.pos, bb.o))) return false; if (!this.clearView(f.pos, q) || (bb && bb.o !== q.o && !this.clearView(f.pos, bb))) return false; return true; };
+      const dk = key + '>' + sh.who, prev = this.pairDir && this.pairDir[dk]; if (b && prev) { const f = this.frame(q, b, sh, { sd: sd0, th: 0, dir: prev }, 0, base); if (f && !this.insideCast(f.pos, q.o) && !this.insideCast(f.pos, b.o) && this.clearView(f.pos, q) && this.clearView(f.pos, b)) return { sd: sd0, th: 0, dir: prev }; }
+      if (b) for (const sd of [sd0, -sd0]) for (const th of [0.45, 0.3, 0.62, 0.15]) if (tryIt(b, sd, th)) { P[key] = sd; const f = this.frame(q, b, sh, { sd, th }, 0, base), dd = f.pos.clone().sub(f.look); dd.y = 0; dd.normalize(); (this.pairDir || (this.pairDir = {}))[dk] = dd; return { sd, th, dir: dd }; }
+      for (const sd of [sd0, -sd0]) for (const th of [0, 0.5, -0.5]) if (tryIt(null, sd, th)) return { sd, th, single: true }; return null; }
+    // the cast turn smoothly toward whoever they talk or listen to (a little toward the lens, so we see faces), and back when the line ends;
+    // anyone travelling keeps facing where they go. Offsets are undone at the top of the next frame (the recipe sets facing fresh).
+    stage(dt) { const sh = this.shot, live = sh && sh.who && !this.frozen && !this.qte && this.t < sh.l.t1 + 0.4, spk = live ? this.castOf(sh.who) : null, adr = live && sh.to ? this.castOf(sh.to) : null;
+      const cam = this.cam0.position, out = this._lt = [], F = this.faceOff || (this.faceOff = new Map()), LP = this.lastP || (this.lastP = new Map()), tl = live ? this.t - sh.l.t0 : 0;
+      for (const k of ['you', 'pip', 'shelly', 'clack', 'murk', 'lumen', 'mira', 'cousin', 'snip', 'snap']) { const q = this.castOf(k); if (!q || q.fw.lengthSq() < 1e-4) continue; const o = q.o;
+        const p = o.getWorldPosition(new V3()), pr = LP.get(o), v = pr ? p.distanceTo(pr) / Math.max(1e-3, dt) : 0; LP.set(o, p);
+        let goal = 0, dy = 0;
+        if (spk && v < (this.rc.talkMove || 0.6)) { const tgt = o === spk.o ? (adr ? adr.p : null) : p.distanceTo(spk.p) < 7 ? spk.p : null;
+          if (tgt) { const d = tgt.clone().sub(p); d.y = 0; const dc = cam.clone().sub(p); dc.y = 0;
+            if (d.lengthSq() > 1e-4) { d.normalize(); if (dc.lengthSq() > 1e-4) d.lerp(dc.normalize(), 0.42).normalize(); /* face each other, cheated open to the lens */ const a = Math.atan2(q.fw.z, q.fw.x) - Math.atan2(d.z, d.x); goal = Math.atan2(Math.sin(a), Math.cos(a)); } }
+          if (o !== spk.o && sh.l.mood === 'happy' && tl < 0.7 && k !== 'you') dy = q.s * 0.05 * Math.sin(tl / 0.7 * Math.PI); }
+        let cur = F.get(o) || 0; cur += (goal - cur) * (1 - Math.exp(-dt * 2.6)); F.set(o, cur);
+        if (Math.abs(cur) > 1e-4 || dy) { o.rotation.y += cur; o.position.y += dy; out.push({ o, ry: cur, dy }); } } }
+    // (old) the cast who aren't speaking look toward the one who is; replaced by stage()
     listen(sh, spk) { const sp = spk.o.getWorldPosition(new V3()), t = this.t - sh.l.t0, out = this._lt = [];
       for (const k of ['pip', 'shelly', 'clack', 'murk', 'lumen', 'mira', 'cousin', 'snip', 'snap']) { if (k === sh.who) continue; const q = this.castOf(k); if (!q || q.o === spk.o) continue;
         const o = q.o, p = o.getWorldPosition(new V3()), d = sp.clone().sub(p); d.y = 0; if (d.lengthSq() < 1e-4 || q.fw.lengthSq() < 1e-4) continue; d.normalize();
@@ -3656,10 +3910,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         for (const h of hits) { const o = h.object, m = o.material; if (!o.isMesh || own(o) || !m || m.side === THREE.BackSide || (m.transparent && (m.opacity ?? 1) < 0.35) || m.blending === THREE.AdditiveBlending) continue;
           let vis = true; for (let a = o; a; a = a.parent) if (!a.visible) { vis = false; break; } if (vis) return false; } } return true; }
     // the last second slides the picture aside for the card (right on wide screens, bottom on phones)
-    render(post) { { const ex = FILM_EXPO[this.n] || 1; if (post.compMat) post.compMat.uniforms.expo.value = this.run ? 1 : ex; this.world.renderer.toneMappingExposure = this.run ? 1 : ex; } if (this.run) { if (post.compMat) post.compMat.uniforms.night.value = 0; this.cam0.clearViewOffset(); post.render(this.run.scene, this.run.cam, this.world.time); return; }
+    render(post) { { const ex = (FILM_EXPO[this.n] || 1) * (this.expoMul ?? 1); if (post.compMat) post.compMat.uniforms.expo.value = this.run ? 1 : ex; this.world.renderer.toneMappingExposure = this.run ? 1 : ex; } if (this.run) { if (post.compMat) post.compMat.uniforms.night.value = 0; this.cam0.clearViewOffset(); post.render(this.run.scene, this.run.cam, this.world.time); return; }
       if (this.set.night && post.compMat) post.compMat.uniforms.night.value = this.nightK ?? this.set.night; /* the moonlit night grade */ const w = innerWidth, h = innerHeight, c = this.cam0, k = sm01((this.t - (this.T - 1.1)) / 1.0); if (k > 0) { if (this.port) c.setViewOffset(w, h, 0, h * 0.26 * k, w, h); else c.setViewOffset(w, h, w * 0.13 * k, 0, w, h); } else c.clearViewOffset();
       post.render(this.scene, c, this.world.time); }
-    dispose() { if (this.run) { this.run.dispose(); this.run = null; } this.scene.traverse(o => { if ((o.isMesh || o.isPoints || o.isSprite) && o.geometry && !Object.values(GEO).includes(o.geometry)) o.geometry.dispose();
+    dispose() { if (this.run) { this.run.dispose(); this.run = null; } this.scene.traverse(o => { if (o.isSkinnedMesh && o.skeleton) o.skeleton.dispose(); });
+      this.scene.traverse(o => { if ((o.isMesh || o.isPoints || o.isSprite) && o.geometry && !Object.values(GEO).includes(o.geometry)) o.geometry.dispose();
         if (o.isMesh && o.material && !Object.values(MAT).includes(o.material) && !Object.values(SPR.mat || {}).includes(o.material)) { const ms = Array.isArray(o.material) ? o.material : [o.material]; ms.forEach(m => { if (m && m.map && m.map.isCanvasTexture && !Object.values(TEX).includes(m.map)) this.own.push(m.map); }); } });
       for (const t of new Set(this.own)) t.dispose(); for (const m of this.mats) m.dispose(); }
   }
@@ -3943,15 +4198,18 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         for (const sx of [x0, x1]) { const p = new THREE.Mesh(new THREE.PlaneGeometry(zF - zB, h), MAT.glassSide); p.rotation.y = Math.PI / 2; p.position.set(sx, cy, (zF + zB) / 2); p.renderOrder = 2; tank.add(p); }
         const front = new THREE.Mesh(new THREE.PlaneGeometry(w, h), MAT.glassFront); front.position.set(cx, cy, zF); front.renderOrder = 5; tank.add(front);
         // slim teal frame with little brass corner caps
-        if (this.newArt) MAT.trimN.color.set(WS.trim); const trimM = this.newArt ? MAT.trimN : MAT.trim, bar = (lx, ly, lz, px, py, pz) => { const m = new THREE.Mesh(new THREE.BoxGeometry(lx, ly, lz), trimM); m.position.set(px, py, pz); m.castShadow = true; tank.add(m); return m; };
-        const T2 = this.newArt ? 0.15 : 0.12;
-        for (const sx of [x0, x1]) for (const sz of [zF, zB]) bar(T2, h + T2, T2, sx, cy, sz);           // four upright edges
-        for (const sz of [zF, zB]) bar(w + T2, T2, T2, cx, yT, sz);                                       // top rims
+        if (this.newArt) { MAT.trimN.color.set(WS.trim); vaultMats(WS.trim); } const trimM = this.newArt ? MAT.vaultStone : MAT.trim, bar = (lx, ly, lz, px, py, pz, m0) => { const m = new THREE.Mesh(new THREE.BoxGeometry(lx, ly, lz), m0 || trimM); m.position.set(px, py, pz); m.castShadow = true; tank.add(m); return m; };
+        const T2 = this.newArt ? 0.15 : 0.12, TF = this.newArt ? 0.34 : T2;
+        for (const sx of [x0, x1]) for (const sz of [zF, zB]) bar(sz === zF ? TF : T2, h + T2, sz === zF ? TF * 0.8 : T2, sx, cy, sz);   // four upright edges (stone pillars in front)
+        for (const sz of [zF, zB]) bar(w + (sz === zF ? TF : T2), sz === zF ? TF : T2, sz === zF ? TF * 0.8 : T2, cx, yT, sz);         // the lintel and the back rim
         for (const sx of [x0, x1]) bar(T2, T2, zF - zB + T2, sx, yT, (zF + zB) / 2);                      // top side rims
-        for (const sx of [x0, x1]) for (const sz of [zF, zB]) { const cap = new THREE.Mesh(new THREE.SphereGeometry(this.newArt ? 0.14 : 0.11, 16, 10), MAT.trimCap); cap.position.set(sx, yT, sz); tank.add(cap); }
+        if (this.newArt) { const zf = zF + TF * 0.4 + 0.006; for (const sx of [x0, x1]) bar(0.045, h - 0.3, 0.02, sx, cy, zf, MAT.vaultBrass); bar(w - 0.3, 0.045, 0.02, cx, yT, zf, MAT.vaultBrass); // brass inlay
+          for (const sx of [x0, x1]) { bar(TF + 0.16, 0.36, TF + 0.06, sx, yT, zF); bar(TF + 0.16, 0.3, TF + 0.06, sx, yB + 0.12, zF); const md = runeDisc(0.25); md.position.set(sx, yT, zF + TF * 0.5 + 0.04); tank.add(md); } /* block capitals + bases, rune medallions */
+          const ks = bar(0.8, 0.56, TF * 0.95, cx, yT + 0.1, zF); const kr = runeDisc(0.21); kr.position.set(cx, yT + 0.1, zF + TF * 0.48 + 0.04); tank.add(kr); this.keystone = kr; }
+        for (const sx of [x0, x1]) for (const sz of this.newArt ? [zB] : [zF, zB]) { const cap = new THREE.Mesh(new THREE.SphereGeometry(this.newArt ? 0.14 : 0.11, 16, 10), MAT.trimCap); cap.position.set(sx, yT, sz); tank.add(cap); }
         // stone plinth the tank stands on, resting on the seabed
-        const pl = new THREE.Mesh(roundedBox(w + 0.7, 0.85, 1.3, 0.12), this.newArt ? [MAT.plinthN, MAT.plinthSideN] : [MAT.plinth, MAT.plinthSide]); pl.position.set(cx, yB - 0.42, 0); pl.castShadow = pl.receiveShadow = true; tank.add(pl);
-        bar(w + 0.3, 0.1, zF - zB + 0.25, cx, yB - 0.02, 0).material = MAT.trim;
+        const pl = new THREE.Mesh(roundedBox(w + 0.7, 0.85, 1.3, 0.12), this.newArt ? [MAT.vaultBase, MAT.vaultBaseSide] : [MAT.plinth, MAT.plinthSide]); pl.position.set(cx, yB - 0.42, 0); pl.castShadow = pl.receiveShadow = true; tank.add(pl);
+        bar(w + 0.3, 0.1, zF - zB + 0.25, cx, yB - 0.02, 0).material = this.newArt ? MAT.vaultBrass : MAT.trim;
         this.pump = null; this.streams = null; if (this.newArt) this.buildPremiumTank(tank, { x0, x1, yT, yB, cx, cy, w, h, zF, zB });
         if (false) { const c = document.createElement('canvas'); c.width = 1024; c.height = 160; const g = c.getContext('2d'), idx = LEVELS.findIndex(l => l.name === e.name) + 1;
           const gr = g.createLinearGradient(0, 0, 0, 160); gr.addColorStop(0, '#ffe7a3'); gr.addColorStop(0.45, '#d9a63c'); gr.addColorStop(1, '#8a5a17');
@@ -5050,7 +5308,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.post.render(this.scene, this.camera, this.time); }
   }
   // resolves once every image the scenes use is decoded (the loading screen waits on it), reporting progress 0..1
-  function ready(onProgress) { const cast = window.AQ_CAST ? Object.keys(window.AQ_CAST).map(k => castGeo(k).tex.image) : []; if (window.AQ_KEEPER && glbData()) { makeKeeper(); cast.push(TEX.keeper.image); } // the Meshy cast decodes behind the loader (no black first frame)
+  function ready(onProgress) { const cast = window.AQ_CAST ? Object.keys(window.AQ_CAST).map(k => castGeo(k).tex.image) : []; if (window.AQ_KEEPER && glbData()) { makeKeeper(); cast.push(TEX.keeper.image); } if (window.AQ_GRIM) { grimGeo(); cast.push(TEX.grim.map.image, TEX.grim.glow.image); if (TEX.grim.nrm) cast.push(TEX.grim.nrm.image); } // the Meshy cast decodes behind the loader (no black first frame)
     const ims = [...Object.values(SPR.img), ...new Set(PHOTO_W), ...cast]; let done = 0;
     return Promise.all(ims.map(im => (im.decode ? im.decode() : Promise.resolve()).catch(() => {}).then(() => { done++; if (onProgress) onProgress(done / ims.length); }))); }
   // small 3D icons for menus (How to play): the real stone and a block of the real sand, drawn through the shared context
@@ -5648,11 +5906,11 @@ window.__T = T;
 
   // ---- levels ----
   // the story inside each level (tools: scratchpad story_v4.py → docs/story.md): beats, the line said when a dive fails, the Keeper’s memories
-  const LEVEL_BEATS = [null, [{"on": "s", "who": "", "text": "Dig into the sand. Push the red pearl into the gate."}, {"on": "g", "who": "", "text": "The gate is awake! Swim in!"}], [{"on": "s", "who": "pip", "text": "Psst, Spark! Stones fall if you dig under them. Don’t be under them!"}, {"on": "p", "who": "pip", "text": "Ooh, I felt that! My glow tickles!", "fx": "glow"}, {"on": "g", "who": "pip", "text": "Two gates! Look, look, I’m sparkling!"}], [{"on": "s", "who": "pip", "text": "A giant eel who drinks light… Nope. Not thinking about it. Digging!"}, {"on": "m", "who": "pip", "text": "Did… did something just blink out there?", "fx": "eyes"}, {"on": "g", "who": "shelly", "text": "Well done, little one. Now swim in, before my old bones get cold."}], [{"on": "s", "who": "clack", "text": "Crew! Escort the gate-waker! Eyes sharp, claws sharper!"}, {"on": "p", "who": "clack", "text": "A fine push! I taught you that. I didn’t. But I would have."}, {"on": "g", "who": "pip", "text": "Four gates! Take that, Grimtide!"}], [{"on": "s", "who": "snip", "text": "Well, well. A little light. Snap, look! A snack!", "fx": "eyes"}, {"on": "p", "who": "pip", "text": "Don’t listen to them, Spark! Drop a stone on them!"}, {"on": "g", "who": "clack", "text": "HA! Five gates! Hear that? The jellies are singing!"}], [{"on": "s", "who": "pip", "text": "Jellyfish float up and down. Wait for the gap… then go!"}, {"on": "m", "who": "clack", "text": "Patience, gate-waker. A good captain waits for the tide."}, {"on": "g", "who": "pip", "text": "Six! The wreck is right there!"}], [{"on": "s", "who": "pip", "text": "The map says this gate has a keystone. Careful where you dig."}, {"on": "m", "who": "pip", "text": "Spark… do you see that glow over there? It’s so pretty…", "fx": "flicker"}, {"on": "g", "who": "grimtide", "text": "Yes, little light. Come and see the pretty glow…", "fx": "eyes"}], [{"on": "s", "who": "pip", "text": "My glow is so faint… Stay close to me, okay?", "fx": "ink"}, {"on": "m", "who": "clack", "text": "No map, no problem! I have an excellent sense of direction. Mostly."}, {"on": "g", "who": "pip", "text": "We found it without the map! We actually did it!"}], [{"on": "s", "who": "pip", "text": "Ink everywhere… He came this way.", "fx": "ink"}, {"on": "m", "who": "grimtide", "text": "I can smell your little lamp from here.", "fx": "tail"}, {"on": "g", "who": "pip", "text": "Nine! The torn map piece is close. I can feel it!"}], [{"on": "s", "who": "snap", "text": "Last gate of the Shallows, little light. Shame you won’t reach it."}, {"on": "m", "who": "snip", "text": "Boss says hurry it up, Snap! Shake the tank!", "fx": "quake"}, {"on": "g", "who": "pip", "text": "Ten gates. Hold my fin, Spark. Here comes the cliff…"}], [{"on": "s", "who": "grimtide", "text": "Little light… turn back.", "fx": "eyes", "cut": true}, {"on": "m", "who": "pip", "text": "Every crystal we light, he sees us. So let’s light them ALL."}, {"on": "g", "who": "pip", "text": "Eleven! Ha! He can echo all he likes!"}], [{"on": "s", "who": "shelly", "text": "Breathe slow, little one. Air is precious this deep."}, {"on": "p", "who": "pip", "text": "That pearl is for the silent clam. I just know it."}, {"on": "g", "who": "pip", "text": "Twelve. Why does the water feel so heavy?", "fx": "flicker"}], [{"on": "s", "who": "pip", "text": "Something’s wrong. The water’s going dark…", "fx": "flicker"}, {"on": "m", "who": "grimtide", "text": "I’m coming for you, little light.", "fx": "quake"}, {"on": "g", "who": "shelly", "text": "Swim in, quickly! Something huge is coming!", "fx": "eyes"}], [{"on": "s", "who": "pip", "text": "Shelly would want us to keep going. So we keep going.", "fx": "ink"}, {"on": "m", "who": "clack", "text": "She’s sleeping sound, gate-waker! I’ve got her!"}, {"on": "g", "who": "pip", "text": "Fourteen. Rest well, Shelly."}], [{"on": "s", "who": "pip", "text": "For Shelly. Let’s go!"}, {"on": "m", "who": "mira", "text": "Steady, little one. Every gate you wake reaches her too."}, {"on": "g", "who": "pip", "text": "Fifteen gates! She’d be so proud of us."}], [{"on": "s", "who": "pip", "text": "That poor octopus… and why did he ask about your lamp?"}, {"on": "m", "who": "grimtide", "text": "Murk! Back to work!", "fx": "tail"}, {"on": "g", "who": "pip", "text": "Sixteen. Whatever it takes, Spark. We free him."}], [{"on": "s", "who": "pip", "text": "Light that’s given away… How do you give light away?"}, {"on": "p", "who": "pip", "text": "Wait. Every pearl we give the gate… is light, given away!", "fx": "glow"}, {"on": "g", "who": "pip", "text": "Seventeen! Look, pearls rising from the sand!"}], [{"on": "s", "who": "murk", "text": "This way… the pearls will guide you…"}, {"on": "m", "who": "grimtide", "text": "Murk… who are you whispering to?", "fx": "eyes"}, {"on": "g", "who": "pip", "text": "Eighteen! Someone’s coming… my cousins?", "fx": "fish"}], [{"on": "s", "who": "cousin", "text": "Race you to the gate, Pip! Last one in is a sea slug!"}, {"on": "p", "who": "pip", "text": "Shelly’s okay! I can’t stop smiling!", "fx": "glow"}, {"on": "g", "who": "cousin", "text": "Nooo, you won! Okay, rematch at the Lantern!"}], [{"on": "s", "who": "pip", "text": "He’s wrapped around the Lantern… What did he mean, “setting the table”?", "fx": "eyes"}, {"on": "m", "who": "grimtide", "text": "Hurry, little light. I’m hungry.", "fx": "quake"}, {"on": "g", "who": "pip", "text": "Twenty. The Deep is next. Stay close."}], [{"on": "s", "who": "lumen", "text": "Shh! Sleeping piranhas. Tiptoe, my friends. Tippy-tippy-toe."}, {"on": "m", "who": "snip", "text": "Huh? Snap… do you smell lamp?"}, {"on": "g", "who": "lumen", "text": "Twenty-one! Bravo! Bravissimo!"}], [{"on": "s", "who": "clack", "text": "Captain on deck! Now, where’s this gate I keep hearing about?"}, {"on": "p", "who": "lumen", "text": "Listen! Old Bellow sings louder with every pearl!"}, {"on": "g", "who": "clack", "text": "Twenty-two! Grimtide’s getting weaker, crew!"}], [{"on": "s", "who": "lumen", "text": "The pressure’s strong down here. Watch your air, Keeper."}, {"on": "m", "who": "pip", "text": "Your lamp, Spark… it’s really hers. That’s amazing. And kind of scary."}, {"on": "g", "who": "pip", "text": "Twenty-three. Murk, we’re coming!"}], [{"on": "s", "who": "grimtide", "text": "I see you, little light.", "fx": "eyes", "cut": true}, {"on": "m", "who": "pip", "text": "Stay close, Spark. Something feels wrong today.", "fx": "flicker"}, {"on": "g", "who": "pip", "text": "Twenty-four! Look how bright it is! Wait… what’s that shadow?", "fx": "tail"}], [{"on": "s", "who": "shelly", "text": "For Clack. For Pip. Wake this gate."}, {"on": "m", "who": "grimtide", "text": "Your little seahorse is crying for you. How sweet.", "fx": "eyes"}, {"on": "g", "who": "shelly", "text": "Hold on, Pip. We’re coming!"}], [{"on": "s", "who": "shelly", "text": "Murk’s den is close. I can hear Pip."}, {"on": "m", "who": "pip", "text": "Spark? Is that you? Hurry!"}, {"on": "g", "who": "shelly", "text": "Twenty-six. Now, to Pip!"}], [{"on": "s", "who": "pip", "text": "Thank you for coming for me. Now let’s finish this!"}, {"on": "m", "who": "murk", "text": "The undertow pulls hard here. Trust it, and you’ll find the way."}, {"on": "g", "who": "murk", "text": "Twenty-seven. His lair is near."}], [{"on": "s", "who": "lumen", "text": "Look behind you! The whole Deep is glowing!", "fx": "fish"}, {"on": "m", "who": "grimtide", "text": "Shine, little lights. Shine for my feast.", "fx": "tail"}, {"on": "g", "who": "pip", "text": "Twenty-eight! Everyone is with us!", "fx": "glow"}], [{"on": "s", "who": "grimtide", "text": "Turn back, Keeper’s child. Or lose everything.", "fx": "eyes", "cut": true}, {"on": "m", "who": "murk", "text": "He’s afraid. I can feel it. Keep going!", "fx": "quake"}, {"on": "g", "who": "murk", "text": "One gate left. Let’s end this."}], [{"on": "s", "who": "pip", "text": "This is it. The last gate. Ready, Spark?"}, {"on": "p", "who": "snip", "text": "Uh… Snap? I think we picked the wrong side."}, {"on": "m", "who": "grimtide", "text": "Faster, little light! Give me my Heart!", "fx": "quake"}, {"on": "g", "who": "pip", "text": "Now! Swim in, and give the light away!"}]];
+  const LEVEL_BEATS = [null, [{"on": "s", "who": "", "text": "Dig into the sand. Push the red pearl into the gate."}, {"on": "g", "who": "", "text": "The gate is awake! Swim in!"}], [{"on": "s", "who": "pip", "text": "Psst, Spark! Stones fall if you dig under them. Don’t be under them!"}, {"on": "p", "who": "pip", "text": "Ooh, I felt that! My glow tickles!", "fx": "glow"}, {"on": "g", "who": "pip", "text": "Two gates! Look, look, I’m sparkling!"}], [{"on": "s", "who": "pip", "text": "A giant eel who drinks light… Nope. Not thinking about it. Digging!"}, {"on": "m", "who": "pip", "text": "Did… did something just blink out there?", "fx": "eyes"}, {"on": "g", "who": "shelly", "text": "Well done, little one. Now swim in, before my old bones get cold."}], [{"on": "s", "who": "clack", "text": "Crew! Escort the gate-waker! Eyes sharp, claws sharper!"}, {"on": "p", "who": "clack", "text": "A fine push! I taught you that. I didn’t. But I would have."}, {"on": "g", "who": "pip", "text": "Four gates! Take that, Grimtide!"}], [{"on": "s", "who": "snip", "text": "Well, well. A little light. Snap, look! A snack!", "fx": "eyes"}, {"on": "p", "who": "pip", "text": "Don’t listen to them, Spark! Drop a stone on them!"}, {"on": "g", "who": "clack", "text": "HA! Five gates! Hear that? The jellies are singing!"}], [{"on": "s", "who": "pip", "text": "Jellyfish float up and down. Wait for the gap… then go!"}, {"on": "m", "who": "clack", "text": "Patience, gate-waker. A good captain waits for the tide."}, {"on": "g", "who": "pip", "text": "Six! The wreck is right there!"}], [{"on": "s", "who": "pip", "text": "The map says this gate has a keystone. Careful where you dig."}, {"on": "m", "who": "pip", "text": "Spark… do you see that glow over there? It’s so pretty…", "fx": "flicker"}, {"on": "g", "who": "grimtide", "text": "Yes, little light. Come and see the pretty glow…", "fx": "eyes"}], [{"on": "s", "who": "pip", "text": "My glow is so faint… Stay close to me, okay?", "fx": "ink"}, {"on": "m", "who": "clack", "text": "No map, no problem! I have an excellent sense of direction. Mostly."}, {"on": "g", "who": "pip", "text": "We found it without the map! We actually did it!"}], [{"on": "s", "who": "pip", "text": "Ink everywhere… He came this way.", "fx": "ink"}, {"on": "m", "who": "grimtide", "text": "I can smell your little lamp from here.", "fx": "tail"}, {"on": "g", "who": "pip", "text": "Nine! The torn map piece is close. I can feel it!"}], [{"on": "s", "who": "snap", "text": "Last gate of the Shallows, little light. Shame you won’t reach it."}, {"on": "m", "who": "snip", "text": "Boss says hurry it up, Snap! Shake the vault!", "fx": "quake"}, {"on": "g", "who": "pip", "text": "Ten gates. Hold my fin, Spark. Here comes the cliff…"}], [{"on": "s", "who": "grimtide", "text": "Little light… turn back.", "fx": "eyes", "cut": true}, {"on": "m", "who": "pip", "text": "Every crystal we light, he sees us. So let’s light them ALL."}, {"on": "g", "who": "pip", "text": "Eleven! Ha! He can echo all he likes!"}], [{"on": "s", "who": "shelly", "text": "Breathe slow, little one. Air is precious this deep."}, {"on": "p", "who": "pip", "text": "That pearl is for the silent clam. I just know it."}, {"on": "g", "who": "pip", "text": "Twelve. Why does the water feel so heavy?", "fx": "flicker"}], [{"on": "s", "who": "pip", "text": "Something’s wrong. The water’s going dark…", "fx": "flicker"}, {"on": "m", "who": "grimtide", "text": "I’m coming for you, little light.", "fx": "quake"}, {"on": "g", "who": "shelly", "text": "Swim in, quickly! Something huge is coming!", "fx": "eyes"}], [{"on": "s", "who": "pip", "text": "Shelly would want us to keep going. So we keep going.", "fx": "ink"}, {"on": "m", "who": "clack", "text": "She’s sleeping sound, gate-waker! I’ve got her!"}, {"on": "g", "who": "pip", "text": "Fourteen. Rest well, Shelly."}], [{"on": "s", "who": "pip", "text": "For Shelly. Let’s go!"}, {"on": "m", "who": "mira", "text": "Steady, little one. Every gate you wake reaches her too."}, {"on": "g", "who": "pip", "text": "Fifteen gates! She’d be so proud of us."}], [{"on": "s", "who": "pip", "text": "That poor octopus… and why did he ask about your lamp?"}, {"on": "m", "who": "grimtide", "text": "Murk! Back to work!", "fx": "tail"}, {"on": "g", "who": "pip", "text": "Sixteen. Whatever it takes, Spark. We free him."}], [{"on": "s", "who": "pip", "text": "Light that’s given away… How do you give light away?"}, {"on": "p", "who": "pip", "text": "Wait. Every pearl we give the gate… is light, given away!", "fx": "glow"}, {"on": "g", "who": "pip", "text": "Seventeen! Look, pearls rising from the sand!"}], [{"on": "s", "who": "murk", "text": "This way… the pearls will guide you…"}, {"on": "m", "who": "grimtide", "text": "Murk… who are you whispering to?", "fx": "eyes"}, {"on": "g", "who": "pip", "text": "Eighteen! Someone’s coming… my cousins?", "fx": "fish"}], [{"on": "s", "who": "cousin", "text": "Race you to the gate, Pip! Last one in is a sea slug!"}, {"on": "p", "who": "pip", "text": "Shelly’s okay! I can’t stop smiling!", "fx": "glow"}, {"on": "g", "who": "cousin", "text": "Nooo, you won! Okay, rematch at the Lantern!"}], [{"on": "s", "who": "pip", "text": "He’s wrapped around the Lantern… What did he mean, “setting the table”?", "fx": "eyes"}, {"on": "m", "who": "grimtide", "text": "Hurry, little light. I’m hungry.", "fx": "quake"}, {"on": "g", "who": "pip", "text": "Twenty. The Deep is next. Stay close."}], [{"on": "s", "who": "lumen", "text": "Shh! Sleeping piranhas. Tiptoe, my friends. Tippy-tippy-toe."}, {"on": "m", "who": "snip", "text": "Huh? Snap… do you smell lamp?"}, {"on": "g", "who": "lumen", "text": "Twenty-one! Bravo! Bravissimo!"}], [{"on": "s", "who": "clack", "text": "Captain on deck! Now, where’s this gate I keep hearing about?"}, {"on": "p", "who": "lumen", "text": "Listen! Old Bellow sings louder with every pearl!"}, {"on": "g", "who": "clack", "text": "Twenty-two! Grimtide’s getting weaker, crew!"}], [{"on": "s", "who": "lumen", "text": "The pressure’s strong down here. Watch your air, Keeper."}, {"on": "m", "who": "pip", "text": "Your lamp, Spark… it’s really hers. That’s amazing. And kind of scary."}, {"on": "g", "who": "pip", "text": "Twenty-three. Murk, we’re coming!"}], [{"on": "s", "who": "grimtide", "text": "I see you, little light.", "fx": "eyes", "cut": true}, {"on": "m", "who": "pip", "text": "Stay close, Spark. Something feels wrong today.", "fx": "flicker"}, {"on": "g", "who": "pip", "text": "Twenty-four! Look how bright it is! Wait… what’s that shadow?", "fx": "tail"}], [{"on": "s", "who": "shelly", "text": "For Clack. For Pip. Wake this gate."}, {"on": "m", "who": "grimtide", "text": "Your little seahorse is crying for you. How sweet.", "fx": "eyes"}, {"on": "g", "who": "shelly", "text": "Hold on, Pip. We’re coming!"}], [{"on": "s", "who": "shelly", "text": "Murk’s den is close. I can hear Pip."}, {"on": "m", "who": "pip", "text": "Spark? Is that you? Hurry!"}, {"on": "g", "who": "shelly", "text": "Twenty-six. Now, to Pip!"}], [{"on": "s", "who": "pip", "text": "Thank you for coming for me. Now let’s finish this!"}, {"on": "m", "who": "murk", "text": "The undertow pulls hard here. Trust it, and you’ll find the way."}, {"on": "g", "who": "murk", "text": "Twenty-seven. His lair is near."}], [{"on": "s", "who": "lumen", "text": "Look behind you! The whole Deep is glowing!", "fx": "fish"}, {"on": "m", "who": "grimtide", "text": "Shine, little lights. Shine for my feast.", "fx": "tail"}, {"on": "g", "who": "pip", "text": "Twenty-eight! Everyone is with us!", "fx": "glow"}], [{"on": "s", "who": "grimtide", "text": "Turn back, Keeper’s child. Or lose everything.", "fx": "eyes", "cut": true}, {"on": "m", "who": "murk", "text": "He’s afraid. I can feel it. Keep going!", "fx": "quake"}, {"on": "g", "who": "murk", "text": "One gate left. Let’s end this."}], [{"on": "s", "who": "pip", "text": "This is it. The last gate. Ready, Spark?"}, {"on": "p", "who": "snip", "text": "Uh… Snap? I think we picked the wrong side."}, {"on": "m", "who": "grimtide", "text": "Faster, little light! Give me my Heart!", "fx": "quake"}, {"on": "g", "who": "pip", "text": "Now! Swim in, and give the light away!"}]];
   // story conditions per level (look only): dim after the map is stolen, lights out after Shelly falls / in Grimtide's dark,
   // the storm rumbling on, ink drifting from Murk's prison
   const LEVEL_COND = { 8: 'dim', 9: 'dim', 13: 'storm', 14: 'dark', 16: 'ink', 18: 'ink', 24: 'dark', 25: 'dark', 26: 'ink', 29: 'storm', 30: 'storm' };
-  const COND_CHIP = { dim: ['🌘', 'Dim water', 'the lights are fading'], dark: ['🔦', 'Lights out', 'only your lamp'], storm: ['⛈️', 'Storm', 'the tank will shake'], ink: ['🦑', 'Ink', 'Murk’s ink drifts by'] };
+  const COND_CHIP = { dim: ['🌘', 'Dim water', 'the lights are fading'], dark: ['🔦', 'Lights out', 'only your lamp'], storm: ['⛈️', 'Storm', 'the vault will shake'], ink: ['🦑', 'Ink', 'Murk’s ink drifts by'] };
   let condT = 0;
   const LEVEL_MOOD = [null, {"pip": null, "ink": false, "eyes": 0}, {"pip": 0.26666666666666666, "ink": false, "eyes": 0}, {"pip": 0.30000000000000004, "ink": false, "eyes": 0}, {"pip": 0.33333333333333337, "ink": false, "eyes": 0}, {"pip": 0.3666666666666667, "ink": false, "eyes": 0}, {"pip": 0.4, "ink": false, "eyes": 0}, {"pip": 0.43333333333333335, "ink": false, "eyes": 0}, {"pip": 0.15, "ink": true, "eyes": 0}, {"pip": 0.15, "ink": true, "eyes": 0}, {"pip": 0.5333333333333333, "ink": true, "eyes": 0}, {"pip": 0.5666666666666667, "ink": false, "eyes": 0.35}, {"pip": 0.6000000000000001, "ink": false, "eyes": 0.35}, {"pip": 0.6333333333333333, "ink": true, "eyes": 0.35}, {"pip": 0.6666666666666667, "ink": true, "eyes": 0.35}, {"pip": 0.7, "ink": false, "eyes": 0.35}, {"pip": 0.7333333333333334, "ink": false, "eyes": 0.35}, {"pip": 0.7666666666666666, "ink": false, "eyes": 0.35}, {"pip": 0.8, "ink": false, "eyes": 0.35}, {"pip": 0.8333333333333333, "ink": false, "eyes": 0.35}, {"pip": 0.8666666666666667, "ink": false, "eyes": 0.6}, {"pip": 0.8999999999999999, "ink": false, "eyes": 0.6}, {"pip": 0.9333333333333333, "ink": false, "eyes": 0.6}, {"pip": 0.9666666666666668, "ink": false, "eyes": 0.6}, {"pip": 1, "ink": false, "eyes": 1}, {"pip": null, "ink": true, "eyes": 1}, {"pip": null, "ink": false, "eyes": 1}, {"pip": 1, "ink": false, "eyes": 1}, {"pip": 1, "ink": false, "eyes": 1}, {"pip": 1, "ink": false, "eyes": 1}, {"pip": 1, "ink": false, "eyes": 1}];
   const LEVEL_STORY = [null, "The storm ate every light in the reef. Wake the very first gate.", "Pip saw red eyes inside the storm. Find the gate under the falling stones.", "Grimtide once took the reef’s light as tribute. Shelly says he’s back. Hurry.", "Captain Clack’s crew saw a dark tail drag pearls this way. Two roads. Choose well.", "The jellies are humming. Get past Grimtide’s piranha and wake gate five.", "Something glints inside the wreck. Wake this gate to reach it.", "You have the Keeper’s map. And something is glowing in the dark nearby…", "The map is gone and Pip’s glow is fading. Find this gate on your own.", "A torn piece of the map drifted this way. Get past the claws.", "The last gate of the Shallows sits on the edge of a cliff. Snip and Snap are watching.", "Grimtide sees every crystal you light. Light them anyway.", "A clam lost its song. Air is short in this deep cave.", "The water is going dark. Something huge is coming.", "Shelly is hurt. Clack guards her. Wake the next gate for her.", "Mira carried you over the canyon. Shelly said: don’t look back.", "A prisoner in ink chains was dragged through here. He asked about your lamp.", "Light that’s given away. That’s how you beat him. Remember it.", "Murk is dropping pearls to guide you. Grimtide is getting suspicious.", "Shelly is okay! Race Pip’s cousins to the bottom of the pit.", "Grimtide is coiled around the Great Lantern. What did he mean, “setting the table”?", "Lumen lights your way into the Deep, past a shoal of sleeping piranhas.", "Old Bellow is singing, and Clack is back! Wake gate twenty-two.", "The mural showed the Keeper wearing your lamp. The Deep presses in; air is short.", "Grimtide is furious. A gauntlet of stones guards this gate. Stay close to Pip.", "Pip is gone. Clack is gone. Shelly is here. Wake this gate for them.", "Pip is caged in Murk’s den. The citadel of stones is the hardest yet.", "Murk is free and on your side. The undertow pulls everything down.", "The whole Deep is waking up behind you. It’s a long way down.", "Grimtide wants the Lantern full. Wake the gate anyway. You have a plan.", "The last gate. Give the light away, and finish Grimtide."];
@@ -5665,14 +5923,14 @@ window.__T = T;
     if (seq && !lv.map.some(r => r.includes('A'))) { try { const e = new Engine(lv), M = { U: 'up', D: 'down', L: 'left', R: 'right' }, ex = seq.includes('.'); let n = 0, last = 0, span = 0;
         const tk = () => { e.step(); n++; if (e.player && e.player.y <= 1) { span = Math.max(span, n - last); last = n; } };
         for (const c of seq) { if (c !== '.') e.press(M[c]); tk(); if (!ex) for (let k = 0; k < 6 && e.state === 'playing'; k++) { let mv = false; for (const o of e.objects.values()) if (o.falling) mv = true; if (!mv) break; tk(); } if (e.state !== 'playing') break; }
-        span = Math.max(span, n - last); if (e.state === 'won') L = Math.min(e.time, Math.max(35, span * e.tickMs / 1000 * 4 + 25)); } catch (er) { L = Infinity; } }
+        span = Math.max(span, n - last); if (e.state === 'won') { const k = Math.min(1, i / 29); L = Math.min(e.time, Math.max(32 - 8 * k, span * e.tickMs / 1000 * (3.4 - 1.5 * k) + 22 - 10 * k)); } } /* air tightens through the game: roomy early, close to the route late */ catch (er) { L = Infinity; } }
     return LUNG[i] = L; }
   const airCap = e => Math.min(e.time, e.lung);
   function starFrac(e) { if (!(e.lung < 1e9)) return e.oxygen / e.time; const el = e.begun ? ((e.state === 'won' ? e.wonAt : e.tick) - (e.begunAt || 0)) * e.tickMs / 1000 : 0; return 1 - el / e.time; }
   let breathTip = {};
   function breathCue() { const el = $('#breathCue'); if (!el) return; const e = engine, on = !!(e && e.lung < 1e9 && !e.relaxed && e.begun && state === 'playing' && e.state === 'playing' && e.player && e.player.y > 1 && e.oxygen < airCap(e) * 0.4);
     world.setBreathHint(e && e.lung < 1e9 && e.state === 'playing' ? (on ? 1 : e.oxygen < airCap(e) * 0.6 ? 0.35 : 0) : 0);
-    if (el.classList.contains('on') !== on) { el.classList.toggle('on', on); if (on && !breathTip[levelIdx]) { breathTip[levelIdx] = 1; toast('Low on air! Swim up to the **top of the tank** to breathe.'); if (hasVo('t_breathe')) Audio.vo('t_breathe'); } }
+    if (el.classList.contains('on') !== on) { el.classList.toggle('on', on); if (on && !breathTip[levelIdx]) { breathTip[levelIdx] = 1; toast('Low on air! Swim up to the **air pocket** under the vault roof to breathe.'); if (hasVo('t_breathe')) Audio.vo('t_breathe'); } }
     if (on) { const [x, y] = world.toScreen(e.player.x, e.player.y - 0.95); el.style.transform = `translate(${x.toFixed(0)}px, ${y.toFixed(0)}px)`; } }
   function startLevel(i, custom) { storyEnd(); arriveNext = false; if (TUT.on) { TUT.on = false; Audio.stopVo(); $('#tut').classList.remove('on'); world.focus = null; }
     if (typeof booting !== 'undefined' && booting) dropLoader();
@@ -5707,7 +5965,7 @@ window.__T = T;
     0: [{ at: 'player', id: 't1a', k: 'Meet the diver', text: 'This is **you**. Swim, dig and push your way to the gate.' },
         { at: 'ball', id: 't1b', k: 'Energy pearl', text: 'This red pearl is **full of light**. The gate needs it.' },
         { at: 'gate', id: 't1c', k: 'The gate', text: '**Push the pearl in** to wake the gate, then swim in yourself.' },
-        { at: '#hud .air', id: 't1d2', k: 'Your air', text: 'Your air runs down as you dive. **Swim up to the top** of the tank to breathe again.' },
+        { at: '#hud .air', id: 't1d2', k: 'Your air', text: 'Your air runs down as you dive. **Swim up to the air pocket** under the vault roof to breathe again.' },
         { at: 'player', id: 't1e', k: 'How to swim', text: () => touchUI() ? '**Swipe** to swim. Swim into sand to **dig** through it.' : 'Use the **arrow keys** to swim. Swim into sand to **dig** through it.' }],
     1: [{ at: 'rock', id: 't2a', k: 'New: stones', text: 'Take the sand away **under a stone** and it falls.' },
         { at: 'player', id: 't2b', k: 'Stay safe', text: '**Never stand right under** a stone!' }],
@@ -6676,7 +6934,7 @@ window.__T = T;
       const el = $('#ldHint'); let hi = Math.floor(Math.random() * H.length); const nx = () => { if (!el) return; el.classList.add('out'); setTimeout(() => { el.innerHTML = '<b>Tip</b> · ' + H[hi++ % H.length]; el.classList.remove('out'); }, 350); };
       if (el) { el.innerHTML = '<b>Tip</b> · ' + H[hi++ % H.length]; boot.tipT = setInterval(nx, 3400); } }
     try {
-      prog(0.04, 'Filling the tank…'); await World.ready(k => prog(0.04 + k * 0.46));
+      prog(0.04, 'Waking the vaults…'); await World.ready(k => prog(0.04 + k * 0.46));
       // tune graphics first, on one of the busiest levels, so every level below is warmed at the tier the device will really use
       if (gfxMode() === 'auto') { if (!booting) return; prog(0.5, 'Tuning graphics for your device…'); await pause(); if (!booting) return;
         try { const eb = new Engine(LEVELS[20]); eb.time = eb.oxygen = 999; world.warm(eb); const order = ['low', 'medium', 'high', 'ultra'], ceil = world.deviceCeiling(), learned = save.settings.aqTier;
