@@ -3794,6 +3794,28 @@
    "max_seconds": 0,
    "set": "story",
    "who": "The Reef Keeper"
+  },
+  {
+   "id": "t1d2",
+   "role": "narrator",
+   "text": "[warm] Your air runs down as you dive. Swim up to the top of the tank to breathe again.",
+   "when": "Tutorial L1: the air meter (breathing)",
+   "set": "base"
+  },
+  {
+   "id": "t_breathe",
+   "role": "narrator",
+   "text": "[gently urgent] Low on air! Swim up to the top of the tank to breathe.",
+   "when": "First time the air runs low in a level",
+   "set": "base"
+  },
+  {
+   "id": "d_breathe",
+   "role": "diver",
+   "text": "[gasping, relieved] Ahh! Fresh air!",
+   "when": "The diver breathes at the surface (sometimes)",
+   "max_seconds": 1.6,
+   "set": "base"
   }
  ]
 }

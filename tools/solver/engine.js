@@ -29,6 +29,7 @@ class Engine {
     this.tscale = this.tickMs / 150;     // level air times were tuned for 150 ms ticks: scale them so difficulty stays the same
     this.time = (level.time || 120) * this.tscale;      // oxygen in seconds
     this.oxygen = this.time;
+    this.lung = Infinity; this.breathing = false;      // seconds of air one breath holds (set by the game per level; Infinity = the old single clock)
     this.grid = new Array(this.w * this.h).fill(T.EMPTY);
     this.water = new Uint8Array(this.w * this.h); // 1 = open water at level start (monsters stay in open water)
     this.obj = new Array(this.w * this.h).fill(null); // dynamic object per cell
@@ -118,6 +119,10 @@ class Engine {
     // the air clock starts with the player's first move, so reading the level (or a tutorial) costs nothing
     if (!this.begun && (this.moveQueue.length || this.held)) { this.begun = true; this.begunAt = this.tick - 1; }
     if (!this.relaxed && this.begun) this.oxygen -= this.tickMs / 1000;
+    // breathing: in the top row of the tank (just under the surface) the air refills quickly, up to one full breath
+    if (this.lung < 1e9 && this.player && this.player.y <= 1) { const cap = Math.min(this.time, this.lung);
+      if (this.oxygen < cap) { if (!this.breathing) this.emit('breathe', { x: this.player.x, y: this.player.y }); this.breathing = true; this.oxygen = Math.min(cap, this.oxygen + cap * this.tickMs / 1100); } }
+    else this.breathing = false;
     if (this.oxygen <= 0) { this.oxygen = 0; this.die('oxygen'); return; }
 
     // player
@@ -139,7 +144,7 @@ class Engine {
     const t = this.get(nx, ny);
     if (t === T.EMPTY) { this.moveObj(p, nx, ny); this.lastMoved = true; return; }
     if (t === T.SAND) { this.set(nx, ny, T.EMPTY); this.dug++; this.score += 1; this.emit('dig', { x: nx, y: ny }); this.moveObj(p, nx, ny); this.lastMoved = true; return; }
-    if (t === T.AIR) { this.set(nx, ny, T.EMPTY); this.oxygen = Math.min(this.time, this.oxygen + 30 * this.tscale); this.score += 50; this.emit('air', { x: nx, y: ny }); this.moveObj(p, nx, ny); this.lastMoved = true; return; }
+    if (t === T.AIR) { this.set(nx, ny, T.EMPTY); this.oxygen = Math.min(Math.min(this.time, this.lung), this.oxygen + 30 * this.tscale); this.score += 50; this.emit('air', { x: nx, y: ny }); this.moveObj(p, nx, ny); this.lastMoved = true; return; }
     if (t === T.GATE) {
       if (this.gate.open) { this.state = 'won'; this.wonAt = this.tick; this.score += Math.round(this.oxygen) * 10 + 500; this.emit('win', { x: nx, y: ny }); this.moveObj(p, nx, ny); }
       else this.emit('gateLocked', { x: nx, y: ny });

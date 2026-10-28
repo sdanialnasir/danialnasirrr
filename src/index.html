@@ -1856,6 +1856,14 @@ html body:is(.ui-art, :not(.ui-art)) .kit.k-cond { background: linear-gradient(1
 @keyframes rhPop { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); } 75% { opacity: 1; transform: translate(-50%, -55%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -65%) scale(1); } }
 @keyframes rhHit { from { opacity: 1; } to { opacity: 0; } } @keyframes rhBump { 50% { transform: scale(1.18); } } @keyframes rhHint { 0%, 75% { opacity: 1; } 100% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { #runHud .rh-pop.on { animation-duration: 0.01s; opacity: 1; } }
+
+/* breathing: a pulsing "↑ Breathe" tag over the diver when the air is low (position set from the frame loop) */
+#breathCue { position: fixed; left: 0; top: 0; z-index: 30; pointer-events: none; display: flex; align-items: center; gap: 0.25rem; margin: -2.6rem 0 0 -2.7rem; padding: 0.25rem 0.7rem 0.25rem 0.5rem;
+  border-radius: 2rem; background: rgba(6, 40, 90, 0.82); border: 2px solid #8ff4ff; color: #e8fdff; font: 900 0.85rem/1 var(--text, Nunito, sans-serif); letter-spacing: 0.06em; text-transform: uppercase; opacity: 0; transition: opacity .25s; box-shadow: 0 0 1rem rgba(120, 240, 255, 0.6); }
+#breathCue i { font-style: normal; font-size: 1.35rem; font-weight: 900; line-height: 0.8; color: #8ff4ff; animation: bcUp 0.9s ease-in-out infinite; }
+#breathCue.on { opacity: 1; animation: bcPulse 1.2s ease-in-out infinite; }
+@keyframes bcUp { 50% { transform: translateY(-0.25rem); } } @keyframes bcPulse { 50% { box-shadow: 0 0 1.6rem rgba(120, 240, 255, 0.95); } }
+@media (prefers-reduced-motion: reduce) { #breathCue.on, #breathCue i { animation: none; } }
 </style>
 </head>
 <body data-state="splash">
@@ -1868,6 +1876,7 @@ html body:is(.ui-art, :not(.ui-art)) .kit.k-cond { background: linear-gradient(1
 </div>
 <canvas id="c"></canvas>
 <div id="lampDark" aria-hidden="true"></div>
+<div id="breathCue" aria-hidden="true"><i>↑</i>Breathe</div>
 <div id="fx"></div>
 
 <div id="hud">

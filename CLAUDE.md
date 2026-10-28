@@ -906,3 +906,16 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   dist 11.3 → 14.4 MB. Debug: `World.castDebug()` returns the builders.
 - **Fixed:** leaving the intro by any route (`storyEnd` from startLevel/openHome) now ends it; before, the intro's prologue film stayed alive and
   kept drawing behind level 1 (geometry count 200 → 550). Films themselves free everything on `storyStop` (checked: back to ~200).
+
+## Breathing at the top of the tank (owner: "go to the top of the aquarium to breathe… boosters… not more difficult")
+- Engine: `lung` (seconds of air in one breath; `Infinity` = the old single clock, the default, so the solver/replay tools are unchanged) and
+  `breathing`. While the diver is in the top row (`y <= 1`) the air refills to `min(time, lung)` in ~1.1 s and a `breathe` event fires once per
+  breath. Air capsules refill up to the same cap.
+- Controller: `lungOf(i, lv)` replays the level's verified route once (cached) and sets lung = 4 × the longest stretch the route spends away
+  from the top row + 25 s (≥ 35 s, ≤ the old air). Levels with capsules (12, 23, 29, 30), the Daily Dive and custom levels keep the old clock.
+  Result: 35–114 s per breath. **Stars now come from dive time** (`starFrac`: ★★★ within 40% of the level's `time`, ★★ within 70%, the old
+  thresholds), so breathing can't farm stars; the air bar shows the current breath (`airCap`). Level card: "★★★ in Ns", kit chip "Ns per breath".
+- Cues: `breathCue()` from the frame loop: "↑ Breathe" tag over the diver under 40% (`#breathCue`), a soft glowing band along the top row
+  (`world.setBreathHint` → `breathBand`, additive shader plane in the level group), one toast per level the first time + voice `t_breathe`;
+  breathing shows bubbles + "Fresh air!". Tutorial step 1 reworded (voice id `t1d2`; the old `t1d` clip doesn't match any more). New voice lines
+  in tools/voices.json (base set): `t1d2`, `t_breathe`, `d_breathe` — not recorded yet.

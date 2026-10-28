@@ -32,6 +32,7 @@ class Engine {
     this.tscale = this.tickMs / 150;     // level air times were tuned for 150 ms ticks: scale them so difficulty stays the same
     this.time = (level.time || 120) * this.tscale;      // oxygen in seconds
     this.oxygen = this.time;
+    this.lung = Infinity; this.breathing = false;      // seconds of air one breath holds (set by the game per level; Infinity = the old single clock)
     this.grid = new Array(this.w * this.h).fill(T.EMPTY);
     this.water = new Uint8Array(this.w * this.h); // 1 = open water at level start (monsters stay in open water)
     this.obj = new Array(this.w * this.h).fill(null); // dynamic object per cell
@@ -121,6 +122,10 @@ class Engine {
     // the air clock starts with the player's first move, so reading the level (or a tutorial) costs nothing
     if (!this.begun && (this.moveQueue.length || this.held)) { this.begun = true; this.begunAt = this.tick - 1; }
     if (!this.relaxed && this.begun) this.oxygen -= this.tickMs / 1000;
+    // breathing: in the top row of the tank (just under the surface) the air refills quickly, up to one full breath
+    if (this.lung < 1e9 && this.player && this.player.y <= 1) { const cap = Math.min(this.time, this.lung);
+      if (this.oxygen < cap) { if (!this.breathing) this.emit('breathe', { x: this.player.x, y: this.player.y }); this.breathing = true; this.oxygen = Math.min(cap, this.oxygen + cap * this.tickMs / 1100); } }
+    else this.breathing = false;
     if (this.oxygen <= 0) { this.oxygen = 0; this.die('oxygen'); return; }
 
     // player
@@ -142,7 +147,7 @@ class Engine {
     const t = this.get(nx, ny);
     if (t === T.EMPTY) { this.moveObj(p, nx, ny); this.lastMoved = true; return; }
     if (t === T.SAND) { this.set(nx, ny, T.EMPTY); this.dug++; this.score += 1; this.emit('dig', { x: nx, y: ny }); this.moveObj(p, nx, ny); this.lastMoved = true; return; }
-    if (t === T.AIR) { this.set(nx, ny, T.EMPTY); this.oxygen = Math.min(this.time, this.oxygen + 30 * this.tscale); this.score += 50; this.emit('air', { x: nx, y: ny }); this.moveObj(p, nx, ny); this.lastMoved = true; return; }
+    if (t === T.AIR) { this.set(nx, ny, T.EMPTY); this.oxygen = Math.min(Math.min(this.time, this.lung), this.oxygen + 30 * this.tscale); this.score += 50; this.emit('air', { x: nx, y: ny }); this.moveObj(p, nx, ny); this.lastMoved = true; return; }
     if (t === T.GATE) {
       if (this.gate.open) { this.state = 'won'; this.wonAt = this.tick; this.score += Math.round(this.oxygen) * 10 + 500; this.emit('win', { x: nx, y: ny }); this.moveObj(p, nx, ny); }
       else this.emit('gateLocked', { x: nx, y: ny });
@@ -4406,6 +4411,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           { const vx = code === 1 ? 1.1 : code === 2 ? -1.1 : 0, vy = code === 3 ? -0.6 : code === 4 ? 1.1 : 0.4; // grains spray away from the diver and settle
             P.emit(x + vx * 0.25, y, 0.42, 18, { color: SAND, speed: 0.45, life: 1.1, size: 0.075, kind: 1, spread: 0.35, vx, vy: vy + 0.5 });
             P.emit(x, y, 0.44, 8, { color: new THREE.Color(0xc99a4a), speed: 0.3, life: 0.9, size: 0.11, kind: 1, spread: 0.3, vx: vx * 0.6, vy: 0.4 }); } this.refreshLips(); P.emit(x, y + 0.2, 0.42, 22, { color: SAND, speed: 0.55, life: 1.3, size: 0.08, kind: 1, spread: 0.45 }); P.emit(x, y, 0.42, 5, { color: new THREE.Color(0xf7e2b0), speed: 0.25, life: 0.7, size: 0.32, kind: 0, spread: 0.3 }); this.sfx('dig'); break; }
+        case 'breathe': { if (this.menuMode || e.cine) break; for (let i = 0; i < 3; i++) P.bubbles(x + (Math.random() - 0.5) * 0.3, y + 0.3, 0.3, 6, 0.06 + Math.random() * 0.05, 0.5); this.sfx('air'); this.popText(x, y + 0.45, 'Fresh air!', '#8ff4ff'); break; }
         case 'air': { const a = this.airObjs.get(ev.y * e.w + ev.x); if (a) { this.levelGroup.remove(a); this.airObjs.delete(ev.y * e.w + ev.x); } P.bubbles(x, y, 0.2, 16, 0.12, 0.6); P.emit(x, y, 0.5, 18, { color: new THREE.Color(0.55, 0.95, 1), speed: 1.8, life: 0.7, size: 0.12 }); this.sfx('air'); if (!this.menuMode && !e.relaxed) this.popText(x, y + 0.2, '+' + Math.round(30 * (e.tscale || 1)) + 's air', '#8ff4ff'); break; }
         case 'push': { const dx = e.player ? Math.sign(ev.x - e.player.x) || 1 : 1; // ev = the pushed object's new cell
           P.emit(x - dx * 0.45, y - 0.42, 0.42, 9, { color: SAND, speed: 0.5, life: 0.8, size: 0.09, kind: 1, spread: 0.25, vx: -dx * 0.5, vy: 0.35 });
@@ -4477,7 +4483,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.time += dt; const t = this.time; skinTick(t);
       this.rayMat.uniforms.time.value = t; MAT.causticT.value = t;
       if (this.story) { this.story.update(dt); return; } // the transition film owns the screen
-      this.particles.update(dt, t); this.tickPops(dt); this.tickCoach(dt); this.tickCine(dt);
+      this.particles.update(dt, t); this.tickPops(dt); this.tickCoach(dt); this.tickCine(dt); this.breathBand(dt);
       if (!this.e) { this.camera.position.set(0, 0, 30); this.camera.lookAt(0, 0, 0); this.placeBackdrop(); return; }
       const e = this.e;
       const a = Math.min(1, (now - this.lastTick) / this.tickMs), ease = a * a * (3 - 2 * a);
@@ -4841,6 +4847,14 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (m.pip != null) { M.pip = makePip(0xffc23a, m.pip); M.pip.scale.setScalar(1.5); M.pip.position.set(x0 + 1, yT + 0.75, 0.45); this.levelGroup.add(M.pip); M.x0 = x0; M.x1 = x1; M.yT = yT; }
       if (m.ink) { M.ink = []; for (let i = 0; i < 9; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.dot, color: 0x0a0614, transparent: true, opacity: 0.35, depthWrite: false })); sp.scale.setScalar(2 + (i % 3)); sp.position.set(x0 + (i / 8) * (x1 - x0), yB + 1 + (i % 4) * (yT - yB) / 4, -1.2 - (i % 3)); sp.userData.ph = i * 1.7; this.levelGroup.add(sp); M.ink.push(sp); } }
       if (m.eyes > 0) { M.eyes = []; for (let i = 0; i < 2; i++) { const g = new THREE.Group(); for (const sx of [-0.35, 0.35]) { const sp = glowSpr(0xff2a1a, 0.7, 0); sp.position.x = sx; g.add(sp); } const side = i ? 1 : -1; g.position.set(side < 0 ? x0 - 3.5 : x1 + 3.5, (yT + yB) / 2 + i, -7); g.userData.ph = i * 9; this.levelGroup.add(g); M.eyes.push(g); } } }
+    // the top row glows softly when the diver needs to come up for air (k 0..1); built per level, lives in the level group
+    setBreathHint(k) { this.breathK = k; }
+    breathBand(dt) { const e = this.e; if (!e || this.menuMode || e.cine) return; const k = this.breathK || 0; this.breathA = (this.breathA || 0) + (k - (this.breathA || 0)) * Math.min(1, dt * 3);
+      if (!this.bband || this.bband.parent !== this.levelGroup) { if (this.breathA < 0.01) return; const m = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, uniforms: { uA: { value: 0 }, uT: { value: 0 } },
+          vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+          fragmentShader: 'uniform float uA, uT; varying vec2 vUv; void main(){ float v = smoothstep(0.0, 0.45, vUv.y) * (1.0 - smoothstep(0.75, 1.0, vUv.y)); float w = 0.75 + 0.25 * sin(vUv.x * 40.0 - uT * 3.0); float a = v * w * uA * (0.6 + 0.4 * sin(uT * 3.2)); gl_FragColor = vec4(vec3(0.55, 0.95, 1.0) * a, a); }' });
+        this.bband = new THREE.Mesh(new THREE.PlaneGeometry(Math.max(1, e.w - 2), 1.15), m); this.bband.position.set((e.w - 1) / 2, -1, 0.62); this.bband.renderOrder = 5; this.levelGroup.add(this.bband); }
+      const u = this.bband.material.uniforms; u.uA.value = this.breathA * 0.55; u.uT.value = this.time; this.bband.visible = this.breathA > 0.01; }
     setCond(c) { this.cond = c || null; this.condFor = this.e && this.e.name; } // tied to the level by name: photos and undo reload the scene
     pipNod() { if (this.mood && this.mood.pip) this.mood.nod = 1; }
     // a story moment inside a level: Grimtide's tail sweeps over the tank, his eyes watch from beside it (or stare in, during a cutscene),
@@ -5489,12 +5503,28 @@ window.__T = T;
   const LEVEL_STORY = [null, "The storm ate every light in the reef. Wake the very first gate.", "Pip saw red eyes inside the storm. Find the gate under the falling stones.", "Grimtide once took the reef’s light as tribute. Shelly says he’s back. Hurry.", "Captain Clack’s crew saw a dark tail drag pearls this way. Two roads. Choose well.", "The jellies are humming. Get past Grimtide’s piranha and wake gate five.", "Something glints inside the wreck. Wake this gate to reach it.", "You have the Keeper’s map. And something is glowing in the dark nearby…", "The map is gone and Pip’s glow is fading. Find this gate on your own.", "A torn piece of the map drifted this way. Get past the claws.", "The last gate of the Shallows sits on the edge of a cliff. Snip and Snap are watching.", "Grimtide sees every crystal you light. Light them anyway.", "A clam lost its song. Air is short in this deep cave.", "The water is going dark. Something huge is coming.", "Shelly is hurt. Clack guards her. Wake the next gate for her.", "Mira carried you over the canyon. Shelly said: don’t look back.", "A prisoner in ink chains was dragged through here. He asked about your lamp.", "Light that’s given away. That’s how you beat him. Remember it.", "Murk is dropping pearls to guide you. Grimtide is getting suspicious.", "Shelly is okay! Race Pip’s cousins to the bottom of the pit.", "Grimtide is coiled around the Great Lantern. What did he mean, “setting the table”?", "Lumen lights your way into the Deep, past a shoal of sleeping piranhas.", "Old Bellow is singing, and Clack is back! Wake gate twenty-two.", "The mural showed the Keeper wearing your lamp. The Deep presses in; air is short.", "Grimtide is furious. A gauntlet of stones guards this gate. Stay close to Pip.", "Pip is gone. Clack is gone. Shelly is here. Wake this gate for them.", "Pip is caged in Murk’s den. The citadel of stones is the hardest yet.", "Murk is free and on your side. The undertow pulls everything down.", "The whole Deep is waking up behind you. It’s a long way down.", "Grimtide wants the Lantern full. Wake the gate anyway. You have a plan.", "The last gate. Give the light away, and finish Grimtide."];
   const DEATH_LINES = {"crushed": [{"w": "pip", "t": "Spark! No, no, no… Undo it! Please!", "a": 1, "b": 30}, {"w": "snip", "t": "Ooh! Flat as a flounder!", "a": 4, "b": 20}, {"w": "clack", "t": "Man down! MAN DOWN!", "a": 4, "b": 24}, {"w": "grimtide", "t": "Careful, little light. The reef is so very heavy.", "a": 11, "b": 30}], "monster": [{"w": "snap", "t": "Grimtide says thanks for the snack!", "a": 4, "b": 30}, {"w": "snip", "t": "Crunchy! Ha!", "a": 4, "b": 30}, {"w": "pip", "t": "Spark! Get away from it!", "a": 1, "b": 30}, {"w": "grimtide", "t": "My pets were hungry.", "a": 11, "b": 30}], "oxygen": [{"w": "pip", "t": "Spark, your air! Hold on!", "a": 1, "b": 30}, {"w": "shelly", "t": "Too deep, too long. Come back up, child.", "a": 3, "b": 13}, {"w": "grimtide", "t": "Breathe, little light. Oh… you can’t.", "a": 11, "b": 30}]};
   const MEM_LINES = [null, "If you’re hearing this, someone found my first coin. Hello, little diver.", "I hid thirty coins across the reef. Each one remembers something.", "I was afraid of the dark once, too. So I made a lamp.", "Clack’s grandmother was a captain too. Twice as loud.", "The jellies taught me to sing. Terrible teachers. Wonderful singers.", "I left a map in an old wreck. Just in case.", "Never follow a light that flickers. Real light holds steady.", "When I felt lost, I followed the fish. They always know the way home.", "Every map tears, sooner or later. Your heart is the better map.", "Jumping is easy. It’s the deciding that’s hard.", "The caves echo your fear back at you. So I sang to them instead.", "The clams sang to me the night I built the first gate.", "Grimtide’s storms are loud. But they never last.", "Old Shelly carried me when I was small. She’ll carry you too.", "Grief is heavy. Share it, and it gets lighter. Just like light.", "I met a little octopus who was scared of everything. His name was Murk.", "Murk and I learned the secret together: light given away comes back brighter.", "Murk always left me pearls to find. A trail, so I’d never get lost.", "Good news travels fastest in a school of fish.", "I built the Lantern to hold the reef’s light. I never thought he’d come for it.", "The Deep is dark, but it’s never empty. Someone is always shining.", "Old Bellow sang the day the Lantern was lit. Listen for him.", "They painted me on a wall once. I looked much taller.", "If he takes someone you love, don’t give up. That’s what he wants.", "Brave isn’t not being scared. Brave is going anyway.", "If you find Murk, tell him it wasn’t his fault. It never was.", "The trench is deep, but friends make good bridges.", "One light alone is easy to drink. A thousand lights are not.", "The night of the storm, I gave all my light to the Lantern. It was worth it.", "Whoever wears my lamp now: thank you. The reef is yours to keep shining."];
+  // ---- breathing: each level's lung = 4 × the longest stretch its verified route spends away from the top row + 25 s (≥ 35 s, never more
+  // than the old air). Levels with air capsules and the Daily Dive keep the single clock. Stars come from dive time, with the old thresholds.
+  const LUNG = {};
+  function lungOf(i, lv) { if (LUNG[i] !== undefined) return LUNG[i]; let L = Infinity; const seq = ROUTES[i + 1];
+    if (seq && !lv.map.some(r => r.includes('A'))) { try { const e = new Engine(lv), M = { U: 'up', D: 'down', L: 'left', R: 'right' }, ex = seq.includes('.'); let n = 0, last = 0, span = 0;
+        const tk = () => { e.step(); n++; if (e.player && e.player.y <= 1) { span = Math.max(span, n - last); last = n; } };
+        for (const c of seq) { if (c !== '.') e.press(M[c]); tk(); if (!ex) for (let k = 0; k < 6 && e.state === 'playing'; k++) { let mv = false; for (const o of e.objects.values()) if (o.falling) mv = true; if (!mv) break; tk(); } if (e.state !== 'playing') break; }
+        span = Math.max(span, n - last); if (e.state === 'won') L = Math.min(e.time, Math.max(35, span * e.tickMs / 1000 * 4 + 25)); } catch (er) { L = Infinity; } }
+    return LUNG[i] = L; }
+  const airCap = e => Math.min(e.time, e.lung);
+  function starFrac(e) { if (!(e.lung < 1e9)) return e.oxygen / e.time; const el = e.begun ? ((e.state === 'won' ? e.wonAt : e.tick) - (e.begunAt || 0)) * e.tickMs / 1000 : 0; return 1 - el / e.time; }
+  let breathTip = {};
+  function breathCue() { const el = $('#breathCue'); if (!el) return; const e = engine, on = !!(e && e.lung < 1e9 && !e.relaxed && e.begun && state === 'playing' && e.state === 'playing' && e.player && e.player.y > 1 && e.oxygen < airCap(e) * 0.4);
+    world.setBreathHint(e && e.lung < 1e9 && e.state === 'playing' ? (on ? 1 : e.oxygen < airCap(e) * 0.6 ? 0.35 : 0) : 0);
+    if (el.classList.contains('on') !== on) { el.classList.toggle('on', on); if (on && !breathTip[levelIdx]) { breathTip[levelIdx] = 1; toast('Low on air! Swim up to the **top of the tank** to breathe.'); if (hasVo('t_breathe')) Audio.vo('t_breathe'); } }
+    if (on) { const [x, y] = world.toScreen(e.player.x, e.player.y - 0.95); el.style.transform = `translate(${x.toFixed(0)}px, ${y.toFixed(0)}px)`; } }
   function startLevel(i, custom) { storyEnd(); arriveNext = false; if (TUT.on) { TUT.on = false; Audio.stopVo(); $('#tut').classList.remove('on'); world.focus = null; }
     if (typeof booting !== 'undefined' && booting) dropLoader();
     runTreasures = 0; runTreasureSet.clear(); runLog = ''; runUndo = false; runHint = false; runReset();
     levelIdx = i; const lv = custom || LEVELS[i]; dive = custom && custom.daily ? custom : null;
     Audio.music(!custom && i >= 20 ? 'deep' : 'play'); // the Deep gets its own dark soundscape
-    engine = new Engine(lv); engine.relaxed = !!save.settings.relaxed && !dive; if (dive) { engine.daily = true; World.dailyWorld(lv.name, dayNum() % 3); } /* the Daily Dive is a race: always on the clock */ world.loadLevel(engine); hideStuck(); stuckKey = ''; Audio.setTension(0); document.body.classList.toggle('relaxed', engine.relaxed);
+    engine = new Engine(lv); engine.relaxed = !!save.settings.relaxed && !dive; if (!dive && !custom) { engine.lung = lungOf(i, lv); engine.oxygen = airCap(engine); } if (dive) { engine.daily = true; World.dailyWorld(lv.name, dayNum() % 3); } /* the Daily Dive is a race: always on the clock */ world.loadLevel(engine); hideStuck(); stuckKey = ''; Audio.setTension(0); document.body.classList.toggle('relaxed', engine.relaxed);
     window.__LEVELSCENE = (custom || LEVELS[i]).scene || null; history = []; undoLeft = UNDO_MAX; undoUntil = 0; stuckTimer = 0; stuckShown = false; gateNudged = true; coachStart(i, custom);
     { const ph = $('#pauseHint'); if (ph) ph.innerHTML = rich(lv.hint); }
     if (!custom) { loadVoice(packOf(i + 1)); if ((i + 1) % 10 >= 8) loadVoice(packOf(i + 1) + 1); } relicSync(); beatM = 0; condT = 0; deathSaid = false; talkStop(); cutEnd(); world.setCond(custom || dive ? null : LEVEL_COND[i + 1]); if (!custom) world.setStoryMood(LEVEL_MOOD[i + 1]); tickWorld(engine, performance.now());
@@ -5503,12 +5533,13 @@ window.__T = T;
     { const cv = $('#introPrev'), wide = matchMedia('(orientation: landscape) and (min-width: 760px) and (min-height: 560px)').matches, w = wide ? 560 : 620, h = wide ? 490 : 340; if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
       levelPhoto(cv, i, false, !!dive); }
     { const g = $('#introGoals'), t = engine.time; if (engine.relaxed || dive) { g.innerHTML = dive ? '<span class="goal dd">☀ Race the clock: fastest time wins today</span>' : '<span class="goal">Relaxed mode: no air timer</span>'; }
+      else if (engine.lung < 1e9) g.innerHTML = `<span class="goal g3"><b>★★★</b>in ${Math.floor(t * 0.4)}s</span><span class="goal g2"><b>★★<i>★</i></b>in ${Math.floor(t * 0.7)}s</span><span class="goal g1"><b>★<i>★★</i></b>finish</span>`;
       else g.innerHTML = `<span class="goal g3"><b>★★★</b>${Math.ceil(t * 0.6)}s+ air left</span><span class="goal g2"><b>★★<i>★</i></b>${Math.ceil(t * 0.3)}s+</span><span class="goal g1"><b>★<i>★★</i></b>finish</span>`;
       if (!dive && relicCell(i)) g.insertAdjacentHTML('beforeend', (save.relics || {})[i + 1] ? '<span class="goal relic got"><i class="rl"></i>Keeper’s coin found</span>' : '<span class="goal relic"><i class="rl"></i>A Keeper’s coin is hidden here</span>');
       const st = !dive && save.stars[i + 1], bb = $('#introBest'); bb.hidden = !st; if (st) bb.textContent = `Your best ${'★'.repeat(st)}${'☆'.repeat(3 - st)}`; }
     { const m = lv.map.join(''), n = ch => m.split(ch).length - 1, items = [['pearl', engine.ballsTotal, 'pearl', 'pearls'], ['stone', n('R') + n('X'), 'stone', 'stones'], ['fish', n('F'), 'piranha', 'piranhas'], ['jelly', n('J'), 'jellyfish', 'jellyfish'], ['crab', n('C'), 'crab', 'crabs'], ['air', n('A'), 'air capsule', 'air capsules']].filter(x => x[1] > 0);
       needIcons(items.map(x => x[0])); $('#introKit').innerHTML = items.map(([k, c, one, many]) => `<span class="kit"><i class="kic" style="--ic: var(--ic-${k})"></i><b>${c}</b><span>${c === 1 ? one : many}</span></span>`).join('') +
-        `<span class="kit k-air"><i class="kic o"></i><b>${engine.relaxed ? '∞' : Math.round(engine.time)}${engine.relaxed ? '' : 's'}</b><span>${engine.relaxed ? 'no timer' : 'of air'}</span></span>` +
+        `<span class="kit k-air"><i class="kic o"></i><b>${engine.relaxed ? '∞' : Math.round(airCap(engine))}${engine.relaxed ? '' : 's'}</b><span>${engine.relaxed ? 'no timer' : engine.lung < 1e9 ? 'per breath' : 'of air'}</span></span>` +
         ((!dive && COND_CHIP[LEVEL_COND[i + 1]]) ? (([ic, k, d]) => `<span class="kit k-cond"><i class="kic e" aria-hidden="true">${ic}</i><b>${k}</b><span>${d}</span></span>`)(COND_CHIP[LEVEL_COND[i + 1]]) : ''); }
     screenStack = []; setState('intro'); show('intro'); hudKey = ''; updateHud();
     applyAudio();
@@ -5521,7 +5552,7 @@ window.__T = T;
     0: [{ at: 'player', id: 't1a', k: 'Meet the diver', text: 'This is **you**. Swim, dig and push your way to the gate.' },
         { at: 'ball', id: 't1b', k: 'Energy pearl', text: 'This red pearl is **full of light**. The gate needs it.' },
         { at: 'gate', id: 't1c', k: 'The gate', text: '**Push the pearl in** to wake the gate, then swim in yourself.' },
-        { at: '#hud .air', id: 't1d', k: 'Your air', text: 'Air starts on your **first move**, so look around first. Finish before it runs out!' },
+        { at: '#hud .air', id: 't1d2', k: 'Your air', text: 'Your air runs down as you dive. **Swim up to the top** of the tank to breathe again.' },
         { at: 'player', id: 't1e', k: 'How to swim', text: () => touchUI() ? '**Swipe** to swim. Swim into sand to **dig** through it.' : 'Use the **arrow keys** to swim. Swim into sand to **dig** through it.' }],
     1: [{ at: 'rock', id: 't2a', k: 'New: stones', text: 'Take the sand away **under a stone** and it falls.' },
         { at: 'player', id: 't2b', k: 'Stay safe', text: '**Never stand right under** a stone!' }],
@@ -6018,7 +6049,7 @@ window.__T = T;
   function pushDaily() { const D = ddSave(); if (!D.best) return; ddWriting = ddWriting.then(async () => { await LB.ready; if (!LB.db || !LB.uid) return;
     try { await LB.db.doc('daily/' + LB.uid).set({ day: D.key, t: D.best.t, air: D.best.air, nick: (save.name || 'Diver').slice(0, 16), suit: save.equip.suit, updatedAt: Date.now() }); } catch (er) { if (er && er.code === 'invalid_argument') LB.readOnly = true; } }); }
   $('#btnDaily').onclick = startDaily;
-  function clearStamp() { const el = $('#clearStamp'); if (!el) return; clearTimeout(bannerTimer); bannerOff(); /* the stamp takes the stage: no 'Swim in!' banner under it */ const won = engine.state === 'won', frac = engine.oxygen / engine.time;
+  function clearStamp() { const el = $('#clearStamp'); if (!el) return; clearTimeout(bannerTimer); bannerOff(); /* the stamp takes the stage: no 'Swim in!' banner under it */ const won = engine.state === 'won', frac = starFrac(engine);
     const stars = dive ? 0 : engine.relaxed ? 1 : frac >= 0.6 ? 3 : frac >= 0.3 ? 2 : 1; el.querySelector('b').textContent = dive ? 'Dive complete!' : stars === 3 ? 'Perfect!' : 'Level clear!';
     const st = [...el.querySelectorAll('.cs-stars i')]; st.forEach(s => s.className = ''); el.querySelector('.cs-stars').hidden = !!dive;
     el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
@@ -6049,7 +6080,7 @@ window.__T = T;
       if (REDUCED_MOTION) el.textContent = total.toLocaleString(); else requestAnimationFrame(tick); }
     const starEls = [...document.querySelectorAll('#resStars i')]; starEls.forEach(s => s.className = '');
     if (won) {
-      const frac = engine.oxygen / engine.time; const stars = engine.relaxed ? 1 : frac >= 0.6 ? 3 : frac >= 0.3 ? 2 : 1;
+      const frac = starFrac(engine); const stars = engine.relaxed ? 1 : frac >= 0.6 ? 3 : frac >= 0.3 ? 2 : 1;
       const prevStars = save.stars[n] || 0, firstClear = !prevStars;
       save.stars[n] = Math.max(prevStars, stars); if (!engine.relaxed) save.best[n] = Math.max(prevBest, engine.score); const ch = chestAdd(Math.max(0, stars - prevStars));
       save.stats.wins++; save.stats.dug += engine.dug || 0;
@@ -6089,8 +6120,8 @@ window.__T = T;
   function updateHud() {
     if (!engine) return;
     { const at = engine.relaxed ? '∞' : String(Math.max(0, Math.ceil(engine.oxygen))); if (hud.airTxt.textContent !== at) hud.airTxt.textContent = at;
-      const aw = (Math.max(0, Math.min(1, engine.oxygen / engine.time)) * 100).toFixed(1) + '%'; if (hud.airFill.style.width !== aw) hud.airFill.style.width = aw; }
-    { const fr = engine.oxygen / engine.time, st = fr >= 0.6 ? 3 : fr >= 0.3 ? 2 : 1; const el = $('#airStars'); if (el && el.dataset.st !== String(st)) { el.dataset.st = st; [...el.children].forEach((c, k) => c.classList.toggle('off', k >= st)); } }
+      const aw = (Math.max(0, Math.min(1, engine.oxygen / airCap(engine))) * 100).toFixed(1) + '%'; if (hud.airFill.style.width !== aw) hud.airFill.style.width = aw; }
+    { const fr = starFrac(engine), st = fr >= 0.6 ? 3 : fr >= 0.3 ? 2 : 1; const el = $('#airStars'); if (el && el.dataset.st !== String(st)) { el.dataset.st = st; [...el.children].forEach((c, k) => c.classList.toggle('off', k >= st)); } }
     hud.air.classList.toggle('low', engine.oxygen < 15 && engine.state === 'playing' && !engine.relaxed);
     const key = engine.ballsIn + '/' + engine.ballsTotal + (engine.gate.open ? 'o' : '');
     if (key !== hudKey) { hudKey = key;
@@ -6405,7 +6436,7 @@ window.__T = T;
         if (banner.start && ((engine.moveQueue && engine.moveQueue.length) || engine.held)) { banner.start = false; bannerOff(); } // ...and the level-name banner (it sat over the tank)
         { const mv = (engine.moveQueue && engine.moveQueue.length) || engine.held || touch; if (mv) quietAt = now; const q = !!quietAt && now - quietAt < 1200 && (engine.relaxed || engine.oxygen > 15); if (q !== quietOn) { quietOn = q; document.body.classList.toggle('swim', q); } } // quiet HUD while swimming
         undoSync(); // the undo lifeline appears in tight spots and fades a few seconds later
-        lampDark();
+        lampDark(); breathCue();
         if (slowMo > 0) { slowMo = Math.max(0, slowMo - realDt); acc = 0; } // the world holds its breath for a moment
         if (planHold) { if ((engine.moveQueue && engine.moveQueue.length) || engine.held) { planHold = false; planJob++; HINT.busy = false; $('#btnHint').classList.remove('busy'); } else acc = 0; }
         if (undoHold) { if ((engine.moveQueue && engine.moveQueue.length) || engine.held) undoHold = false; else acc = 0; }
