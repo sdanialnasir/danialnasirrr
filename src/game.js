@@ -2194,7 +2194,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const e = cartoonEye(0.075, [0, -0.15]); e.position.set(s * 0.1, 0.32, 0.14); g.add(e);
       const br = new THREE.Mesh(new THREE.CapsuleGeometry(0.018, 0.08, 4, 6), MAT.monPupil); br.rotation.z = Math.PI / 2 + s * 0.45; br.position.set(s * 0.1, 0.41, 0.19); g.add(br); }
     const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.04, 0.012, 6, 12, Math.PI), MAT.monPupil); mouth.position.set(0, 0.05, 0.27); g.add(mouth);
-    g.userData = { legs, claws, mouth: talkMouth(g, 0, 0.035, 0.265, 0.05, 0.035, Math.PI / 2) }; g.traverse(o => { if (o.isMesh) o.castShadow = true; }); return kind ? castSwap(g, kind, { floor: 1, ry: kind === 'clack' ? Math.PI : 0 }) : g; /* the crab faces +z; the films aim Clack the other way */
+    g.userData = { legs, claws, mouth: talkMouth(g, 0, 0.035, 0.265, 0.05, 0.035, Math.PI / 2) }; g.traverse(o => { if (o.isMesh) o.castShadow = true; }); return kind ? castSwap(g, kind, { floor: 1, ry: 0 }) : g; /* crabs (and Clack) face +z, like the old builder */
   }
   // air capsule: a glassy soap-bubble (clear middle, bright fresnel rim, iridescent sheen, a window highlight),
   // a soft cyan glow inside, a crisp O2 badge and three tiny bubbles that rise and loop inside it
@@ -2870,7 +2870,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     {"t": "Over the Abyss", "r": "murkride", "a": "drop", "w": 2, "L": [["murk", "Climb on. I know the way to his lair."], ["murk", "The night of the storm, she went to face him alone. I was too scared to follow.", "droop", "sad"], ["pip", "I'm not scared. My fins are just… okay, I'm scared. But I'm going anyway!", "shake", "wide"]], "Q": {"at": 2, "kind": "choice", "label": "Answer Murk", "opts": [["brave", "This time, we go together.", [["you", "This time, we all go together."], ["murk", "Together.", "nod"]]], ["funny", "Eight arms. Use them ALL.", [["you", "Well, you have eight arms now. Use them ALL.", "", "happy"], ["murk", "Eight arms of fury. I like that.", "laugh", "happy"]]], ["kind", "It wasn't your fault, Murk.", [["you", "It wasn't your fault, Murk."], ["murk", "…She would have said that. Thank you.", "nod"]]]]}},
     {"t": "The Deep Rises", "r": "plankton", "a": "bubble", "w": 2, "L": [["lumen", "Ladies and gentlefish! Wave those arms, Spark! Show the Deep it’s not alone!", "spin", "happy"], ["", "Every wave sets the plankton glowing. Then the jellies. Then the fish. Then everyone."], ["", "Clack’s crew raise his tiny hat high.", "", "happy"], ["grimtide", "Light them all, little light. More for me."]], "Q": {"at": 1, "kind": "run", "v": "rally", "dur": 22, "label": "Light up the Deep!", "ok": [["lumen", "Standing ovation! The whole Deep is GLOWING!", "spin", "happy"]], "no": [["lumen", "A few lights short, but the show goes on, darling!", "", "happy"]]}},
     {"t": "Grimtide’s Lair", "r": "lair", "a": "drop", "w": 2, "L": [["grimtide", "Twenty-nine gates. The Lantern is nearly full. Wake the last, and I drink it ALL."], ["pip", "THAT'S why he let us! We've been cooking his DINNER!", "shake", "wide"], ["you", "You’re wrong about one thing. That light isn’t yours. We’re giving it away.", "", "angry"], ["grimtide", "Then come, Keeper’s child. Let’s see who shines last.", "", "angry"]], "Q": {"at": 2, "kind": "run", "v": "lair", "dur": 24, "label": "Through the coils! Reach the Lantern!", "ok": [["murk", "Not this time, Grimtide!", "", "angry"], ["grimtide", "Clever little light. It will not save you.", "", "angry"]], "no": [["murk", "Spark! I've got you! Grab my arm!", "", "angry"], ["pip", "Eight arms! Best seatbelt EVER!", "hop", "happy"]]}},
-    {"t": "The Reef’s Revenge", "r": "victory", "a": "drop", "w": 2, "L": [["grimtide", "YES! Give it to me!"], ["", "Every creature in the sea gives its light at once. Way too much light. Freely given."], ["grimtide", "No… NO! It BURNS! Too bright! Too SHARED!", "", "wide"], ["", "And the mighty Grimtide shrinks… to a tiny, wriggling, very grumpy worm.", "", "happy"], ["snip", "Uh… Snap? I think we work for a worm now.", "", "wide"], ["clack", "Did somebody say… CAPTAIN?", "salute", "happy"], ["pip", {"brave": "CLACK?! You were brave the whole way, Spark. Everybody was!", "funny": "CLACK?! Spark, you made me laugh the whole way. And now THIS!", "kind": "CLACK?! Spark, you were kind the whole way. That’s why it worked."}, "spin", "happy"], ["", "The Heart Pearl rises home. And the whole reef shines.", "", "happy"]], "Q": {"at": 1, "kind": "hold", "label": "Give the light away!", "ok": [["you", "It was never yours!"]], "no": [["pip", "Everybody, NOW! Give it away!"]]}}];
+    {"t": "The Reef’s Revenge", "r": "victory", "a": "drop", "w": 2, "L": [["grimtide", "YES! Give it to me!"], ["", "Every creature in the sea gives its light at once. Way too much light. Freely given."], ["grimtide", "No… NO! It BURNS! Too bright! Too SHARED!", "", "wide"], ["", "And the mighty Grimtide shrinks… to a tiny, wriggling, very grumpy worm.", "", "happy"], ["snip", "Uh… Snap? I think we work for a worm now.", "", "wide"], ["clack", "Did somebody say… CAPTAIN?", "salute", "happy"], ["pip", {"brave": "CLACK?! You were brave the whole way, Spark. Everybody was!", "funny": "CLACK?! Spark, you made me laugh the whole way. And now THIS!", "kind": "CLACK?! Spark, you were kind the whole way. That’s why it worked."}, "spin", "happy"], ["", "The Heart Pearl rises home. And the whole reef shines.", "", "happy"]], "Q": {"at": 1, "kind": "run", "v": "boss", "dur": 40, "goal": 8, "label": "Give the light back! Zap Grimtide!", "ok": [["you", "It was never yours!"]], "no": [["pip", "Everybody, NOW! Give it away!"]]}}];
   const PROLOGUE = {"t": "The Night the Lights Went Out", "r": "prologue", "a": "pipe", "w": 0, "L": [["", "Once, the reef glowed every night. And the brightest light of all was the Great Lantern.", "", "happy"], ["pip", "Ooh! Ooh! Look at me! I'm the second brightest thing here!", "spin", "happy"], ["grimtide", "Such pretty little lights. I'll take them. ALL of them."], ["", "Grimtide, the eel who drinks light, rose out of the abyss, and the reef's lights poured into his jaws."], ["keeper", "Not while I'm Keeper!", "", "angry"], ["", "The Reef Keeper gave all her light to save the Lantern. Grimtide fled… and the whole reef went dark.", "", "sad"], ["pip", "Hello…? Anybody…?", "droop", "sad"]]};
   const STORY_WHO = {"": "", "you": "Spark", "pip": "Pip", "shelly": "Shelly", "clack": "Captain Clack", "mira": "Mira", "cousin": "Pip’s cousin", "lumen": "Lumen", "murk": "Murk", "grimtide": "Grimtide", "snip": "Snip", "snap": "Snap", "keeper": "The Reef Keeper", "choir": "The Clam Choir", "arch": "The Coral Arch"};
   const sm01 = (k) => { k = Math.min(1, Math.max(0, k)); return k * k * (3 - 2 * k); };
@@ -2910,7 +2910,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       return { mode: t < 2.2 ? 'stand' : 'stand', arms: t > 3 && t < 6.2 ? 'grip' : 'wave', armK: t < 2.2 ? sm01((t - 0.6) / 0.4) * (1 - sm01((t - 1.8) / 0.3)) : t < 6.2 ? 1 : sm01((t - 6.3) / 0.4), face: f }; } };
   // 4: a parade of crabs carrying pearls; the diver dances along and high-fives the leader
   RECIPES.crabs = { dur: 6.6, setup(S, c) { c.crabs = []; for (let i = 0; i < 6; i++) { const cr = S.add(i ? makeCrab() : makeClack()); cr.scale.setScalar(i ? 1.0 : 1.25); if (i) { const pe = makeBall(true); pe.scale.setScalar(0.42); pe.position.y = 0.35; cr.add(pe); } c.crabs.push(cr); } c.clack = c.crabs[0]; S.tankAt(4.4, -11, -0.3); S.clear.push([0, 0, 3.5]); },
-    run(S, c, t) { c.crabs.forEach((cr, i) => { const x = K(t, [[0, -6 - i * 1.1], [4.6, 1.8 - i * 1.1 + (i ? 0 : 0)], [6.6, (i ? 2.4 - i * 1.1 : 1.9)]]); cr.position.set(x, 0.22 + Math.abs(Math.sin(S.time * 7 + i)) * 0.05, -0.6 + (i % 2) * 0.15); cr.rotation.y = -Math.PI / 2 + Math.sin(S.time * 7 + i) * 0.12; if (cr.userData.clawL) cr.userData.clawL.rotation.z = Math.sin(S.time * 9 + i) * 0.4; });
+    run(S, c, t) { c.crabs.forEach((cr, i) => { const x = K(t, [[0, -6 - i * 1.1], [4.6, 1.8 - i * 1.1 + (i ? 0 : 0)], [6.6, (i ? 2.4 - i * 1.1 : 1.9)]]); cr.position.set(x, 0.22 + Math.abs(Math.sin(S.time * 7 + i)) * 0.05, -0.6 + (i % 2) * 0.15); cr.rotation.y = (i ? -Math.PI / 2 : Math.atan2(S.cam0.position.x - cr.position.x, S.cam0.position.z - cr.position.z)) + Math.sin(S.time * 7 + i) * 0.12; /* Clack crab-walks facing us */ if (cr.userData.clawL) cr.userData.clawL.rotation.z = Math.sin(S.time * 9 + i) * 0.4; });
       const bob = t < 4.8 ? Math.abs(Math.sin(t * 5)) * 0.12 : 0, p = new V3(0.9, 0.5 + bob, 0.45), f = t < 4.8 ? new V3(Math.sin(t * 2.5) * 0.6, 0, 1).normalize() : new V3(-0.9, 0, -0.45).normalize(); S.dv(p, f);
       S.cam(K(t, [[0, [2.8, 1.2, 3.4]], [4.4, [2.2, 1.0, 3.0]], [6.6, [2.9, 1.05, 2.4]]]), K(t, [[0, [-1.5, 0.6, -0.4]], [6.6, [0.5, 0.7, -2.5]]]));
       return { mode: 'stand', arms: t < 4.8 ? 'cheer' : 'point', armK: t < 4.8 ? 0.6 + 0.4 * Math.sin(t * 5) : sm01((t - 5) / 0.4), face: f, target: c.crabs[0].position.clone().add(new V3(0, 0.4, 0)) }; } };
@@ -3312,7 +3312,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     lair:  { bg: 0x0c0a26, fog: [7, 50], sand: 0x4a3a60, hazards: ['coil', 'coil', 'rock', 'ink', 'gap'], speed: [10, 15], eyes: 1 },
     bounce: { bg: 0x2a86c8, fog: [12, 75], sand: 0xffe4b0, hazards: ['jelly', 'jelly', 'rock', 'gap'], speed: [8.5, 12.5], pearls: 1.4 },
     trail: { bg: 0x2b3f86, fog: [10, 70], sand: 0xa898d8, hazards: ['ink', 'rock', 'gap', 'jelly'], speed: [9, 13], pearls: 2.2 },
-    rally: { bg: 0x0d1c4c, fog: [9, 62], sand: 0x5a6a9a, hazards: ['jelly', 'ink', 'gap', 'rock'], speed: [9, 13.5], pearls: 2.4 } };
+    rally: { bg: 0x0d1c4c, fog: [9, 62], sand: 0x5a6a9a, hazards: ['jelly', 'ink', 'gap', 'rock'], speed: [9, 13.5], pearls: 2.4 },
+    boss: { bg: 0x140a30, fog: [12, 60], sand: 0x3a2f5a, hazards: [], speed: [0, 0], boss: 1 } };
   class StoryRun {
     constructor(S, Q) { this.S = S; this.Q = Q; const V = this.V = RUN_V[Q.v] || RUN_V.dive; this.dur = Q.dur || 24; this.t = -1.6; this.lives = 3; this.got = 0; this.close = 0; this.inv = 0; this.done = null;
       this.pos = new V3(0, 1.8, 0); this.tgt = new V3(0, 1.8, 0); this.vel = new V3(); this.keys = {}; this.objs = []; this.spawnT = 0.4; this.z = 0; this.shake = 0; this.own = []; this.mats = []; this.wave = 0;
@@ -3333,6 +3334,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (V.eyes) { const g = this.eyes = new THREE.Group(); for (const sx of [-1, 1]) { const sp = glowSpr(0xff2a1a, 7, 0.9); sp.position.x = sx * 3.2; g.add(sp); } g.position.set(0, 4.5, -48); sc.add(g); }
       if (V.chaser) { this.chasers = []; for (let i = 0; i < 2; i++) { const f = makeFish(i ? 'snap' : 'snip'); f.scale.setScalar(0.85); f.rotation.y = Math.PI / 2; sc.add(f); this.chasers.push(f); } }
       if (V.manta) { const m = this.manta = makeManta(); m.scale.setScalar(0.9); sc.add(m); }
+      if (V.boss) { this.bossInit(); this.lives = 5; } // the finale is generous: five lamps
       this.coils = V.hazards.includes('coil') ? [0, 1].map(() => { const e = makeEel(9, 0.55); e.userData.setGlow(0.8); e.visible = false; sc.add(e); return e; }) : [];
       S.scene.remove(S.hold); sc.add(S.hold); S.hold.rotation.set(0, Math.PI / 2, 0); S.diver.rotation.set(0, 0, 0);
       this.parts = new Particles(sc, 400); this.resize(); }
@@ -3358,9 +3360,43 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       else if (kind === 'ink') { o = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.dot, color: 0x1a0c2c, transparent: true, opacity: 0.85, depthWrite: false })); o.scale.setScalar(3.4); this.mats.push(o.material); }
       else { o = new THREE.Group(); const core = new THREE.Mesh(GEO.runPearl || (GEO.runPearl = new THREE.SphereGeometry(0.17, 16, 12)), MAT.runPearl || (MAT.runPearl = new THREE.MeshBasicMaterial({ color: 0xffe08a }))); o.add(core, glowSpr(0xffb43a, 1.1, 0.75)); r = 0.45; }
       o.position.set(x, y, z); this.scene.add(o); this.objs.push({ kind, o, x, y, z, r, dir, x0: x, ph: Math.random() * 6, hit: false, near: false }); }
+    // ---- the finale's boss: Grimtide's head hovers ahead. He lunges at where you are (a red ring warns first) or spits ink and rocks at you;
+    // light orbs drift in from your friends: grab one and it fires a beam into him. Fill his burn meter (goal) before the clock runs out.
+    bossInit() { const sc = this.scene; this.goal = this.Q.goal || 8; this.meter = 0; this.atk = null; this.atkT = 2.2; this.orbT = 0.8; this.flinch = 0; this.beamT = 0;
+      const e = this.boss = makeEel(18, 1.5); e.userData.setGlow(1); sc.add(e); this.headP = new V3(0, 2.4, -9);
+      const ring = this.ring = glowSpr(0xff3030, 2.4, 0); ring.position.set(0, 0, 0.3); sc.add(ring);
+      const bm = this.beam = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 1, 8, 1, true), new THREE.MeshBasicMaterial({ color: 0xfff0a0, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+      this.mats.push(bm.material); this.own.push(bm.geometry); sc.add(bm); this.bossLight = new THREE.PointLight(0xff5040, 4, 16, 1.5); sc.add(this.bossLight); this.poseBoss(0, 2.4, -9, 0); }
+    poseBoss(hx, hy, hz, jaw) { const e = this.boss, tt = this.S.world.time; this.headP.set(hx, hy, hz);
+      e.userData.pose(u => new V3(hx + Math.sin(u * 4 - tt * 1.5) * 1.6 * u, hy + u * 3.5 + Math.sin(u * 5 - tt * 2) * 0.5 * u, hz - u * 12), tt);
+      const J = e.userData.jaw; if (J) { if (this.jaw0 === undefined) this.jaw0 = J.rotation.x; J.rotation.x = this.jaw0 + jaw; } }
+    bossBeam() { this.meter++; this.beamT = 0.4; this.flinch = 1; Audio.play('star'); this.parts.emit(this.headP.x, this.headP.y, this.headP.z + 1, 30, { color: new THREE.Color(1, 0.9, 0.5), speed: 3, life: 0.8, size: 0.16 });
+      if (this.S.o.onQte) this.S.o.onQte(this.Q, 'beam', this.stats()); }
+    bossTick(dt) { const t = this.t, e = this.boss, D = this.pos; if (t <= 0) { this.poseBoss(Math.sin(this.S.world.time) * 0.5, 2.4, -9, 0.1); return; }
+      this.flinch = Math.max(0, this.flinch - dt * 2.5); this.beamT = Math.max(0, this.beamT - dt);
+      let hx = Math.sin(t * 0.7) * 1.8, hy = 2.3 + Math.sin(t * 1.1) * 0.6, hz = -9 - this.flinch * 2.5, jaw = 0.1;
+      if (!this.atk && !this.done && this.meter < this.goal) { this.atkT -= dt; if (this.atkT <= 0) { this.atkT = Math.max(0.9, 2.0 - this.meter * 0.12); const r = Math.random(); this.atk = r < 0.45 ? { k: 'lunge', t: 0, tx: D.x, ty: D.y } : { k: 'spit', t: 0, n: r < 0.75 ? 1 : 3 }; } }
+      const A = this.atk; this.ring.material.opacity = 0;
+      if (A) { A.t += dt;
+        if (A.k === 'lunge') { const tel = 0.95, strike = 0.22, hold = 0.25, back = 0.5;
+          if (A.t < tel) { const k = A.t / tel; this.ring.position.set(A.tx, A.ty, 0.3); this.ring.material.opacity = 0.35 + 0.5 * Math.abs(Math.sin(A.t * 14)); this.ring.scale.setScalar(2.6 - k); hx += (A.tx - hx) * k * 0.5; hy += (A.ty - hy) * k * 0.5; jaw = 0.1 + k * 0.5; }
+          else if (A.t < tel + strike + hold + back) { const s = A.t - tel, k = s < strike ? s / strike : s < strike + hold ? 1 : 1 - (s - strike - hold) / back; const m = Math.max(0.5, k);
+            hx += (A.tx - hx) * m; hy += (A.ty - hy) * m; hz += (0.2 - hz) * k * k; jaw = 0.6 - k * 0.5;
+            if (k > 0.85 && !A.hit) { if (Math.hypot(D.x - A.tx, D.y - A.ty) < 0.95) { A.hit = true; this.hurt({}); } else if (!A.near) { A.near = true; this.close++; if (this.S.o.onQte) this.S.o.onQte(this.Q, 'close', this.stats()); } } }
+          else this.atk = null; }
+        else if (A.k === 'spit') { jaw = 0.1 + Math.min(1, A.t / 0.5) * 0.6;
+          if (A.t > 0.55 && !A.fired) { A.fired = true; for (let i = 0; i < A.n; i++) { const tx = D.x + (i - (A.n - 1) / 2) * 1.6, ty = D.y, kind = i % 2 ? 'rock' : 'ink'; this.add(kind, hx, hy, hz + 1, kind === 'rock' ? 0.55 : 0.9);
+              const ob = this.objs[this.objs.length - 1], T = -(hz + 1) / 12; ob.v = 12; ob.vx = (tx - hx) / T; ob.vy = (ty - hy) / T; } Audio.play('bump'); }
+          if (A.t > 0.9) this.atk = null; } }
+      this.orbT -= dt; if (this.orbT <= 0 && !this.done && this.meter < this.goal) { this.orbT = 1.1 + Math.random() * 0.6; this.add('pearl', (Math.random() * 2 - 1) * 2.4, 0.7 + Math.random() * 3, -10); this.objs[this.objs.length - 1].v = 6.5; }
+      if (this.meter >= this.goal && !this.done) { this.winT = (this.winT || 0) + dt; hz -= this.winT * 7; jaw = 0.8; if (this.winT > 1.4) this.done = 'ok'; } // he flees, howling
+      this.poseBoss(hx, hy, hz, jaw);
+      if (this.beamT > 0) { const a = new V3(D.x, D.y, 0), b = this.headP, L = a.distanceTo(b); this.beam.position.copy(a).add(b).multiplyScalar(0.5); this.beam.scale.set(1 + this.beamT * 4, L, 1 + this.beamT * 4);
+        this.beam.quaternion.setFromUnitVectors(new V3(0, 1, 0), b.clone().sub(a).normalize()); this.beam.material.opacity = Math.min(1, this.beamT * 3); } else this.beam.material.opacity = 0;
+      this.bossLight.position.copy(this.headP).add(new V3(0, 0, 2)); this.bossLight.intensity = 4 + this.flinch * 10; }
     hurt(ob) { if (this.inv > 0) return; this.lives--; this.inv = 1.3; this.shake = REDUCED_MOTION ? 0 : 0.5; ob.hit = true; this.parts.emit(this.pos.x, this.pos.y, 0, 26, { color: new THREE.Color(1, 0.4, 0.35), speed: 2.4, life: 0.7, size: 0.12 });
       if (this.S.o.onQte) this.S.o.onQte(this.Q, 'hit', this.stats()); if (this.lives <= 0) this.done = 'no'; }
-    stats() { return { lives: this.lives, got: this.got, close: this.close, prog: Math.max(0, Math.min(1, this.t / this.dur)) }; }
+    stats() { return { lives: this.lives, got: this.got, close: this.close, boss: !!this.V.boss, meter: this.meter, goal: this.goal, prog: this.V.boss ? Math.min(1, (this.meter || 0) / this.goal) : Math.max(0, Math.min(1, this.t / this.dur)) }; }
     update(dt) { const S = this.S, V = this.V; this.t += dt; const t = this.t, go = t > 0, sp = go ? V.speed[0] + (V.speed[1] - V.speed[0]) * Math.min(1, t / this.dur) : 4; this.inv -= dt;
       // steering: drag moves the target, keys push it; the diver chases it with a little lag (banks into turns)
       const kx = (this.keys.ArrowRight || this.keys.d ? 1 : 0) - (this.keys.ArrowLeft || this.keys.a ? 1 : 0), ky = (this.keys.ArrowUp || this.keys.w ? 1 : 0) - (this.keys.ArrowDown || this.keys.s ? 1 : 0);
@@ -3372,18 +3408,18 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (S.u.glb) glbDrive(S.u, dt, { reach: 0, push: 0, dig: 0, swim: V.manta ? 0 : 1, floor: V.manta ? 1 : 0, speed: V.manta ? 0 : 2.6, pushing: false });
       h.visible = !(this.inv > 0 && Math.floor(t * 14) % 2);
       // the world streams toward the camera
-      const dz = sp * dt; this.z += dz; this.sandT.offset.y += dz / 5; for (const w of this.walls) { w.position.z += dz; if (w.position.z > 8) w.position.z -= 36 * 3.4; }
+      const dz = V.boss ? 0 : sp * dt; this.z += dz; this.sandT.offset.y += dz / 5; for (const w of this.walls) { w.position.z += dz; if (w.position.z > 8) w.position.z -= 36 * 3.4; }
       { const P = this.specks.geometry.attributes.position; for (let i = 0; i < P.count; i++) { let z = P.getZ(i) + dz * 1.15; if (z > 6) z -= 60; P.setZ(i, z); } P.needsUpdate = true; }
-      if (go && t < this.dur - 1.2 && !this.done) { this.spawnT -= dt; if (this.spawnT <= 0) this.spawn(); }
+      if (V.boss) this.bossTick(dt); else if (go && t < this.dur - 1.2 && !this.done) { this.spawnT -= dt; if (this.spawnT <= 0) this.spawn(); }
       const D = this.pos, pr = 0.36;
-      this.objs = this.objs.filter(ob => { ob.z += dz; const o = ob.o;
+      this.objs = this.objs.filter(ob => { ob.z += ob.v != null ? ob.v * dt : dz; if (ob.vx) ob.x += ob.vx * dt; if (ob.vy) ob.y += ob.vy * dt; const o = ob.o;
         if (ob.kind === 'fish') { ob.x = ob.x0 + ob.dir * Math.min(6.8, Math.max(0, (ob.z + 40) * 0.17)); o.rotation.z = Math.sin(S.world.time * 12 + ob.ph) * 0.15; }
         if (ob.kind === 'coil') o.userData.pose((u, tt) => new V3(-6 + u * 12, ob.y + Math.sin(u * 7 + tt * 5) * 0.28, ob.z + Math.cos(u * 5 + tt * 3) * 0.3), S.world.time);
         else o.position.set(ob.x, ob.y + (ob.kind === 'pearl' ? Math.sin(S.world.time * 4 + ob.ph) * 0.08 : 0), ob.z);
         if (ob.kind === 'rock') o.rotation.x += dt * 0.8;
         if (ob.kind === 'jelly') { ob.y = 2.2 + Math.sin(S.world.time * 2.2 + ob.ph) * 1.5; o.position.y = ob.y; }
         if (!ob.hit && Math.abs(ob.z) < (ob.kind === 'coil' ? 0.7 : ob.r + 0.3)) { const d = ob.kind === 'coil' ? Math.abs(D.y - ob.y) : Math.hypot(D.x - ob.x, D.y - ob.y);
-          if (ob.kind === 'pearl') { if (d < ob.r + pr) { ob.hit = true; this.got++; Audio.pearl(Math.min(7, 1 + (this.got % 7))); this.parts.emit(ob.x, ob.y, 0, 12, { color: new THREE.Color(1, 0.85, 0.4), speed: 1.6, life: 0.5, size: 0.1 }); if (S.o.onQte) S.o.onQte(this.Q, 'got', this.stats()); this.scene.remove(o); return false; } }
+          if (ob.kind === 'pearl') { if (d < ob.r + pr) { ob.hit = true; this.got++; Audio.pearl(Math.min(7, 1 + (this.got % 7))); this.parts.emit(ob.x, ob.y, 0, 12, { color: new THREE.Color(1, 0.85, 0.4), speed: 1.6, life: 0.5, size: 0.1 }); if (V.boss) this.bossBeam(); if (S.o.onQte) S.o.onQte(this.Q, 'got', this.stats()); this.scene.remove(o); return false; } }
           else if (d < ob.r + pr * (ob.kind === 'ink' ? 0.6 : 0.9)) this.hurt(ob);
           else if (!ob.near && d < ob.r + pr + 0.75 && ob.z > -0.1) { ob.near = true; this.close++; if (S.o.onQte) S.o.onQte(this.Q, 'close', this.stats()); } }
         if (ob.z > 6) { if (ob.kind === 'coil') { o.visible = false; o.userData.busy = false; } else this.scene.remove(o); if (o.isSprite) o.material.dispose(); return false; } return true; });
@@ -3397,7 +3433,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       c.position.set(this.pos.x * 0.7 + (Math.random() - 0.5) * sh, this.pos.y * 0.7 + 1.05 + (Math.random() - 0.5) * sh, 3.1); c.up.set(Math.sin(-this.vel.x * 0.012), 1, 0); c.lookAt(this.pos.x * 0.45, this.pos.y * 0.65 + 0.45, -8);
       this.parts.bubbles(this.pos.x - 0.1, this.pos.y + 0.5, 0.2, 1, 0.04, 0.12); this.parts.update(dt, S.world.time);
       if (S.o.onQte && go) S.o.onQte(this.Q, 'prog', this.stats());
-      if (!this.done && t >= this.dur) this.done = 'ok'; return this.done; }
+      if (!this.done && t >= this.dur) this.done = V.boss ? (this.meter >= this.goal ? 'ok' : 'no') : 'ok'; return this.done; }
     dispose() { const S = this.S; this.scene.remove(S.hold); S.scene.add(S.hold); S.hold.visible = true;
       this.scene.traverse(o => { if (o.isSprite && o.material && o.material.map === TEX.dot && !this.mats.includes(o.material) && o.material !== MAT.runPearl) this.mats.push(o.material); if ((o.isMesh || o.isPoints) && o.geometry && o.geometry !== GEO.runPearl && !Object.values(GEO).includes(o.geometry) && !this.own.includes(o.geometry)) this.own.push(o.geometry); });
       for (const x of this.own) x.dispose && x.dispose(); for (const m of this.mats) m.dispose(); }
@@ -3561,9 +3597,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     update(dt) { if (this.run && this.qte) { const r = this.run.update(Math.min(dt, 0.05)); if (r) this.qteEnd(r === 'ok'); return; } // a playable action scene: the film waits
       const sl = this.qte ? (this.qte.kind === 'simon' ? 0 : 0.15) : 1; if (!this.frozen) { this.t += dt * sl; this.time += dt * sl; } const t = this.t;
       if (this._tb) { const b = this._tb; b.o.position.y -= b.dy; b.o.rotation.z -= b.rz; b.o.rotation.y -= b.ry; this._tb = null; }
+      if (this._lt) { for (const b of this._lt) { b.o.rotation.y -= b.ry; b.o.position.y -= b.dy; } this._lt = null; }
       if (this.qte && !this.frozen) { const q = this.qte; q.el += dt; q.r = Math.min(this.dur, q.r + dt * 0.22); if (q.kind === 'hold') { q.prog = Math.max(0, Math.min(1, q.prog + (q.down ? dt / 1.3 : -dt * 0.3))); if (this.o.onQte) this.o.onQte(this.Q, 'prog', q.prog); if (q.prog >= 1) this.qteEnd(true); } if (this.qte && q.kind !== 'simon' && q.el > (q.kind === 'choice' ? 9 : 6.5)) this.qteEnd(false); }
       if (!this.frozen && !this.qDone && !this.qte && t >= this.qAt) this.qteStart();
-      const st = this.rc.run(this, this.c, this.rtAt(this.t)) || {}; this.st = st; this.companions(); if (this.simon && this.qte) this.simonTick(dt);
+      const st = this.rc.run(this, this.c, this.rtAt(this.t)) || {}; this.st = st; this.companions();
+      if (this.n === 30 && this.c.clack && !this.probe) this.c.clack.visible = this.seq.slice(0, this.li).some(l => l.who === 'clack'); /* his comeback is a surprise */ if (this.simon && this.qte) this.simonTick(dt);
       if (this.u.glb && !this.frozen) { const m = st.mode || 'stand', sw = m === 'swim' || m === 'walk' ? 1 : 0, fl = m === 'walk' || m === 'stand' ? 1 : 0;
         glbDrive(this.u, dt, { reach: 0, push: 0, dig: 0, swim: sw, floor: fl, speed: Math.abs(st.speed || (sw ? 1.4 : 0)), pushing: false }); this.arms(st); }
       if (!this.frozen && t >= this.T) { this.frozen = true; if (this.o.onCap) this.o.onCap(null); if (this.o.onFreeze) this.o.onFreeze(); }
@@ -3603,7 +3641,14 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           else if (em === 'salute') rz -= 0.22 * b; else if (em === 'nod') dy -= S * 0.06 * Math.abs(Math.sin(Math.min(1, Math.max(0, ek)) * Math.PI * 2));
           else if (em === 'droop') { const k = sm01((t - sh.l.t0) / 0.6); dy -= S * 0.07 * k; rz += 0.14 * k; } // sinks a little for the whole line
           spk.o.position.y += dy; spk.o.rotation.z += rz; spk.o.rotation.y += ry; this._tb = { o: spk.o, dy, rz, ry };
+          this.listen(sh, spk);
           const ud = spk.o.userData || {}; if (ud.talk) { ud.talk(a); this._talk = ud; } else if (ud.mouth) { const m = ud.mouth; m.visible = a > 0.1; m.scale.y = m.userData.h * (0.3 + 0.9 * a); this._mouth = m; } else if (ud.jaw) { ud.jaw.rotation.z = -0.15 - 0.55 * a; this._jaw = ud.jaw; } } } }
+    // the cast who aren't speaking look toward the one who is (40% of the way, ≤ 0.6 rad), and bob once on a happy line; undone next frame
+    listen(sh, spk) { const sp = spk.o.getWorldPosition(new V3()), t = this.t - sh.l.t0, out = this._lt = [];
+      for (const k of ['pip', 'shelly', 'clack', 'murk', 'lumen', 'mira', 'cousin', 'snip', 'snap']) { if (k === sh.who) continue; const q = this.castOf(k); if (!q || q.o === spk.o) continue;
+        const o = q.o, p = o.getWorldPosition(new V3()), d = sp.clone().sub(p); d.y = 0; if (d.lengthSq() < 1e-4 || q.fw.lengthSq() < 1e-4) continue; d.normalize();
+        let a = Math.atan2(q.fw.z, q.fw.x) - Math.atan2(d.z, d.x); a = Math.atan2(Math.sin(a), Math.cos(a)); const ry = Math.max(-0.6, Math.min(0.6, a * 0.4));
+        const dy = sh.l.mood === 'happy' && t < 0.6 ? q.s * 0.06 * Math.sin(t / 0.6 * Math.PI) : 0; o.rotation.y += ry; o.position.y += dy; out.push({ o, ry, dy }); } }
     clearView(pos, q) { const R = this.ray || (this.ray = new THREE.Raycaster()); R.camera = this.cam0; // five rays: to the speaker and around them (something big near the lens covers half the frame)
       const own = o => { for (let a = o; a; a = a.parent) if (a === q.o) return true; return false; }, d0 = q.p.clone().sub(pos), side = new V3(d0.z, 0, -d0.x).normalize(), r = q.s * 0.4;
       for (const off of [[0, 0], [r, 0], [-r, 0], [0, r], [0, -r * 0.6]]) { const to = q.p.clone().addScaledVector(side, off[0]); to.y += off[1]; const d = to.sub(pos), L = d.length(); if (L < 0.05) continue;
@@ -6405,10 +6450,11 @@ window.__T = T;
   // the action scene's HUD: title + progress, three lamp lives, pearl count, pop words; pearls pay coins once (not when re-watching)
   let runPopT = 0;
   function runUI(Q, ev, st) { const el = $('#runHud'); if (!el) return; const pop = (txt, cls) => { const p = el.querySelector('.rh-pop'); p.textContent = txt; p.className = 'rh-pop on ' + (cls || ''); clearTimeout(runPopT); runPopT = setTimeout(() => { p.className = 'rh-pop'; }, 700); };
-    if (ev === 'start') { el.hidden = false; el.className = 'on v-' + (Q.v || 'dive'); document.body.classList.add('running'); el.querySelector('.rh-t').textContent = Q.label; el.querySelector('.rh-hint').textContent = isTouch ? 'Drag to swim · dodge · grab the pearls' : 'Arrow keys / WASD or drag · dodge · grab the pearls';
-      el.querySelector('.rh-lives').innerHTML = '<i></i><i></i><i></i>'; el.querySelector('.rh-n').textContent = '0'; el.style.setProperty('--rp', 0); pop('Ready…', 'go'); setTimeout(() => { if (world.story && world.story.run) { pop('SWIM!', 'go'); Audio.play('hint'); } }, 1000); buzz([20, 30, 20]); return; }
+    if (ev === 'start') { el.hidden = false; el.className = 'on v-' + (Q.v || 'dive'); document.body.classList.add('running'); el.querySelector('.rh-t').textContent = Q.label; el.querySelector('.rh-hint').textContent = Q.v === 'boss' ? (isTouch ? 'Drag to dodge · grab the light to zap him' : 'Arrows / WASD · dodge · grab the light to zap him') : isTouch ? 'Drag to swim · dodge · grab the pearls' : 'Arrow keys / WASD or drag · dodge · grab the pearls';
+      el.querySelector('.rh-lives').innerHTML = '<i></i>'.repeat(Q.v === 'boss' ? 5 : 3); el.querySelector('.rh-n').textContent = '0'; el.style.setProperty('--rp', 0); pop('Ready…', 'go'); setTimeout(() => { if (world.story && world.story.run) { pop('SWIM!', 'go'); Audio.play('hint'); } }, 1000); buzz([20, 30, 20]); return; }
     if (ev === 'prog') { el.style.setProperty('--rp', st.prog); return; }
     if (ev === 'got') { el.querySelector('.rh-n').textContent = st.got; el.querySelector('.rh-sc').classList.remove('bump'); void el.offsetWidth; el.querySelector('.rh-sc').classList.add('bump'); buzz(8); return; }
+    if (ev === 'beam') { pop(['ZAP!', 'Take that!', 'Shine on!', 'Burn, noodle!'][(st.meter - 1) % 4] + ` ${st.meter}/${st.goal}`, 'go'); buzz([20, 30, 50]); return; }
     if (ev === 'close') { pop(['Close!', 'Whoa!', 'Nice!', 'Too close!'][st.close % 4], 'close'); Audio.play('swim'); buzz(12); return; }
     if (ev === 'hit') { el.querySelectorAll('.rh-lives i').forEach((h, i) => h.classList.toggle('off', i >= st.lives)); el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); pop('Ouch!', 'hit'); Audio.play('bump'); buzz([40, 30, 60]); return; }
     if (ev === 'ok' || ev === 'no') { const coins = !watching && st ? Math.min(30, st.got) : 0; if (coins) { save.coins = (save.coins || 0) + coins; persist(); }

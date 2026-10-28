@@ -253,7 +253,7 @@ CH = [PROLOGUE,
    ('clack', 'Did somebody say… CAPTAIN?', 'muffled, then booming', 'salute'),
    ('pip', {'brave': 'CLACK?! You were brave the whole way, Spark. Everybody was!', 'funny': 'CLACK?! Spark, you made me laugh the whole way. And now THIS!', 'kind': 'CLACK?! Spark, you were kind the whole way. That’s why it worked.'}, 'shrieking with joy', 'spin'),
    ('', 'The Heart Pearl rises home. And the whole reef shines.', 'warm, soaring')], w=2,
-   Q=dict(at=1, kind='hold', label='Give the light away!',
+   Q=dict(at=1, kind='run', v='boss', dur=40, goal=8, label='Give the light back! Zap Grimtide!',
           ok=[('you', 'It was never yours!', 'shouting')],
           no=[('pip', 'Everybody, NOW! Give it away!', 'shouting')])),
 ]

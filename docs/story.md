@@ -47,7 +47,7 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 | 27 | Over the Abyss | resolve ↑ | Answer Murk (choice) |
 | 28 | The Deep Rises | rally ↑↑ | Light up the Deep! (run) |
 | 29 | Grimtide’s Lair | showdown ↓ | Through the coils! Reach the Lantern! (run) |
-| 30 | The Reef’s Revenge | REVENGE ↑↑↑ | Give the light away! (hold) |
+| 30 | The Reef’s Revenge | REVENGE ↑↑↑ | Give the light back! Zap Grimtide! (run) |
 
 ## How the story is told
 - **Films** (after each level): every line has its speaker on screen; the camera cuts to a close-up of whoever talks and they animate as they speak. Characters who aren’t part of a scene’s action ride along (Pip at Spark’s shoulder, Lumen glowing beside, Clack at the feet).
@@ -480,7 +480,7 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 **Chapter 30 · The Reef’s Revenge** (film `victory`, arrival `drop`, REVENGE ↑↑↑)
 
 - `s30_1` **Grimtide:** YES! Give it to me!
-- ▶ **Give the light away!** (hold) — in time: **Spark:** It was never yours! — missed: **Pip:** Everybody, NOW! Give it away!
+- ▶ **Give the light back! Zap Grimtide!** (run) — in time: **Spark:** It was never yours! — missed: **Pip:** Everybody, NOW! Give it away!
 - `s30_2` *Every creature in the sea gives its light at once. Way too much light. Freely given.*
 - `s30_3` **Grimtide:** No… NO! It BURNS! Too bright! Too SHARED!
 - `s30_4` *And the mighty Grimtide shrinks… to a tiny, wriggling, very grumpy worm.*

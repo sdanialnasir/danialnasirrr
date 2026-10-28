@@ -932,3 +932,20 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - **Roll hints** (`rollScan()` after every play tick, Settings → Roll hints, `save.settings.rollHint`): if a stone/pearl is within 4–5 cells, each
   of the 4 next moves runs 10 ticks on a hidden copy; objects that would move sideways (not a direct push) get a gold dotted path + chevron
   (`world.setRollTrails` / `rollUpdate`, pooled sprites). E.g. level 3: digging beside the stone shows it rolling left into the shaft.
+
+## Story mini-games 2 + film polish (clam song, boss fight, staging, Keeper)
+- **Clam song** (`Q.kind 'simon'`, chapter 12, rounds [3, 4, 5]): clams light a pattern, the player repeats it (`#simon` / `simonUI`,
+  `Story.simonTick`); the last clam wakes (`woke`). More runs (`RUN_V`): bounce (5), trail (18), rally (28); objects may carry their own
+  speed (`ob.v`, `vx`, `vy`).
+- **Boss fight** (chapter 30, `Q = {kind: 'run', v: 'boss', dur: 40, goal: 8}`): `StoryRun.bossInit/poseBoss/bossTick/bossBeam`. Grimtide's
+  head faces the diver; he lunges (red warning ring 0.95 s, then a strike, hit radius 0.95) and spits ink/rocks (`ob.v` 12) at you; catch
+  light orbs (every 1.1–1.7 s) and each one fires a beam at him ("ZAP! n/8"). Meter full = he flees (`ok`), time out = `no`. 5 lives.
+  `runUI` shows the meter as progress and 5 lamps.
+- **Film brightness:** post `expo` uniform × `FILM_EXPO[n]` (per chapter, measured so each world's films sit at one target luminance);
+  `Story.render` sets it, `storyStop` resets it to 1 (renderer exposure is ignored while post is on).
+- **Staging:** `Story.listen(sh, spk)` (from `shotCam`): everyone else in the shot turns ~40% toward the speaker and hops on happy lines
+  (offsets undone each frame via `_lt`); camera punch-ins + tremble on big lines; `insideCast()` keeps close-ups out of bodies.
+  Clack: Meshy crabs face +z (`ry: 0`); in the crabs parade he turns to the camera; in chapter 30 he is hidden until his comeback line.
+- **Reef Keeper** (prologue): `makeKeeper()` from `src/assets/models/keeper.js` (`window.AQ_KEEPER`, made with
+  `python3 tools/convert_diver.py <keeper.glb> --out src/assets/models/keeper.js --var AQ_KEEPER --tex 768`); she borrows the diver's
+  clips (position tracks dropped), 1.13 tall, feet at −0.5 (measure after `mesh.skeleton.update()`).

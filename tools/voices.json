@@ -2723,7 +2723,7 @@
    "id": "s30_ok1",
    "role": "diver",
    "text": "[shouting] It was never yours!",
-   "when": "Chapter 30 · The Reef’s Revenge — after “Give the light away!” (done in time)",
+   "when": "Chapter 30 · The Reef’s Revenge — after “Give the light back! Zap Grimtide!” (done in time)",
    "max_seconds": 0,
    "set": "story",
    "who": "Spark"
@@ -2732,7 +2732,7 @@
    "id": "s30_no1",
    "role": "pip",
    "text": "[shouting] Everybody, NOW! Give it away!",
-   "when": "Chapter 30 · The Reef’s Revenge — after “Give the light away!” (missed)",
+   "when": "Chapter 30 · The Reef’s Revenge — after “Give the light back! Zap Grimtide!” (missed)",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"

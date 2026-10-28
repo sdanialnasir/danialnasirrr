@@ -119,7 +119,7 @@ Spark, the hero. Young, brave, kind, a little cheeky. Cries once (chapter 25). S
 | `s27_cfunny_1` | Chapter 27 · Over the Abyss — choice “Answer Murk”: funny answer “Eight arms. Use them ALL.” | [playful] Well, you have eight arms now. Use them ALL. |
 | `s27_ckind_1` | Chapter 27 · Over the Abyss — choice “Answer Murk”: kind answer “It wasn't your fault, Murk.” | [gentle] It wasn't your fault, Murk. |
 | `s29_3` | Chapter 29 · Grimtide’s Lair | [calm, defiant] You’re wrong about one thing. That light isn’t yours. We’re giving it away. |
-| `s30_ok1` | Chapter 30 · The Reef’s Revenge — after “Give the light away!” (done in time) | [shouting] It was never yours! |
+| `s30_ok1` | Chapter 30 · The Reef’s Revenge — after “Give the light back! Zap Grimtide!” (done in time) | [shouting] It was never yours! |
 
 ## pip — Laura
 
@@ -184,7 +184,7 @@ A tiny seahorse. Talks fast when nervous (often), jokes to hide fear, huge heart
 | `s30_7_brave` | Chapter 30 · The Reef’s Revenge (if the player is mostly brave) | [shrieking with joy] CLACK?! You were brave the whole way, Spark. Everybody was! |
 | `s30_7_funny` | Chapter 30 · The Reef’s Revenge (if the player is mostly funny) | [shrieking with joy] CLACK?! Spark, you made me laugh the whole way. And now THIS! |
 | `s30_7_kind` | Chapter 30 · The Reef’s Revenge (if the player is mostly kind) | [shrieking with joy] CLACK?! Spark, you were kind the whole way. That’s why it worked. |
-| `s30_no1` | Chapter 30 · The Reef’s Revenge — after “Give the light away!” (missed) | [shouting] Everybody, NOW! Give it away! |
+| `s30_no1` | Chapter 30 · The Reef’s Revenge — after “Give the light back! Zap Grimtide!” (missed) | [shouting] Everybody, NOW! Give it away! |
 | `l2_s` | Level 2: level starts | [urgent, cheeky] Psst, Spark! Stones fall if you dig under them. Don’t be under them! |
 | `l2_p` | Level 2: first pearl in | [giggling] Ooh, I felt that! My glow tickles! |
 | `l2_g` | Level 2: gate opens | [overjoyed] Two gates! Look, look, I’m sparkling! |
