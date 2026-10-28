@@ -30,6 +30,14 @@ Words in **[brackets]** are audio tags that steer the delivery (whisper, giggle,
 | diver | Gigi | Older 'childish animation' voice; very cartoony (may no longer be available). |
 | diver | Mimi | Older 'childish animation' voice; tiny and cute (may no longer be available). |
 
+## The story voices
+The story (docs/story.md) adds one voice per character: **pip** (Laura), **shelly** (Matilda), **murk** (Brian), **lumen** (Charlie),
+**grimtide** (Callum: husky and menacing; Bill / George / Daniel are the other candidates) and **friend** (Will: crabs, cousins, manta).
+`make_voices.bat` asks for every role listed under `pick` in tools/voices.json and auditions each one.
+- `s<chapter>_<line>`: the chapter films (186 story lines in all, chapters 1–30; some chapters have 5–6 lines).
+- `l<level>_s` / `l<level>_g`: the talk bubble inside each level (soon after it starts / when its gate opens).
+The full text of those lines is in docs/story.md; the spoken version with [tags] is in tools/voices.json.
+
 ## Every line
 Timed film lines must fit `max seconds` (the picture keeps moving). The game text lives in `src/game.js` (`CINE_LINES`, `TUT_STEPS`);
 the spoken text (with tags) lives in `tools/voices.json`, so keep the two in step when you change wording.

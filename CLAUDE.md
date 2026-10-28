@@ -808,3 +808,19 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - **Journal** (`#journal`, Home › Story, which replaced the Intro buttons): the Prologue (the intro film) + every chapter whose level has
   stars, with its four lines and a Watch button (`watchChapter(n)`: plays the film without a result card, returns to the journal; Escape ends).
 - The finale credits name the cast.
+
+## Story v3: Grimtide (owner: "fully connected… ups and downs… blunders… in the end you get the revenge… show it in the next level")
+- **Villain:** Grimtide, a giant eel who drinks light (`makeEel(len, R)`: 30 segments posed by `userData.pose(fn(u, t), t)`, `setGlow`; helpers
+  `pathSweep`, `makeCage` (`open(k)`), `makeInkChains` (`melt(k)`)). Arc and every line: `docs/story.md` (generated from the CHAPTERS data;
+  table of ups and downs: blunder at ch. 7 (the map stolen) and 24 (Pip snatched), grief at 13–14 (Shelly struck down), triumphs 25–26, revenge 30).
+- **New films** (`RECIPES`): trap (7), storm (13), shellyrest (14), coil (20), ambush (24), cage (26), lair (29), victory (30: 30 beams, the eel
+  shrinks to a worm, the Heart Pearl rises). `S.fx(key, kind)` fires one-shot controller effects (`storyFx`: flash / thunder / roar / ink),
+  `S.inkBurst(pos, n, size)` drifting ink clouds (soft violet-black, ≤ 90). Chapter 30 plays before the finale (`storyOK` allows it; no tank).
+- **Story inside the levels:** `LEVEL_TALK[n] = {s, g}` → `levelTalk(k)` shows `#talk` (speaker portrait colour, name, line, 4.6 s) ~3.2 s after
+  the level starts and when its gate opens (replaces the diver's gate quip there); voice `l<n>_s` / `l<n>_g`. `LEVEL_MOOD[n]` →
+  `world.setStoryMood`: Pip floats above the tank following the diver (`pipNod`), ink behind the tank (8–10, 13–14), Grimtide's eye pairs blink
+  in the dark beside it from level 11 (`moodTick`). Pip is absent on 25–26 (captured). Debug: `__dc.talk('s'|'g')`.
+- **Voices:** tools/voices.json has every story line with tags per mood (232 lines) and a `grimtide` role (Callum recommended). Regenerate the
+  docs + voice list from the story data rather than editing both by hand.
+- Fixed on the way: the tank waterline shader never compiled (a `//` comment swallowed `gl_FragColor`); use `/* */` inside one-line GLSL.
+- Headless note: `#talk` fades by CSS transition and hides on a wall-clock timer, so screenshots need `transition: none` and a re-added `.on`.

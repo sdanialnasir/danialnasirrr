@@ -1752,6 +1752,20 @@ html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9r
 .jt p[data-who="murk"] em { color: #e3a6ff; } .jt p[data-who="shelly"] em { color: #9fe38a; } .jt p[data-who="lumen"] em { color: #7ff6ff; } .jt p[data-who="you"] em { color: #c9a6ff; }
 .jt p:not([data-who]) { font-style: italic; color: #cfe2ff; }
 body.watching #storyCap { bottom: 9vh; }
+
+/* ---- In-level story talk (Pip & co. speak during the next level) ---- */
+#talk { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 5.4rem); z-index: 30; display: flex; align-items: center; gap: 0.7rem; max-width: min(30rem, 88vw); padding: 0.6rem 1rem 0.65rem 0.65rem;
+  border-radius: 1.1rem; background: linear-gradient(180deg, rgba(14, 44, 120, 0.92), rgba(8, 26, 76, 0.94)); border: 2px solid rgba(110, 190, 255, 0.55); box-shadow: 0 0.5rem 1.6rem rgba(0, 10, 40, 0.45);
+  color: #fff; pointer-events: none; opacity: 0; transform: translate(-50%, -0.6rem); transition: opacity 0.35s ease, transform 0.35s ease; }
+#talk.on { opacity: 1; transform: translate(-50%, 0); }
+#talk .tk-ic { flex: none; width: 2.6rem; height: 2.6rem; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #fff3b8, #ffc23a 55%, #c07a10); box-shadow: 0 0 0.9rem rgba(255, 200, 80, 0.7); }
+#talk[data-who="grimtide"] .tk-ic { background: radial-gradient(circle at 40% 40%, #ff8a6a, #b0101a 55%, #2a0610); box-shadow: 0 0 1rem rgba(255, 40, 30, 0.8); }
+#talk[data-who="lumen"] .tk-ic { background: radial-gradient(circle at 40% 35%, #e8ffff, #6ff0ff 55%, #1a6a8a); } #talk[data-who="shelly"] .tk-ic { background: radial-gradient(circle at 40% 35%, #dfffc8, #7ac060 55%, #2a5a20); }
+#talk[data-who="murk"] .tk-ic { background: radial-gradient(circle at 40% 35%, #f6d8ff, #a868e8 55%, #4a1a8a); } #talk[data-who="cousin"] .tk-ic { background: radial-gradient(circle at 40% 35%, #ffe0f0, #ff7ab8 55%, #a0306a); }
+#talk[data-who="narrator"] .tk-ic { background: radial-gradient(circle at 40% 35%, #ffffff, #8fd2ff 55%, #2a5a9a); }
+#talk b { display: block; font-family: var(--display); font-size: 1rem; color: #ffd25a; } #talk[data-who="grimtide"] b { color: #ff7a6a; } #talk[data-who="lumen"] b { color: #7ff6ff; } #talk[data-who="shelly"] b { color: #9fe38a; } #talk[data-who="murk"] b { color: #e3a6ff; }
+#talk p { margin: 0.1rem 0 0; font-weight: 700; font-size: 1rem; line-height: 1.3; } #talk[data-who="grimtide"] { border-color: rgba(255, 90, 80, 0.6); background: linear-gradient(180deg, rgba(60, 10, 30, 0.92), rgba(24, 6, 16, 0.94)); }
+body.story #talk { display: none; }
 </style>
 </head>
 <body data-state="splash">
@@ -2054,6 +2068,7 @@ body.watching #storyCap { bottom: 9vh; }
   </div>
 </section>
 
+<div id="talk" aria-live="polite"><i class="tk-ic" aria-hidden="true"></i><div><b></b><p></p></div></div>
 <div id="storyCap" aria-live="polite"><small></small><b></b><p></p></div>
 <button id="storySkip" type="button" hidden>Skip <svg class="i" viewBox="0 0 24 24"><path d="M6 5l7 7-7 7M13 5l7 7-7 7"/></svg></button>
 <section id="result" class="screen sheet modal res">
