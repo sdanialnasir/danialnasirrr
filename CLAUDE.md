@@ -875,5 +875,7 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - **Story conditions in levels** (`LEVEL_COND`, look only, the board never changes): `dim` 8–9, `dark` 14/24/25 (the lamp pool is all you
   get: `world.setCond` → stronger lamp + `lampAmb`, darker backdrop, deeper vignette), `storm` 13/29/30 (every ~13 s a flicker + thunder or a
   quake), `ink` 16/18/26 (ink drifts by). The level card shows a chip (`COND_CHIP`). Not in Daily Dive / custom levels.
+  The darkness itself is a screen overlay (`#lampDark`, `lampDark()` in the frame loop: radial pool ≈ 3.4 cells around the diver, alpha 0.74
+  dark / 0.36 dim) because the lamp uniforms don't reach the water, sprites and corals. `world.setCond` is keyed to the level name (photos/undo reload).
 - **Voices: the owner must not record until the v5 script is approved.** Voice maker is Eleven v4 only (`fallback_models: []`), no name prompts.
 - Debug: `__dc.watch(n)` plays chapter n like the journal; `__dc.qte('pick', 'funny')` answers a choice.
