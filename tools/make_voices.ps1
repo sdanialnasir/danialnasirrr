@@ -1,7 +1,9 @@
 # Aqua Energizer - voice-over maker (ElevenLabs). Run it with make_voices.bat in the project folder.
 #   1) Audition : renders the same sample line in every shortlisted voice -> voice-auditions\  (listen, pick two)
 #   2) Make all : renders every line in tools\voices.json with your narrator + diver -> src\assets\vo\<id>.mp3, then rebuilds the game
-#   3) Redo one : re-renders a single line (after you edit its text in tools\voices.json)
+#   3) Remake all, 4) Redo one line (after you edit its text in tools\voices.json)
+#   5) Story only: renders just the story script (lines with "set": "story"); the clips you already have are left alone
+# Before it spends anything it prints how many characters (= ElevenLabs credits, tags included) the job uses and asks to continue.
 # Your API key is read from ELEVENLABS_API_KEY, or .elevenlabs-key in the project folder, or asked for (and optionally saved there).
 param([string]$Mode = '')
 $ErrorActionPreference = 'Stop'
@@ -15,7 +17,7 @@ $Root = if ($InRepo) { Split-Path -Parent $Here } else { $Here }
 $CfgPath = Join-Path $Here 'voices.json'
 if (-not (Test-Path $CfgPath)) { throw "voices.json is missing. Keep it in the same folder as make_voices.ps1." }
 $Cfg = Get-Content -Raw -Encoding UTF8 $CfgPath | ConvertFrom-Json
-$Roles = @($Cfg.pick.PSObject.Properties.Name)  # narrator, diver, pip, shelly, murk, lumen, friend (one voice each)
+$Roles = @($Cfg.pick.PSObject.Properties.Name)  # one voice per role: narrator, diver, pip, shelly, clack, grimtide, murk, lumen, mira, cousin, snip, snap, keeper
 $PickPath = Join-Path $Here 'voices.picked.json'
 $KeyFile = Join-Path $Root '.elevenlabs-key'
 $KeyTxt = Join-Path $Root 'elevenlabs-key.txt'
@@ -114,9 +116,21 @@ function Rebuild {
   else { Write-Host "`nPython isn't installed here, so the game wasn't rebuilt. Commit src\assets\vo (or send the MP3s) and it gets built in." -ForegroundColor Yellow }
 }
 
+function Confirm-Cost([int]$chars, [string]$what) {
+  Write-Host ("`n{0}: about {1:N0} characters = about {1:N0} ElevenLabs credits (half that on turbo/flash models)." -f $what, $chars) -ForegroundColor Yellow
+  $a = (Read-Host 'Continue? (y/n)').Trim().ToLower()
+  return ($a -eq 'y' -or $a -eq 'yes')
+}
+
 function Audition {
   New-Item -ItemType Directory -Force -Path $AudDir | Out-Null
-  foreach ($role in $Roles) {
+  Write-Host ("Roles: " + ($Roles -join ', '))
+  $want = (Read-Host 'Which roles? Type names separated by commas, or press Enter for all').Trim()
+  $list = if ($want) { @($want -split '[,\s]+' | Where-Object { $Roles -contains $_ }) } else { $Roles }
+  if (-not $list.Count) { Write-Host 'None of those role names exist.' -ForegroundColor Yellow; return }
+  $cost = 0; foreach ($r in $list) { $cost += $Cfg.audition.$r.Length * @($Cfg.candidates.$r).Count }
+  if (-not (Confirm-Cost $cost ("Auditions for " + ($list -join ', ')))) { return }
+  foreach ($role in $list) {
     Write-Host "`n$role voices:" -ForegroundColor Cyan
     foreach ($c in @($Cfg.candidates.$role)) {
       Write-Host ("  {0,-12} {1}" -f $c.name, $c.why)
@@ -130,9 +144,14 @@ function Audition {
   try { Invoke-Item $AudDir } catch {}
 }
 
-function Make-All([bool]$redo) {
+function Make-All([bool]$redo, [string]$only = '') {
+  $lines = @($Cfg.lines); if ($only) { $lines = @($lines | Where-Object { $_.set -eq $only }) }
+  $todo = @($lines | Where-Object { $redo -or -not (Test-Path (Join-Path $VoDir ($_.id + '.mp3'))) })
+  if (-not $todo.Count) { Write-Host 'Every one of those lines already has a clip. Nothing to do.' -ForegroundColor Green; return }
+  $chars = 0; foreach ($l in $todo) { $chars += $l.text.Length }
+  if (-not (Confirm-Cost $chars ("{0} lines to make" -f $todo.Count))) { return }
   $v = Ask-Voices; New-Item -ItemType Directory -Force -Path $VoDir | Out-Null
-  $n = 0; $skip = 0; $fail = 0; $lines = @($Cfg.lines)
+  $n = 0; $skip = 0; $fail = 0
   foreach ($l in $lines) {
     $out = Join-Path $VoDir ($l.id + '.mp3')
     if ((Test-Path $out) -and -not $redo) { $skip++; continue }
@@ -144,9 +163,10 @@ function Make-All([bool]$redo) {
 }
 
 function Redo-One {
-  $id = (Read-Host 'Line id to redo (e.g. vo3, t1a, d_relic)').Trim()
+  $id = (Read-Host 'Line id to redo (e.g. vo3, s7_4, l11_s, m5)').Trim()
   $l = @($Cfg.lines) | Where-Object { $_.id -eq $id } | Select-Object -First 1
   if (-not $l) { throw "No line with id '$id' in tools\voices.json." }
+  if (-not (Confirm-Cost $l.text.Length ("Line " + $l.id))) { return }
   $v = Ask-Voices; New-Item -ItemType Directory -Force -Path $VoDir | Out-Null
   $out = Join-Path $VoDir ($l.id + '.mp3')
   if (Speak $v[$l.role] $l.text $out $Cfg.settings.($l.role)) { Write-Host "-> $out" -ForegroundColor Green; Rebuild }
@@ -158,6 +178,7 @@ if (-not $Mode) {
   Write-Host "  2) Make all voice-overs (keeps lines that already exist)"
   Write-Host "  3) Remake ALL voice-overs (overwrites)"
   Write-Host "  4) Redo one line"
-  $Mode = (Read-Host 'Choose 1-4').Trim()
+  Write-Host "  5) Make the story lines only (keeps every clip you already have)"
+  $Mode = (Read-Host 'Choose 1-5').Trim()
 }
-switch ($Mode) { '1' { Audition } '2' { Make-All $false } '3' { Make-All $true } '4' { Redo-One } default { Write-Host 'Nothing chosen.' } }
+switch ($Mode) { '1' { Audition } '2' { Make-All $false } '3' { Make-All $true } '4' { Redo-One } '5' { Make-All $false 'story' } default { Write-Host 'Nothing chosen.' } }

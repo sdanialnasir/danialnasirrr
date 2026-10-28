@@ -31,12 +31,11 @@ Words in **[brackets]** are audio tags that steer the delivery (whisper, giggle,
 | diver | Mimi | Older 'childish animation' voice; tiny and cute (may no longer be available). |
 
 ## The story voices
-The story (docs/story.md) adds one voice per character: **pip** (Laura), **shelly** (Matilda), **murk** (Brian), **lumen** (Charlie),
-**grimtide** (Callum: husky and menacing; Bill / George / Daniel are the other candidates) and **friend** (Will: crabs, cousins, manta).
-`make_voices.bat` asks for every role listed under `pick` in tools/voices.json and auditions each one.
-- `s<chapter>_<line>`: the chapter films (186 story lines in all, chapters 1–30; some chapters have 5–6 lines).
-- `l<level>_s` / `l<level>_g`: the talk bubble inside each level (soon after it starts / when its gate opens).
-The full text of those lines is in docs/story.md; the spoken version with [tags] is in tools/voices.json.
+The story has its own script, grouped by character, with a credit estimate: **docs/voice-script.md** (the story itself: docs/story.md).
+Thirteen voices: narrator, diver (Spark), pip, shelly, clack, grimtide, murk, lumen, mira, cousin, snip, snap, keeper. `make_voices.bat`
+→ **5) Make the story lines only** records just those (it prints the character count and asks first); **1) Audition** asks which roles.
+Story clips ship as three per-world voice packs next to the page (`assets/voice-1.js` … `voice-3.js`, made by `tools/build.py`) because
+~23 minutes of speech doesn't fit inside one HTML file under 16 MB. The page plays fine without them (subtitles).
 
 ## Every line
 Timed film lines must fit `max seconds` (the picture keeps moving). The game text lives in `src/game.js` (`CINE_LINES`, `TUT_STEPS`);

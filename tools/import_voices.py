@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Bring ElevenLabs clips into the game: python3 tools/import_voices.py <voiceovers.zip | folder>
 For every line id in tools/voices.json: trims silence at both ends, evens out loudness (speech at about -19 dB RMS, peaks
-soft-limited below -1.5 dBFS) and saves a 64 kbps mono MP3 to src/assets/vo/<id>.mp3. Then run python3 tools/build.py."""
+soft-limited below -1.5 dBFS) and saves a mono MP3 to src/assets/vo/<id>.mp3. Then run python3 tools/build.py.
+Intro/tutorial/diver clips (set "base") are 64 kbps; story clips (set "story", ~23 min of speech) are 48 kbps: they go into the three
+per-world voice packs (src/assets/voice-<w>.js), not into the page, so the page stays under 16 MB. Force a rate with --kbps 40."""
 import io, json, os, subprocess, sys, zipfile
 import numpy as np
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); SR = 44100
@@ -21,17 +23,23 @@ def tidy(x):
     lim = 10 ** (-1.5 / 20); return (np.tanh(x / lim) * lim).astype(np.float32)   # soft limit, never above -1.5 dBFS
 
 def main():
-    src = sys.argv[1]; ids = [l['id'] for l in json.load(open(os.path.join(ROOT, 'tools', 'voices.json'), encoding='utf-8'))['lines']]
+    args = [a for a in sys.argv[1:] if not a.startswith('--')]; force = next((int(a.split('=')[1]) for a in sys.argv[1:] if a.startswith('--kbps=')), 0)
+    if '--kbps' in sys.argv: force = int(sys.argv[sys.argv.index('--kbps') + 1]); args = [a for a in args if a != str(force)]
+    src = args[0]; L = json.load(open(os.path.join(ROOT, 'tools', 'voices.json'), encoding='utf-8'))['lines']; ids = [l['id'] for l in L]; story = {l['id'] for l in L if l.get('set') == 'story'}
     if src.endswith('.zip'):
         z = zipfile.ZipFile(src); files = {os.path.basename(n)[:-4]: z.read(n) for n in z.namelist() if n.lower().endswith('.mp3')}
     else:
         files = {f[:-4]: open(os.path.join(src, f), 'rb').read() for f in os.listdir(src) if f.lower().endswith('.mp3')}
-    os.makedirs(OUT, exist_ok=True); done = 0
+    os.makedirs(OUT, exist_ok=True); done = 0; clips = {}
     for i in ids:
-        if i not in files: print('missing', i); continue
-        x = tidy(decode(files[i]))
-        subprocess.run(['ffmpeg', '-v', 'quiet', '-y', '-f', 'f32le', '-ar', str(SR), '-ac', '1', '-i', 'pipe:0', '-b:a', '64k', os.path.join(OUT, i + '.mp3')], input=x.tobytes(), check=True)
-        done += 1; print(f'{i:9s} {len(x) / SR:5.2f}s')
+        if i not in files: continue
+        clips[i] = tidy(decode(files[i]))
+    print(f'{len(clips)} clips, {sum(len(x) for x in clips.values()) / SR / 60:.1f} min of speech')
+    for i, x in clips.items():
+        kbps = force or (48 if i in story else 64)
+        subprocess.run(['ffmpeg', '-v', 'quiet', '-y', '-f', 'f32le', '-ar', str(SR), '-ac', '1', '-i', 'pipe:0', '-b:a', f'{kbps}k', os.path.join(OUT, i + '.mp3')], input=x.tobytes(), check=True)
+        done += 1
+    print('missing:', [i for i in ids if i not in files][:40], '…' if len([i for i in ids if i not in files]) > 40 else '')
     print(f'{done} clips -> {OUT}; extra files ignored: {sorted(set(files) - set(ids))}')
 
 if __name__ == '__main__': main()

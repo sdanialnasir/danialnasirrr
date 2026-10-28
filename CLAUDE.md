@@ -107,6 +107,8 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 ## Hard constraints
 - The deliverable must stay a **single self-contained HTML file** (`dist/index.html`): no network requests
   except Google Fonts. claude.ai artifacts block other external resources. Keep it under ~16 MB.
+  Exception (story v4): the recorded story voices ship as optional companion packs `dist/assets/voice-1..3.js` (same origin; publish
+  them with the artifact's `files`). The page must keep working without them.
 - Engine (`Engine` class + `LEVELS`) changes can break verified routes: rerun `play_routes.py` after any.
 - If you change `LEVELS`, re-verify with the solver/replay tools and update `tests/routes.json`.
 
@@ -824,3 +826,32 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   docs + voice list from the story data rather than editing both by hand.
 - Fixed on the way: the tank waterline shader never compiled (a `//` comment swallowed `gl_FragColor`); use `/* */` inside one-line GLSL.
 - Headless note: `#talk` fades by CSS transition and hides on a wall-clock timer, so screenshots need `transition: none` and a re-added `.on`.
+
+## Story v4: the AAA story pass (owner: "story mode like PS4 games / Bug's Life… every character with charisma… engaged, waiting for the climax")
+- **Screenplay source:** one Python data file `tools/story/story_v4.py` (`python3 tools/story/gen_docs.py` regenerates the docs + voices.json; the game holds its own copy of the lines in game.js, so change both): `SPEAKERS`,
+  `ROLES` (voice per role), `CH` (30 chapters, lines `(who, text, delivery)`, optional `Q` interactive beat), `LEVEL_STORY`, `BEATS`, `DEATH`, `MEM`.
+  docs/story.md (bible + ups/downs table), docs/voice-script.md (by character, credits) and tools/voices.json are generated from it together.
+  Arc: Spark (Pip's name for the diver) + Pip, Shelly, Captain Clack (tricorn hat, `makeCapHat`), Lumen, Mira, Murk vs Grimtide and his piranhas
+  Snip & Snap; map stolen (7), Shelly struck down (13–14), the lamp reveal (16 → 23), Pip snatched + Clack's sacrifice (24–25), rescue (26),
+  "we've been lighting his dinner" (29), revenge (30). The Keeper's 30 coins (the relics) each play a memory (`MEM_LINES`, voice `m<n>`).
+- **Films (`class Story`):** lines carry their own clock (`plan()`: `t0/t1` + recipe time `r0/r1`; narration runs the action at full speed,
+  dialogue eases it to 45%); `rtAt(t)` maps clock → recipe. Close-ups: `castOf(who)` (cast object, size, facing), `dialogCam` (toward the face,
+  from the scene camera's side, ±0.38 rad shot/reverse), `clearView` (raycast: try the other side, else stay wide), the speaker bobs/sways
+  (Grimtide's jaw works). Companions: a speaker missing from a recipe rides along (`companions()`: Pip at the shoulder, Lumen beside, Clack at
+  the feet). New films: `farewell` (25); Clack added to crabs/ambush/whale; Snip & Snap in descent (the diver dives off the cliff); crew + hat in
+  plankton; Shelly in plankton/victory. Voice ids `s<n>_<i>`, outcome lines `s<n>_ok<j>` / `s<n>_no<j>`.
+- **Interactive beats** (`Q = {at, kind: tap|hold|swipe, n, dir, label, ok, no}`; chapters 7, 10, 13, 17, 24, 26, 29, 30): `qteStart/qteIn/qteEnd`,
+  the film runs at 15% (`sl`) and the camera trembles; 6.5 s without success = the `no` lines; both outcomes continue the story. Controller:
+  `qteUI` (`#qte` ring/label/hint), pointerdown/up (swipe > 40 px), Space/Enter/arrows; taps never skip lines during a beat. Skip = `skipAll()`.
+- **In-level story:** `LEVEL_BEATS[n]` = `{on: s|p|m|g, who, text, fx?, cut?}` → `beat(on)` (once per session per level): s ≈ 3.2 s after start,
+  p = first pearl in, m = 24 s of play, g = gate opens. `world.storyFx(kind)`: quake (shake + falling grit), tail (Grimtide's eel sweeps over the
+  tank), eyes (beside the tank) / stare (huge, in front, only in cutscenes), ink, flicker (exposure), glow (Pip), fish; screen-edge overlay `#sfx`.
+  `storyCut` (levels 11, 24, 29, first attempt): `cutHold` stops engine ticks, letterbox `#cutBars`, `#talk.cine`; any move ends it.
+  Death lines: `deathLine()` picks from `DEATH_LINES[cause]` by level range (`k_<cause>_<i>`), the result card waits 2.6 s.
+  `talk()` queues bubbles (max 2) and times them by voice length. Debug: `__dc.talk(on)`, `__dc.cut()`, `__dc.death()`, `__dc.qte(kind)`.
+- **Voices:** 335 story lines, ≈16.5k spoken characters (≈21.4k credits with tags). `make_voices.ps1`: mode 5 = story lines only, every mode
+  prints the character count and asks y/n, auditions ask which roles. `tools/import_voices.py`: base clips 64 kbps, story 48 kbps.
+  `build_assets.py` embeds base clips in the page and writes story clips to `src/assets/voice-<world>.js` (copied to dist/assets/);
+  `AQ_DATA.VOD` / pack `VOD` = clip lengths from the MP3 headers (`mp3_seconds`), so nothing loads clips just to time lines. `loadVoice(w)`
+  injects a pack when its world is near (boot: the unlocked world; startLevel: this world, and the next from x8). `window.AQ_VOICE` merges a pack.
+- Gotcha (again): a `//` comment inside a one-line JS statement swallowed the rest of the line twice this pass; use `/* */` mid-line.

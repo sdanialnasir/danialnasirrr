@@ -1766,6 +1766,46 @@ body.watching #storyCap { bottom: 9vh; }
 #talk b { display: block; font-family: var(--display); font-size: 1rem; color: #ffd25a; } #talk[data-who="grimtide"] b { color: #ff7a6a; } #talk[data-who="lumen"] b { color: #7ff6ff; } #talk[data-who="shelly"] b { color: #9fe38a; } #talk[data-who="murk"] b { color: #e3a6ff; }
 #talk p { margin: 0.1rem 0 0; font-weight: 700; font-size: 1rem; line-height: 1.3; } #talk[data-who="grimtide"] { border-color: rgba(255, 90, 80, 0.6); background: linear-gradient(180deg, rgba(60, 10, 30, 0.92), rgba(24, 6, 16, 0.94)); }
 body.story #talk { display: none; }
+
+/* ---- Story v4: interactive beats in films, in-level cutscene letterbox, story fx around the tank, new speakers ---- */
+#qte { position: fixed; left: 50%; top: 56%; z-index: 60; transform: translate(-50%, -50%) scale(0.8); opacity: 0; pointer-events: none; display: grid; justify-items: center; gap: 0.55rem; text-align: center; transition: opacity .25s, transform .3s cubic-bezier(.2,1.6,.4,1); }
+#qte.on { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+#qte .qt-ring { --qp: 0; width: 7.4rem; height: 7.4rem; border-radius: 50%; display: grid; place-items: center; position: relative;
+  background: conic-gradient(#ffd25a calc(var(--qp) * 360deg), rgba(255, 255, 255, 0.14) 0); box-shadow: 0 0 2.2rem rgba(255, 200, 80, 0.55), 0 0.6rem 1.6rem rgba(0, 10, 40, 0.5); }
+#qte .qt-ring::before { content: ''; position: absolute; inset: 0.55rem; border-radius: 50%; background: radial-gradient(circle at 40% 30%, #2a5ec8, #0b2560 70%); border: 2px solid rgba(140, 210, 255, 0.6); }
+#qte .qt-ring i { position: relative; width: 3.4rem; height: 3.4rem; background: #fff; -webkit-mask: var(--qi) center / contain no-repeat; mask: var(--qi) center / contain no-repeat; animation: qtPulse .5s ease-in-out infinite alternate; }
+#qte.k-tap .qt-ring i { --qi: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 11V5.5a1.5 1.5 0 013 0V10l4.6.9a2 2 0 011.6 2.2l-.7 5.4A3 3 0 0114.5 21H11a3 3 0 01-2.4-1.2L5.3 15.4a1.4 1.4 0 012-2L9 15z'/%3E%3Ccircle cx='10.5' cy='3' r='1.2'/%3E%3C/svg%3E"); }
+#qte.k-hold .qt-ring i { --qi: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 12V6.5a1.5 1.5 0 013 0V11V4.5a1.5 1.5 0 013 0V11V5.5a1.5 1.5 0 013 0V12v-3a1.5 1.5 0 013 0v6a7 7 0 01-7 7h-1a7 7 0 01-6.1-3.6L3 14.4a1.4 1.4 0 012.3-1.5z'/%3E%3C/svg%3E"); animation: none; }
+#qte.k-swipe .qt-ring i { --qi: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 12h13M12 5l7 7-7 7' stroke='%23000' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); animation: qtSwipe .7s ease-in-out infinite; }
+#qte.d-left .qt-ring i { transform: scaleX(-1); } #qte.d-down .qt-ring i { rotate: 90deg; } #qte.d-up .qt-ring i { rotate: -90deg; }
+#qte b { font-family: var(--display); font-size: clamp(1.6rem, 4.2vw, 2.4rem); color: #fff; text-shadow: 0 0.15rem 0 #0b2560, 0 0 1.2rem rgba(255, 210, 90, 0.7); letter-spacing: 0.02em; }
+#qte small { font-weight: 900; font-size: 1rem; color: #ffe08a; letter-spacing: 0.12em; text-transform: uppercase; }
+#qte.hit .qt-ring { animation: qtHit .16s ease-out; } #qte.win .qt-ring { box-shadow: 0 0 4rem rgba(255, 220, 110, 1); animation: qtWin .6s ease-out; } #qte.lose .qt-ring { animation: qtLose .45s ease-out; filter: saturate(0.4); }
+@keyframes qtPulse { to { transform: scale(1.12); } } @keyframes qtSwipe { 0% { translate: -0.6rem 0; opacity: 0.4; } 60% { translate: 0.6rem 0; opacity: 1; } 100% { translate: 0.9rem 0; opacity: 0; } }
+@keyframes qtHit { 50% { transform: scale(1.1); } } @keyframes qtWin { 40% { transform: scale(1.25); } } @keyframes qtLose { 20%, 60% { transform: translateX(-0.5rem); } 40%, 80% { transform: translateX(0.5rem); } }
+#cutBars i { position: fixed; left: 0; right: 0; height: 11vh; background: #000; z-index: 35; pointer-events: none; transition: transform .5s ease; }
+#cutBars i:first-child { top: 0; transform: translateY(-100%); } #cutBars i:last-child { bottom: 0; transform: translateY(100%); }
+body.cut #cutBars i { transform: none; } body.cut #hud, body.cut #hudB, body.cut #btnMap, body.cut #lvlBanner, body.cut #lbWrap { opacity: 0; transition: opacity .3s; }
+#sfx { position: fixed; inset: 0; z-index: 8; pointer-events: none; opacity: 0; }
+#sfx.quake { animation: sfxQuake 1.3s ease-out; background: radial-gradient(ellipse at 50% 0%, rgba(40, 20, 10, 0.35), transparent 60%); }
+#sfx.shadow { animation: sfxShadow 3.2s ease-in-out; background: linear-gradient(100deg, transparent 20%, rgba(8, 4, 24, 0.55) 45%, rgba(8, 4, 24, 0.55) 55%, transparent 80%); background-size: 300% 100%; }
+#sfx.menace { animation: sfxMenace 3.6s ease-in-out; box-shadow: inset 0 0 18vmin rgba(200, 20, 40, 0.5); } #sfx.menace.big { animation-duration: 4.4s; box-shadow: inset 0 0 30vmin rgba(200, 10, 30, 0.75); }
+#sfx.ink { animation: sfxMenace 5s ease-in-out; box-shadow: inset 0 0 22vmin rgba(20, 8, 40, 0.7); }
+@keyframes sfxQuake { 0%, 100% { opacity: 0; } 15%, 60% { opacity: 1; } } @keyframes sfxMenace { 0%, 100% { opacity: 0; } 20%, 75% { opacity: 1; } }
+@keyframes sfxShadow { 0% { opacity: 0; background-position: 100% 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; background-position: 0% 0; } }
+#talk.cine { top: auto; bottom: calc(11vh + 1.2rem); max-width: min(38rem, 90vw); padding: 0.9rem 1.3rem 1rem 0.9rem; background: linear-gradient(180deg, rgba(60, 10, 30, 0.94), rgba(20, 4, 14, 0.96)); }
+#talk.cine p { font-size: 1.25rem; } #talk.cine .tk-ic { width: 3.2rem; height: 3.2rem; }
+#talk[data-who="clack"] .tk-ic { background: radial-gradient(circle at 40% 35%, #ffe0c0, #ff7a3a 55%, #8a2a10); } #talk[data-who="clack"] b { color: #ffb36a; }
+#talk[data-who="mira"] .tk-ic { background: radial-gradient(circle at 40% 35%, #e8f0ff, #8aa8ff 55%, #2a3a8a); } #talk[data-who="mira"] b { color: #b8ccff; }
+#talk[data-who="snip"] .tk-ic, #talk[data-who="snap"] .tk-ic { background: radial-gradient(circle at 40% 35%, #ffd0a0, #ff5a2a 55%, #6a1008); } #talk[data-who="snip"] b, #talk[data-who="snap"] b { color: #ff9a5a; }
+#talk[data-who="keeper"] .tk-ic { background: radial-gradient(circle at 40% 35%, #fffbe0, #ffd25a 50%, #a8741a); box-shadow: 0 0 1.2rem rgba(255, 220, 120, 0.9); } #talk[data-who="keeper"] b { color: #ffe08a; } #talk[data-who="keeper"] p { font-style: italic; }
+#talk[data-who="cousin"] b { color: #ff9ad0; } #talk[data-who="you"] .tk-ic { background: radial-gradient(circle at 40% 35%, #f0e0ff, #a868e8 55%, #3a1a7a); } #talk[data-who="you"] b { color: #c9a6ff; }
+#storyCap[data-who="clack"] b { color: #ffb36a; } #storyCap[data-who="mira"] b { color: #b8ccff; } #storyCap[data-who="cousin"] b { color: #ff9ad0; } #storyCap[data-who="grimtide"] b { color: #ff6a5a; }
+#storyCap[data-who="snip"] b, #storyCap[data-who="snap"] b { color: #ff9a5a; } #storyCap[data-who="keeper"] b { color: #ffe08a; } #storyCap[data-who="keeper"] p { font-style: italic; }
+#storyCap[data-who="grimtide"] { background: linear-gradient(180deg, rgba(60, 10, 30, 0.9), rgba(20, 4, 14, 0.92)); border-color: rgba(255, 90, 80, 0.55); }
+.jt p[data-who="grimtide"] em { color: #ff6a5a; } .jt p[data-who="clack"] em { color: #ffb36a; } .jt p[data-who="keeper"] em, .jt p[data-who="keeper"] { color: #ffe08a; } .jt p[data-who="snip"] em, .jt p[data-who="snap"] em { color: #ff9a5a; }
+body.story.qte-on #storyCap { opacity: 0.35; }
+@media (prefers-reduced-motion: reduce) { #sfx { display: none; } #qte .qt-ring i { animation: none; } }
 </style>
 </head>
 <body data-state="splash">
@@ -2068,6 +2108,8 @@ body.story #talk { display: none; }
   </div>
 </section>
 
+<div id="sfx" aria-hidden="true"></div><div id="cutBars" aria-hidden="true"><i></i><i></i></div>
+<div id="qte" hidden aria-live="assertive"><div class="qt-ring"><i></i></div><b></b><small></small></div>
 <div id="talk" aria-live="polite"><i class="tk-ic" aria-hidden="true"></i><div><b></b><p></p></div></div>
 <div id="storyCap" aria-live="polite"><small></small><b></b><p></p></div>
 <button id="storySkip" type="button" hidden>Skip <svg class="i" viewBox="0 0 24 24"><path d="M6 5l7 7-7 7M13 5l7 7-7 7"/></svg></button>
