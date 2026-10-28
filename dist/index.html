@@ -3976,8 +3976,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     for (const k of ['idle', 'walk', 'swim']) { act[k] = mixer.clipAction(KEEPER.clips[k]); act[k].play(); act[k].setEffectiveWeight(0); }
     for (const [k, [clip, at]] of Object.entries(GLB_POSE)) { const a = act[k] = mixer.clipAction((clip === 'walk' ? KEEPER.clips.dwalk : KEEPER.clips[clip]).clone()); a.play(); a.time = at; a.paused = true; a.setEffectiveWeight(0); }
     act.stand.setEffectiveWeight(1); mixer.update(0);
-    { g.updateMatrixWorld(true); let bb = new THREE.Box3().setFromObject(mesh, true); turn.scale.multiplyScalar(1.13 / Math.max(1e-3, bb.max.y - bb.min.y)); // measured on the posed skin: 1.12 × Spark's height
-      g.updateMatrixWorld(true); bb = new THREE.Box3().setFromObject(mesh, true); turn.position.y += -0.5 - bb.min.y; g.updateMatrixWorld(true); } // feet on the floor like the diver's
+    { g.updateMatrixWorld(true); mesh.skeleton.update(); let bb = new THREE.Box3().setFromObject(mesh, true); turn.scale.multiplyScalar(1.13 / Math.max(1e-3, bb.max.y - bb.min.y)); // measured on the posed skin: 1.12 × Spark's height
+      g.updateMatrixWorld(true); mesh.skeleton.update(); bb = new THREE.Box3().setFromObject(mesh, true); turn.position.y += -0.5 - bb.min.y; g.updateMatrixWorld(true); } // feet on the floor like the diver's
     const dummy = () => new THREE.Object3D(), lampGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.dot, color: 0xfff0a0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 }));
     g.userData = { glb: { mixer, act, mesh, w: { stand: 1 } }, body, head: dummy(), armF: dummy(), armB: dummy(), legF: dummy(), legB: dummy(), finF: dummy(), finB: dummy(), lampGlow, scarf: null, hat: null, keeper: true };
     return withShadow(g); }
