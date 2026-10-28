@@ -1779,7 +1779,7 @@ body.story #talk { display: none; }
 #qte.k-swipe .qt-ring i { --qi: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 12h13M12 5l7 7-7 7' stroke='%23000' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); animation: qtSwipe .7s ease-in-out infinite; }
 #qte.d-left .qt-ring i { transform: scaleX(-1); } #qte.d-down .qt-ring i { rotate: 90deg; } #qte.d-up .qt-ring i { rotate: -90deg; }
 #qte b { font-family: var(--display); font-size: clamp(1.6rem, 4.2vw, 2.4rem); color: #fff; text-shadow: 0 0.15rem 0 #0b2560, 0 0 1.2rem rgba(255, 210, 90, 0.7); letter-spacing: 0.02em; }
-#qte small { font-weight: 900; font-size: 1rem; color: #ffe08a; letter-spacing: 0.12em; text-transform: uppercase; }
+#qte small { font-weight: 900; font-size: 1rem; color: #ffe08a; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.2rem 0.7rem; border-radius: 1rem; background: rgba(8, 26, 76, 0.75); text-shadow: 0 1px 0 #0b2560; }
 #qte.hit .qt-ring { animation: qtHit .16s ease-out; } #qte.win .qt-ring { box-shadow: 0 0 4rem rgba(255, 220, 110, 1); animation: qtWin .6s ease-out; } #qte.lose .qt-ring { animation: qtLose .45s ease-out; filter: saturate(0.4); }
 @keyframes qtPulse { to { transform: scale(1.12); } } @keyframes qtSwipe { 0% { translate: -0.6rem 0; opacity: 0.4; } 60% { translate: 0.6rem 0; opacity: 1; } 100% { translate: 0.9rem 0; opacity: 0; } }
 @keyframes qtHit { 50% { transform: scale(1.1); } } @keyframes qtWin { 40% { transform: scale(1.25); } } @keyframes qtLose { 20%, 60% { transform: translateX(-0.5rem); } 40%, 80% { transform: translateX(0.5rem); } }
@@ -1793,7 +1793,7 @@ body.cut #cutBars i { transform: none; } body.cut #hud, body.cut #hudB, body.cut
 #sfx.ink { animation: sfxMenace 5s ease-in-out; box-shadow: inset 0 0 22vmin rgba(20, 8, 40, 0.7); }
 @keyframes sfxQuake { 0%, 100% { opacity: 0; } 15%, 60% { opacity: 1; } } @keyframes sfxMenace { 0%, 100% { opacity: 0; } 20%, 75% { opacity: 1; } }
 @keyframes sfxShadow { 0% { opacity: 0; background-position: 100% 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; background-position: 0% 0; } }
-#talk.cine { top: auto; bottom: calc(11vh + 1.2rem); max-width: min(38rem, 90vw); padding: 0.9rem 1.3rem 1rem 0.9rem; background: linear-gradient(180deg, rgba(60, 10, 30, 0.94), rgba(20, 4, 14, 0.96)); }
+#talk.cine { top: auto !important; bottom: calc(11vh + 1.2rem) !important; max-width: min(38rem, 90vw); padding: 0.9rem 1.3rem 1rem 0.9rem; background: linear-gradient(180deg, rgba(60, 10, 30, 0.94), rgba(20, 4, 14, 0.96)); }
 #talk.cine p { font-size: 1.25rem; } #talk.cine .tk-ic { width: 3.2rem; height: 3.2rem; }
 #talk[data-who="clack"] .tk-ic { background: radial-gradient(circle at 40% 35%, #ffe0c0, #ff7a3a 55%, #8a2a10); } #talk[data-who="clack"] b { color: #ffb36a; }
 #talk[data-who="mira"] .tk-ic { background: radial-gradient(circle at 40% 35%, #e8f0ff, #8aa8ff 55%, #2a3a8a); } #talk[data-who="mira"] b { color: #b8ccff; }
