@@ -1716,6 +1716,19 @@ html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9r
   html body.story:is(.ui-art, :not(.ui-art)) #result #btnNext { min-height: 3rem; font-size: 1.3rem; }
 }
 @keyframes storyCardUp { from { opacity: 0; transform: translateY(2.5rem) scale(0.96); } to { opacity: 1; transform: none; } }
+
+/* ---- Story captions during the chapter films ---- */
+#storyCap { position: fixed; left: 4vw; bottom: 7vh; z-index: 40; max-width: min(34rem, 56vw); padding: 0.85rem 1.2rem 0.95rem; border-radius: 1.2rem; pointer-events: none;
+  background: linear-gradient(180deg, rgba(10, 34, 92, 0.78), rgba(6, 20, 60, 0.82)); border: 2px solid rgba(110, 190, 255, 0.55); box-shadow: 0 0.6rem 2rem rgba(0, 10, 40, 0.45);
+  color: #fff; font-family: var(--text, 'Nunito', sans-serif); opacity: 0; transform: translateY(0.8rem); transition: opacity 0.45s ease, transform 0.45s ease; }
+#storyCap.on { opacity: 1; transform: none; }
+#storyCap small { display: block; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #8fd2ff; }
+#storyCap b { display: block; font-family: var(--display, 'Fredoka', sans-serif); font-size: clamp(1.3rem, 2.4vw, 1.9rem); line-height: 1.1; margin: 0.1rem 0 0.35rem; color: #ffe08a; }
+#storyCap p { margin: 0; font-size: clamp(1rem, 1.7vw, 1.25rem); font-weight: 700; line-height: 1.35; }
+#storyCap p.in { animation: capIn 0.5s ease both; }
+@keyframes capIn { from { opacity: 0; transform: translateY(0.4rem); } to { opacity: 1; transform: none; } }
+@media (orientation: portrait), (max-width: 700px) { #storyCap { left: 4vw; right: 4vw; bottom: auto; top: calc(env(safe-area-inset-top, 0px) + 4vh); max-width: none; } }
+@media (prefers-reduced-motion: reduce) { #storyCap, #storyCap p.in { transition: none; animation: none; } }
 </style>
 </head>
 <body data-state="splash">
@@ -2010,6 +2023,7 @@ html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9r
   </div>
 </section>
 
+<div id="storyCap" aria-live="polite"><small></small><b></b><p></p></div>
 <section id="result" class="screen sheet modal res">
   <div class="wrap">
     <div class="res-l">
