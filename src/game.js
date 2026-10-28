@@ -1662,6 +1662,35 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const dummy = () => new THREE.Object3D();
     g.userData = { glb: { mixer, act, mesh, w: { stand: 1 } }, body, head: dummy(), armF: dummy(), armB: dummy(), legF: dummy(), legB: dummy(), finF: dummy(), finB: dummy(), lampGlow, scarf: scarf.length ? scarf : null, hat };
     return withShadow(g); }
+  // the Reef Keeper (window.AQ_KEEPER, made by tools/convert_diver.py from the owner's rigged Meshy model): built like the diver. Her file only has
+  // walk/run, so stand/idle/swim/push borrow the diver's clips (same Mixamo bone names; their hip translation is left out so her height stays her own)
+  let KEEPER = null;
+  function makeKeeper() { const D = window.AQ_KEEPER, G0 = glbData(); if (!D || !G0) return makeDiver();
+    if (!KEEPER) { const dec = (b, T) => { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return new T(u.buffer); };
+      const M = D.mesh, g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(dec(M.pos, Float32Array), 3)); g.setAttribute('normal', new THREE.BufferAttribute(dec(M.nrm, Int8Array), 3, true));
+      g.setAttribute('uv', new THREE.BufferAttribute(dec(M.uv, Uint16Array), 2, true)); g.setAttribute('skinIndex', new THREE.BufferAttribute(dec(M.j, Uint8Array), 4)); g.setAttribute('skinWeight', new THREE.BufferAttribute(dec(M.w, Uint8Array), 4, true));
+      g.setIndex(new THREE.BufferAttribute(dec(M.idx, Uint16Array), 1)); g.computeBoundingBox(); g.computeBoundingSphere(); GEO.keeper = g;
+      const img = new Image(), tex = new THREE.Texture(img); tex.colorSpace = THREE.SRGBColorSpace; tex.flipY = false; tex.anisotropy = 4; img.onload = () => { tex.needsUpdate = true; }; img.src = D.tex; TEX.keeper = tex;
+      const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.5, metalness: 0.1, envMapIntensity: 0.6, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.12, side: THREE.DoubleSide });
+      const own = {}; for (const c of D.clips) own[c.name] = new THREE.AnimationClip(c.name, c.dur, c.tracks.filter(t => t.k === 'q').map(t => { const q = dec(t.v, Int16Array), f = new Float32Array(q.length); for (let i = 0; i < q.length; i++) f[i] = q[i] / 32767; return new THREE.QuaternionKeyframeTrack(D.bones[t.b].n + '.quaternion', dec(t.t, Float32Array), f); }));
+      const borrow = k => new THREE.AnimationClip(k, G0.clips[k].duration, G0.clips[k].tracks.filter(t => !t.name.endsWith('.position')));
+      KEEPER = { geo: g, ibm: dec(D.ibm, Float32Array), mat, clips: { idle: borrow('idle'), swim: borrow('swim'), push: borrow('push'), walk: own.walk || borrow('walk'), dwalk: borrow('walk') } }; }
+    const g = new THREE.Group(), body = new THREE.Group(); g.add(body); const K = GLB_K * (G0.D.height / D.height) * 1.12; // a little taller than Spark: she's the grown-up
+    const turn = new THREE.Group(); turn.rotation.y = Math.PI / 2; turn.scale.setScalar(K); turn.position.y = -0.5 - D.minY * K; body.add(turn);
+    const rig = new THREE.Group(); rig.scale.setScalar(D.rootScale); turn.add(rig);
+    const bones = D.bones.map(b => { const o = new THREE.Bone(); o.name = b.n; o.position.fromArray(b.t); o.quaternion.fromArray(b.r); o.scale.fromArray(b.s); return o; });
+    D.bones.forEach((b, i) => (b.p >= 0 ? bones[b.p] : rig).add(bones[i]));
+    const mesh = new THREE.SkinnedMesh(KEEPER.geo, KEEPER.mat); mesh.castShadow = true; mesh.frustumCulled = false; mesh.userData.noOutline = true; turn.add(mesh);
+    g.updateMatrixWorld(true); mesh.bind(new THREE.Skeleton(bones, bones.map((b, i) => new THREE.Matrix4().fromArray(KEEPER.ibm, i * 16))), new THREE.Matrix4());
+    const mixer = new THREE.AnimationMixer(rig), act = {};
+    for (const k of ['idle', 'walk', 'swim']) { act[k] = mixer.clipAction(KEEPER.clips[k]); act[k].play(); act[k].setEffectiveWeight(0); }
+    for (const [k, [clip, at]] of Object.entries(GLB_POSE)) { const a = act[k] = mixer.clipAction((clip === 'walk' ? KEEPER.clips.dwalk : KEEPER.clips[clip]).clone()); a.play(); a.time = at; a.paused = true; a.setEffectiveWeight(0); }
+    act.stand.setEffectiveWeight(1); mixer.update(0);
+    { g.updateMatrixWorld(true); mesh.skeleton.update(); let bb = new THREE.Box3().setFromObject(mesh, true); turn.scale.multiplyScalar(1.13 / Math.max(1e-3, bb.max.y - bb.min.y)); // measured on the posed skin: 1.12 × Spark's height
+      g.updateMatrixWorld(true); mesh.skeleton.update(); bb = new THREE.Box3().setFromObject(mesh, true); turn.position.y += -0.5 - bb.min.y; g.updateMatrixWorld(true); } // feet on the floor like the diver's
+    const dummy = () => new THREE.Object3D(), lampGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.dot, color: 0xfff0a0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 }));
+    g.userData = { glb: { mixer, act, mesh, w: { stand: 1 } }, body, head: dummy(), armF: dummy(), armB: dummy(), legF: dummy(), legB: dummy(), finF: dummy(), finB: dummy(), lampGlow, scarf: null, hat: null, keeper: true };
+    return withShadow(g); }
   // ---- premium outfit pieces: real geometry glued to bones so they ride every animation. Positions are in the diver's own frame
   // (faces +x, feet at y -0.5, helmet top ~0.42, back = -x). Each entry: [object, bone name, position, scale]. Animated parts use onBeforeRender.
   function makeKit(id) { if (!id) return []; const out = [], P = (o) => new THREE.MeshPhysicalMaterial(Object.assign({ roughness: 0.35, clearcoat: 0.7, envMapIntensity: 0.9 }, o));
@@ -3374,7 +3403,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       for (const x of this.own) x.dispose && x.dispose(); for (const m of this.mats) m.dispose(); }
   }
   // each film's exposure, measured (mean brightness of every line's frame) and evened out toward a target per world: shallows 145, caves 122, the Deep 104
-  const FILM_EXPO = [1.25, 0.99, 0.87, 0.84, 0.82, 0.99, 0.88, 1.23, 0.84, 0.79, 0.86, 0.85, 0.88, 1.34, 1.12, 1.0, 1.7, 0.95, 1.41, 0.8, 1.39, 1.44, 1.29, 1.47, 1.66, 1.07, 1.83, 1.44, 1.47, 1.6, 1.08];
+  const FILM_EXPO = [1.1, 1.0, 0.88, 0.85, 0.84, 1.0, 0.89, 1.25, 0.85, 0.8, 0.87, 0.73, 0.76, 1.17, 0.97, 0.86, 1.42, 0.82, 1.24, 0.69, 1.2, 1.2, 1.02, 1.16, 1.31, 0.84, 1.35, 1.14, 1.16, 1.27, 0.85];
   class Story {
     constructor(world, o) { this.world = world; this.o = o; this.t = 0; this.frozen = false; this.ch = o.ch || CHAPTERS[1]; this.rc = RECIPES[this.ch.r] || RECIPES.pipe; this.dur = this.rc.dur;
       this.n = o.n ?? 1; this.Q = this.ch.Q || null; this.qte = null; this.qDone = !this.Q; this.li = 0; this.shot = null; this.camCur = null; this.look = new V3();
@@ -3402,7 +3431,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
           fragmentShader: 'uniform float uT, uK; varying vec2 vUv; void main(){ float a = pow(max(0.0, sin(vUv.x * 3.14159)), 2.0) * smoothstep(0.0, 0.8, vUv.y) * (0.75 + 0.25 * sin(uT * 0.6 + vUv.x * 4.0)); gl_FragColor = vec4(vec3(1.0, 0.97, 0.85) * a * uK, a * uK); }' });
         this.shaftMat = sm; this.mats.push(sm); for (let i = 0; i < 9; i++) { const m = new THREE.Mesh(new THREE.PlaneGeometry(1.2 + (i % 3) * 0.9, 26), sm); m.position.set(-10 + i * 3.1, 11, -9 - (i % 4) * 3); m.rotation.z = 0.32 - (i % 3) * 0.06; S.add(m); } }
-      this.hold = new THREE.Group(); S.add(this.hold); this.diver = makeDiver(); this.hold.add(this.diver); this.u = this.diver.userData; this.diver.traverse(c => { if (c.isMesh) c.castShadow = true; });
+      this.hold = new THREE.Group(); S.add(this.hold); this.diver = this.ch.r === 'prologue' && window.AQ_KEEPER ? makeKeeper() : makeDiver(); /* the prologue's hero is the Reef Keeper */ this.hold.add(this.diver); this.u = this.diver.userData; this.diver.traverse(c => { if (c.isMesh) c.castShadow = true; });
       if (this.u.glb) { const bones = this.u.glb.mesh.skeleton.bones, B = n => bones.find(b => b.name === n); this.armR = [B('RightArm'), B('RightForeArm'), B('RightHand')]; this.armL = [B('LeftArm'), B('LeftForeArm'), B('LeftHand')]; }
       this.parts = new Particles(S, 500); this.bubT = 0;
       this.tankPos = new V3(5.2, 0, -12); this.tankRY = -0.38; this.tankY = 0; this.c = {}; this.decor = []; this.rc.setup(this, this.c, this.ch);
@@ -4976,7 +5005,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.post.render(this.scene, this.camera, this.time); }
   }
   // resolves once every image the scenes use is decoded (the loading screen waits on it), reporting progress 0..1
-  function ready(onProgress) { const cast = window.AQ_CAST ? Object.keys(window.AQ_CAST).map(k => castGeo(k).tex.image) : []; // the Meshy cast decodes behind the loader (no black first frame)
+  function ready(onProgress) { const cast = window.AQ_CAST ? Object.keys(window.AQ_CAST).map(k => castGeo(k).tex.image) : []; if (window.AQ_KEEPER && glbData()) { makeKeeper(); cast.push(TEX.keeper.image); } // the Meshy cast decodes behind the loader (no black first frame)
     const ims = [...Object.values(SPR.img), ...new Set(PHOTO_W), ...cast]; let done = 0;
     return Promise.all(ims.map(im => (im.decode ? im.decode() : Promise.resolve()).catch(() => {}).then(() => { done++; if (onProgress) onProgress(done / ims.length); }))); }
   // small 3D icons for menus (How to play): the real stone and a block of the real sand, drawn through the shared context
