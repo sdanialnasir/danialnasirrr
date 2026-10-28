@@ -3221,7 +3221,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const fw = (who === 'clack' || who === 'grimtide' ? new V3(0, 0, 1) : new V3(1, 0, 0)).applyQuaternion(o.getWorldQuaternion(new THREE.Quaternion())); fw.y = 0; if (fw.lengthSq() > 1e-6) fw.normalize(); if (who === 'clack' && this.c.crabs) fw.set(0, 0, 0); /* the parade: shoot from the scene camera's side, past the crew */ return { o, p, s, fw }; }
     dialogCam(who, side, prog, base) { const q = this.castOf(who); if (!q) return null; const d0 = base.clone().sub(q.p); d0.y = 0; if (d0.lengthSq() < 1e-4) d0.set(0, 0, 1); d0.normalize();
       d0.multiplyScalar(0.8).addScaledVector(q.fw, 1.0); if (d0.lengthSq() < 1e-3) d0.copy(q.fw); d0.normalize(); // toward the face, from the side of the scene camera
-      const a = side * 0.38, ca = Math.cos(a), sa = Math.sin(a), dir = new V3(d0.x * ca - d0.z * sa, 0, d0.x * sa + d0.z * ca), dist = (q.s * 1.65 + 0.85) * (this.port ? 1.35 : 1) * (1 - 0.07 * prog);
+      const a = side * 0.38, ca = Math.cos(a), sa = Math.sin(a), dir = new V3(d0.x * ca - d0.z * sa, 0, d0.x * sa + d0.z * ca), dist = (q.s * 3.6 + 0.7) * (this.port ? 1.15 : 1) * (1 - 0.06 * prog); /* a close-up lens (see shotCam): the speaker fills the frame */
       const pos = q.p.clone().addScaledVector(dir, dist), wantY = q.p.y + q.s * 0.32 + 0.12, gy = this.groundY(pos.x, pos.z) + 0.35; if (gy > wantY + 0.6) return null; pos.y = Math.max(wantY, gy); /* below a cliff edge: keep the wide shot */
       const look = q.p.clone().addScaledVector(new V3(dir.z, 0, -dir.x), q.s * 0.08 * side); look.y += q.s * 0.06; return { pos, look, q }; }
     // ---- helpers the recipes use
@@ -3304,16 +3304,19 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           if (!this.clearView(tg.pos, tg.q)) { const t2 = this.dialogCam(sh.who, -sh.side, prog, base); if (t2 && this.clearView(t2.pos, t2.q)) { sh.side = -sh.side; sh.cut = true; tg = t2; } else { sh.wide = true; tg = null; } } }
         if (tg) { q = tg.q; if (sh.cut || !this.camCur) { this.camCur = { pos: tg.pos.clone(), look: tg.look.clone() }; sh.cut = false; } else { this.camCur.pos.lerp(tg.pos, 1 - Math.exp(-dt * 10)); this.camCur.look.copy(tg.look); }
           this.camRaw(this.camCur.pos, this.camCur.look); } }
+      { const fov = q ? (this.port ? 40 : 28) : (this.port ? 62 : 44), c = this.cam0; if (c.fov !== fov) { c.fov = fov; c.updateProjectionMatrix(); } } // close-ups on a longer lens, the rest wide
       if (!q) this.camCur = null;
       if (this.qte) { const k = 0.02 + 0.03 * this.qte.prog; this.cam0.position.x += (Math.random() - 0.5) * k; this.cam0.position.y += (Math.random() - 0.5) * k; }
       // the speaker talks: a little bob and sway (Grimtide's jaw works instead)
       if (q && !this.frozen) { const tt = this.world.time, a = Math.abs(Math.sin(tt * 9.5)) * (0.6 + 0.4 * Math.sin(tt * 2.3));
         if (sh.who === 'grimtide' && this.c.eel) this.c.eel.userData.jaw.rotation.x += 0.35 * a;
         else { const dy = q.s * 0.035 * a, rz = Math.sin(tt * 5.5) * 0.045; q.o.position.y += dy; q.o.rotation.z += rz; this._tb = { o: q.o, dy, rz }; } } }
-    clearView(pos, q) { const R = this.ray || (this.ray = new THREE.Raycaster()), to = q.p.clone(), d = to.clone().sub(pos), L = d.length(); if (L < 0.05) return true; R.set(pos, d.normalize()); R.camera = this.cam0; R.far = L - Math.max(0.2, q.s * 0.45); let hits; try { hits = R.intersectObjects(this.scene.children, true); } catch (er) { return true; }
-      const own = o => { for (let a = o; a; a = a.parent) if (a === q.o || a === this.hold && q.o === this.hold) return true; return false; };
-      for (const h of hits) { const o = h.object, m = o.material; if (!o.isMesh || !o.visible || own(o) || !m || m.side === THREE.BackSide || (m.transparent && (m.opacity ?? 1) < 0.35) || m.blending === THREE.AdditiveBlending) continue;
-        let vis = true; for (let a = o; a; a = a.parent) if (!a.visible) { vis = false; break; } if (vis) return false; } return true; }
+    clearView(pos, q) { const R = this.ray || (this.ray = new THREE.Raycaster()); R.camera = this.cam0; // five rays: to the speaker and around them (something big near the lens covers half the frame)
+      const own = o => { for (let a = o; a; a = a.parent) if (a === q.o) return true; return false; }, d0 = q.p.clone().sub(pos), side = new V3(d0.z, 0, -d0.x).normalize(), r = q.s * 0.4;
+      for (const off of [[0, 0], [r, 0], [-r, 0], [0, r], [0, -r * 0.6]]) { const to = q.p.clone().addScaledVector(side, off[0]); to.y += off[1]; const d = to.sub(pos), L = d.length(); if (L < 0.05) continue;
+        R.set(pos, d.normalize()); R.far = L - Math.max(0.2, q.s * 0.45); let hits; try { hits = R.intersectObjects(this.scene.children, true); } catch (er) { continue; }
+        for (const h of hits) { const o = h.object, m = o.material; if (!o.isMesh || own(o) || !m || m.side === THREE.BackSide || (m.transparent && (m.opacity ?? 1) < 0.35) || m.blending === THREE.AdditiveBlending) continue;
+          let vis = true; for (let a = o; a; a = a.parent) if (!a.visible) { vis = false; break; } if (vis) return false; } } return true; }
     // the last second slides the picture aside for the card (right on wide screens, bottom on phones)
     render(post) { const w = innerWidth, h = innerHeight, c = this.cam0, k = sm01((this.t - (this.T - 1.1)) / 1.0); if (k > 0) { if (this.port) c.setViewOffset(w, h, 0, h * 0.26 * k, w, h); else c.setViewOffset(w, h, w * 0.13 * k, 0, w, h); } else c.clearViewOffset();
       post.render(this.scene, c, this.world.time); }
