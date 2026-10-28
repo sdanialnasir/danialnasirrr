@@ -1729,6 +1729,29 @@ html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9r
 @keyframes capIn { from { opacity: 0; transform: translateY(0.4rem); } to { opacity: 1; transform: none; } }
 @media (orientation: portrait), (max-width: 700px) { #storyCap { left: 4vw; right: 4vw; bottom: auto; top: calc(env(safe-area-inset-top, 0px) + 4vh); max-width: none; } }
 @media (prefers-reduced-motion: reduce) { #storyCap, #storyCap p.in { transition: none; animation: none; } }
+
+/* ---- Story pass 2: speakers in the film captions, Skip, the level card's story line, the journal ---- */
+#storyCap small { letter-spacing: 0.1em; }
+#storyCap b { font-size: clamp(1.05rem, 1.9vw, 1.4rem); margin: 0.15rem 0 0.2rem; }
+#storyCap[data-who="pip"] b { color: #ffd25a; } #storyCap[data-who="you"] b { color: #c9a6ff; } #storyCap[data-who="shelly"] b { color: #9fe38a; }
+#storyCap[data-who="murk"] b { color: #e3a6ff; } #storyCap[data-who="lumen"] b { color: #7ff6ff; } #storyCap[data-who="note"] b, #storyCap[data-who="arch"] b, #storyCap[data-who="choir"] b { color: #ffe08a; }
+#storyCap[data-who="note"] p, #storyCap[data-who="arch"] p, #storyCap[data-who="choir"] p, #storyCap[data-who="narrator"] p { font-style: italic; }
+#storyCap p { font-size: clamp(1.05rem, 1.8vw, 1.35rem); }
+#storySkip { position: fixed; right: calc(env(safe-area-inset-right, 0px) + 3vw); top: calc(env(safe-area-inset-top, 0px) + 3vh); z-index: 41; display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.5rem 1rem; border-radius: 999px; border: 2px solid rgba(110, 190, 255, 0.6); background: rgba(8, 26, 76, 0.72); color: #fff; font: 800 1rem var(--text, 'Nunito', sans-serif); cursor: pointer; }
+#storySkip .i { width: 1.1rem; height: 1.1rem; } #storySkip[hidden] { display: none; }
+@media (orientation: portrait), (max-width: 700px) { #storySkip { top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 3vh); } }
+.ic-story { margin: 0.1rem 0 0.5rem; font-size: 1rem; font-weight: 700; line-height: 1.35; color: #cfe8ff; font-style: italic; text-align: center; }
+.ic-story::before { content: "\201C"; color: #ffd25a; font-style: normal; margin-right: 0.15em; } .ic-story::after { content: "\201D"; color: #ffd25a; font-style: normal; margin-left: 0.1em; }
+.j-sub { margin: 0 0 0.8rem; color: #9fc8ff; font-weight: 800; letter-spacing: 0.04em; } .j-sub span:first-child { color: #ffe08a; }
+.j-list { list-style: none; margin: 0; padding: 0 0 1rem; display: grid; gap: 0.7rem; }
+.jr { padding: 0.8rem 1rem; border-radius: 1.1rem; background: linear-gradient(180deg, rgba(36, 80, 170, 0.55), rgba(14, 38, 110, 0.6)); border: 2px solid rgba(110, 190, 255, 0.4); }
+.jr.locked { opacity: 0.55; } .jh { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.jn { font-size: 0.75rem; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; color: #8fd2ff; } .jh b { font-family: var(--display); font-size: 1.25rem; color: #fff; flex: 1; }
+.jw { margin-left: auto; } .jt p { margin: 0.35rem 0 0; font-size: 0.98rem; line-height: 1.4; color: #e8f4ff; } .jt em { font-style: normal; font-weight: 900; color: #ffd25a; }
+.jt p[data-who="murk"] em { color: #e3a6ff; } .jt p[data-who="shelly"] em { color: #9fe38a; } .jt p[data-who="lumen"] em { color: #7ff6ff; } .jt p[data-who="you"] em { color: #c9a6ff; }
+.jt p:not([data-who]) { font-style: italic; color: #cfe2ff; }
+body.watching #storyCap { bottom: 9vh; }
 </style>
 </head>
 <body data-state="splash">
@@ -1830,7 +1853,7 @@ html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9r
       <button class="play-big hm-play" id="btnPlay"><b id="playSub">Continue · Level 1</b><span class="pl2"><b id="playMain">Continue</b><small id="playLv">— Level 1 —</small></span><svg class="i pl-arrow" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg></button>
       <p class="kbd-hint desk-only"><kbd>Enter</kbd> · Continue</p>
       <button class="hm-daily" id="btnDaily"><span class="dd-ic">☀</span><span class="dd-t"><b>Daily Dive</b><small id="ddSub">New puzzle today</small></span><span class="dd-go" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></button>
-      <div class="hm-sec"><button class="sec-btn c-how" data-go="how"><span class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.2 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5M12 17.5h.01"/></svg></span><b>How to Play</b></button><button class="sec-btn c-intro" id="btnIntro2"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg></span><b>Intro</b></button></div>
+      <div class="hm-sec"><button class="sec-btn c-how" data-go="how"><span class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.2 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5M12 17.5h.01"/></svg></span><b>How to Play</b></button><button class="sec-btn c-intro" id="btnIntro2"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M5 4h9a4 4 0 0 1 4 4v12H9a4 4 0 0 1-4-4z"/><path d="M9 8h5M9 12h5"/></svg></span><b>Story</b></button></div>
     </div>
   </div>
   <nav class="hm-nav" aria-label="Menu">
@@ -1839,7 +1862,7 @@ html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9r
     <button class="hm-big c-gift" data-go="rewards"><span class="ic"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v7h14v-7M12 8v12M12 8S10.5 3.5 8 4.2 7.5 8 12 8zM12 8s1.5-4.5 4-3.8S16.5 8 12 8z"/></svg></span><b>Rewards</b><i class="dot" id="hmDot" hidden></i></button>
     <button class="hm-big c-rank" data-go="ranks"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></span><b>Ranks</b></button>
     <button class="hm-big c-how" data-go="how"><span class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.2 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5M12 17.5h.01"/></svg></span><b>How to</b></button>
-    <button class="hm-big c-intro" id="btnReplayIntro"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg></span><b>Intro</b></button>
+    <button class="hm-big c-intro" id="btnReplayIntro"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M5 4h9a4 4 0 0 1 4 4v12H9a4 4 0 0 1-4-4z"/><path d="M9 8h5M9 12h5"/></svg></span><b>Story</b></button>
   </nav>
 </section>
 <div id="tut" aria-live="polite"><div class="tut-ring"></div><div class="tut-bub"><i class="tut-ic" aria-hidden="true"></i><div class="tut-body"><span class="tut-step"></span><p class="tut-txt"></p><div class="tut-foot"><span class="tut-dots"></span><span class="tut-next">Next</span></div></div></div><button class="tut-skip" type="button">Skip</button></div>
@@ -1871,6 +1894,13 @@ html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9r
   </aside>
 </section>
 
+<section id="journal" class="screen sheet win-how">
+  <div class="wrap">
+    <div class="ph"><button class="back" data-go="home" aria-label="Back"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h2>The Story</h2></div>
+    <p class="j-sub"><span>The Thirty Gates</span> · <span id="jCount"></span></p>
+    <ul class="j-list" id="jList"></ul>
+  </div>
+</section>
 <section id="how" class="screen sheet win-how">
   <div class="wrap">
     <div class="ph"><button class="back" data-go="home" aria-label="Back"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h2>How to play</h2></div>
@@ -1942,6 +1972,7 @@ html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9r
 <section id="intro" class="screen sheet modal lvl-card">
   <div class="wrap">
     <p class="kicker" id="introNum">Level 1 of 30</p><h1 class="title" id="introName">First Light</h1>
+    <p class="ic-story" id="introStory"></p>
     <div class="ic-prev"><canvas id="introPrev" width="520" height="300"></canvas><span class="ic-best" id="introBest" hidden></span></div>
     <div class="ic-hint tipcard"><i class="tc-ic" aria-hidden="true"></i><div class="tc-t"><small>The trick</small><p id="introHint"></p></div></div>
     <div class="kitrow" id="introKit" aria-label="In this dive"></div>
@@ -2024,6 +2055,7 @@ html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9r
 </section>
 
 <div id="storyCap" aria-live="polite"><small></small><b></b><p></p></div>
+<button id="storySkip" type="button" hidden>Skip <svg class="i" viewBox="0 0 24 24"><path d="M6 5l7 7-7 7M13 5l7 7-7 7"/></svg></button>
 <section id="result" class="screen sheet modal res">
   <div class="wrap">
     <div class="res-l">
@@ -2066,7 +2098,7 @@ html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9r
     <p class="fc-k">Music</p><p>“Chill Wave” · Kevin MacLeod</p><p>“Meadow”, “Soundscape Dark” · Gravity Sound</p><p class="fc-s">CC BY 4.0</p>
     <p class="fc-k">Sound effects</p><p>Kenney · uiSFX</p>
     <p class="fc-k">3D engine</p><p>three.js</p>
-    <p class="fc-k">Starring</p><p>One brave little diver</p><p>Thirty sleepy gates</p><p>Lots of very grumpy crabs</p>
+    <p class="fc-k">Starring</p><p>One brave little diver, the new Reef Keeper</p><p>Pip, the seahorse who found his glow</p><p>Old Shelly the turtle</p><p>Lumen the anglerfish</p><p>Murk, who kept the Heart safe</p><p>Captain Clack and his crabs</p><p>Thirty sleepy gates</p>
     <h2 class="fc-end">Thank you for playing!</h2>
   </div></div>
   <button class="fin-skip" id="finSkip" type="button">Skip</button>
@@ -3057,7 +3089,7 @@ const Audio = (() => {
   let capDest = null;
   function capture() { if (!ctx || !master || !ctx.createMediaStreamDestination) return null; try { capDest = ctx.createMediaStreamDestination(); (outNode || master).connect(capDest); return capDest.stream; } catch (er) { capDest = null; return null; } }
   function release() { if (capDest) { try { (outNode || master).disconnect(capDest); } catch (er) {} capDest = null; } }
-  return { init, resume, play, vo, voLeft, stopVo, swell, setTension, muffle, setMuted, setMusic, setVolumes, setVol, vol, settings, pearl, star, capture, release, music, get musicOn() { return TR.on; }, get ctx() { return ctx; }, get files() { return FILES; } };
+  return { init, resume, play, vo, voLeft, stopVo, voDur: id => voDur[id] || 0, swell, setTension, muffle, setMuted, setMusic, setVolumes, setVol, vol, settings, pearl, star, capture, release, music, get musicOn() { return TR.on; }, get ctx() { return ctx; }, get files() { return FILES; } };
 })();
 
 // Deep Current — renderer v3: clean, bright, front-on puzzle board built from premium primitives.
@@ -4845,35 +4877,36 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   // A chapter = title, two caption lines (seconds, text), a recipe (setting + cast + action + cameras) and how the diver arrives in the
   // next tank. The film holds on its last frame under the result card. Pip the seahorse glows a little more every chapter.
   const CHAPTERS = [null,
-    { t: 'Through the Old Pipe', r: 'pipe', a: 'pipe', cap: [[0.3, 'The gate’s light rushes into an old pipe…'], [3.0, '…and carries you on. Someone tiny peeks out!']] },
-    { t: 'Pip’s Glow', r: 'kelp', a: 'swirl', cap: [[0.3, '“I’m Pip! The storm stole my glow.”'], [3.3, '“Every gate you wake gives a little back. Follow me!”']] },
-    { t: 'Shelly’s Ride', r: 'turtle', a: 'drop', cap: [[0.3, 'Old Shelly the turtle paddles by.'], [3.0, '“Hop on, little diver. I know the way!”']] },
-    { t: 'The Crab Parade', r: 'crabs', a: 'bubble', cap: [[0.3, 'Crabs march past with pearls the storm scattered.'], [3.4, 'They cheer you on. One gate closer!']] },
-    { t: 'Jelly Bounce', r: 'jelly', a: 'drop', cap: [[0.3, 'Friendly jellies make a bouncy stair…'], [3.0, '…boing, boing, up and away!']] },
-    { t: 'The Old Wreck', r: 'wreck', a: 'swirl', cap: [[0.3, 'Inside an old wreck sits a dusty chest.'], [3.6, 'A map! Thirty gates lead to the Great Lantern.']] },
-    { t: 'The Warm Current', r: 'current', a: 'swirl', cap: [[0.3, 'A warm current scoops you up. Wheee!'], [3.6, 'It sets you down right where you need to be.']] },
-    { t: 'Follow the Fish', r: 'school', a: 'bubble', cap: [[0.3, 'A school of fish swirls together…'], [3.2, '…and points the way like a silver arrow.']] },
-    { t: 'Down the Dune', r: 'dune', a: 'drop', cap: [[0.3, 'The biggest dune in the Shallows!'], [3.4, 'What a ride!']] },
-    { t: 'The Edge of the Shallows', r: 'descent', a: 'drop', cap: [[0.3, 'The map points down, into the Coral Caves.'], [3.4, '“Together?” asks Pip. “Together!”']] },
-    { t: 'Sleeping Crystals', r: 'crystals', a: 'bubble', w: 1, cap: [[0.3, 'The caves are dark, but your lamp wakes the crystals.'], [3.6, 'One by one, they glow back at you.']] },
-    { t: 'The Clam Choir', r: 'clams', a: 'swirl', w: 1, cap: [[0.3, 'Giant clams open, one after another…'], [3.6, '…and sing a thank-you song for the light.']] },
-    { t: 'Glimmer Jellies', r: 'glimmer', a: 'bubble', w: 1, cap: [[0.3, 'Tiny glimmer jellies gather round you.'], [3.4, 'They light the dark water like stars.']] },
-    { t: 'The Manta Glide', r: 'manta', a: 'drop', w: 1, cap: [[0.3, 'A gentle manta offers a lift over the canyon.'], [3.2, 'Hold on tight!']] },
-    { t: 'Something in the Dark', r: 'shadow', a: 'swirl', w: 1, cap: [[0.3, 'Something big blinks in the dark…'], [3.6, '…and slips away. Pip hides behind you.']] },
-    { t: 'The Coral Arch', r: 'arch', a: 'drop', w: 1, cap: [[0.3, 'The old Coral Arch still remembers the light.'], [3.4, 'Its lamps wake as you swim through.']] },
-    { t: 'Pearl Lanterns', r: 'pearls', a: 'bubble', w: 1, cap: [[0.3, 'Pearls the storm buried float up from the sand…'], [3.4, '…like little lanterns, rising home.']] },
-    { t: 'The Seahorse Race', r: 'race', a: 'swirl', w: 1, cap: [[0.3, 'Pip’s cousins want a race!'], [3.4, 'Pip is glowing brighter than ever.']] },
-    { t: 'The Great Lantern', r: 'lanternview', a: 'drop', w: 1, cap: [[0.3, 'Far below, the Great Lantern stands dark.'], [3.6, '“That’s where the light lives,” says Pip.']] },
-    { t: 'Lumen’s Light', r: 'angler', a: 'bubble', w: 2, cap: [[0.3, 'Into the Deep. A little light bobs in the dark…'], [3.6, 'Lumen the anglerfish will light the way.']] },
-    { t: 'Whale Song', r: 'whale', a: 'drop', w: 2, cap: [[0.3, 'A whale sings far above.'], [3.6, 'The Deep is waking up.']] },
-    { t: 'The Sunken City', r: 'ruins', a: 'swirl', w: 2, cap: [[0.3, 'An old sea city sleeps in the dark.'], [3.4, 'Its columns glow as you pass.']] },
-    { t: 'Shelly Returns', r: 'turtle2', a: 'drop', w: 2, cap: [[0.3, 'Shelly found you, all the way down here!'], [3.2, '“The Deep is big. Let’s go faster!”']] },
-    { t: 'Murk’s Den', r: 'murkden', a: 'bubble', w: 2, cap: [[0.3, 'In a den full of pearls hides a giant octopus.'], [3.6, 'Murk took the pearls because he is scared of the dark.']] },
-    { t: 'A Gift of Light', r: 'gift', a: 'swirl', w: 2, cap: [[0.3, 'You share your light with Murk.'], [3.6, 'For the first time in ages, he smiles.']] },
-    { t: 'Over the Abyss', r: 'murkride', a: 'drop', w: 2, cap: [[0.3, 'Murk carries you over the deepest trench.'], [3.4, '“Thank you, little diver. Now I’ll help you.”']] },
-    { t: 'The Glowing Sea', r: 'plankton', a: 'bubble', w: 2, cap: [[0.3, 'Wave your arms… the whole sea lights up!'], [3.4, 'Even the plankton is waking.']] },
-    { t: 'The Lantern Tower', r: 'tower', a: 'swirl', w: 2, cap: [[0.3, 'The Great Lantern! Twenty-eight lights glow on it.'], [3.6, 'Only two gates left.']] },
-    { t: 'The Heart Pearl', r: 'heart', a: 'drop', w: 2, cap: [[0.3, 'Murk brings the Heart Pearl he kept safe.'], [3.6, 'One last gate, and the whole reef will shine!']] }];
+    {"t": "Through the Old Pipe", "r": "pipe", "a": "pipe", "L": [["", "The first gate wakes, and its light rushes into an old pipe."], ["", "The pipe carries you out onto the sand, toward the next glass tank."], ["pip", "Psst! Down here! You woke a gate? Nobody’s done that since the storm!"], ["you", "I just followed the light. Who are you?"]]},
+    {"t": "Pip’s Glow", "r": "kelp", "a": "swirl", "L": [["pip", "I’m Pip! The storm blew out my glow, and every light in the reef."], ["pip", "But when your gate woke, I sparkled. Look, just a little!"], ["pip", "Old stories say thirty gates carry light down to the Great Lantern."], ["you", "Then let’s wake all thirty. Lead the way, Pip!"]]},
+    {"t": "Shelly’s Ride", "r": "turtle", "a": "drop", "L": [["", "Old Shelly the turtle has swum these waters for two hundred years."], ["shelly", "The Lantern, little one? It stands in the Deep. Its Heart Pearl lights the whole reef."], ["shelly", "The storm scattered the Lantern’s pearls. Without them, the gates fall asleep."], ["shelly", "Hop on. I’ll take you as far as my old flippers go."]]},
+    {"t": "The Crab Parade", "r": "crabs", "a": "bubble", "L": [["", "A parade of crabs marches past, each one carrying a pearl."], ["clack", "Found ’em in the sand after the storm! We’re taking ’em back to the gates."], ["clack", "But most of the pearls were dragged away… by a shadow. Deep and wide, it was."], ["pip", "A shadow? I don’t like the sound of that."]]},
+    {"t": "Jelly Bounce", "r": "jelly", "a": "drop", "L": [["", "The jellies remember the gates. They hum whenever one wakes."], ["pip", "Five gates! Listen, the jellies are humming!"], ["", "They make a bouncy stair to lift you to the next tank."], ["you", "Boing… boing… whoa! Thank you, jellies!"]]},
+    {"t": "The Old Wreck", "r": "wreck", "a": "swirl", "L": [["", "Inside an old shipwreck sits a chest with a seashell clasp."], ["", "In it: a map of all thirty gates, and a page from the Reef Keeper’s journal."], ["note", "“If the Lantern ever fades, wake the gates one by one. The light will find its way home.”"], ["pip", "The Reef Keeper! I thought that was just a bedtime story!"]]},
+    {"t": "The Warm Current", "r": "current", "a": "swirl", "L": [["", "Seven gates glow on the Keeper’s map now."], ["", "A warm current, flowing again for the first time since the storm, scoops you up."], ["you", "Wheeeee!"], ["pip", "The reef is helping us! It wants its light back."]]},
+    {"t": "Follow the Fish", "r": "school", "a": "bubble", "L": [["", "Since the storm, the fish have swum in lost little circles."], ["", "As your gate wakes, they remember the way, and form a silver arrow."], ["pip", "They’re pointing to the edge of the Shallows."], ["pip", "Past it are the Coral Caves… I’ve never been that far."]]},
+    {"t": "Down the Dune", "r": "dune", "a": "drop", "L": [["", "At the top of the great dune, you spot dark streaks in the sand."], ["pip", "Ink… Something big came this way, dragging pearls behind it."], ["", "There’s only one way to follow it. Down!"], ["you", "Hold on, Pip!"]]},
+    {"t": "The Edge of the Shallows", "r": "descent", "a": "drop", "L": [["", "The ink trail ends at a cliff. Far below, the Coral Caves glow violet."], ["pip", "It’s so dark down there… What if the shadow is waiting?"], ["you", "Then we’ll bring our own light. Together?"], ["pip", "…Together!"]]},
+    {"t": "Sleeping Crystals", "r": "crystals", "a": "bubble", "w": 1, "L": [["", "The Coral Caves have been dark since the storm."], ["", "Your lamp wakes the crystals one by one, and they glow back like old friends."], ["pip", "Eleven gates! Look, I’m brighter than the crystals!"], ["pip", "And there, more ink… The shadow went deeper."]]},
+    {"t": "The Clam Choir", "r": "clams", "a": "swirl", "w": 1, "L": [["", "Giant clams open, one after another…"], ["", "…and sing an old song the Reef Keeper taught them, long ago."], ["choir", "“Share your light, and the light comes home…”"], ["pip", "Those are the words from the journal!"]]},
+    {"t": "Glimmer Jellies", "r": "glimmer", "a": "bubble", "w": 1, "L": [["", "Tiny glimmer jellies gather round you, curious."], ["", "They have never met a diver. Only the Keeper, long, long ago."], ["pip", "They say the Keeper had a lamp just like yours."], ["you", "Just like mine…?"]]},
+    {"t": "The Manta Glide", "r": "manta", "a": "drop", "w": 1, "L": [["", "The Great Canyon splits the caves in two."], ["", "A gentle manta named Mira offers you a ride across."], ["mira", "Hold on tight, little one. The current here is strong!"], ["pip", "Woohoo! Fourteen gates, and flying!"]]},
+    {"t": "Something in the Dark", "r": "shadow", "a": "swirl", "w": 1, "L": [["", "Deep in the caves, something huge blinks in the dark."], ["", "Two great eyes, and a long arm wrapped around a bundle of pearls…"], ["pip", "Th-that’s the shadow!"], ["", "Before you can say hello, it slips away into the black."]]},
+    {"t": "The Coral Arch", "r": "arch", "a": "drop", "w": 1, "L": [["", "The old Coral Arch still remembers the light."], ["", "Its lamps wake as you swim through, and words glow in the stone:"], ["arch", "“The light remembers those who share it.”"], ["pip", "Share it… even with the shadow?"]]},
+    {"t": "Pearl Lanterns", "r": "pearls", "a": "bubble", "w": 1, "L": [["", "Pearls the shadow dropped float up from the sand like lanterns."], ["pip", "It dropped them on purpose… It’s leaving us a trail!"], ["", "Maybe the shadow wants to be found."], ["you", "Then let’s find it."]]},
+    {"t": "The Seahorse Race", "r": "race", "a": "swirl", "w": 1, "L": [["", "Pip’s cousins have swum all the way from the Shallows."], ["cousin", "Pip! You’re glowing! Race you to the next gate!"], ["pip", "Eighteen gates, and the fastest seahorse in the caves!"], ["pip", "(softly) Thank you for giving my glow back."]]},
+    {"t": "The Great Lantern", "r": "lanternview", "a": "drop", "w": 1, "L": [["", "From the last cliff of the caves, you see it for the first time…"], ["", "…the Great Lantern, standing dark at the bottom of the Deep."], ["pip", "Nineteen of its lights are on. Because of you!"], ["pip", "But its Heart is still missing. The shadow must have it."]]},
+    {"t": "Lumen’s Light", "r": "angler", "a": "bubble", "w": 2, "L": [["", "Into the Deep, where the sun has never reached."], ["", "A little light bobs toward you. It’s Lumen, the anglerfish."], ["lumen", "Twenty gates! The whole Deep felt that. I’ll light your way."], ["lumen", "The big one you’re following? His name is Murk. He isn’t mean… just scared."]]},
+    {"t": "Whale Song", "r": "whale", "a": "drop", "w": 2, "L": [["", "High above, a whale sings for the first time since the storm."], ["lumen", "That’s Old Bellow. He only sings when the Lantern is waking."], ["pip", "Twenty-one gates. More than halfway!"], ["", "The song rolls through the Deep, and the dark feels a little smaller."]]},
+    {"t": "The Sunken City", "r": "ruins", "a": "swirl", "w": 2, "L": [["", "An old sea city sleeps in the dark. Its columns glow as you pass."], ["", "On the last wall, a mural: the Reef Keeper, and a little purple octopus."], ["lumen", "Murk was the Keeper’s best friend."], ["pip", "Then why did he take all the pearls?"]]},
+    {"t": "Shelly Returns", "r": "turtle2", "a": "drop", "w": 2, "L": [["shelly", "There you are! I had to see the Lantern with my own old eyes."], ["shelly", "I remember the storm. A big octopus grabbed every pearl he could, to save them from the waves."], ["pip", "He wasn’t stealing them. He was protecting them!"], ["shelly", "Hold on tight. The Deep is big, and we’re nearly there."]]},
+    {"t": "Murk’s Den", "r": "murkden", "a": "bubble", "w": 2, "L": [["", "In a den full of pearls hides a giant octopus."], ["murk", "Go away… I got lost in the storm. It’s so dark, I can’t find the Lantern."], ["murk", "I kept the pearls safe. But I’m too scared to go back."], ["pip", "We’re not here to take them. We’re here to help."]]},
+    {"t": "A Gift of Light", "r": "gift", "a": "swirl", "w": 2, "L": [["", "You give Murk one glowing pearl from the gates."], ["murk", "It’s warm… I’d forgotten what light feels like."], ["murk", "The Keeper always said: share your light, and the light comes home."], ["", "For the first time in a very long time, Murk smiles."]]},
+    {"t": "Over the Abyss", "r": "murkride", "a": "drop", "w": 2, "L": [["murk", "Climb on, little diver. I know the way now."], ["", "Murk carries you over the deepest trench in the sea."], ["murk", "The Keeper left something for whoever came back. I’ll show you."], ["pip", "Twenty-six gates! I can feel the Lantern humming!"]]},
+    {"t": "The Glowing Sea", "r": "plankton", "a": "bubble", "w": 2, "L": [["lumen", "Wave your arms, little Keeper! The Deep is listening."], ["", "Every wave sets the plankton glowing, brighter and brighter."], ["pip", "Did Lumen just call you… Keeper?"], ["lumen", "Who else could light up a whole sea?"]]},
+    {"t": "The Lantern Tower", "r": "tower", "a": "swirl", "w": 2, "L": [["", "At last, the foot of the Great Lantern. Twenty-eight lights glow on its tower."], ["", "On its door, the Keeper left one last note:"], ["note", "“Murk, keep the Heart safe, until someone kind comes back.”"], ["murk", "That someone… is you."]]},
+    {"t": "The Heart Pearl", "r": "heart", "a": "drop", "w": 2, "L": [["", "Murk brings out the Heart Pearl he has guarded since the storm."], ["murk", "I kept it safe for you. Light it with the last gate."], ["pip", "Twenty-nine gates… One more, and the whole reef wakes up!"], ["you", "Let’s bring the light home."]]}];
+  const STORY_WHO = {"": "", "you": "You", "pip": "Pip", "shelly": "Shelly", "clack": "Captain Clack", "mira": "Mira the manta", "cousin": "Pip’s cousin", "lumen": "Lumen", "murk": "Murk", "note": "The Reef Keeper", "choir": "The Clam Choir", "arch": "The Coral Arch"};
   const sm01 = (k) => { k = Math.min(1, Math.max(0, k)); return k * k * (3 - 2 * k); };
   // keyframes: [[t, value], ...] where value is a number or [x, y, z]; smooth between keys, held at the ends
   function K(t, keys) { if (t <= keys[0][0]) return Array.isArray(keys[0][1]) ? new V3(...keys[0][1]) : keys[0][1]; const last = keys[keys.length - 1]; if (t >= last[0]) return Array.isArray(last[1]) ? new V3(...last[1]) : last[1];
@@ -5097,6 +5130,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
 
   class Story {
     constructor(world, o) { this.world = world; this.o = o; this.t = 0; this.frozen = false; this.ch = o.ch || CHAPTERS[1]; this.rc = RECIPES[this.ch.r] || RECIPES.pipe; this.dur = this.rc.dur;
+      this.lines = this.ch.L || []; { let acc = 0.35; this.lineT = this.lines.map((l, i) => { const at = acc; acc += Math.max(2.4, 0.8 + l[1].split(/\s+/).length * 0.2, o.lineDur ? o.lineDur(i) : 0); return at; }); this.T = Math.max(this.dur, acc + 0.25); this.k = this.T / this.dur; } // the film slows to give every line its time
       const w = this.w = this.ch.w ?? o.w ?? 0, WS = WORLD_STYLE[w], set = Object.assign({}, this.rc.set || {}, this.ch.set || {}); this.set = set; const dark = this.dark = Math.min(0.92, (set.dark || 0) * 0.8 + [0, 0.22, 0.42][w]);
       this.glow = Math.min(1, 0.1 + (o.n || 1) / 30); this.own = []; this.mats = []; this.clear = []; this.time = 0;
       const S = this.scene = new THREE.Scene(); S.environment = world.scene.environment;
@@ -5177,18 +5211,18 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         case 'offer': pose(R, 1, 0.2, 0.9, 0.15, 0.6, 0.7, 0); pose(L, -1, 0.2, 0.9, 0.15, 0.6, 0.7, 0); break;
         case 'grip': pose(R, 1, -0.6, 0.6, 0.45, -0.3, 0.8, 0.1); pose(L, -1, -0.6, 0.6, 0.45, -0.3, 0.8, 0.1); break; } }
     update(dt) { if (!this.frozen) { this.t += dt; this.time += dt; } const t = this.t;
-      const st = this.rc.run(this, this.c, Math.min(t, this.dur)) || {}; this.st = st;
+      const st = this.rc.run(this, this.c, Math.min(t / this.k, this.dur)) || {}; this.st = st;
       if (this.u.glb && !this.frozen) { const m = st.mode || 'stand', sw = m === 'swim' || m === 'walk' ? 1 : 0, fl = m === 'walk' || m === 'stand' ? 1 : 0;
         glbDrive(this.u, dt, { reach: 0, push: 0, dig: 0, swim: sw, floor: fl, speed: Math.abs(st.speed || (sw ? 1.4 : 0)), pushing: false }); this.arms(st); }
-      if (!this.frozen && t >= this.dur) { this.frozen = true; if (this.o.onCap) this.o.onCap(null); if (this.o.onFreeze) this.o.onFreeze(); }
-      if (!this.frozen && this.o.onCap) { const cap = this.ch.cap || []; while (this.capI < cap.length && t >= cap[this.capI][0]) { this.o.onCap(cap[this.capI][1], this.capI, this.ch); this.capI++; } }
+      if (!this.frozen && t >= this.T) { this.frozen = true; if (this.o.onCap) this.o.onCap(null); if (this.o.onFreeze) this.o.onFreeze(); }
+      if (!this.frozen && this.o.onCap) { while (this.capI < this.lines.length && t >= this.lineT[this.capI]) { this.o.onCap(this.lines[this.capI], this.capI, this.ch); this.capI++; } }
       this.shaftMat.uniforms.uT.value = this.world.time;
       if (this.kelp) this.kelp.forEach(k => { k.rotation.z = Math.sin(this.world.time * 0.9 + k.userData.sw) * 0.06; });
       for (const f of this.fish) { const F = f.userData.f; F.x += F.v * dt; if (F.x > 14) F.x = -14; if (F.x < -14) F.x = 14; f.position.set(F.x, F.y + Math.sin(this.world.time * 1.3 + F.ph) * 0.15, F.z); f.scale.x = F.v > 0 ? -1 : 1; }
       this.bubT -= dt; if (this.bubT <= 0 && !this.frozen) { this.bubT = 0.14; const p = this.hold.position; this.parts.bubbles(p.x - 0.1, p.y + 0.85, p.z, 1, 0.04 + Math.random() * 0.04, 0.12); }
       this.parts.update(dt, this.world.time); }
     // the last second slides the picture aside for the card (right on wide screens, bottom on phones)
-    render(post) { const w = innerWidth, h = innerHeight, c = this.cam0, k = sm01((this.t - (this.dur - 1.1)) / 1.0); if (k > 0) { if (this.port) c.setViewOffset(w, h, 0, h * 0.26 * k, w, h); else c.setViewOffset(w, h, w * 0.13 * k, 0, w, h); } else c.clearViewOffset();
+    render(post) { const w = innerWidth, h = innerHeight, c = this.cam0, k = sm01((this.t - (this.T - 1.1)) / 1.0); if (k > 0) { if (this.port) c.setViewOffset(w, h, 0, h * 0.26 * k, w, h); else c.setViewOffset(w, h, w * 0.13 * k, 0, w, h); } else c.clearViewOffset();
       post.render(this.scene, c, this.world.time); }
     dispose() { this.scene.traverse(o => { if ((o.isMesh || o.isPoints || o.isSprite) && o.geometry && !Object.values(GEO).includes(o.geometry)) o.geometry.dispose();
         if (o.isMesh && o.material && !Object.values(MAT).includes(o.material) && !Object.values(SPR.mat || {}).includes(o.material)) { const ms = Array.isArray(o.material) ? o.material : [o.material]; ms.forEach(m => { if (m && m.map && m.map.isCanvasTexture && !Object.values(TEX).includes(m.map)) this.own.push(m.map); }); } });
@@ -6541,7 +6575,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       obj = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ map: t, color: 0xffd08a, roughness: 0.95 })); obj.rotation.set(0.25, -0.5, 0); obj.scale.setScalar(1.15); }
     sc.add(obj); const sd = new SharedDraw(cv, 2); try { sd.render(sc, cam); } finally { sd.dispose(); } const url = cv.toDataURL('image/png');
     if (kind === 'sand') obj.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.map.dispose(); o.material.dispose(); } }); return url; }
-  return { create: c => new WorldImpl(c), CHAPTERS, isMobile, iconShot, isIOS, dailyWorld: (name, w) => DAILY_WORLD.set(name, w), setColorMarks: on => { CB.on = !!on; if (MAT.cbMark) MAT.cbMark.visible = CB.on; }, ready, SKINS, SKIN, applySkin, preview: (cv, thumb) => new SkinPreview(cv, thumb), trailColor, rarityOf };
+  return { create: c => new WorldImpl(c), CHAPTERS, STORY_WHO, isMobile, iconShot, isIOS, dailyWorld: (name, w) => DAILY_WORLD.set(name, w), setColorMarks: on => { CB.on = !!on; if (MAT.cbMark) MAT.cbMark.visible = CB.on; }, ready, SKINS, SKIN, applySkin, preview: (cv, thumb) => new SkinPreview(cv, thumb), trailColor, rarityOf };
 })();
 
 window.__T = T;
@@ -6803,7 +6837,7 @@ window.__T = T;
     if (id === 'back') { id = screenStack.pop() || 'home'; } else { const cur = document.querySelector('.screen.on'); if (cur && cur.id !== id && id !== 'home') screenStack.push(cur.id); if (id === 'home') screenStack = []; }
     if (id === 'shop') openShop(); if (id === 'rewards') { buildRewards(); syncVipBanner(); } if (id === 'ranks') openRanks(lbTab); else if (LB.unsub) { LB.unsub(); LB.unsub = null; }
     if (id === 'how' && !go.icons) { go.icons = 1; try { for (const k of ['stone', 'sand']) { const u = World.iconShot(k); if (u) document.querySelector('.how .ic.' + k).style.cssText = `background: url("${u}") center / 108% no-repeat !important; box-shadow: none !important; border-radius: 0 !important;`; } } catch (er) {} }
-    if (id === 'profile') buildProfile(); if (id === 'settings') syncSettings(); if (id === 'home') refreshHome();
+    if (id === 'journal') buildJournal(); if (id === 'profile') buildProfile(); if (id === 'settings') syncSettings(); if (id === 'home') refreshHome();
     if (id === 'name') { $('#nameInput').value = save.name || ''; setTimeout(() => $('#nameInput').focus(), 50); }
     show(id); if (id === 'home') { if (state === 'menu' || state === 'splash') homeCard(); homeLayout(); } if (id === 'levels') buildLevels();
   }
@@ -6992,8 +7026,8 @@ window.__T = T;
     $('#skipIntro').hidden = true; save.introSeen = true; persist(); openHome();
   }
   $('#skipIntro').addEventListener('click', () => { click(); endCine(); });
-  $('#btnReplayIntro').addEventListener('click', () => { click(); startCine(); });
-  $('#btnIntro2').addEventListener('click', () => { click(); startCine(); });
+  $('#btnReplayIntro').addEventListener('click', () => { click(); go('journal'); });
+  $('#btnIntro2').addEventListener('click', () => { click(); go('journal'); });
 
   // ---- world map: one world at a time (‹ World › arrows), a winding path over the world's painting, the diver standing on the
   // current level. Tapping a level selects it (the card shows a preview of its real layout); Play starts it. Woken gates glow and
@@ -7112,6 +7146,7 @@ window.__T = T;
   $('#nameInput').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') $('#nameSave').click(); });
 
   // ---- levels ----
+  const LEVEL_STORY = [null, "The storm has left the reef dark. Wake the very first gate.", "Pip has a hunch: the next gate is buried under a pile of stones.", "Pip leads you to a tank with a deep stone shaft. Mind your head!", "Shelly drops you at a tank with two roads. Which one leads to the gate?", "The crabs warn you: a hungry piranha guards this gate.", "The jellies bounced you here. One of them lives in this tank too.", "The Keeper’s map marks this gate with a keystone. Don’t let it fall the wrong way.", "The current set you down beside a tank full of pits.", "The fish point here. Something with claws is hiding in this tank.", "The last gate of the Shallows. The ink trail leads past it, toward the cliff.", "Your first gate in the Coral Caves. Stones and pearls are balanced on a knife’s edge.", "This cave is deep. Air bubbles will keep you going, so plan your breaths.", "The clams sang of a trapdoor in this tank. Open it at the right moment.", "The glimmer jellies light the way, but piranhas cross this tank from both sides.", "Across the canyon, a wall of stones waits to come tumbling down.", "The shadow passed through here. Its vault is still full of stones.", "The arch lit a winding path. Switch back and forth to reach the gate.", "The pearl trail ends at a cave of crabs.", "Pip’s cousins wait at the finish, at the bottom of a deep pit.", "The last gate of the caves. Below it, the Great Lantern waits in the dark.", "Lumen’s light shows a shoal of piranhas, sleeping… for now.", "Old Bellow’s song echoes through a tank shaped like an hourglass.", "The pressure of the Deep presses on you. Air is short here, so be quick.", "A gauntlet of stones guards the sunken city’s gate.", "Shelly carried you to a tank where one push sets off a chain.", "Murk’s den is close. His citadel of stones is the hardest yet.", "Murk shows you a tank where the undertow pulls everything down.", "The plankton lights the abyss. Count your steps, it’s a long way down.", "At the foot of the Lantern, the energizer gate waits for its pearls.", "The Heart Pearl is ready. Wake the last gate, and the whole reef shines!"];
   function startLevel(i, custom) { storyEnd(); arriveNext = false; if (TUT.on) { TUT.on = false; Audio.stopVo(); $('#tut').classList.remove('on'); world.focus = null; }
     if (typeof booting !== 'undefined' && booting) dropLoader();
     runTreasures = 0; runTreasureSet.clear(); runLog = ''; runUndo = false; runHint = false; runReset();
@@ -7122,7 +7157,7 @@ window.__T = T;
     { const ph = $('#pauseHint'); if (ph) ph.innerHTML = rich(lv.hint); }
     relicSync(); tickWorld(engine, performance.now());
     held.clear(); heldOrder = []; acc = 0; overTimer = 0; lowAirBeep = 0; resultShown = false; endTouch();
-    $('#introNum').textContent = dive ? `Daily Dive · ${new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}` : `Level ${i + 1} of ${LEVELS.length}`; $('#introName').textContent = lv.name; $('#introHint').innerHTML = rich(lv.hint);
+    $('#introNum').textContent = dive ? `Daily Dive · ${new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}` : `Level ${i + 1} of ${LEVELS.length}`; $('#introName').textContent = lv.name; $('#introHint').innerHTML = rich(lv.hint); { const st = $('#introStory'); st.textContent = !custom && LEVEL_STORY[i + 1] || ''; st.hidden = !!custom || !LEVEL_STORY[i + 1]; }
     { const cv = $('#introPrev'), wide = matchMedia('(orientation: landscape) and (min-width: 760px) and (min-height: 560px)').matches, w = wide ? 560 : 620, h = wide ? 490 : 340; if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
       levelPhoto(cv, i, false, !!dive); }
     { const g = $('#introGoals'), t = engine.time; if (engine.relaxed || dive) { g.innerHTML = dive ? '<span class="goal dd">☀ Race the clock: fastest time wins today</span>' : '<span class="goal">Relaxed mode: no air timer</span>'; }
@@ -7738,7 +7773,7 @@ window.__T = T;
   addEventListener('keydown', ev => {
     if (ev.repeat) return;
     if (state === 'splash') { unlock(); return; }
-    if (storyOn && !resultShown) { if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); storySkip(); } return; }
+    if (storyOn && !resultShown) { if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); if (watching && ev.key === 'Escape') endWatch(); else storySkip(ev.key === 'Escape'); } return; }
     if (state === 'replay') { if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); endReplay(); } return; }
     if (state === 'ending' && !$('#finale').hidden) { if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); finale.end && finale.end(); } return; }
     if (state === 'cine') { if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); $('#skipIntro').click(); return; } return; }
@@ -7826,14 +7861,34 @@ window.__T = T;
     cv.width = 720; cv.height = Math.round(720 * Math.min(1.1, Math.max(0.3, ch / cw))); try { levelPhoto(cv, n, false); } catch (er) {}
     document.body.classList.add('story'); bannerOff();
     const chap = World.CHAPTERS[n] || World.CHAPTERS[1];
-    world.storyStart({ w: worldOfIdx(levelIdx), n, ch: chap, tank: cv, onCap: (txt, i) => storyCap(txt, i, n, chap), onFreeze: () => { if (!storyOn || resultShown) return; storyCap(null); finishLevel(); $('#btnNext').textContent = 'Continue ›'; $('#resKicker').textContent = `Chapter ${n} · ${chap.t}`; } }); }
+    world.storyStart({ w: worldOfIdx(levelIdx), n, ch: chap, tank: cv, lineDur: i => storyVoDur(n, i), onCap: (line, i) => storyCap(line, i, n, chap), onFreeze: () => { if (!storyOn || resultShown) return; storyCap(null); finishLevel(); $('#btnNext').textContent = 'Continue ›'; $('#resKicker').textContent = `Chapter ${n} · ${chap.t}`; } }); }
   // the film's caption: chapter number + title, then the story line (it fades between lines)
-  function storyCap(txt, i, n, ch) { const el = $('#storyCap'); if (!el) return; if (!txt) { el.classList.remove('on'); return; }
-    if (!i) { el.querySelector('small').textContent = `Chapter ${n}`; el.querySelector('b').textContent = ch.t; }
-    const pEl = el.querySelector('p'); pEl.classList.remove('in'); void pEl.offsetWidth; pEl.textContent = txt; pEl.classList.add('in'); el.classList.add('on'); }
-  function storyEnd() { storyCap(null); if (!storyOn && !document.body.classList.contains('story')) return; storyOn = false; world.storyStop(); document.body.classList.remove('story'); heldDirty = true; }
-  function storySkip() { if (storyOn && !resultShown && world.story && world.story.t > 0.35) { world.story.t = Math.max(world.story.t, world.story.dur - 0.05); return true; } return false; }
-  addEventListener('pointerdown', () => { storySkip(); }, true);
+  // lines are [speaker, text]; a voice clip s<n>_<i> plays with its line when it exists (tools/voices.json lists them all)
+  const storyVoId = (n, i) => `s${n}_${i + 1}`, storyVoDur = (n, i) => { const d = Audio.voDur(storyVoId(n, i)); return d ? d + 0.45 : 0; };
+  function storyCap(line, i, n, ch) { const el = $('#storyCap'); if (!el) return; if (!line) { el.classList.remove('on'); $('#storySkip').hidden = true; Audio.stopVo(); return; }
+    const [who, txt] = Array.isArray(line) ? line : ['', line]; el.querySelector('small').textContent = `Chapter ${n} · ${ch.t}`;
+    const b = el.querySelector('b'); b.textContent = World.STORY_WHO[who] || ''; b.hidden = !who; el.dataset.who = who || 'narrator';
+    const pEl = el.querySelector('p'); pEl.classList.remove('in'); void pEl.offsetWidth; pEl.textContent = txt; pEl.classList.add('in'); el.classList.add('on'); $('#storySkip').hidden = false;
+    if (hasVo(storyVoId(n, i))) Audio.vo(storyVoId(n, i)); }
+  function storyEnd() { storyCap(null); watching = false; document.body.classList.remove('watching'); if (!storyOn && !document.body.classList.contains('story')) return; storyOn = false; world.storyStop(); document.body.classList.remove('story'); heldDirty = true; }
+  function storySkip(all) { const S = world.story; if (!(storyOn && !resultShown && S && S.t > 0.35)) return false; // a tap shows the next line; Skip (or the last tap) jumps to the end
+    if (!all && S.capI < S.lines.length) S.t = Math.max(S.t, S.lineT[S.capI]); else { S.t = Math.max(S.t, S.T - 0.05); Audio.stopVo(); } return true; }
+  addEventListener('pointerdown', ev => { if (ev.target && ev.target.closest && ev.target.closest('#storySkip')) return; storySkip(); }, true);
+  $('#storySkip').addEventListener('click', ev => { ev.stopPropagation(); click(); storySkip(true); });
+  // ---- the story journal: every chapter you've reached, to read again or watch again (chapter 0 = the intro film)
+  let watching = false;
+  function buildJournal() { const L = $('#jList'); if (!L) return; const CH = World.CHAPTERS, WHO = World.STORY_WHO; let html = '';
+    const row = (n, title, lines, open) => `<li class="jr${open ? '' : ' locked'}" style="--i:${n}"><div class="jh"><span class="jn">${n ? 'Chapter ' + n : 'Prologue'}</span><b>${open ? title : 'Locked'}</b>${open ? `<button class="pill-btn jw" data-ch="${n}"><svg class="i" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Watch</button>` : ''}</div>`
+      + (open ? `<div class="jt">${lines.map(([w, t]) => `<p${w ? ` data-who="${w}"` : ''}>${w ? `<em>${WHO[w] || ''}:</em> ` : ''}${t.replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]))}</p>`).join('')}</div>` : `<div class="jt"><p>Wake gate ${n} to read this chapter.</p></div>`) + '</li>';
+    html += row(0, 'The Storm', [['', 'Deep in the sea, the reef glows with magic pearls.'], ['', 'One night a huge storm sweeps all the pearls away, and the reef goes dark.'], ['', 'But one little diver turns on a light…']], true);
+    let got = 0; for (let n = 1; n < CH.length; n++) { const open = !!save.stars[n]; if (open) got++; html += row(n, CH[n].t, CH[n].L, open); }
+    L.innerHTML = html; $('#jCount').textContent = `${got} of ${CH.length - 1} chapters`;
+    L.querySelectorAll('.jw').forEach(b => b.addEventListener('click', ev => { ev.stopPropagation(); click(); const n = +b.dataset.ch; if (!n) { startCine(); return; } watchChapter(n); })); }
+  function watchChapter(n) { const chap = World.CHAPTERS[n]; if (!chap) return; const nx = Math.min(n, LEVELS.length - 1), map = LEVELS[nx].map, cv = document.createElement('canvas');
+    cv.width = 720; cv.height = Math.round(720 * Math.min(1.1, Math.max(0.3, (map.length - 2) / Math.max(1, map[0].length - 2)))); try { levelPhoto(cv, nx, false); } catch (er) {}
+    show(null); resultShown = false; storyOn = true; watching = true; document.body.classList.add('story', 'watching');
+    world.storyStart({ w: worldOfIdx(n - 1), n, ch: chap, tank: cv, lineDur: i => storyVoDur(n, i), onCap: (line, i) => storyCap(line, i, n, chap), onFreeze: () => { storyCap(null); setTimeout(endWatch, 1400); } }); }
+  function endWatch() { if (!watching) return; watching = false; storyEnd(); document.body.classList.remove('watching'); go('journal'); }
   $('#btnNext').onclick = () => { if (dive && engine.state === 'won') { click(); lbTab = 'fast'; openHome(); go('ranks'); return; } if (engine.state === 'won' && levelIdx + 1 < LEVELS.length) nextLevel(); else if (engine.state === 'won') openEnding(); else if (engine.state !== 'won' && history.length && (undoLeft > 0 || undoFree())) undo(); else restart(); };
   // the finale: all 30 gates awake. A one-time coin bonus, the story's payoff, and a nudge to go back for every star.
   // the finale: 30 gate lights wake one by one (rising notes), fireworks of pearl-light, the title and the diver, then a credits roll;

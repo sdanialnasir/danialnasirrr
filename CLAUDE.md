@@ -794,3 +794,17 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   Lumen the anglerfish. Plus the game's crab, jelly, pearls, fish sprites, sheet corals.
 - Controller: `startStory` passes `ch`/`n`; captions in `#storyCap` (chapter, title, line; top on phones); the card kicker becomes
   "Chapter n · title"; Continue → `arriveNext = ch.a` → `world.arrive(kind)`. Tests: a gallery script renders every chapter at 30% / 65% / end.
+
+## Story pass 2: a connected story with dialogue (owner: "a proper story… everything connected from level 1 to the last")
+- **Story bible:** `docs/story.md` (world, cast, the five threads that run through all 30 levels, every line with its voice id). Source of the
+  text: `CHAPTERS[n].L` = four `[speaker, text]` lines (speakers in `STORY_WHO`: '' narrator, you, pip, shelly, clack, mira, cousin, lumen,
+  murk, note/arch/choir = the Reef Keeper's words) and `LEVEL_STORY[n]` (controller, one line per level card, `#introStory`).
+- **Films fit their lines:** `Story` spreads the lines over the film (`lineT`, ≥ 2.4 s or 0.8 s + 0.2 s per word, or the voice clip's length
+  + 0.45 s) and slows the recipe to fit (`k = T / dur`, `run(t / k)`); freeze at `T`. A tap shows the next line; `#storySkip` (Skip, top right;
+  bottom on phones) or Escape jumps to the end. Captions show "Chapter n · title", the speaker's name in their colour, then the line.
+- **Voice-ready:** each line plays `Audio.vo('s<n>_<i>')` when that clip exists (`Audio.voDur` exposes clip lengths). `tools/voices.json` has
+  all 116 story lines with roles narrator / diver / pip / shelly / murk / lumen / friend, a recommended ElevenLabs voice per role and
+  audition lines; `make_voices.ps1` now loops over every role in `pick` (`$Roles`). Import with `tools/import_voices.py` as before.
+- **Journal** (`#journal`, Home › Story, which replaced the Intro buttons): the Prologue (the intro film) + every chapter whose level has
+  stars, with its four lines and a Watch button (`watchChapter(n)`: plays the film without a result card, returns to the journal; Escape ends).
+- The finale credits name the cast.

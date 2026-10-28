@@ -16,15 +16,50 @@
    "stability": 0.5,
    "similarity_boost": 0.75,
    "use_speaker_boost": true
+  },
+  "pip": {
+   "stability": 0.45,
+   "similarity_boost": 0.75,
+   "use_speaker_boost": true
+  },
+  "shelly": {
+   "stability": 0.45,
+   "similarity_boost": 0.75,
+   "use_speaker_boost": true
+  },
+  "murk": {
+   "stability": 0.45,
+   "similarity_boost": 0.75,
+   "use_speaker_boost": true
+  },
+  "lumen": {
+   "stability": 0.45,
+   "similarity_boost": 0.75,
+   "use_speaker_boost": true
+  },
+  "friend": {
+   "stability": 0.45,
+   "similarity_boost": 0.75,
+   "use_speaker_boost": true
   }
  },
  "pick": {
   "narrator": "Lily",
-  "diver": "Jessica"
+  "diver": "Jessica",
+  "pip": "Laura",
+  "shelly": "Matilda",
+  "murk": "Brian",
+  "lumen": "Charlie",
+  "friend": "Will"
  },
  "audition": {
   "narrator": "[softly] Deep in the sea, the reef glows with magic pearls. [gently] But one little diver turns on a light.",
-  "diver": "[excited] Woohoo! The light's back! [giggles] Easy as bubbles!"
+  "diver": "[excited] Woohoo! The light's back! [giggles] Easy as bubbles!",
+  "pip": "[excited] I'm Pip! The storm blew out my glow, but look, I'm sparkling again!",
+  "shelly": "[warmly, slowly] Hop on, little one. I'll take you as far as my old flippers go.",
+  "murk": "[softly] It's warm... I'd forgotten what light feels like.",
+  "lumen": "[cheerful] Twenty gates! The whole Deep felt that. I'll light your way.",
+  "friend": "[cheerful] Found 'em in the sand after the storm! We're taking 'em back to the gates."
  },
  "candidates": {
   "narrator": [
@@ -73,6 +108,79 @@
     "name": "Mimi",
     "id": "zrHiDhphv9ZnVXBqCLjz",
     "why": "Older 'childish animation' voice; tiny and cute (may no longer be available)."
+   }
+  ],
+  "pip": [
+   {
+    "name": "Laura",
+    "id": "FGY2WhTYpPnrIDTdsKH5",
+    "why": "Recommended. Bright, quirky and upbeat: a small excited sidekick."
+   },
+   {
+    "name": "Gigi",
+    "why": "Voice Library: a very childlike, playful voice (added if found)."
+   },
+   {
+    "name": "Charlotte",
+    "id": "XB0fDUnXU5powFXDhCwa",
+    "why": "Light and lively."
+   }
+  ],
+  "shelly": [
+   {
+    "name": "Matilda",
+    "id": "XrExE9yKIg1WjnnlVkGX",
+    "why": "Recommended. Warm and kind; slow her down for an old turtle."
+   },
+   {
+    "name": "Grandma Margaret",
+    "why": "Voice Library: a gentle grandmother (added if found)."
+   },
+   {
+    "name": "Alice",
+    "id": "Xb7hH8MSUJpSbSDYk0k2",
+    "why": "Calm British storyteller."
+   }
+  ],
+  "murk": [
+   {
+    "name": "Brian",
+    "id": "nPczCjzI2devNBz1zQrb",
+    "why": "Recommended. Deep, soft and resonant: big but gentle."
+   },
+   {
+    "name": "Bill",
+    "id": "pqHfZKP75CvOlQylNhV4",
+    "why": "Older, warm and trustworthy."
+   },
+   {
+    "name": "George",
+    "id": "JBFqnCBsd6RMkjVDRZzb",
+    "why": "Warm British, a little sad."
+   }
+  ],
+  "lumen": [
+   {
+    "name": "Charlie",
+    "id": "IKne3meq5aSn9XLyUdCD",
+    "why": "Recommended. Easy-going and friendly, a cheerful guide."
+   },
+   {
+    "name": "Liam",
+    "id": "TX3LPaxmHKxFdv7VOQHJ",
+    "why": "Young and bright."
+   }
+  ],
+  "friend": [
+   {
+    "name": "Will",
+    "id": "bIHbv24MWmeRgasZH58o",
+    "why": "Recommended. Friendly and relaxed (Captain Clack, Mira the manta, Pip’s cousin)."
+   },
+   {
+    "name": "Eric",
+    "id": "cjVigY5qzO86Huf0OWal",
+    "why": "Smooth and warm."
    }
   ]
  },
@@ -379,6 +487,818 @@
    "text": "[playfully] Wait, wait… one more time!",
    "when": "Undo used (sometimes)",
    "max_seconds": 1.8
+  },
+  {
+   "id": "s1_1",
+   "role": "narrator",
+   "text": "[gently] The first gate wakes, and its light rushes into an old pipe.",
+   "when": "Chapter 1 · Through the Old Pipe (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s1_2",
+   "role": "narrator",
+   "text": "[gently] The pipe carries you out onto the sand, toward the next glass tank.",
+   "when": "Chapter 1 · Through the Old Pipe (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s1_3",
+   "role": "pip",
+   "text": "[excited] Psst! Down here! You woke a gate? Nobody’s done that since the storm!",
+   "when": "Chapter 1 · Through the Old Pipe (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s1_4",
+   "role": "diver",
+   "text": "[curious] I just followed the light. Who are you?",
+   "when": "Chapter 1 · Through the Old Pipe (You)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s2_1",
+   "role": "pip",
+   "text": "[excited] I’m Pip! The storm blew out my glow, and every light in the reef.",
+   "when": "Chapter 2 · Pip’s Glow (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s2_2",
+   "role": "pip",
+   "text": "[excited] But when your gate woke, I sparkled. Look, just a little!",
+   "when": "Chapter 2 · Pip’s Glow (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s2_3",
+   "role": "pip",
+   "text": "[excited] Old stories say thirty gates carry light down to the Great Lantern.",
+   "when": "Chapter 2 · Pip’s Glow (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s2_4",
+   "role": "diver",
+   "text": "[curious] Then let’s wake all thirty. Lead the way, Pip!",
+   "when": "Chapter 2 · Pip’s Glow (You)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s3_1",
+   "role": "narrator",
+   "text": "[gently] Old Shelly the turtle has swum these waters for two hundred years.",
+   "when": "Chapter 3 · Shelly’s Ride (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s3_2",
+   "role": "shelly",
+   "text": "[warmly, slowly] The Lantern, little one? It stands in the Deep. Its Heart Pearl lights the whole reef.",
+   "when": "Chapter 3 · Shelly’s Ride (Shelly)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s3_3",
+   "role": "shelly",
+   "text": "[warmly, slowly] The storm scattered the Lantern’s pearls. Without them, the gates fall asleep.",
+   "when": "Chapter 3 · Shelly’s Ride (Shelly)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s3_4",
+   "role": "shelly",
+   "text": "[warmly, slowly] Hop on. I’ll take you as far as my old flippers go.",
+   "when": "Chapter 3 · Shelly’s Ride (Shelly)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s4_1",
+   "role": "narrator",
+   "text": "[gently] A parade of crabs marches past, each one carrying a pearl.",
+   "when": "Chapter 4 · The Crab Parade (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s4_2",
+   "role": "friend",
+   "text": "[cheerful] Found ’em in the sand after the storm! We’re taking ’em back to the gates.",
+   "when": "Chapter 4 · The Crab Parade (Captain Clack)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s4_3",
+   "role": "friend",
+   "text": "[cheerful] But most of the pearls were dragged away… by a shadow. Deep and wide, it was.",
+   "when": "Chapter 4 · The Crab Parade (Captain Clack)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s4_4",
+   "role": "pip",
+   "text": "[excited] A shadow? I don’t like the sound of that.",
+   "when": "Chapter 4 · The Crab Parade (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s5_1",
+   "role": "narrator",
+   "text": "[gently] The jellies remember the gates. They hum whenever one wakes.",
+   "when": "Chapter 5 · Jelly Bounce (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s5_2",
+   "role": "pip",
+   "text": "[excited] Five gates! Listen, the jellies are humming!",
+   "when": "Chapter 5 · Jelly Bounce (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s5_3",
+   "role": "narrator",
+   "text": "[gently] They make a bouncy stair to lift you to the next tank.",
+   "when": "Chapter 5 · Jelly Bounce (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s5_4",
+   "role": "diver",
+   "text": "[curious] Boing… boing… whoa! Thank you, jellies!",
+   "when": "Chapter 5 · Jelly Bounce (You)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s6_1",
+   "role": "narrator",
+   "text": "[gently] Inside an old shipwreck sits a chest with a seashell clasp.",
+   "when": "Chapter 6 · The Old Wreck (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s6_2",
+   "role": "narrator",
+   "text": "[gently] In it: a map of all thirty gates, and a page from the Reef Keeper’s journal.",
+   "when": "Chapter 6 · The Old Wreck (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s6_3",
+   "role": "narrator",
+   "text": "[gently] “If the Lantern ever fades, wake the gates one by one. The light will find its way home.”",
+   "when": "Chapter 6 · The Old Wreck (The Reef Keeper)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s6_4",
+   "role": "pip",
+   "text": "[excited] The Reef Keeper! I thought that was just a bedtime story!",
+   "when": "Chapter 6 · The Old Wreck (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s7_1",
+   "role": "narrator",
+   "text": "[gently] Seven gates glow on the Keeper’s map now.",
+   "when": "Chapter 7 · The Warm Current (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s7_2",
+   "role": "narrator",
+   "text": "[gently] A warm current, flowing again for the first time since the storm, scoops you up.",
+   "when": "Chapter 7 · The Warm Current (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s7_3",
+   "role": "diver",
+   "text": "[curious] Wheeeee!",
+   "when": "Chapter 7 · The Warm Current (You)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s7_4",
+   "role": "pip",
+   "text": "[excited] The reef is helping us! It wants its light back.",
+   "when": "Chapter 7 · The Warm Current (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s8_1",
+   "role": "narrator",
+   "text": "[gently] Since the storm, the fish have swum in lost little circles.",
+   "when": "Chapter 8 · Follow the Fish (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s8_2",
+   "role": "narrator",
+   "text": "[gently] As your gate wakes, they remember the way, and form a silver arrow.",
+   "when": "Chapter 8 · Follow the Fish (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s8_3",
+   "role": "pip",
+   "text": "[excited] They’re pointing to the edge of the Shallows.",
+   "when": "Chapter 8 · Follow the Fish (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s8_4",
+   "role": "pip",
+   "text": "[excited] Past it are the Coral Caves… I’ve never been that far.",
+   "when": "Chapter 8 · Follow the Fish (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s9_1",
+   "role": "narrator",
+   "text": "[gently] At the top of the great dune, you spot dark streaks in the sand.",
+   "when": "Chapter 9 · Down the Dune (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s9_2",
+   "role": "pip",
+   "text": "[excited] Ink… Something big came this way, dragging pearls behind it.",
+   "when": "Chapter 9 · Down the Dune (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s9_3",
+   "role": "narrator",
+   "text": "[gently] There’s only one way to follow it. Down!",
+   "when": "Chapter 9 · Down the Dune (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s9_4",
+   "role": "diver",
+   "text": "[curious] Hold on, Pip!",
+   "when": "Chapter 9 · Down the Dune (You)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s10_1",
+   "role": "narrator",
+   "text": "[gently] The ink trail ends at a cliff. Far below, the Coral Caves glow violet.",
+   "when": "Chapter 10 · The Edge of the Shallows (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s10_2",
+   "role": "pip",
+   "text": "[excited] It’s so dark down there… What if the shadow is waiting?",
+   "when": "Chapter 10 · The Edge of the Shallows (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s10_3",
+   "role": "diver",
+   "text": "[curious] Then we’ll bring our own light. Together?",
+   "when": "Chapter 10 · The Edge of the Shallows (You)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s10_4",
+   "role": "pip",
+   "text": "[excited] …Together!",
+   "when": "Chapter 10 · The Edge of the Shallows (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s11_1",
+   "role": "narrator",
+   "text": "[gently] The Coral Caves have been dark since the storm.",
+   "when": "Chapter 11 · Sleeping Crystals (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s11_2",
+   "role": "narrator",
+   "text": "[gently] Your lamp wakes the crystals one by one, and they glow back like old friends.",
+   "when": "Chapter 11 · Sleeping Crystals (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s11_3",
+   "role": "pip",
+   "text": "[excited] Eleven gates! Look, I’m brighter than the crystals!",
+   "when": "Chapter 11 · Sleeping Crystals (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s11_4",
+   "role": "pip",
+   "text": "[excited] And there, more ink… The shadow went deeper.",
+   "when": "Chapter 11 · Sleeping Crystals (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s12_1",
+   "role": "narrator",
+   "text": "[gently] Giant clams open, one after another…",
+   "when": "Chapter 12 · The Clam Choir (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s12_2",
+   "role": "narrator",
+   "text": "[gently] …and sing an old song the Reef Keeper taught them, long ago.",
+   "when": "Chapter 12 · The Clam Choir (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s12_3",
+   "role": "narrator",
+   "text": "[gently] “Share your light, and the light comes home…”",
+   "when": "Chapter 12 · The Clam Choir (The Clam Choir)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s12_4",
+   "role": "pip",
+   "text": "[excited] Those are the words from the journal!",
+   "when": "Chapter 12 · The Clam Choir (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s13_1",
+   "role": "narrator",
+   "text": "[gently] Tiny glimmer jellies gather round you, curious.",
+   "when": "Chapter 13 · Glimmer Jellies (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s13_2",
+   "role": "narrator",
+   "text": "[gently] They have never met a diver. Only the Keeper, long, long ago.",
+   "when": "Chapter 13 · Glimmer Jellies (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s13_3",
+   "role": "pip",
+   "text": "[excited] They say the Keeper had a lamp just like yours.",
+   "when": "Chapter 13 · Glimmer Jellies (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s13_4",
+   "role": "diver",
+   "text": "[curious] Just like mine…?",
+   "when": "Chapter 13 · Glimmer Jellies (You)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s14_1",
+   "role": "narrator",
+   "text": "[gently] The Great Canyon splits the caves in two.",
+   "when": "Chapter 14 · The Manta Glide (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s14_2",
+   "role": "narrator",
+   "text": "[gently] A gentle manta named Mira offers you a ride across.",
+   "when": "Chapter 14 · The Manta Glide (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s14_3",
+   "role": "friend",
+   "text": "[cheerful] Hold on tight, little one. The current here is strong!",
+   "when": "Chapter 14 · The Manta Glide (Mira the manta)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s14_4",
+   "role": "pip",
+   "text": "[excited] Woohoo! Fourteen gates, and flying!",
+   "when": "Chapter 14 · The Manta Glide (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s15_1",
+   "role": "narrator",
+   "text": "[gently] Deep in the caves, something huge blinks in the dark.",
+   "when": "Chapter 15 · Something in the Dark (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s15_2",
+   "role": "narrator",
+   "text": "[gently] Two great eyes, and a long arm wrapped around a bundle of pearls…",
+   "when": "Chapter 15 · Something in the Dark (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s15_3",
+   "role": "pip",
+   "text": "[excited] Th-that’s the shadow!",
+   "when": "Chapter 15 · Something in the Dark (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s15_4",
+   "role": "narrator",
+   "text": "[gently] Before you can say hello, it slips away into the black.",
+   "when": "Chapter 15 · Something in the Dark (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s16_1",
+   "role": "narrator",
+   "text": "[gently] The old Coral Arch still remembers the light.",
+   "when": "Chapter 16 · The Coral Arch (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s16_2",
+   "role": "narrator",
+   "text": "[gently] Its lamps wake as you swim through, and words glow in the stone:",
+   "when": "Chapter 16 · The Coral Arch (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s16_3",
+   "role": "narrator",
+   "text": "[gently] “The light remembers those who share it.”",
+   "when": "Chapter 16 · The Coral Arch (The Coral Arch)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s16_4",
+   "role": "pip",
+   "text": "[excited] Share it… even with the shadow?",
+   "when": "Chapter 16 · The Coral Arch (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s17_1",
+   "role": "narrator",
+   "text": "[gently] Pearls the shadow dropped float up from the sand like lanterns.",
+   "when": "Chapter 17 · Pearl Lanterns (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s17_2",
+   "role": "pip",
+   "text": "[excited] It dropped them on purpose… It’s leaving us a trail!",
+   "when": "Chapter 17 · Pearl Lanterns (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s17_3",
+   "role": "narrator",
+   "text": "[gently] Maybe the shadow wants to be found.",
+   "when": "Chapter 17 · Pearl Lanterns (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s17_4",
+   "role": "diver",
+   "text": "[curious] Then let’s find it.",
+   "when": "Chapter 17 · Pearl Lanterns (You)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s18_1",
+   "role": "narrator",
+   "text": "[gently] Pip’s cousins have swum all the way from the Shallows.",
+   "when": "Chapter 18 · The Seahorse Race (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s18_2",
+   "role": "friend",
+   "text": "[cheerful] Pip! You’re glowing! Race you to the next gate!",
+   "when": "Chapter 18 · The Seahorse Race (Pip’s cousin)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s18_3",
+   "role": "pip",
+   "text": "[excited] Eighteen gates, and the fastest seahorse in the caves!",
+   "when": "Chapter 18 · The Seahorse Race (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s18_4",
+   "role": "pip",
+   "text": "[softly] Thank you for giving my glow back.",
+   "when": "Chapter 18 · The Seahorse Race (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s19_1",
+   "role": "narrator",
+   "text": "[gently] From the last cliff of the caves, you see it for the first time…",
+   "when": "Chapter 19 · The Great Lantern (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s19_2",
+   "role": "narrator",
+   "text": "[gently] …the Great Lantern, standing dark at the bottom of the Deep.",
+   "when": "Chapter 19 · The Great Lantern (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s19_3",
+   "role": "pip",
+   "text": "[excited] Nineteen of its lights are on. Because of you!",
+   "when": "Chapter 19 · The Great Lantern (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s19_4",
+   "role": "pip",
+   "text": "[excited] But its Heart is still missing. The shadow must have it.",
+   "when": "Chapter 19 · The Great Lantern (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s20_1",
+   "role": "narrator",
+   "text": "[gently] Into the Deep, where the sun has never reached.",
+   "when": "Chapter 20 · Lumen’s Light (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s20_2",
+   "role": "narrator",
+   "text": "[gently] A little light bobs toward you. It’s Lumen, the anglerfish.",
+   "when": "Chapter 20 · Lumen’s Light (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s20_3",
+   "role": "lumen",
+   "text": "[cheerful] Twenty gates! The whole Deep felt that. I’ll light your way.",
+   "when": "Chapter 20 · Lumen’s Light (Lumen)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s20_4",
+   "role": "lumen",
+   "text": "[cheerful] The big one you’re following? His name is Murk. He isn’t mean… just scared.",
+   "when": "Chapter 20 · Lumen’s Light (Lumen)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s21_1",
+   "role": "narrator",
+   "text": "[gently] High above, a whale sings for the first time since the storm.",
+   "when": "Chapter 21 · Whale Song (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s21_2",
+   "role": "lumen",
+   "text": "[cheerful] That’s Old Bellow. He only sings when the Lantern is waking.",
+   "when": "Chapter 21 · Whale Song (Lumen)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s21_3",
+   "role": "pip",
+   "text": "[excited] Twenty-one gates. More than halfway!",
+   "when": "Chapter 21 · Whale Song (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s21_4",
+   "role": "narrator",
+   "text": "[gently] The song rolls through the Deep, and the dark feels a little smaller.",
+   "when": "Chapter 21 · Whale Song (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s22_1",
+   "role": "narrator",
+   "text": "[gently] An old sea city sleeps in the dark. Its columns glow as you pass.",
+   "when": "Chapter 22 · The Sunken City (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s22_2",
+   "role": "narrator",
+   "text": "[gently] On the last wall, a mural: the Reef Keeper, and a little purple octopus.",
+   "when": "Chapter 22 · The Sunken City (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s22_3",
+   "role": "lumen",
+   "text": "[cheerful] Murk was the Keeper’s best friend.",
+   "when": "Chapter 22 · The Sunken City (Lumen)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s22_4",
+   "role": "pip",
+   "text": "[excited] Then why did he take all the pearls?",
+   "when": "Chapter 22 · The Sunken City (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s23_1",
+   "role": "shelly",
+   "text": "[warmly, slowly] There you are! I had to see the Lantern with my own old eyes.",
+   "when": "Chapter 23 · Shelly Returns (Shelly)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s23_2",
+   "role": "shelly",
+   "text": "[warmly, slowly] I remember the storm. A big octopus grabbed every pearl he could, to save them from the waves.",
+   "when": "Chapter 23 · Shelly Returns (Shelly)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s23_3",
+   "role": "pip",
+   "text": "[excited] He wasn’t stealing them. He was protecting them!",
+   "when": "Chapter 23 · Shelly Returns (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s23_4",
+   "role": "shelly",
+   "text": "[warmly, slowly] Hold on tight. The Deep is big, and we’re nearly there.",
+   "when": "Chapter 23 · Shelly Returns (Shelly)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s24_1",
+   "role": "narrator",
+   "text": "[gently] In a den full of pearls hides a giant octopus.",
+   "when": "Chapter 24 · Murk’s Den (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s24_2",
+   "role": "murk",
+   "text": "[softly, sadly] Go away… I got lost in the storm. It’s so dark, I can’t find the Lantern.",
+   "when": "Chapter 24 · Murk’s Den (Murk)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s24_3",
+   "role": "murk",
+   "text": "[softly, sadly] I kept the pearls safe. But I’m too scared to go back.",
+   "when": "Chapter 24 · Murk’s Den (Murk)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s24_4",
+   "role": "pip",
+   "text": "[excited] We’re not here to take them. We’re here to help.",
+   "when": "Chapter 24 · Murk’s Den (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s25_1",
+   "role": "narrator",
+   "text": "[gently] You give Murk one glowing pearl from the gates.",
+   "when": "Chapter 25 · A Gift of Light (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s25_2",
+   "role": "murk",
+   "text": "[warmly] It’s warm… I’d forgotten what light feels like.",
+   "when": "Chapter 25 · A Gift of Light (Murk)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s25_3",
+   "role": "murk",
+   "text": "[warmly] The Keeper always said: share your light, and the light comes home.",
+   "when": "Chapter 25 · A Gift of Light (Murk)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s25_4",
+   "role": "narrator",
+   "text": "[gently] For the first time in a very long time, Murk smiles.",
+   "when": "Chapter 25 · A Gift of Light (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s26_1",
+   "role": "murk",
+   "text": "[warmly] Climb on, little diver. I know the way now.",
+   "when": "Chapter 26 · Over the Abyss (Murk)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s26_2",
+   "role": "narrator",
+   "text": "[gently] Murk carries you over the deepest trench in the sea.",
+   "when": "Chapter 26 · Over the Abyss (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s26_3",
+   "role": "murk",
+   "text": "[warmly] The Keeper left something for whoever came back. I’ll show you.",
+   "when": "Chapter 26 · Over the Abyss (Murk)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s26_4",
+   "role": "pip",
+   "text": "[excited] Twenty-six gates! I can feel the Lantern humming!",
+   "when": "Chapter 26 · Over the Abyss (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s27_1",
+   "role": "lumen",
+   "text": "[cheerful] Wave your arms, little Keeper! The Deep is listening.",
+   "when": "Chapter 27 · The Glowing Sea (Lumen)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s27_2",
+   "role": "narrator",
+   "text": "[gently] Every wave sets the plankton glowing, brighter and brighter.",
+   "when": "Chapter 27 · The Glowing Sea (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s27_3",
+   "role": "pip",
+   "text": "[excited] Did Lumen just call you… Keeper?",
+   "when": "Chapter 27 · The Glowing Sea (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s27_4",
+   "role": "lumen",
+   "text": "[cheerful] Who else could light up a whole sea?",
+   "when": "Chapter 27 · The Glowing Sea (Lumen)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s28_1",
+   "role": "narrator",
+   "text": "[gently] At last, the foot of the Great Lantern. Twenty-eight lights glow on its tower.",
+   "when": "Chapter 28 · The Lantern Tower (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s28_2",
+   "role": "narrator",
+   "text": "[gently] On its door, the Keeper left one last note:",
+   "when": "Chapter 28 · The Lantern Tower (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s28_3",
+   "role": "narrator",
+   "text": "[gently] “Murk, keep the Heart safe, until someone kind comes back.”",
+   "when": "Chapter 28 · The Lantern Tower (The Reef Keeper)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s28_4",
+   "role": "murk",
+   "text": "[warmly] That someone… is you.",
+   "when": "Chapter 28 · The Lantern Tower (Murk)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s29_1",
+   "role": "narrator",
+   "text": "[gently] Murk brings out the Heart Pearl he has guarded since the storm.",
+   "when": "Chapter 29 · The Heart Pearl (narrator)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s29_2",
+   "role": "murk",
+   "text": "[warmly] I kept it safe for you. Light it with the last gate.",
+   "when": "Chapter 29 · The Heart Pearl (Murk)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s29_3",
+   "role": "pip",
+   "text": "[excited] Twenty-nine gates… One more, and the whole reef wakes up!",
+   "when": "Chapter 29 · The Heart Pearl (Pip)",
+   "max_seconds": 0
+  },
+  {
+   "id": "s29_4",
+   "role": "diver",
+   "text": "[curious] Let’s bring the light home.",
+   "when": "Chapter 29 · The Heart Pearl (You)",
+   "max_seconds": 0
   }
  ]
 }

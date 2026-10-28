@@ -15,6 +15,7 @@ $Root = if ($InRepo) { Split-Path -Parent $Here } else { $Here }
 $CfgPath = Join-Path $Here 'voices.json'
 if (-not (Test-Path $CfgPath)) { throw "voices.json is missing. Keep it in the same folder as make_voices.ps1." }
 $Cfg = Get-Content -Raw -Encoding UTF8 $CfgPath | ConvertFrom-Json
+$Roles = @($Cfg.pick.PSObject.Properties.Name)  # narrator, diver, pip, shelly, murk, lumen, friend (one voice each)
 $PickPath = Join-Path $Here 'voices.picked.json'
 $KeyFile = Join-Path $Root '.elevenlabs-key'
 $KeyTxt = Join-Path $Root 'elevenlabs-key.txt'
@@ -81,13 +82,13 @@ function Speak([string]$voiceId, [string]$text, [string]$out, $settings) {
 }
 
 function Get-Picks {
-  $p = [ordered]@{ narrator = $Cfg.pick.narrator; diver = $Cfg.pick.diver }
-  if (Test-Path $PickPath) { $s = Get-Content -Raw -Encoding UTF8 $PickPath | ConvertFrom-Json; if ($s.narrator) { $p.narrator = $s.narrator }; if ($s.diver) { $p.diver = $s.diver } }
+  $p = [ordered]@{}; foreach ($r in $Roles) { $p[$r] = $Cfg.pick.$r }
+  if (Test-Path $PickPath) { $s = Get-Content -Raw -Encoding UTF8 $PickPath | ConvertFrom-Json; foreach ($r in $Roles) { if ($s.$r) { $p[$r] = $s.$r } } }
   return $p
 }
 function Ask-Voices {
   $p = Get-Picks; $res = @{}
-  foreach ($role in 'narrator', 'diver') {
+  foreach ($role in $Roles) {
     $in = (Read-Host "$role voice - a name from the shortlist or a voice ID  [Enter = $($p[$role])]").Trim()
     if ($in) { $p[$role] = $in }
     $cand = @($Cfg.candidates.$role) | Where-Object { $_.name -eq $p[$role] } | Select-Object -First 1
@@ -115,7 +116,7 @@ function Rebuild {
 
 function Audition {
   New-Item -ItemType Directory -Force -Path $AudDir | Out-Null
-  foreach ($role in 'narrator', 'diver') {
+  foreach ($role in $Roles) {
     Write-Host "`n$role voices:" -ForegroundColor Cyan
     foreach ($c in @($Cfg.candidates.$role)) {
       Write-Host ("  {0,-12} {1}" -f $c.name, $c.why)

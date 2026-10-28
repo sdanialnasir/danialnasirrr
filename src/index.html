@@ -1729,6 +1729,29 @@ html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9r
 @keyframes capIn { from { opacity: 0; transform: translateY(0.4rem); } to { opacity: 1; transform: none; } }
 @media (orientation: portrait), (max-width: 700px) { #storyCap { left: 4vw; right: 4vw; bottom: auto; top: calc(env(safe-area-inset-top, 0px) + 4vh); max-width: none; } }
 @media (prefers-reduced-motion: reduce) { #storyCap, #storyCap p.in { transition: none; animation: none; } }
+
+/* ---- Story pass 2: speakers in the film captions, Skip, the level card's story line, the journal ---- */
+#storyCap small { letter-spacing: 0.1em; }
+#storyCap b { font-size: clamp(1.05rem, 1.9vw, 1.4rem); margin: 0.15rem 0 0.2rem; }
+#storyCap[data-who="pip"] b { color: #ffd25a; } #storyCap[data-who="you"] b { color: #c9a6ff; } #storyCap[data-who="shelly"] b { color: #9fe38a; }
+#storyCap[data-who="murk"] b { color: #e3a6ff; } #storyCap[data-who="lumen"] b { color: #7ff6ff; } #storyCap[data-who="note"] b, #storyCap[data-who="arch"] b, #storyCap[data-who="choir"] b { color: #ffe08a; }
+#storyCap[data-who="note"] p, #storyCap[data-who="arch"] p, #storyCap[data-who="choir"] p, #storyCap[data-who="narrator"] p { font-style: italic; }
+#storyCap p { font-size: clamp(1.05rem, 1.8vw, 1.35rem); }
+#storySkip { position: fixed; right: calc(env(safe-area-inset-right, 0px) + 3vw); top: calc(env(safe-area-inset-top, 0px) + 3vh); z-index: 41; display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.5rem 1rem; border-radius: 999px; border: 2px solid rgba(110, 190, 255, 0.6); background: rgba(8, 26, 76, 0.72); color: #fff; font: 800 1rem var(--text, 'Nunito', sans-serif); cursor: pointer; }
+#storySkip .i { width: 1.1rem; height: 1.1rem; } #storySkip[hidden] { display: none; }
+@media (orientation: portrait), (max-width: 700px) { #storySkip { top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 3vh); } }
+.ic-story { margin: 0.1rem 0 0.5rem; font-size: 1rem; font-weight: 700; line-height: 1.35; color: #cfe8ff; font-style: italic; text-align: center; }
+.ic-story::before { content: "\201C"; color: #ffd25a; font-style: normal; margin-right: 0.15em; } .ic-story::after { content: "\201D"; color: #ffd25a; font-style: normal; margin-left: 0.1em; }
+.j-sub { margin: 0 0 0.8rem; color: #9fc8ff; font-weight: 800; letter-spacing: 0.04em; } .j-sub span:first-child { color: #ffe08a; }
+.j-list { list-style: none; margin: 0; padding: 0 0 1rem; display: grid; gap: 0.7rem; }
+.jr { padding: 0.8rem 1rem; border-radius: 1.1rem; background: linear-gradient(180deg, rgba(36, 80, 170, 0.55), rgba(14, 38, 110, 0.6)); border: 2px solid rgba(110, 190, 255, 0.4); }
+.jr.locked { opacity: 0.55; } .jh { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.jn { font-size: 0.75rem; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; color: #8fd2ff; } .jh b { font-family: var(--display); font-size: 1.25rem; color: #fff; flex: 1; }
+.jw { margin-left: auto; } .jt p { margin: 0.35rem 0 0; font-size: 0.98rem; line-height: 1.4; color: #e8f4ff; } .jt em { font-style: normal; font-weight: 900; color: #ffd25a; }
+.jt p[data-who="murk"] em { color: #e3a6ff; } .jt p[data-who="shelly"] em { color: #9fe38a; } .jt p[data-who="lumen"] em { color: #7ff6ff; } .jt p[data-who="you"] em { color: #c9a6ff; }
+.jt p:not([data-who]) { font-style: italic; color: #cfe2ff; }
+body.watching #storyCap { bottom: 9vh; }
 </style>
 </head>
 <body data-state="splash">
@@ -1830,7 +1853,7 @@ html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9r
       <button class="play-big hm-play" id="btnPlay"><b id="playSub">Continue · Level 1</b><span class="pl2"><b id="playMain">Continue</b><small id="playLv">— Level 1 —</small></span><svg class="i pl-arrow" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg></button>
       <p class="kbd-hint desk-only"><kbd>Enter</kbd> · Continue</p>
       <button class="hm-daily" id="btnDaily"><span class="dd-ic">☀</span><span class="dd-t"><b>Daily Dive</b><small id="ddSub">New puzzle today</small></span><span class="dd-go" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></button>
-      <div class="hm-sec"><button class="sec-btn c-how" data-go="how"><span class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.2 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5M12 17.5h.01"/></svg></span><b>How to Play</b></button><button class="sec-btn c-intro" id="btnIntro2"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg></span><b>Intro</b></button></div>
+      <div class="hm-sec"><button class="sec-btn c-how" data-go="how"><span class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.2 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5M12 17.5h.01"/></svg></span><b>How to Play</b></button><button class="sec-btn c-intro" id="btnIntro2"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M5 4h9a4 4 0 0 1 4 4v12H9a4 4 0 0 1-4-4z"/><path d="M9 8h5M9 12h5"/></svg></span><b>Story</b></button></div>
     </div>
   </div>
   <nav class="hm-nav" aria-label="Menu">
@@ -1839,7 +1862,7 @@ html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9r
     <button class="hm-big c-gift" data-go="rewards"><span class="ic"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v7h14v-7M12 8v12M12 8S10.5 3.5 8 4.2 7.5 8 12 8zM12 8s1.5-4.5 4-3.8S16.5 8 12 8z"/></svg></span><b>Rewards</b><i class="dot" id="hmDot" hidden></i></button>
     <button class="hm-big c-rank" data-go="ranks"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></span><b>Ranks</b></button>
     <button class="hm-big c-how" data-go="how"><span class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.2 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5M12 17.5h.01"/></svg></span><b>How to</b></button>
-    <button class="hm-big c-intro" id="btnReplayIntro"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg></span><b>Intro</b></button>
+    <button class="hm-big c-intro" id="btnReplayIntro"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M5 4h9a4 4 0 0 1 4 4v12H9a4 4 0 0 1-4-4z"/><path d="M9 8h5M9 12h5"/></svg></span><b>Story</b></button>
   </nav>
 </section>
 <div id="tut" aria-live="polite"><div class="tut-ring"></div><div class="tut-bub"><i class="tut-ic" aria-hidden="true"></i><div class="tut-body"><span class="tut-step"></span><p class="tut-txt"></p><div class="tut-foot"><span class="tut-dots"></span><span class="tut-next">Next</span></div></div></div><button class="tut-skip" type="button">Skip</button></div>
@@ -1871,6 +1894,13 @@ html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9r
   </aside>
 </section>
 
+<section id="journal" class="screen sheet win-how">
+  <div class="wrap">
+    <div class="ph"><button class="back" data-go="home" aria-label="Back"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h2>The Story</h2></div>
+    <p class="j-sub"><span>The Thirty Gates</span> · <span id="jCount"></span></p>
+    <ul class="j-list" id="jList"></ul>
+  </div>
+</section>
 <section id="how" class="screen sheet win-how">
   <div class="wrap">
     <div class="ph"><button class="back" data-go="home" aria-label="Back"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h2>How to play</h2></div>
@@ -1942,6 +1972,7 @@ html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9r
 <section id="intro" class="screen sheet modal lvl-card">
   <div class="wrap">
     <p class="kicker" id="introNum">Level 1 of 30</p><h1 class="title" id="introName">First Light</h1>
+    <p class="ic-story" id="introStory"></p>
     <div class="ic-prev"><canvas id="introPrev" width="520" height="300"></canvas><span class="ic-best" id="introBest" hidden></span></div>
     <div class="ic-hint tipcard"><i class="tc-ic" aria-hidden="true"></i><div class="tc-t"><small>The trick</small><p id="introHint"></p></div></div>
     <div class="kitrow" id="introKit" aria-label="In this dive"></div>
@@ -2024,6 +2055,7 @@ html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9r
 </section>
 
 <div id="storyCap" aria-live="polite"><small></small><b></b><p></p></div>
+<button id="storySkip" type="button" hidden>Skip <svg class="i" viewBox="0 0 24 24"><path d="M6 5l7 7-7 7M13 5l7 7-7 7"/></svg></button>
 <section id="result" class="screen sheet modal res">
   <div class="wrap">
     <div class="res-l">
@@ -2066,7 +2098,7 @@ html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9r
     <p class="fc-k">Music</p><p>“Chill Wave” · Kevin MacLeod</p><p>“Meadow”, “Soundscape Dark” · Gravity Sound</p><p class="fc-s">CC BY 4.0</p>
     <p class="fc-k">Sound effects</p><p>Kenney · uiSFX</p>
     <p class="fc-k">3D engine</p><p>three.js</p>
-    <p class="fc-k">Starring</p><p>One brave little diver</p><p>Thirty sleepy gates</p><p>Lots of very grumpy crabs</p>
+    <p class="fc-k">Starring</p><p>One brave little diver, the new Reef Keeper</p><p>Pip, the seahorse who found his glow</p><p>Old Shelly the turtle</p><p>Lumen the anglerfish</p><p>Murk, who kept the Heart safe</p><p>Captain Clack and his crabs</p><p>Thirty sleepy gates</p>
     <h2 class="fc-end">Thank you for playing!</h2>
   </div></div>
   <button class="fin-skip" id="finSkip" type="button">Skip</button>
