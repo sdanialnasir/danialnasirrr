@@ -977,3 +977,30 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   size) + `addMouth()` = a dark mouth interior (throat, tongue, top teeth; `mouthTex`) on a pivot at the mouth that scales with the jaw.
   Speech opens it on syllables (`faceTick`: talk × a syllable wave); surprised/happy/angry hold it slightly open. Eyelids tilt per side
   (`pv.userData.side`): sad = outer corners droop, angry = inner corners drop. Check sheet: scratchpad `faceshot2.py` (5 cast × 6 states).
+
+## AAA film pass: one cast scale, every chapter staged (owner: "characters standing… fake… diver position/rotation different… boring")
+- **One size per character** (`FILM_SIZE`, `Story.norm()` right after setup + companions, before the probe): the diver is 0.95 tall standing;
+  Pip 0.56, cousin 0.5, Clack 0.6, crabs 0.42, Lumen 0.8 (heights), Shelly 2.4, Mira 4.2, Snip/Snap 0.85, Bellow 14 (longest side), Murk 2.6 tall.
+  Measured before: Clack 1.6 and a plain crab 1.08 (taller than the diver), Lumen 2.1, Murk 4.1. Walkers keep their feet where they were
+  (`ud.foot` = origin height above the sand); use `S.land(o, x, z)` for crabs and `S.sc(o, k)` to scale relative to the film size, never a raw
+  `scale.setScalar` on a cast member. `DIVER_FOOT` (0.55) + `S.gp(x, z)` put the diver's feet on the sand.
+- **Staging helpers** (Story): `S.turn(o, target, cheat)` (crabs face +z via `ud.plusZ`, everyone else +x; cheat opens them toward the lens),
+  `S.dirTo(a, b, cheat)`, `S.tl(j)` / `S.te(j)` = start/end of the j-th line after the interactive beat, `S.qa()` = when the beat starts.
+  Roll a character on its side with `rotation.x/z` after `turn` (never `rotateX/Z` every frame: it accumulates); a turtle on its side uses
+  rotation order 'YXZ'. `ud.life.still` (0..1) fades a character's breathing/bob/sway out (Clack's last moment).
+- **The 16 chapters that were still fixed-timer films are live and staged on their lines** (4 crabs, 11 crystals, 12 clams, 14 shellyrest,
+  15 manta, 18 pearls, 19 race, 20 coil, 21 angler, 22 whale, 24 ambush, 25 farewell, 26 cage, 28 plankton, 29 lair, 30 victory): each has an
+  establishing move, action keyed to the lines (Clack halts the parade and the crew pile up; Grimtide's voice turns the crystals red; the
+  clams pulse while they sing; Shelly lifts her head to speak; Mira rises out of the canyon; Murk peeks out over a rock for "…Currents?";
+  the cousin brakes too late and twirls with Pip; Lumen pops up holding his sock and his lure flares on "Showtime!"; Clack drops off the
+  whale's back; Grimtide snatches Pip from in front of the gate, later swims back past with him while Clack clings on; Clack lies on his side
+  and goes still; Murk hugs them as the cage opens; rings of light spread over the Deep; Grimtide rears; Clack bursts out of the sand) and a
+  closing move toward the next vault. New helpers: `eelBez` (head → bend → tail with a travelling wave), `eelCoil` (round a tower, head raised
+  toward a point), `makeSock`, `heartPearl`, `RECIPES.lair.pose` (shared by 29 and 30).
+- **Director fixes from the audit sheets:** two-shots come from the side of the pair (`pickShot` angles 0.06 / 0 / 0.16 / 0.28; it used to
+  sit behind the listener, so the diver was mostly seen from behind); `frame()` starts close and then backs the lens off (×1.13, ≤ 9 steps)
+  until both characters, head to feet (big ones: their face), project inside |x| ≤ 0.6, −0.78 ≤ y ≤ 0.7; a single shot also keeps a
+  listener within 4.5 whole (`fitB`). Lens-in-body test: boxes for small characters, the ellipsoid inside the box for anything > 3 wide
+  (`inBody`; a whale's box shoved the camera 5 m up), plus scenery a recipe marks with `S.solid(mesh, r)`. `sceneRock(S, r, sx, sy, sz,
+  tint, seed)` = sculpted reef-textured rock that is solid for the camera (replaced the flat low-poly dodecahedrons). Staging rule that
+  the sheets kept proving: put people who talk at about the same distance from the lens; the one in front otherwise turns his back to it.
