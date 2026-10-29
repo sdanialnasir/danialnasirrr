@@ -973,3 +973,7 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   (`stoneTex`, `vaultMats`), brass inlay, rune medallions (`runeDisc`), rune keystone, stone pedestal; same in the films' `buildTank`.
   Breathing = the air pocket under the vault roof (texts updated). The Keeper's arch (ch 17) and the mural wall (ch 23) use the same stone.
 - **Air**: `lungOf` tightens with the level (×3.4 + 22 s early → ×1.9 + 12 s at level 30, min 32 → 24 s).
+- **Talking mouths** (owner: "mouths do not open"): morph slot 6 = jaw drop (lower lip + chin move down by `D`, sized from the mouth and eye
+  size) + `addMouth()` = a dark mouth interior (throat, tongue, top teeth; `mouthTex`) on a pivot at the mouth that scales with the jaw.
+  Speech opens it on syllables (`faceTick`: talk × a syllable wave); surprised/happy/angry hold it slightly open. Eyelids tilt per side
+  (`pv.userData.side`): sad = outer corners droop, angry = inner corners drop. Check sheet: scratchpad `faceshot2.py` (5 cast × 6 states).

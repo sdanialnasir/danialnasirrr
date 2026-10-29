@@ -2088,23 +2088,33 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     snip: { m: [348, 375, 120, 45], rest: 0.4, e: [[280, 265, 45], [420, 265, 45]] }, snap: { m: [350, 350, 105, 25], rest: 0.35, e: [[268, 265, 45], [430, 265, 45]] },
     piranha: { m: [350, 465, 115, 55], rest: 0.3, e: [[240, 345, 60], [460, 345, 60]] }, bellow: { m: [350, 405, 72, 18], e: [[215, 340, 50], [485, 340, 50]] } };
   function faceRig(key, g) { const F = FACE[key]; if (!F) return; const bb = g.boundingBox, sx = bb.max.x - bb.min.x, sy = bb.max.y - bb.min.y, M = Math.max(sx, sy) / 2 * 1.02, cx = (bb.min.x + bb.max.x) / 2, cy = (bb.min.y + bb.max.y) / 2, k = 2 * M / 700;
-    const X = px => cx - M + px * k, Y = py => cy + M - py * k, P = g.attributes.position, n = P.count, T = [0, 1, 2, 3, 4, 5].map(() => new Float32Array(n * 3));
+    const X = px => cx - M + px * k, Y = py => cy + M - py * k, P = g.attributes.position, n = P.count, T = [0, 1, 2, 3, 4, 5, 6].map(() => new Float32Array(n * 3)); let mo = null;
     const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
     // the front-facing vertices of a feature: inside its ellipse and within a shallow depth of the nearest surface there
     const pick = (fx, fy, rx, ry, f) => { let zmax = -1e9; const ids = []; for (let i = 0; i < n; i++) { const dx = (P.getX(i) - fx) / rx, dy = (P.getY(i) - fy) / ry; if (dx * dx + dy * dy < 1) { ids.push(i); zmax = Math.max(zmax, P.getZ(i)); } }
       const tol = Math.max(rx, ry) * 0.6; for (const i of ids) { const z = P.getZ(i); if (z < zmax - tol) continue; const dx = (P.getX(i) - fx) / rx, dy = (P.getY(i) - fy) / ry; f(i, P.getX(i) - fx, P.getY(i) - fy, 1 - sm(0.55, 1, Math.hypot(dx, dy))); } };
     const add = (t, i, dx, dy) => { T[t][i * 3] += dx; T[t][i * 3 + 1] += dy; };
-    if (F.m) { const mx = X(F.m[0]), my = Y(F.m[1]), hw = F.m[2] * k, hh = F.m[3] * k;
+    if (F.m) { const mx = X(F.m[0]), my = Y(F.m[1]), hw = F.m[2] * k, hh = F.m[3] * k, er = F.e && F.e[0] ? F.e[0][2] * k : hw, D = Math.max(hh * 2.6, hw * 0.95, er * 0.85); let zm = -1e9;
+      pick(mx, my - D * 0.5, hw * 1.55, D * 1.6 + hh, (i, dx, dy, w) => { const y = dy + D * 0.5; if (y < 0) add(6, i, dx * 0.06 * w, -D * w * Math.min(1, -y / (hh + D * 0.3))); else add(6, i, 0, D * 0.12 * w * Math.max(0, 1 - y / (hh * 3 + 1e-6))); if (Math.abs(dx) < hw * 0.4 && Math.abs(y) < hh * 2) zm = Math.max(zm, P.getZ(i)); }); /* the jaw drops: the lower lip and chin move down */
+      mo = [mx, my, hw, hh, D, zm > -1e8 ? zm : bb.max.z];
       pick(mx, my, hw * 1.3, hh * 1.9 + hw * 0.1, (i, dx, dy, w) => { if (!F.shut) add(0, i, 0, -dy * 0.88 * w); /* close: lips meet on the centre line */
         const c = Math.min(1, (dx / hw) * (dx / hw)), amp = Math.max(hh * 2.6, hw * 0.55); add(1, i, 0, c * amp * w + (F.shut ? 0 : -dy * 0.35 * w)); add(2, i, 0, -c * amp * w + (F.shut ? 0 : -dy * 0.35 * w)); if (!F.shut) add(3, i, dx * 0.08 * w, dy * 0.55 * w); }); }
     const eyes = []; for (const [ex, ey, er] of F.e || []) { const X0 = X(ex), Y0 = Y(ey), r = er * k; let zf = -1e9;
       pick(X0, Y0, r * 1.2, r * 1.25, (i, dx, dy, w) => { add(3, i, dx * 0.12 * w, dy * 0.12 * w); if (dy > 0) add(5, i, 0, -dy * 0.3 * w); if (Math.hypot(dx, dy) < r * 0.5) zf = Math.max(zf, P.getZ(i)); });
       pick(X0, Y0 + r * 1.55, r * 1.45, r * 0.75, (i, dx, dy, w) => { const inner = (X0 > cx ? -dx : dx) / r; add(4, i, 0, r * (0.32 + 0.12 * inner) * w); }); /* brow: the skin above the eye lifts (more on the inner side); negative = frown */
       eyes.push([X0, Y0, r, zf > -1e8 ? zf : bb.max.z]); }
-    g.morphAttributes.position = T.map(a => new THREE.BufferAttribute(a, 3)); g.morphTargetsRelative = true; g.userData.face = { rest: F.shut ? 0 : F.rest ?? 0.85, mouth: !!F.m, shut: !!F.shut, eyes, lid: SKIN_LID[key] || 0xcccccc }; }
+    g.morphAttributes.position = T.map(a => new THREE.BufferAttribute(a, 3)); g.morphTargetsRelative = true; g.userData.face = { rest: F.shut ? 0 : F.rest ?? 0.85, mouth: !!F.m, shut: !!F.shut, eyes, mo, lid: SKIN_LID[key] || 0xcccccc }; }
+  // the inside of a mouth: a dark throat, a pink tongue at the bottom, a row of teeth along the top (drawn once)
+  function mouthTex() { if (TEX.mouth) return TEX.mouth; const cv = document.createElement('canvas'); cv.width = cv.height = 128; const g = cv.getContext('2d');
+    g.save(); g.beginPath(); g.ellipse(64, 64, 62, 62, 0, 0, Math.PI * 2); g.clip(); const gr = g.createRadialGradient(64, 58, 4, 64, 64, 64); gr.addColorStop(0, '#2a0610'); gr.addColorStop(0.75, '#5a1222'); gr.addColorStop(1, '#7a2030'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+    g.fillStyle = '#e8687c'; g.beginPath(); g.ellipse(64, 112, 44, 30, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = '#ff8a9a'; g.beginPath(); g.ellipse(58, 104, 18, 8, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#fbf6ee'; g.fillRect(20, 0, 88, 13); g.restore();
+    const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return (TEX.mouth = t); }
+  function addMouth(m, fz) { const [mx, my, hw, hh, D, zm] = fz.mo, mat = new THREE.MeshBasicMaterial({ map: mouthTex(), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
+    const pv = new THREE.Group(); pv.position.set(mx, my + hh * 0.15, zm + hw * 0.06); const d = new THREE.Mesh(GEO.mouthDisc || (GEO.mouthDisc = new THREE.CircleGeometry(0.5, 28).translate(0, -0.5, 0)), mat); d.scale.set(Math.max(hw * 1.5, D * 1.25), D * 1.05, 1); d.renderOrder = 3; pv.add(d); pv.scale.y = 0.001; pv.visible = false; m.add(pv); return pv; }
   // eyelids: a skin-coloured cap per eye on a pivot at the top of the eye; it grows down over the eye to blink (and half-way for sad/angry)
   function addLids(m, fz) { const out = []; const mat = new THREE.MeshStandardMaterial({ color: fz.lid, roughness: 0.6 });
-    for (const [x, y, r, zf] of fz.eyes) { const pv = new THREE.Group(); pv.position.set(x, y + r * 1.02, zf - r * 0.7); const geo = GEO.lidCap || (GEO.lidCap = (() => { const g = new THREE.SphereGeometry(1, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2); g.rotateX(Math.PI / 2); return g; })());
+    const ecx = fz.eyes.reduce((a, e) => a + e[0], 0) / fz.eyes.length; for (const [x, y, r, zf] of fz.eyes) { const pv = new THREE.Group(); pv.position.set(x, y + r * 1.02, zf - r * 0.7); pv.userData.side = Math.sign(x - ecx) || 1; const geo = GEO.lidCap || (GEO.lidCap = (() => { const g = new THREE.SphereGeometry(1, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2); g.rotateX(Math.PI / 2); return g; })());
       const lid = new THREE.Mesh(geo, mat); lid.scale.set(r * 1.12, r * 1.08, r * 1.0); lid.position.y = -r * 1.02; pv.add(lid); pv.scale.y = 0.001; pv.visible = false; m.add(pv); out.push(pv); }
     return out; }
   // every face that is on screen: blinks, the mouth with speech, moods ease in (one list, pruned when a model leaves its scene)
@@ -2114,11 +2124,13 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const ease = (i, v, r = 10) => { I[i] += (v - I[i]) * Math.min(1, dt * r); }, md = f.mood || '';
       const talk = f.talk || 0, chomp = f.chomp ? Math.max(0, Math.sin(performance.now() / 1000 * f.chomp)) : 0;
       if (f.mouth) I[0] = f.shut ? 0 : Math.max(0, f.rest - talk * 0.95 - chomp * f.rest);
-      const E = { happy: [1, 0, 0.1, 0.35, 0.35], sad: [0, 1, 0, 0.7, 0], wide: [0, 0, 0.95, 1, 0], angry: [0, 0.45, 0, -0.9, 1], '': [0.12, 0, 0, 0, 0] }[md] || [0.12, 0, 0, 0, 0];
+      const E = { happy: [1.25, 0, 0.15, 0.5, 0.45, 0.18], sad: [0, 1.3, 0, 0.95, 0, 0], wide: [0, 0, 1.2, 1.2, 0, 0.55], angry: [0, 0.6, 0, -1.2, 1.2, 0.1], '': [0.18, 0, 0, 0, 0, 0] }[md] || [0.18, 0, 0, 0, 0, 0];
+      { const tm = performance.now() / 1000, syl = talk > 0.02 ? 0.55 + 0.45 * Math.abs(Math.sin(tm * 7.3 + Math.sin(tm * 2.1) * 2)) : 0, jaw = Math.min(1.1, talk * 1.05 * syl + E[5] + chomp * 0.6);
+        I[6] = I[6] + (jaw - I[6]) * Math.min(1, dt * 22); if (I.length > 6 && f.cav) { f.cav.visible = I[6] > 0.04; f.cav.scale.y = Math.max(0.001, I[6]); f.cav.scale.x = 1 - 0.18 * I[6] + 0.12 * (I[1] || 0); } }
       const br = E[3] + (f.talk || 0) * 0.25 * Math.sin(performance.now() / 260); /* brows move a little as they speak */
       ease(1, E[0], 5); ease(2, E[1], 5); ease(3, E[2], 7); ease(4, br, 6); ease(5, E[4], 5);
-      if (f.lids) { const base = md === 'sad' ? 0.36 : md === 'angry' ? 0.42 : md === 'happy' ? 0.22 : 0; f.lidK = (f.lidK ?? 0) + (base - (f.lidK ?? 0)) * Math.min(1, dt * 8);
-        const v = f.blink > 0 ? Math.max(f.lidK, Math.sin((1 - f.blink / 0.16) * Math.PI)) : f.lidK; for (const pv of f.lids) { pv.visible = v > 0.02; pv.scale.y = Math.max(0.001, v); } } } }
+      if (f.lids) { const base = md === 'sad' ? 0.3 : md === 'angry' ? 0.34 : md === 'happy' ? 0.2 : 0, tl = md === 'sad' ? -0.42 : md === 'angry' ? 0.5 : 0; f.tilt = (f.tilt ?? 0) + (tl - (f.tilt ?? 0)) * Math.min(1, dt * 8); f.lidK = (f.lidK ?? 0) + (base - (f.lidK ?? 0)) * Math.min(1, dt * 8);
+        const v = f.blink > 0 ? Math.max(f.lidK, Math.sin((1 - f.blink / 0.16) * Math.PI)) : f.lidK; for (const pv of f.lids) { pv.visible = v > 0.02; pv.scale.y = Math.max(0.001, v); pv.rotation.z = f.tilt * pv.userData.side * (f.blink > 0 ? 0.3 : 1); } } } } /* sad: the outer corners droop; angry: the inner corners drop */
   const castOK = key => !!(window.AQ_CAST && window.AQ_CAST[key]);
   function castGeo(key) { if (!castOK(key)) return null; if (GEO['cast_' + key]) return { g: GEO['cast_' + key], tex: TEX['cast_' + key] }; const C = window.AQ_CAST[key];
     const dec = (b64, T) => { const b = atob(b64), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return new T(u.buffer); };
@@ -2141,7 +2153,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const want = c0.clone(), have = mb.getCenter(new V3()); if (o.floor) { want.y = bb.min.y; have.y = mb.min.y; } if (o.dy) want.y += o.dy * s0.y;
     m.position.add(hold.worldToLocal(want).sub(hold.worldToLocal(have)));
     const ud = g.userData || (g.userData = {}); ud.cast = m; ud.mouth = null; ud.castBox = new THREE.Box3().setFromObject(m);
-    const fz = G.g.userData.face; if (fz) { m.updateMorphTargets(); const f = { m, rest: fz.rest, mouth: fz.mouth, shut: fz.shut, bt: Math.random() * 3, talk: 0, mood: o.mood || '', chomp: o.chomp || 0, lids: fz.eyes && fz.eyes.length ? addLids(m, fz) : null }; FACES.add(f); ud.face = f;
+    const fz = G.g.userData.face; if (fz) { m.updateMorphTargets(); const f = { m, rest: fz.rest, mouth: fz.mouth, shut: fz.shut, bt: Math.random() * 3, talk: 0, mood: o.mood || '', chomp: o.chomp || 0, lids: fz.eyes && fz.eyes.length ? addLids(m, fz) : null, cav: fz.mo && !fz.shut ? addMouth(m, fz) : null }; FACES.add(f); ud.face = f;
       ud.setMood = md => { f.mood = md || ''; }; }
     ud.talk = a => { m.scale.set(k * (1 - 0.01 * a), k * (1 + 0.025 * a), k * (1 - 0.01 * a)); if (ud.face) ud.face.talk = a; }; // the mouth opens with the syllables (+ a little body bounce)
     return g; }
