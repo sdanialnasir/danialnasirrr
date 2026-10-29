@@ -4112,6 +4112,30 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     boss: { bg: 0x140a30, fog: [12, 60], sand: 0x3a2f5a, hazards: [], speed: [0, 0], boss: 1 } };
   const MINI_KINDS = { beat: 1, catch: 1, sneak: 1 }; /* story v6 mini-games: timing, lane catching, stealth */
   const PACE = { gap: 0.7, tail: 0.6 }; /* story v6: get to the action sooner, leave sooner */
+  // the mini-game rules, shared by the film path (Story) and the in-world segments (story v7). input/tick return 'ok' | 'no' | null
+  const Mini = {
+    init(kind) { if (kind === 'beat') return { kind, t: 0, ph: 0, presses: 0, hits: 0, total: 6, need: 4, flash: 0, marks: [], evt: null };
+      if (kind === 'catch') return { kind, t: 0, lane: 1, spawn: 0.7, pearls: [], caught: 0, missed: 0, need: 6, maxMiss: 3, flash: 0, evt: null };
+      if (kind === 'sneak') return { kind, t: 0, hideUntil: -9, inWin: false, seen: false, checked: -1, passes: 0, misses: 0, total: 5, maxMiss: 1, flash: 0, evt: null };
+      return null; },
+    input(M, type, key) { M.evt = null; if (!M || M.done) return null;
+      if (M.kind === 'beat') { if (type !== 'down') return null; M.presses++; const hit = Math.abs(M.ph - 0.5) < 0.09; if (hit) M.hits++; M.marks.push(hit); M.flash = hit ? 1 : -1; M.evt = hit ? 'hit' : 'miss';
+        if (M.presses >= M.total) { M.done = true; return M.hits >= M.need ? 'ok' : 'no'; } return null; }
+      if (M.kind === 'catch') { if (type === 'lane') M.lane = Math.max(0, Math.min(2, M.lane + (key | 0))); return null; }
+      if (M.kind === 'sneak') { if (type === 'down') M.hideUntil = M.t + 1.3; return null; }
+      return null; },
+    tick(M, dt) { M.evt = null; M.t += dt; M.flash = Math.max(0, M.flash - dt * 2.5);
+      if (M.kind === 'beat') { M.ph = (M.t / 1.15) % 1; return null; }
+      if (M.kind === 'catch') { M.spawn -= dt; if (M.spawn <= 0) { M.spawn = 0.8 + Math.random() * 0.4; M.pearls.push({ lane: Math.random() * 3 | 0, y: 0 }); }
+        for (const p of M.pearls) p.y += dt * 0.5; M.pearls = M.pearls.filter(p => { if (p.y < 1) return true; if (p.lane === M.lane) { M.caught++; M.flash = 1; } else M.missed++; return false; });
+        M.done = M.caught >= M.need || M.missed >= M.maxMiss; return M.done ? (M.caught >= M.need ? 'ok' : 'no') : null; }
+      if (M.kind === 'sneak') { const P = 2.2, ph = (M.t % P) / P, c = Math.floor(M.t / P), inW = ph >= 0.545 && ph < 0.864;
+        if (inW && !M.inWin) M.seen = false; if (inW && M.t >= M.hideUntil) M.seen = true; M.inWin = inW; M.ph = ph; let r = null;
+        if (!inW && ph >= 0.864 && M.checked !== c) { M.checked = c; if (M.seen) { M.misses++; M.flash = -1; } else { M.passes++; M.flash = 1; } M.seen = false;
+          if (M.passes + M.misses >= M.total) r = M.misses <= M.maxMiss ? 'ok' : 'no'; else if (M.misses > M.maxMiss) r = 'no'; }
+        if (r) M.done = true; return r; }
+      return null; } };
+
   class StoryRun {
     constructor(S, Q) { this.S = S; this.Q = Q; const V = this.V = RUN_V[Q.v] || RUN_V.dive; this.dur = Q.dur || 24; this.t = -1.6; this.lives = 3; this.got = 0; this.close = 0; this.inv = 0; this.done = null;
       this.pos = new V3(0, 1.8, 0); this.tgt = new V3(0, 1.8, 0); this.vel = new V3(); this.keys = {}; this.objs = []; this.spawnT = 0.4; this.z = 0; this.shake = 0; this.own = []; this.mats = []; this.wave = 0;
@@ -4320,9 +4344,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     qteStart() { const Q = this.Q; this.qte = { kind: Q.kind, n: Q.n || 8, el: 0, prog: 0, r: this.rQ, down: false }; if (MINI_KINDS[Q.kind]) this.miniInit(Q);
       if (Q.kind === 'simon') { const R = Q.rounds || [3, 4, 5], seq = []; for (let i = 0; i < R[R.length - 1]; i++) { let v; do v = Math.random() * 4 | 0; while (i && v === seq[i - 1] && Math.random() < 0.6); seq.push(v); }
         this.simon = { R, seq, r: 0, pos: 0, phase: 'wait', t: 0.9, show: 0, miss: 0, lit: [0, 0, 0, 0] }; } if (Q.kind === 'run') { try { this.run = new StoryRun(this, Q); } catch (er) { console.warn(er); this.run = null; } } if (this.o.onQte) this.o.onQte(Q, 'start'); }
-    miniInit(Q) { if (Q.kind === 'beat') this.mg = { kind: 'beat', t: 0, ph: 0, presses: 0, hits: 0, total: 6, need: 4, flash: 0 };
-      if (Q.kind === 'catch') this.mg = { kind: 'catch', t: 0, lane: 1, spawn: 0.7, pearls: [], caught: 0, missed: 0, need: 6, maxMiss: 3, flash: 0 };
-      if (Q.kind === 'sneak') this.mg = { kind: 'sneak', t: 0, hideUntil: -9, inWin: false, seen: false, checked: -1, passes: 0, misses: 0, total: 5, maxMiss: 1, flash: 0 }; }
+    miniInit(Q) { this.mg = Mini.init(Q.kind); }
     qteIn(type, key) { const q = this.qte; if (!q || this.frozen) return; if (MINI_KINDS[q.kind]) return this.miniIn(type, key); if (q.kind === 'simon') { const G = this.simon; if (type !== 'note' || !G || G.phase !== 'input') return; const i = key | 0; G.lit[i] = 1; Audio.pearl(i + 1);
         if (G.seq[G.pos] === i) { G.pos++; if (this.o.onQte) this.o.onQte(this.Q, 'hit', { i, pos: G.pos, len: G.R[G.r] }); if (G.pos >= G.R[G.r]) { G.r++; if (G.r >= G.R.length) { G.phase = 'done'; G.t = 0.7; } else { G.phase = 'wait'; G.t = 1.0; if (this.o.onQte) this.o.onQte(this.Q, 'round', { r: G.r, of: G.R.length }); } } }
         else { G.miss++; if (this.o.onQte) this.o.onQte(this.Q, 'miss', { miss: G.miss }); if (G.miss >= 2) { G.phase = 'fail'; G.t = 0.7; } else { G.phase = 'wait'; G.t = 1.1; } } return; }
@@ -4333,22 +4355,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         this.seq.push(...this.qLines(key).map((l, j) => this.mkLine(l, `s${n}_c${key}_${j + 1}`)), ...this.seqTail); }
       else this.seq.push(...this.qLines(ok).map((l, j) => this.mkLine(l, `s${n}_${ok ? 'ok' : 'no'}${j + 1}`)), ...this.seqTail);
       this.plan(from, this.t + 0.25, q.r); if (this.o.onQte) this.o.onQte(Q, ok ? 'ok' : 'no', key); }
-    miniIn(type, key) { const M = this.mg; if (!M || M.done) return;
-      if (M.kind === 'beat') { if (type !== 'down') return; M.presses++; const hit = Math.abs(M.ph - 0.5) < 0.09; if (hit) M.hits++; (M.marks || (M.marks = [])).push(hit); M.flash = hit ? 1 : -1; if (this.o.onQte) this.o.onQte(this.Q, hit ? 'hit' : 'miss', M);
-        if (M.presses >= M.total) { M.done = true; this.qteEnd(M.hits >= M.need); } return; }
-      if (M.kind === 'catch') { if (type === 'lane') M.lane = Math.max(0, Math.min(2, M.lane + (key | 0))); return; }
-      if (M.kind === 'sneak') { if (type === 'down') M.hideUntil = M.t + 1.3; } }
-    miniTick(dt) { const M = this.mg, Q = this.Q; M.t += dt; M.flash = Math.max(0, M.flash - dt * 2.5);
-      if (M.kind === 'beat') { M.ph = (M.t / 1.15) % 1; }
-      else if (M.kind === 'catch') { M.spawn -= dt; if (M.spawn <= 0) { M.spawn = 0.8 + Math.random() * 0.4; M.pearls.push({ lane: Math.random() * 3 | 0, y: 0 }); }
-        for (const p of M.pearls) p.y += dt * 0.5; M.pearls = M.pearls.filter(p => { if (p.y < 1) return true; if (p.lane === M.lane) { M.caught++; M.flash = 1; } else M.missed++; return false; });
-        if (M.caught >= M.need) { M.done = true; return this.qteEnd(true); } if (M.missed >= M.maxMiss) { M.done = true; return this.qteEnd(false); } }
-      else if (M.kind === 'sneak') { const P = 2.2, ph = (M.t % P) / P, c = Math.floor(M.t / P), inW = ph >= 0.545 && ph < 0.864;
-        if (inW && !M.inWin) M.seen = false; if (inW && M.t >= M.hideUntil) M.seen = true; M.inWin = inW;
-        if (!inW && ph >= 0.864 && M.checked !== c) { M.checked = c; if (M.seen) { M.misses++; M.flash = -1; } else { M.passes++; M.flash = 1; } M.seen = false;
-          if (M.passes + M.misses >= M.total) { M.done = true; return this.qteEnd(M.misses <= M.maxMiss); } if (M.misses > M.maxMiss) { M.done = true; return this.qteEnd(false); } }
-        M.ph = ph; }
-      if (this.o.onQte) this.o.onQte(Q, 'frame', M); }
+    miniIn(type, key) { const M = this.mg; if (!M || M.done) return; const r = Mini.input(M, type, key); if (M.evt && this.o.onQte) this.o.onQte(this.Q, M.evt, M); if (r) this.qteEnd(r === 'ok'); }
+    miniTick(dt) { const M = this.mg; if (!M) return; const r = Mini.tick(M, dt); if (r) { M.done = true; return this.qteEnd(r === 'ok'); } if (this.o.onQte) this.o.onQte(this.Q, 'frame', M); }
     skipAll() { this.simon = null; if (!this.qDone) { if (!this.qte) this.qte = { kind: this.Q.kind, n: 1, el: 0, prog: 0, r: this.rQ }; this.qteEnd(false); } this.t = Math.max(this.t, this.T - 0.05); this.li = this.capI = this.seq.length; if (this.o.onCap) this.o.onCap(null); }
     companions() { if (!this.comp || !this.comp.length) return; const f = this.face || new V3(1, 0, 0), up = new V3(0, 1, 0), r = new V3().crossVectors(f, up).normalize(), h = this.hold.position, tm = this.time;
       const sp = this.shot && this.t < this.shot.l.t1 ? this.shot.who : '', cam = this.cam0.position;
@@ -6070,7 +6078,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       obj = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ map: t, color: 0xffd08a, roughness: 0.95 })); obj.rotation.set(0.25, -0.5, 0); obj.scale.setScalar(1.15); }
     sc.add(obj); const sd = new SharedDraw(cv, 2); try { sd.render(sc, cam); } finally { sd.dispose(); } const url = cv.toDataURL('image/png');
     if (kind === 'sand') obj.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.map.dispose(); o.material.dispose(); } }); return url; }
-  return { castDebug: () => ({ castGeo, makePip, makeTurtle, makeManta, makeWhale, makeOctopus, makeAngler, makeFish, makeCrab, makeClack, makeJelly, makeEel, castOK }), create: c => new WorldImpl(c), CHAPTERS, PROLOGUE, STORY_WHO, isMobile, iconShot, isIOS, dailyWorld: (name, w) => DAILY_WORLD.set(name, w), setColorMarks: on => { CB.on = !!on; if (MAT.cbMark) MAT.cbMark.visible = CB.on; }, ready, SKINS, SKIN, applySkin, preview: (cv, thumb) => new SkinPreview(cv, thumb), trailColor, rarityOf };
+  return { Mini, castDebug: () => ({ castGeo, makePip, makeTurtle, makeManta, makeWhale, makeOctopus, makeAngler, makeFish, makeCrab, makeClack, makeJelly, makeEel, castOK }), create: c => new WorldImpl(c), CHAPTERS, PROLOGUE, STORY_WHO, isMobile, iconShot, isIOS, dailyWorld: (name, w) => DAILY_WORLD.set(name, w), setColorMarks: on => { CB.on = !!on; if (MAT.cbMark) MAT.cbMark.visible = CB.on; }, ready, SKINS, SKIN, applySkin, preview: (cv, thumb) => new SkinPreview(cv, thumb), trailColor, rarityOf };
 })();
 
 window.__T = T;
@@ -6096,7 +6104,7 @@ window.__T = T;
     document.querySelectorAll('.ld-title, .gs-title, .hm-title, .cine-title .title').forEach(t => { t.classList.add('logo-art'); t.setAttribute('aria-label', 'Aqua Energizer'); });
   })();
   const canvas = $('#c');
-  const world = World.create(canvas); window.__dc = { world, aud: Audio, talk: k => { beatSeen.delete((levelIdx + 1) + ':' + k); beat(k); }, cut: () => { const n = levelIdx + 1, B = (LEVEL_BEATS[n] || []).find(b => b.on === 's'); if (B) { beatSeen.delete(n + ':s'); storyCut(B, n); } }, death: () => deathLine(), qte: (k, key) => world.story && world.story.qteIn(k, key), watch: (n) => watchChapter(n), story: () => ({ on: storyOn, shown: resultShown, t: world.story ? world.story.t : -1 }), card: (i) => startLevel(i), get engine() { return engine; }, get save() { return save; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { skipTut = true; try { startLevel(i); beginPlay(); } finally { skipTut = false; } }, plan: (cb) => planFrom(engine, coachRefs(), COACH.route, cb), planCheck: (plan) => plSim(engine, plan).won, doomed: () => doomed(engine), relic: (i) => relicCell(i), run: () => RUN, tick: () => { engine.step(); tickWorld(engine, performance.now()); dangerScan(); rollScan(); }, danger: () => { dangerScan(); return world.lastDanger; }, undo: () => undo(), tut: (i) => { if (save.tutSeen) delete save.tutSeen[i]; startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), World, intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
+  const world = World.create(canvas); window.__dc = { seg: n => { storyOn = true; document.body.classList.add('story'); segStart(n); }, segIn, segTick: dt => segTick(dt), segState: () => seg && { phase: seg.phase, kind: seg.Q.kind, M: seg.M, res: seg.res || null }, world, aud: Audio, talk: k => { beatSeen.delete((levelIdx + 1) + ':' + k); beat(k); }, cut: () => { const n = levelIdx + 1, B = (LEVEL_BEATS[n] || []).find(b => b.on === 's'); if (B) { beatSeen.delete(n + ':s'); storyCut(B, n); } }, death: () => deathLine(), qte: (k, key) => world.story && world.story.qteIn(k, key), watch: (n) => watchChapter(n), story: () => ({ on: storyOn, shown: resultShown, t: world.story ? world.story.t : -1 }), card: (i) => startLevel(i), get engine() { return engine; }, get save() { return save; }, get state() { return state; }, startCustom: (lv) => { startLevel(0, lv); beginPlay(); }, startIndex: (i) => { skipTut = true; try { startLevel(i); beginPlay(); } finally { skipTut = false; } }, plan: (cb) => planFrom(engine, coachRefs(), COACH.route, cb), planCheck: (plan) => plSim(engine, plan).won, doomed: () => doomed(engine), relic: (i) => relicCell(i), run: () => RUN, tick: () => { engine.step(); tickWorld(engine, performance.now()); dangerScan(); rollScan(); }, danger: () => { dangerScan(); return world.lastDanger; }, undo: () => undo(), tut: (i) => { if (save.tutSeen) delete save.tutSeen[i]; startLevel(i); beginPlay(); }, go: (id) => { if (booting) { dropLoader(); showMenuScene(); } go(id); }, frame: (now) => frame(now), World, intro: () => { if (booting) { dropLoader(); showMenuScene(); } startCine(); } };
   world.onSfx = n => Audio.play(n); world.onToast = m => toast(m);
   let gateOpenAt = 0, gateNudged = true;
   world.onGateOpen = () => { if (state === 'replay' || state === 'clip') return; gateOpenAt = performance.now(); gateNudged = false; banner('The gate is awake!', 'Swim in!', 'Swim into the glowing gate to carry the light home.', 3200); };
@@ -7330,6 +7338,7 @@ window.__T = T;
   addEventListener('keydown', ev => {
     if (ev.repeat) return;
     if (state === 'splash') { unlock(); return; }
+    if (seg && seg.phase === 'play' && !resultShown) { ev.preventDefault(); if (ev.repeat) return; if (seg.Q.kind === 'catch') { const d = ev.key === 'ArrowLeft' || ev.key === 'a' || ev.key === 'A' ? -1 : ev.key === 'ArrowRight' || ev.key === 'd' || ev.key === 'D' ? 1 : 0; if (d) segIn('lane', d); } else if (ev.key === ' ' || ev.key === 'Enter') segIn('down'); return; }
     if (storyOn && !resultShown) { { const S = world.story; if (S && S.qte && ev.key !== 'Escape') { ev.preventDefault(); if (S.qte.kind === 'simon') { const k = '1234'.indexOf(ev.key); if (k >= 0 && !ev.repeat) S.qteIn('note', k); return; } if (S.qte.kind === 'run') { S.qteIn('key', { k: ev.key.length === 1 ? ev.key.toLowerCase() : ev.key, on: true }); return; } if (S.qte.kind === 'catch') { const d = ev.key === 'ArrowLeft' || ev.key === 'a' || ev.key === 'A' ? -1 : ev.key === 'ArrowRight' || ev.key === 'd' || ev.key === 'D' ? 1 : 0; if (d && !ev.repeat) S.qteIn('lane', d); return; } if (MINI_KINDS[S.qte.kind] && ev.key.startsWith('Arrow')) return; if (S.qte.kind === 'choice') { const k = '123'.indexOf(ev.key); if (k >= 0 && S.Q.opts[k]) S.qteIn('pick', S.Q.opts[k][0]); return; } if (ev.key.startsWith('Arrow')) S.qteIn('swipe'); else if ((ev.key === ' ' || ev.key === 'Enter') && !ev.repeat) S.qteIn('down'); return; } }
       if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); if (watching && ev.key === 'Escape') endWatch(); else storySkip(ev.key === 'Escape'); } return; }
     if (state === 'replay') { if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); endReplay(); } return; }
@@ -7492,6 +7501,7 @@ window.__T = T;
     else if (ev === 'miss') { el.classList.remove('bad'); void el.offsetWidth; el.classList.add('bad'); st.textContent = d.miss >= 2 ? 'Oh no…' : 'Oops! Listen again…'; Audio.play('bump'); buzz(50); }
     else if (ev === 'ok' || ev === 'no') { if (ev === 'ok') { el.querySelectorAll('.sm-r i').forEach(x => x.classList.add('on')); st.textContent = 'The song is back!'; } setTimeout(() => { el.className = ''; el.hidden = true; }, 1200); }
     else if (ev === 'hide') { el.className = ''; el.hidden = true; } }
+  const Mini = World.Mini, MINI_KINDS = { beat: 1, catch: 1, sneak: 1 }; /* the rules live in the World section; the controller reads them here */
   function miniUI(Q, ev, M) { const el = $('#mini'); if (!el) return; if (!Q || ev === 'hide') { el.hidden = true; el.className = ''; return; }
     if (ev === 'start') { el.hidden = false; el.className = 'on k-' + Q.kind; el.querySelector('b').textContent = Q.label; el.querySelector('small').textContent = MINI_HINT[Q.kind] || ''; Audio.play('hint'); buzz([30, 30, 30]); return; }
     if (ev === 'frame') { miniDraw(M); return; }
@@ -7513,6 +7523,23 @@ window.__T = T;
       g.fillStyle = on ? 'rgba(255,240,200,0.28)' : 'rgba(255,255,255,0.04)'; g.beginPath(); g.moveTo(W * 0.5, H * 0.04); g.lineTo(W * 0.15, H * 0.9); g.lineTo(W * 0.85, H * 0.9); g.fill();
       g.fillStyle = hid ? '#4a6a8a' : M.seen && on ? '#ff5a4a' : '#ffd25a'; g.beginPath(); g.arc(W / 2, H * 0.78, 22, 0, 7); g.fill();
       g.fillStyle = 'rgba(255,255,255,0.7)'; g.font = '700 14px sans-serif'; g.textAlign = 'center'; g.fillText(`${M.passes} hidden · ${M.misses} seen`, W / 2, H * 0.98); } }
+  // ---- in-world segments (story v7): a won level plays its short action game on the same tank instead of a film.
+  // 2 spoken lines, the game, 1-2 outcome lines, then the result card. Only chapters whose beat is a mini-game use it for now.
+  let seg = null, segTimers = [];
+  const segPilot = n => { const c = World.CHAPTERS[n]; return !!(c && c.Q && MINI_KINDS[c.Q.kind]); };
+  const segSpoken = (L, k) => L.filter(l => typeof l[1] === 'string' && l[1][0] !== '~').slice(0, k);
+  function segLines(lines, n, chap, then) { let i = 0; const next = () => { if (!seg) return; if (i >= lines.length) return then(); const l = lines[i++]; storyCap({ who: l[0], text: l[1], id: '' }, 0, n, chap); segTimers.push(setTimeout(next, Math.max(2.4, 0.8 + l[1].split(/\s+/).length * 0.3) * 1000)); }; next(); }
+  function segStart(n) { const chap = World.CHAPTERS[n]; if (!chap) return; storyOn = true; seg = { n, chap, Q: chap.Q, M: Mini.init(chap.Q.kind), phase: 'lines' };
+    document.body.classList.add('story', 'seg'); bannerOff(); heldDirty = true;
+    segLines(segSpoken(chap.L, 2), n, chap, () => segPlay()); }
+  function segPlay() { if (!seg) return; seg.phase = 'play'; storyCap(null); miniUI(seg.Q, 'start'); }
+  function segTick(dt) { let r = Mini.tick(seg.M, dt); if (!r && seg.M.t > 30) r = 'no'; /* an idle player still gets an answer */ if (seg.M.evt) miniUI(seg.Q, seg.M.evt, seg.M); miniUI(seg.Q, 'frame', seg.M); if (r) segResult(r === 'ok'); }
+  function segIn(type, key) { if (!seg || seg.phase !== 'play') return; const r = Mini.input(seg.M, type, key); if (seg.M.evt) miniUI(seg.Q, seg.M.evt, seg.M); if (r) segResult(r === 'ok'); }
+  function segResult(ok) { if (!seg || seg.phase !== 'play') return; seg.phase = 'result'; seg.res = ok ? 'ok' : 'no'; miniUI(seg.Q, ok ? 'ok' : 'no', seg.M); const n = seg.n, chap = seg.chap;
+    const outs = segSpoken(ok ? seg.Q.ok || [] : seg.Q.no || [], 1);
+    segLines(outs, n, chap, () => segFinish(n, chap)); setTimeout(() => { if (seg && seg.phase === 'result' && !outs.length) segFinish(n, chap); }, 1300); }
+  function segFinish(n, chap) { if (!seg || resultShown) return; seg = null; segTimers.forEach(clearTimeout); segTimers = []; storyCap(null); miniUI(null, 'hide'); document.body.classList.remove('seg');
+    finishLevel(); if (n < LEVELS.length) $('#btnNext').textContent = 'Continue ›'; $('#resKicker').textContent = `Chapter ${n} · ${chap.t}`; }
   function qteUI(Q, ev, prog) { if (Q && MINI_KINDS[Q.kind]) return miniUI(Q, ev, prog); if (ev === 'hide') miniUI(null, 'hide'); if (Q && Q.kind === 'simon') return simonUI(Q, ev, prog); if (ev === 'hide') simonUI(null, 'hide'); if (Q && Q.kind === 'run') return runUI(Q, ev, prog); if (ev === 'hide') runUI(null, 'hide'); if (Q && Q.kind === 'choice') return choiceUI(Q, ev, prog); const el = $('#qte'); if (!el) return; if (ev === 'hide') choiceUI(null, 'hide'); document.body.classList.toggle('qte-on', ev === 'start' || ev === 'prog'); if (ev === 'hide') { el.className = ''; el.hidden = true; return; }
     if (ev === 'start') { el.hidden = false; el.className = 'on k-' + Q.kind + (Q.dir ? ' d-' + Q.dir : ''); el.querySelector('b').textContent = Q.label;
       el.querySelector('small').textContent = Q.kind === 'tap' ? (isTouch ? 'Tap, tap, tap!' : 'Tap Space fast!') : Q.kind === 'hold' ? (isTouch ? 'Press and hold!' : 'Hold Space!') : (isTouch ? 'Swipe!' : 'Press an arrow key!');
@@ -7526,12 +7553,12 @@ window.__T = T;
     const b = el.querySelector('b'); b.textContent = World.STORY_WHO[who] || ''; b.hidden = !who; el.dataset.who = who || 'narrator';
     const pEl = el.querySelector('p'); pEl.classList.remove('in'); void pEl.offsetWidth; pEl.textContent = txt; pEl.classList.add('in'); el.classList.add('on'); $('#storySkip').hidden = false;
     if (line.id && hasVo(line.id)) Audio.vo(line.id); }
-  function storyEnd() { storyCap(null); talkStop(); qteUI(null, 'hide'); watching = false; document.body.classList.remove('watching'); if (cineRunning) endCine(); /* leaving the intro by any route ends it (its prologue film kept drawing behind the level before) */ if (!storyOn && !document.body.classList.contains('story')) { if (world.story && !cineRunning) world.storyStop(); return; } storyOn = false; world.storyStop(); document.body.classList.remove('story'); heldDirty = true; }
+  function storyEnd() { storyCap(null); talkStop(); qteUI(null, 'hide'); if (seg) { seg = null; segTimers.forEach(clearTimeout); segTimers = []; document.body.classList.remove('seg'); } watching = false; document.body.classList.remove('watching'); if (cineRunning) endCine(); /* leaving the intro by any route ends it (its prologue film kept drawing behind the level before) */ if (!storyOn && !document.body.classList.contains('story')) { if (world.story && !cineRunning) world.storyStop(); return; } storyOn = false; world.storyStop(); document.body.classList.remove('story'); heldDirty = true; }
   function storySkip(all) { const S = world.story; if (!(storyOn && !resultShown && S && S.t > 0.35)) return false; // a tap shows the next line; Skip (or the last tap) jumps to the end
     if (S.qte && !all) return true; // taps belong to the interactive beat
     if (!all && S.li < S.seq.length && S.seq[S.li].t0 !== undefined) S.t = Math.max(S.t, S.seq[S.li].t0); else if (!all && !S.qDone) S.t = Math.max(S.t, S.qAt); else { S.skipAll(); Audio.stopVo(); qteUI(null, 'hide'); } return true; }
   let qx = 0, qy = 0;
-  addEventListener('pointerdown', ev => { if (ev.target && ev.target.closest && ev.target.closest('#storySkip')) return; const S = world.story; if (storyOn && S && S.qte) { qx = ev.clientX; qy = ev.clientY; if (S.qte.kind === 'run') { runDrag = [ev.clientX, ev.clientY]; return; } if (S.qte.kind === 'catch') { S.qteIn('lane', ev.clientX < innerWidth / 2 ? -1 : 1); buzz(8); return; } S.qteIn('down'); buzz(10); return; } storySkip(); }, true);
+  addEventListener('pointerdown', ev => { if (ev.target && ev.target.closest && ev.target.closest('#storySkip')) return; if (seg && seg.phase === 'play') { if (seg.Q.kind === 'catch') { segIn('lane', ev.clientX < innerWidth / 2 ? -1 : 1); buzz(8); } else { segIn('down'); buzz(10); } return; } const S = world.story; if (storyOn && S && S.qte) { qx = ev.clientX; qy = ev.clientY; if (S.qte.kind === 'run') { runDrag = [ev.clientX, ev.clientY]; return; } if (S.qte.kind === 'catch') { S.qteIn('lane', ev.clientX < innerWidth / 2 ? -1 : 1); buzz(8); return; } S.qteIn('down'); buzz(10); return; } storySkip(); }, true);
   addEventListener('pointerup', ev => { const S = world.story; if (storyOn && S && S.qte) S.qteIn(Math.hypot(ev.clientX - qx, ev.clientY - qy) > 40 ? 'swipe' : 'up'); }, true);
   addEventListener('keyup', ev => { const S = world.story; if (storyOn && S && S.qte && S.qte.kind === 'run') { S.qteIn('key', { k: ev.key.length === 1 ? ev.key.toLowerCase() : ev.key, on: false }); return; } if (storyOn && S && S.qte && (ev.key === ' ' || ev.key === 'Enter')) S.qteIn('up'); });
   let runDrag = null; // drag anywhere to steer in an action scene (relative, like a thumbstick without a stick)
@@ -7648,6 +7675,7 @@ window.__T = T;
   function frame(now) {
     requestAnimationFrame(frame);
     const realDt = Math.max(0, (now - lastFrame) / 1000); const dt = Math.min(0.05, realDt); lastFrame = now;
+    if (seg && seg.phase === 'play') segTick(dt);
     if (state === 'clip' && CLIP) { frame.last = now; try { clipFrame(realDt, now); } catch (er) { console.warn('clip', er); clipFinish(true); } return; }
     if (save.settings.fps) { FPSM.n++; FPSM.t += realDt; if (FPSM.t >= 0.5) { $('#fpsMeter').textContent = `${Math.round(FPSM.n / FPSM.t)} fps · ${world.quality} · ${Math.round((world.resLock || world.resScale || 1) * 100)}% · ${world.renderer.domElement.width}×${world.renderer.domElement.height}`; FPSM.n = 0; FPSM.t = 0; } }
     if (engine && (state === 'playing' || state === 'over')) {
@@ -7685,7 +7713,7 @@ window.__T = T;
         overTimer += realDt; frame.last = now;
         acc += dt * 1000; while (acc >= engine.tickMs) { acc -= engine.tickMs; engine.step(); tickWorld(engine, now - acc); }
         updateHud();
-        if (!resultShown && !storyOn) { if (engine.state === 'won' && storyOK()) { if (overTimer > 1.25) { storyOn = true; wipeTo(startStory); } } else if (overTimer > (engine.state === 'won' ? 2.1 : deathSaid ? 2.6 : 1.4)) finishLevel(); }
+        if (!resultShown && !storyOn) { if (engine.state === 'won' && storyOK()) { if (overTimer > 1.25) { storyOn = true; const n1 = levelIdx + 1; wipeTo(segPilot(n1) ? () => segStart(n1) : startStory); } } else if (overTimer > (engine.state === 'won' ? 2.1 : deathSaid ? 2.6 : 1.4)) finishLevel(); }
       }
     } else {
       frame.last = now;
