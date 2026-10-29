@@ -13,22 +13,22 @@ This is everything the story needs recorded, grouped by voice so each actor’s 
 
 | role | voice (recommended) | lines | characters |
 |---|---|---|---|
-| narrator | Lily | 39 | 2,417 |
-| diver | Jessica | 38 | 1,413 |
-| pip | Laura | 104 | 4,881 |
-| shelly | Matilda | 19 | 1,013 |
-| clack | Bill | 34 | 1,787 |
-| grimtide | Callum | 35 | 1,452 |
-| murk | Brian | 18 | 772 |
-| lumen | Charlie | 14 | 805 |
-| mira | Sarah | 6 | 379 |
-| cousin | Aria | 7 | 298 |
-| snip | Liam | 9 | 350 |
-| snap | Eric | 4 | 173 |
-| keeper | Alice | 32 | 1,946 |
-| **all** | | **359** | **17,686** |
+| narrator | Lily | 21 | 1,261 |
+| diver | Jessica | 9 | 229 |
+| pip | Laura | 106 | 4,470 |
+| shelly | Matilda | 19 | 772 |
+| clack | Bill | 34 | 1,499 |
+| grimtide | Callum | 35 | 1,329 |
+| murk | Brian | 16 | 593 |
+| lumen | Charlie | 16 | 749 |
+| mira | Sarah | 3 | 156 |
+| cousin | Aria | 7 | 286 |
+| snip | Liam | 9 | 337 |
+| snap | Eric | 4 | 165 |
+| keeper | Alice | 32 | 1,925 |
+| **all** | | **311** | **13,771** |
 
-ElevenLabs bills by characters, and the [delivery] tags count too: the whole story is **17,686 spoken characters, about 23,248 credits with tags** on a full-price model (turbo/flash models cost about half). `make_voices.bat` prints the exact number and asks before it spends anything. Auditions are extra (≈ 150 credits per sample).
+ElevenLabs bills by characters, and the [delivery] tags count too: the whole story is **13,771 spoken characters, about 18,775 credits with tags** on a full-price model (turbo/flash models cost about half). `make_voices.bat` prints the exact number and asks before it spends anything. Auditions are extra (≈ 150 credits per sample).
 
 ## narrator — Lily
 
@@ -39,39 +39,21 @@ The storyteller. Warm and magical, but can turn tense and grave: this is a story
 | `s0_1` | Prologue · The Night the Lights Went Out | [warm, wonder] Once, the reef glowed every night. And the brightest light of all was the Great Lantern. |
 | `s0_4` | Prologue · The Night the Lights Went Out | [tense, building] Grimtide, the eel who drinks light, rose out of the abyss, and the reef's lights poured into his jaws. |
 | `s0_6` | Prologue · The Night the Lights Went Out | [hushed, sad] The Reef Keeper gave all her light to save the Lantern. Grimtide fled… and the whole reef went dark. |
-| `s1_1` | Chapter 1 · Through the Old Pipe | [amused, warm] The first gate wakes, and its light shoots down an old pipe. With you in it. |
 | `s1_4` | Chapter 1 · Through the Old Pipe | [hushed, ominous] Far away, in the dark, something very big opens one red eye. |
-| `s5_1` | Chapter 5 · Jelly Bounce | [warm] Five gates awake, and the jellyfish are humming. They want to help. |
-| `s6_1` | Chapter 6 · The Keeper’s Map | [hushed] Inside the old wreck: a chest with a seashell lock. |
-| `s7_1` | Chapter 7 · The Lure | [curious] In a dark hollow, a soft light glows. A gate? It looks just like one. |
 | `s7_ok2` | Chapter 7 · The Lure — after “Hold on to the map!” (done in time) | [tense] The map tears in two. A torn corner drifts off into the dark. |
 | `s7_no2` | Chapter 7 · The Lure — after “Hold on to the map!” (missed) | [tense] He rips it free. A torn corner drifts off into the dark. |
-| `s8_2` | Chapter 8 · Follow the Fish | [wonder] Then the fish remember the gates. They swirl into a big silver arrow. |
-| `s9_4` | Chapter 9 · The Torn Map | [ominous] Behind the dune, ink hangs in the water. Fresh ink. |
-| `s12_1` | Chapter 12 · The Silent Clam | [gently] Giant clams open, one by one, and sing the Keeper’s old song. |
 | `s12_2` | Chapter 12 · The Silent Clam | [singing softly] “Share your light, and the light comes home…” *(The Clam Choir)* |
-| `s12_3` | Chapter 12 · The Silent Clam | [sad] But the last clam stays shut. Grimtide stole its pearl, and its song. |
+| `s12_3` | Chapter 12 · The Silent Clam | [sad] But the last clam stays shut. Grimtide stole its song. |
 | `s12_ok1` | Chapter 12 · The Silent Clam — after “Sing the Keeper’s song!” (done in time) | [singing, joyful] “…and the light comes home!” *(The Clam Choir)* |
 | `s12_ok2` | Chapter 12 · The Silent Clam — after “Sing the Keeper’s song!” (done in time) | [warm, wonder] The last clam opens. Its song comes back, and so does its pearl. |
 | `s12_no1` | Chapter 12 · The Silent Clam — after “Sing the Keeper’s song!” (missed) | [gentle, hopeful] The last clam stays shut… but deep inside, something hums along. |
-| `s13_1` | Chapter 13 · The Dark Storm | [tense] The water goes black. The storm has found you. |
-| `s13_4` | Chapter 13 · The Dark Storm | [slow, heartbroken] Shelly takes the whole blow… and sinks, slowly, to the sand. |
-| `s16_4` | Chapter 16 · The Prisoner | [tense] Before you can answer, a tail yanks him back into the dark. |
-| `s17_1` | Chapter 17 · The Arch’s Secret | [curious] An old coral arch blocks the way. Its lamps went out in the storm. |
+| `s13_4` | Chapter 13 · The Dark Storm | [slow, heartbroken] Shelly takes the whole blow… and sinks to the sand. |
 | `s17_2` | Chapter 17 · The Arch’s Secret | [ancient, echoing] “Grimtide fears one thing: light that is given away.” *(The Coral Arch)* |
 | `s17_no1` | Chapter 17 · The Arch’s Secret — after “Light the lamps!” (missed) | [gentle] One by one, the old lamps flicker awake on their own. |
-| `s18_1` | Chapter 18 · A Secret Trail | [wonder] Pearls float up from the sand like little lanterns. A trail. |
-| `s20_1` | Chapter 20 · The Lantern in Chains | [awed] From the last cliff of the caves, you see it: the Great Lantern. |
-| `s20_2` | Chapter 20 · The Lantern in Chains | [ominous] And wrapped around it like a storm cloud: Grimtide. |
-| `s23_1` | Chapter 23 · The Mural | [hushed] An old sea city. On its last wall: the Reef Keeper and a giant purple octopus. |
-| `s24_5` | Chapter 24 · Ambush | [slow, grave] Clack leaps at the tail. One mighty pinch… and the tail swats him into the dark. |
-| `s25_3` | Chapter 25 · The Captain’s Last Order | [whispered] And the Captain is still. |
+| `s20_2` | Chapter 20 · The Lantern in Chains | [ominous] Wrapped around the Great Lantern like a storm cloud: Grimtide. |
 | `s26_ok1` | Chapter 26 · Breaking the Chains — after “Give your light!” (done in time) | [soaring] You hold up a glowing pearl and give it away. The ink chains melt. |
 | `s26_no1` | Chapter 26 · Breaking the Chains — after “Give your light!” (missed) | [soaring] The pearl’s light pours out on its own, and the ink chains melt. |
-| `s28_2` | Chapter 28 · The Deep Rises | [building, epic] Every wave sets the plankton glowing. Then the jellies. Then the fish. Then everyone. |
-| `s28_3` | Chapter 28 · The Deep Rises | [proud, emotional] Clack’s crew raise his tiny hat high. |
-| `s30_2` | Chapter 30 · The Reef’s Revenge | [soaring] Every creature in the sea gives its light at once. Way too much light. Freely given. |
-| `s30_4` | Chapter 30 · The Reef’s Revenge | [triumphant, amused] And the mighty Grimtide shrinks… to a tiny, wriggling, very grumpy worm. |
+| `s30_4` | Chapter 30 · The Reef’s Revenge | [triumphant, amused] And mighty Grimtide shrinks… to a tiny, very grumpy worm. |
 | `s30_8` | Chapter 30 · The Reef’s Revenge | [warm, soaring] The Heart Pearl rises home. And the whole reef shines. |
 | `l1_s` | Level 1: level starts | [gently] Dig into the sand. Push the red pearl into the gate. |
 | `l1_g` | Level 1: gate opens | [excited] The gate is awake! Swim in! |
@@ -82,43 +64,14 @@ Spark, the hero. Young, brave, kind, a little cheeky. Cries once (chapter 25). S
 
 | id | when | line |
 |---|---|---|
-| `s1_cbrave_1` | Chapter 1 · Through the Old Pipe — choice “Who are you?”: brave answer “I'm here to turn the lights back on.” | [determined, confident] I'm the one who's going to turn the lights back on. |
-| `s1_cfunny_1` | Chapter 1 · Through the Old Pipe — choice “Who are you?”: funny answer “A lost tourist. Gift shop?” | [playful] Just a very lost tourist. Is there a gift shop? |
-| `s1_ckind_1` | Chapter 1 · Through the Old Pipe — choice “Who are you?”: kind answer “A friend. You okay?” | [gentle, warm] A friend. Are you okay, little guy? |
-| `s2_2` | Chapter 2 · Pip’s Glow | [teasing] Who called you that? |
-| `s4_cbrave_1` | Chapter 4 · Captain Clack — choice “Name, rank, snack?”: brave answer “Spark. Snacks later, heroics now.” | [confident] Spark. Gate-waker. Snacks later, heroics now. |
-| `s4_cfunny_1` | Chapter 4 · Captain Clack — choice “Name, rank, snack?”: funny answer “Spark. Seaweed chips.” | [playful] Spark. Professional tourist. Seaweed chips, extra salty. |
-| `s4_ckind_1` | Chapter 4 · Captain Clack — choice “Name, rank, snack?”: kind answer “The famous captain, I presume?” | [warm, flattering] Spark. And you must be the famous captain everyone talks about. |
-| `s5_3` | Chapter 5 · Jelly Bounce | [laughing] Boing… boing… whoa-ho-HO! |
 | `s7_ok1` | Chapter 7 · The Lure — after “Hold on to the map!” (done in time) | [straining, through gritted teeth] Not! Letting! GO! |
 | `s7_no1` | Chapter 7 · The Lure — after “Hold on to the map!” (missed) | [desperate] No! The map! |
-| `s8_cbrave_1` | Chapter 8 · Follow the Fish — choice “Cheer Pip up”: brave answer “We'll find the gates ourselves.” | [determined] We don't need his map. We'll find the gates ourselves. |
-| `s8_cfunny_1` | Chapter 8 · Follow the Fish — choice “Cheer Pip up”: funny answer “It WAS a very pretty light.” | [playful] In your defence, it WAS a very pretty light. |
-| `s8_ckind_1` | Chapter 8 · Follow the Fish — choice “Cheer Pip up”: kind answer “You warned me. We're a team.” | [gentle] Hey. You warned me. I didn't listen. We're in this together. |
-| `s9_2` | Chapter 9 · The Torn Map | [thoughtful] It only shows one gate. On the edge of a cliff. |
-| `s11_cbrave_1` | Chapter 11 · Voices in the Caves — choice “Answer Grimtide”: brave answer “Then we'll light them ALL.” | [defiant] Then we'll light every single one. |
-| `s11_cfunny_1` | Chapter 11 · Voices in the Caves — choice “Answer Grimtide”: funny answer “Do you always talk this much?” | [cheeky] Do you always talk this much in caves? |
-| `s11_ckind_1` | Chapter 11 · Voices in the Caves — choice “Answer Grimtide”: kind answer “Stay close, Pip.” | [gentle, steady] Stay close, Pip. He's just trying to scare you. |
-| `s13_ok1` | Chapter 13 · The Dark Storm — after “Get everyone through the storm!” (done in time) | [straining] I've got you, Pip! Don't let go! |
-| `s13_no2` | Chapter 13 · The Dark Storm — after “Get everyone through the storm!” (missed) | [desperate] Shelly! Where are you?! |
-| `s14_cbrave_1` | Chapter 14 · Rest, Old Friend — choice “Promise Shelly”: brave answer “I promise. Then I'm coming back.” | [determined, holding back tears] I promise. And then I'm coming back for you. |
-| `s14_cfunny_1` | Chapter 14 · Rest, Old Friend — choice “Promise Shelly”: funny answer “Promise. You owe me a story.” | [teary, smiling] Promise. But you owe me a bedtime story. |
-| `s14_ckind_1` | Chapter 14 · Rest, Old Friend — choice “Promise Shelly”: kind answer “Rest, Shelly. We've got this.” | [gentle, tearful] Rest, Shelly. We've got this. |
-| `s17_4` | Chapter 17 · The Arch’s Secret | [realizing, excited] That's how we beat him, Pip. And how we free Murk. |
-| `s19_cbrave_1` | Chapter 19 · Good News — choice “Message for home”: brave answer “Tell him to hurry up!” | [fired up] Tell him to hurry. We're not slowing down. |
-| `s19_cfunny_1` | Chapter 19 · Good News — choice “Message for home”: funny answer “We’ll save him a bit of reef.” | [playful] Tell him we'll save him a little bit of reef. |
-| `s19_ckind_1` | Chapter 19 · Good News — choice “Message for home”: kind answer “Tell Shelly we love her.” | [warm, emotional] Tell Shelly we love her. |
-| `s23_3` | Chapter 23 · The Mural | [shaken, quiet] It's my lamp. It's the same lamp. |
+| `s9_2` | Chapter 9 · The Torn Map | [thoughtful] One gate. On the edge of a cliff. |
+| `s17_4` | Chapter 17 · The Arch’s Secret | [realizing, excited] That's how we beat him, Pip. |
+| `s23_3` | Chapter 23 · The Mural | [shaken, quiet] It's my lamp. |
 | `s24_ok1` | Chapter 24 · Ambush — after “Chase Grimtide! Save Pip!” (done in time) | [desperate] I've got you! I've got… NO! |
-| `s24_no1` | Chapter 24 · Ambush — after “Chase Grimtide! Save Pip!” (missed) | [screaming] PIP! |
-| `s25_cbrave_1` | Chapter 25 · The Captain’s Last Order — choice “Answer the Captain”: brave answer “You were magnificent, Captain.” | [crying, proud] You were magnificent, Captain. |
-| `s25_cfunny_1` | Chapter 25 · The Captain’s Last Order — choice “Answer the Captain”: funny answer “He'll walk funny for a week.” | [crying, laughing] He'll be walking funny for a week. |
-| `s25_ckind_1` | Chapter 25 · The Captain’s Last Order — choice “Answer the Captain”: kind answer “You saved us, Captain.” | [gentle, tearful] You did, Captain. You saved us. |
 | `s26_3` | Chapter 26 · Breaking the Chains | [gentle] Murk. This was her lamp, wasn’t it? |
-| `s27_cbrave_1` | Chapter 27 · Over the Abyss — choice “Answer Murk”: brave answer “This time, we go together.” | [resolute] This time, we all go together. |
-| `s27_cfunny_1` | Chapter 27 · Over the Abyss — choice “Answer Murk”: funny answer “Eight arms. Use them ALL.” | [playful] Well, you have eight arms now. Use them ALL. |
-| `s27_ckind_1` | Chapter 27 · Over the Abyss — choice “Answer Murk”: kind answer “It wasn't your fault, Murk.” | [gentle] It wasn't your fault, Murk. |
-| `s29_3` | Chapter 29 · Grimtide’s Lair | [calm, defiant] You’re wrong about one thing. That light isn’t yours. We’re giving it away. |
+| `s29_3` | Chapter 29 · Grimtide’s Lair | [calm, defiant] That light isn’t yours. We’re giving it away. |
 | `s30_ok1` | Chapter 30 · The Reef’s Revenge — after “Give the light back! Zap Grimtide!” (done in time) | [shouting] It was never yours! |
 
 ## pip — Laura
@@ -129,34 +82,34 @@ A tiny seahorse. Talks fast when nervous (often), jokes to hide fear, huge heart
 |---|---|---|
 | `s0_2` | Prologue · The Night the Lights Went Out | [excited, showing off] Ooh! Ooh! Look at me! I'm the second brightest thing here! |
 | `s0_7` | Prologue · The Night the Lights Went Out | [tiny, scared, alone] Hello…? Anybody…? |
-| `s1_2` | Chapter 1 · Through the Old Pipe | [excited, rapid] AAAH! A light! A real light! Are you a light? Are you a fish? Are you a light-fish? |
-| `s1_3` | Chapter 1 · Through the Old Pipe | [giggling] I'm Pip! And you're a spark. That's your name now. Spark. No take-backs. |
+| `s1_2` | Chapter 1 · Through the Old Pipe | [excited, rapid] AAAH! A light! Are you a light? A fish? A light-fish? |
+| `s1_3` | Chapter 1 · Through the Old Pipe | [giggling] I'm Pip! And you're Spark now. No take-backs. |
 | `s1_cbrave_2` | Chapter 1 · Through the Old Pipe — choice “Who are you?”: brave answer “I'm here to turn the lights back on.” | [excited, nervous] Ooh. Cool. Can I come? I'm very brave. Mostly in my head. |
 | `s1_cfunny_2` | Chapter 1 · Through the Old Pipe — choice “Who are you?”: funny answer “A lost tourist. Gift shop?” | [laughing] Ha! A funny one! The reef has been SO not funny lately. |
 | `s1_ckind_2` | Chapter 1 · Through the Old Pipe — choice “Who are you?”: kind answer “A friend. You okay?” | [touched, soft] Nobody's asked me that since the storm. I'm… better now. |
-| `s2_1` | Chapter 2 · Pip’s Glow | [proud] Real talk, Spark. I used to GLOW. People called me Pip the Bright. |
-| `s2_3` | Chapter 2 · Pip’s Glow | [flustered, then scared] …Me. I called me that. But then the storm came, and it had EYES. Red ones. And it ate every light in the reef. |
-| `s2_4` | Chapter 2 · Pip’s Glow | [excited] But when your gate woke up, I sparkled! Just a teeny bit! Do it again! Do it again! |
+| `s2_1` | Chapter 2 · Pip’s Glow | [proud] Real talk, Spark. I used to GLOW. Pip the Bright! |
+| `s2_3` | Chapter 2 · Pip’s Glow | [flustered, then scared] Then the storm came. It had red EYES. It ate every light in the reef. |
+| `s2_4` | Chapter 2 · Pip’s Glow | [excited] But your gate made me sparkle! A teeny bit! Do it again! |
+| `s2_ok1` | Chapter 2 · Pip’s Glow — after “Race the kelp! Grab the sparkles!” (done in time) | [overjoyed] I'm GLOWING! A teeny bit! Okay, a medium bit! |
+| `s2_no1` | Chapter 2 · Pip’s Glow — after “Race the kelp! Grab the sparkles!” (missed) | [brave, cheerful] Still sparkly! Teeny, but sparkly! |
 | `s3_3` | Chapter 3 · Shelly’s Tale | [horrified] Drinks it? Like a smoothie? |
 | `s3_5` | Chapter 3 · Shelly’s Tale | [trembling, pretending] I'm not scared. My fins are just cold. |
 | `s4_4` | Chapter 4 · Captain Clack | [deadpan] I've been here five seconds. |
-| `s5_2` | Chapter 5 · Jelly Bounce | [excited] They're making a bouncy staircase! Jump, Spark! Jump! |
-| `s5_ok1` | Chapter 5 · Jelly Bounce — after “Bounce through the jelly garden!” (done in time) | [giddy] Again! Again! My tummy is doing loop-the-loops! |
+| `s5_2` | Chapter 5 · Jelly Bounce | [excited] A bouncy staircase! Jump, Spark! Jump! |
 | `s5_no1` | Chapter 5 · Jelly Bounce — after “Bounce through the jelly garden!” (missed) | [wincing, giggly] Ow, stingy! Are jellies supposed to be stingy? |
-| `s6_2` | Chapter 6 · The Keeper’s Map | [excited, nervous] Open it! No, wait, what if it bites? Open it! No! Okay. Open it. |
+| `s6_2` | Chapter 6 · The Keeper’s Map | [excited, nervous] Open it! No, what if it bites? …Open it! |
 | `s6_5` | Chapter 6 · The Keeper’s Map | [deadpan] You're holding it upside down. |
-| `s7_2` | Chapter 7 · The Lure | [nervous] Spark… gates don't usually wink at you. |
-| `s7_5` | Chapter 7 · The Lure | [crying softly] Spark… my glow. It's going out again. |
+| `s6_no1` | Chapter 6 · The Keeper’s Map — after “The wreck is caving in! Get out!” (missed) | [breathless] We made it! Mostly! The map is a bit soggy. |
+| `s7_2` | Chapter 7 · The Lure | [nervous] Spark… gates don't usually wink. |
+| `s7_5` | Chapter 7 · The Lure | [crying softly] Spark… my glow is going out. |
 | `s8_1` | Chapter 8 · Follow the Fish | [sniffling] This is my fault. I said “ooh, pretty light”. I literally said “ooh”. |
-| `s8_4` | Chapter 8 · Follow the Fish | [laughing through tears] Ha! Who needs his map anyway? |
+| `s8_4` | Chapter 8 · Follow the Fish | [laughing through tears] Who needs his map anyway? |
 | `s8_cbrave_2` | Chapter 8 · Follow the Fish — choice “Cheer Pip up”: brave answer “We'll find the gates ourselves.” | [brave, sniffly] Ourselves. Okay! I am GREAT at ourselves. |
 | `s8_cfunny_2` | Chapter 8 · Follow the Fish — choice “Cheer Pip up”: funny answer “It WAS a very pretty light.” | [laughing through tears] It was SO pretty. Okay. I feel a little better. |
 | `s8_ckind_2` | Chapter 8 · Follow the Fish — choice “Cheer Pip up”: kind answer “You warned me. We're a team.” | [soft, grateful] …Together. Okay. Together. |
-| `s9_1` | Chapter 9 · The Torn Map | [excited] Look! The torn piece of the map! It blew all the way here! |
-| `s10_1` | Chapter 10 · The Edge of the Shallows | [scared] That's the Coral Caves down there. Maybe we take the stairs? |
-| `s10_ok1` | Chapter 10 · The Edge of the Shallows — after “Escape Snip & Snap!” (done in time) | [breathless, giddy] We lost them! Did we lose them? WE LOST THEM! |
-| `s10_no1` | Chapter 10 · The Edge of the Shallows — after “Escape Snip & Snap!” (missed) | [whiny, relieved] Ow! Ow! They nibbled my tail! …But we're alive! Mostly! |
-| `s11_2` | Chapter 11 · Voices in the Caves | [panicking] He can see us! Spark, he can SEE us! |
+| `s9_1` | Chapter 9 · The Torn Map | [excited] Look! The torn piece of the map! |
+| `s9_ok1` | Chapter 9 · The Torn Map — after “Outrun the ink cloud!” (done in time) | [cheeky, giddy] Ha! Ink can’t catch us! |
+| `s11_2` | Chapter 11 · Voices in the Caves | [panicking] He can SEE us! |
 | `s11_ckind_2` | Chapter 11 · Voices in the Caves — choice “Answer Grimtide”: kind answer “Stay close, Pip.” | [small, brave] It's working. But… okay. Closer. |
 | `s13_ok2` | Chapter 13 · The Dark Storm — after “Get everyone through the storm!” (done in time) | [panicking] I'm holding! I'm holding! Where's Shelly?! |
 | `s13_no1` | Chapter 13 · The Dark Storm — after “Get everyone through the storm!” (missed) | [screaming] Spark! I can't hold on! |
@@ -164,22 +117,24 @@ A tiny seahorse. Talks fast when nervous (often), jokes to hide fear, huge heart
 | `s15_3` | Chapter 15 · Mira | [laughing, teary] That's definitely Shelly. |
 | `s15_ok1` | Chapter 15 · Mira — after “Ride the canyon with Mira!” (done in time) | [giddy, then soft] WHEEEE! Again! AGAIN! Shelly would have LOVED that! |
 | `s15_no1` | Chapter 15 · Mira — after “Ride the canyon with Mira!” (missed) | [queasy] I think I swallowed a jellyfish. Is that bad? It feels bad. |
-| `s16_1` | Chapter 16 · The Prisoner | [terrified whisper] Spark… there are EYES in there. Big ones. Bigger than Shelly! |
-| `s17_3` | Chapter 17 · The Arch’s Secret | [puzzled] Given away? But he TAKES light. He's a light-taker. A big… taking… noodle. |
+| `s16_1` | Chapter 16 · The Prisoner | [terrified whisper] Spark… EYES in there. Bigger than Shelly! |
+| `s16_ok1` | Chapter 16 · The Prisoner — after “After the tail! Find Murk!” (done in time) | [whispered, worried] He's gone… but he saw your lamp, Spark. |
+| `s16_no1` | Chapter 16 · The Prisoner — after “After the tail! Find Murk!” (missed) | [sad, whispered] Too dark… we lost him. |
+| `s17_3` | Chapter 17 · The Arch’s Secret | [puzzled] But he TAKES light. He’s a big… taking… noodle. |
 | `s17_ok1` | Chapter 17 · The Arch’s Secret — after “Light the lamps!” (done in time) | [excited] You did it! The arch remembers! |
-| `s18_2` | Chapter 18 · A Secret Trail | [excited] Murk left them! He's helping us! In secret! Like a spy! A big squishy spy! |
+| `s18_2` | Chapter 18 · A Secret Trail | [excited] Murk left them! He’s a spy! A big squishy spy! |
 | `s18_ok1` | Chapter 18 · A Secret Trail — after “Follow Murk's pearl trail!” (done in time) | [thrilled] We got them all! Well, most! Murk, you big squishy hero! |
 | `s18_no1` | Chapter 18 · A Secret Trail — after “Follow Murk's pearl trail!” (missed) | [determined] Some floated away… but we know the way now! |
-| `s19_2` | Chapter 19 · Good News | [overjoyed] She's okay? SHE'S OKAY! Spark! She's okay! |
+| `s19_2` | Chapter 19 · Good News | [overjoyed] SHE'S OKAY! Spark! She's okay! |
 | `s20_4` | Chapter 20 · The Lantern in Chains | [frightened] Why does he keep talking about FOOD? |
+| `s20_ok1` | Chapter 20 · The Lantern in Chains — after “Slip past Grimtide's coils!” (done in time) | [giddy, then nervous] He didn't even see us! …Did he? |
 | `s22_3` | Chapter 22 · Whale Song | [overjoyed] CLACK! |
-| `s23_2` | Chapter 23 · The Mural | [stunned whisper] Spark… look at her helmet. Look at her LAMP. |
-| `s24_1` | Chapter 24 · Ambush | [joyful] Twenty-four gates! We're going to make it, Spark! We're actually going to— |
-| `s24_3` | Chapter 24 · Ambush | [screaming, fading] Spaaark! |
-| `s24_ok2` | Chapter 24 · Ambush — after “Chase Grimtide! Save Pip!” (done in time) | [screaming, fading] Spaaark! Don’t let go of the reef! |
-| `s26_1` | Chapter 26 · Breaking the Chains | [crying, joyful] Spark! You came! I knew you’d come! I said “Spark will come” like four hundred times! |
-| `s27_3` | Chapter 27 · Over the Abyss | [brave, shaky] I'm not scared. My fins are just… okay, I'm scared. But I'm going anyway! |
-| `s29_2` | Chapter 29 · Grimtide’s Lair | [horrified] THAT'S why he let us! We've been cooking his DINNER! |
+| `s22_no1` | Chapter 22 · Whale Song — after “Swim with Bellow's song!” (missed) | [cheerful] Bumpy song! Still pretty! |
+| `s23_2` | Chapter 23 · The Mural | [stunned whisper] Spark… look at her helmet. Her LAMP. |
+| `s24_1` | Chapter 24 · Ambush | [joyful] Twenty-four gates! We’re actually going to— |
+| `s26_1` | Chapter 26 · Breaking the Chains | [crying, joyful] Spark! You came! I said “Spark will come” like four hundred times! |
+| `s27_3` | Chapter 27 · Over the Abyss | [brave, shaky] I'm not scared. My fins are just… okay, I'm scared. Going anyway! |
+| `s29_2` | Chapter 29 · Grimtide’s Lair | [horrified] We've been cooking his DINNER! |
 | `s29_no2` | Chapter 29 · Grimtide’s Lair — after “Through the coils! Reach the Lantern!” (missed) | [shrieking, relieved] Eight arms! Best seatbelt EVER! |
 | `s30_7_brave` | Chapter 30 · The Reef’s Revenge (if the player is mostly brave) | [shrieking with joy] CLACK?! You were brave the whole way, Spark. Everybody was! |
 | `s30_7_funny` | Chapter 30 · The Reef’s Revenge (if the player is mostly funny) | [shrieking with joy] CLACK?! Spark, you made me laugh the whole way. And now THIS! |
@@ -238,17 +193,17 @@ A 200-year-old sea turtle. Slow, dry, grandmotherly, with a temper. Struck down 
 
 | id | when | line |
 |---|---|---|
-| `s3_1` | Chapter 3 · Shelly’s Tale | [slow, gravelly, dry] Red eyes? Hmph. Two hundred years I have lived, and I have seen red eyes once. |
-| `s3_2` | Chapter 3 · Shelly’s Tale | [deadpan] Grimtide. An eel as long as a shipwreck, with an ego twice that size. He drinks light. |
-| `s3_4` | Chapter 3 · Shelly’s Tale | [deadpan, urgent] Like a smoothie. The Keeper built thirty gates to stop him. You woke one, so now he knows about you. Hop on. |
-| `s12_4` | Chapter 12 · The Silent Clam | [warm but worried] Remember that tune, little ones. You’ll need it soon. |
+| `s3_2` | Chapter 3 · Shelly’s Tale | [deadpan] Grimtide. An eel as long as a shipwreck. He drinks light. |
+| `s3_4` | Chapter 3 · Shelly’s Tale | [deadpan, urgent] Like a smoothie. And now he knows about you. Hop on! |
+| `s3_ok1` | Chapter 3 · Shelly’s Tale — after “Ride on Shelly! Dodge the rocks!” (done in time) | [dry, secretly pleased] Hmph. Not bad, for a light-fish. |
+| `s3_no1` | Chapter 3 · Shelly’s Tale — after “Ride on Shelly! Dodge the rocks!” (missed) | [dry, unbothered] Bumpy. My shell has had worse. |
+| `s12_4` | Chapter 12 · The Silent Clam | [warm but worried] Remember that tune, little ones. |
 | `s13_3` | Chapter 13 · The Dark Storm | [shouting, commanding] Everyone behind my shell! NOW! |
-| `s14_2` | Chapter 14 · Rest, Old Friend | [weak, dry humour] Hush. My shell has survived worse. Clack’s singing, for one. |
-| `s14_3` | Chapter 14 · Rest, Old Friend | [weak, earnest] But I can't swim on. Promise me you'll wake every gate. Every last one. |
+| `s14_3` | Chapter 14 · Rest, Old Friend | [weak, earnest] I can't swim on. Promise me you'll wake every gate. |
 | `s14_cbrave_2` | Chapter 14 · Rest, Old Friend — choice “Promise Shelly”: brave answer “I promise. Then I'm coming back.” | [weak, proud] I’ll hold you to that. |
 | `s14_cfunny_2` | Chapter 14 · Rest, Old Friend — choice “Promise Shelly”: funny answer “Promise. You owe me a story.” | [weak laugh] Deal. It’s a long one. Two hundred years. |
 | `s14_ckind_2` | Chapter 14 · Rest, Old Friend — choice “Promise Shelly”: kind answer “Rest, Shelly. We've got this.” | [weak, tender] I know you do. That’s why I can rest. |
-| `s25_4` | Chapter 25 · The Captain’s Last Order | [grieving, then fierce] You brave, loud, wonderful fool. Up, little one. Grimtide has Pip. And I have two hundred years of anger. |
+| `s25_4` | Chapter 25 · The Captain’s Last Order | [grieving, then fierce] You brave, loud, wonderful fool. Up, little one. Grimtide has Pip. |
 | `l3_g` | Level 3: gate opens | [warm, dry] Well done, little one. Now swim in, before my old bones get cold. |
 | `l12_s` | Level 12: level starts | [calm, slow] Breathe slow, little one. Air is precious this deep. |
 | `l13_g` | Level 13: gate opens | [urgent] Swim in, quickly! Something huge is coming! |
@@ -264,27 +219,27 @@ Captain of the Crack Crab Crew. Loud, pompous, secretly soft. Comic relief who d
 
 | id | when | line |
 |---|---|---|
-| `s4_1` | Chapter 4 · Captain Clack | [booming, pompous] HALT! In the name of the Crack Crab Crew! State your name, rank, and favourite snack! |
-| `s4_2` | Chapter 4 · Captain Clack | [dramatic, exaggerating] We rescued these pearls from the sand. Grimtide’s tail took the rest. Thick as a mast! Thicker! Two masts! |
-| `s4_3` | Chapter 4 · Captain Clack | [grand] The Crack Crab Crew sails with you! Pip, you're promoted to Deputy Assistant Vice Captain. |
+| `s4_1` | Chapter 4 · Captain Clack | [booming, pompous] HALT! Crack Crab Crew! Name, rank, and favourite snack! |
+| `s4_3` | Chapter 4 · Captain Clack | [grand] Pip, you're promoted! Deputy Assistant Vice Captain! |
 | `s4_5` | Chapter 4 · Captain Clack | [proud] And already a natural! |
 | `s4_cbrave_2` | Chapter 4 · Captain Clack — choice “Name, rank, snack?”: brave answer “Spark. Snacks later, heroics now.” | [delighted] HA! A diver with priorities! I like you already! |
 | `s4_cfunny_2` | Chapter 4 · Captain Clack — choice “Name, rank, snack?”: funny answer “Spark. Seaweed chips.” | [delighted] Seaweed chips! A diver of TASTE! Crew, this one is one of us! |
 | `s4_ckind_2` | Chapter 4 · Captain Clack — choice “Name, rank, snack?”: kind answer “The famous captain, I presume?” | [flustered, proud] Famous? Me? Well. Yes. Obviously. Crew, did you HEAR that? |
-| `s5_4` | Chapter 5 · Jelly Bounce | [pompous, then delighted] A captain does NOT bounce. A captain ascends. With dignity. WHEEEE! |
+| `s5_4` | Chapter 5 · Jelly Bounce | [pompous, then delighted] A captain does NOT bounce. A captain ascends. WHEEEE! |
 | `s5_ok2` | Chapter 5 · Jelly Bounce — after “Bounce through the jelly garden!” (done in time) | [flustered, proud] Dignified. Extremely dignified. Nobody saw me squeal. |
-| `s5_no2` | Chapter 5 · Jelly Bounce — after “Bounce through the jelly garden!” (missed) | [blustering] Tactical retreat, crew! Very tactical! |
-| `s6_4` | Chapter 6 · The Keeper’s Map | [proud] A treasure map! Hand it here, crew. Captains are excellent with maps. |
-| `s8_3` | Chapter 8 · Follow the Fish | [triumphant] FISH! Of course! Exactly as I planned. I planned fish. |
-| `s9_3` | Chapter 9 · The Torn Map | [grumbling] Cliffs. Of course it’s cliffs. Crabs and cliffs have a long and painful history. |
+| `s6_4` | Chapter 6 · The Keeper’s Map | [proud] A map! Hand it here. Captains are excellent with maps. |
+| `s6_ok1` | Chapter 6 · The Keeper’s Map — after “The wreck is caving in! Get out!” (done in time) | [booming, proud] Exactly as I planned! The map is safe! |
+| `s8_3` | Chapter 8 · Follow the Fish | [triumphant] FISH! Exactly as I planned. |
+| `s9_3` | Chapter 9 · The Torn Map | [grumbling] Cliffs. Crabs and cliffs have a long and painful history. |
+| `s9_no1` | Chapter 9 · The Torn Map — after “Outrun the ink cloud!” (missed) | [grumbling] I have ink in places a crab should never have ink. |
 | `s10_4` | Chapter 10 · The Edge of the Shallows | [yelling, fading away] Crabs… don’t… fall… WELLLLL! |
-| `s11_4` | Chapter 11 · Voices in the Caves | [heroic] Crew! We came to pinch, and pinch we shall! |
-| `s14_4` | Chapter 14 · Rest, Old Friend | [gruff, emotional] Go. I’ll stand guard. Nobody touches this turtle while Clack has claws. |
+| `s14_4` | Chapter 14 · Rest, Old Friend | [gruff, emotional] Go. Nobody touches this turtle while Clack has claws. |
 | `s22_2` | Chapter 22 · Whale Song | [booming] Did somebody say CAPTAIN? |
-| `s22_4` | Chapter 22 · Whale Song | [proud, chuckling] Shelly sends her love. And a VERY rude message for Grimtide. I’ll deliver it personally. |
+| `s22_4` | Chapter 22 · Whale Song | [proud, chuckling] Shelly sends her love. And a VERY rude message for Grimtide. |
+| `s22_ok1` | Chapter 22 · Whale Song — after “Swim with Bellow's song!” (done in time) | [giddy, then gruff] WHEEE! I mean… dignified whee. |
 | `s24_4` | Chapter 24 · Ambush | [roaring, charging] Let him go, you overgrown NOODLE! |
-| `s25_1` | Chapter 25 · The Captain’s Last Order | [weak, rasping] Gate-waker… did I get him? Tell me I pinched him good. |
-| `s25_2` | Chapter 25 · The Captain’s Last Order | [weak, fading] Tell my crew… they were the finest crew… on the whole reef. |
+| `s25_1` | Chapter 25 · The Captain’s Last Order | [weak, rasping] Did I get him? Tell me I pinched him good. |
+| `s25_2` | Chapter 25 · The Captain’s Last Order | [weak, fading] Tell my crew… finest crew… on the whole reef. |
 | `s25_cbrave_2` | Chapter 25 · The Captain’s Last Order — choice “Answer the Captain”: brave answer “You were magnificent, Captain.” | [weak, smiling] Magnificent… put that on my shell. |
 | `s25_cfunny_2` | Chapter 25 · The Captain’s Last Order — choice “Answer the Captain”: funny answer “He'll walk funny for a week.” | [weak laugh] Ha… good. Good. |
 | `s25_ckind_2` | Chapter 25 · The Captain’s Last Order — choice “Answer the Captain”: kind answer “You saved us, Captain.” | [weak, at peace] Then it was worth it. |
@@ -306,25 +261,25 @@ The villain: a giant eel who drinks light. Silky and amused at first, then hungr
 | id | when | line |
 |---|---|---|
 | `s0_3` | Prologue · The Night the Lights Went Out | [silky, hungry] Such pretty little lights. I'll take them. ALL of them. |
-| `s7_3` | Chapter 7 · The Lure | [silky, amused] Thank you, little light. A map with every gate marked. How thoughtful. |
-| `s7_4` | Chapter 7 · The Lure | [menacing whisper] Do keep waking them. I'll be waiting at every single one. |
-| `s11_1` | Chapter 11 · Voices in the Caves | [echoing, amused] Welcome to my caves, little light. Mind the echo. It's ME. |
-| `s11_3` | Chapter 11 · Voices in the Caves | [echoing whisper] Every crystal you light shows me where you are. Shine away. |
+| `s7_3` | Chapter 7 · The Lure | [silky, amused] Thank you, little light. A map with every gate marked. |
+| `s7_4` | Chapter 7 · The Lure | [menacing whisper] Keep waking them. I'll be waiting at every one. |
+| `s11_1` | Chapter 11 · Voices in the Caves | [echoing, amused] Welcome to my caves, little light. Mind the echo. It’s ME. |
+| `s11_3` | Chapter 11 · Voices in the Caves | [echoing whisper] Every crystal you light shows me where you are. |
 | `s11_cbrave_2` | Chapter 11 · Voices in the Caves — choice “Answer Grimtide”: brave answer “Then we'll light them ALL.” | [amused, menacing] …Bold. I like bold. Bold tastes better. |
 | `s11_cfunny_2` | Chapter 11 · Voices in the Caves — choice “Answer Grimtide”: funny answer “Do you always talk this much?” | [offended, flustered] I… That is… how RUDE. |
 | `s13_2` | Chapter 13 · The Dark Storm | [roaring] Thirteen gates, little light? Thirteen too many! |
 | `s13_5` | Chapter 13 · The Dark Storm | [cold, quiet] One down. |
-| `s18_3` | Chapter 18 · A Secret Trail | [suspicious, cold, distant] Murk… Why are my pearls floating away, Murk? |
-| `s20_3` | Chapter 20 · The Lantern in Chains | [delighted, menacing] Twenty gates! You think you’re saving the reef? You’re setting my table. |
+| `s18_3` | Chapter 18 · A Secret Trail | [suspicious, cold, distant] Murk… why are my pearls floating away? |
+| `s20_3` | Chapter 20 · The Lantern in Chains | [delighted, menacing] Twenty gates! You’re not saving the reef. You’re setting my table. |
+| `s20_no1` | Chapter 20 · The Lantern in Chains — after “Slip past Grimtide's coils!” (missed) | [silky, menacing] Run along, little light. I can wait. |
 | `s24_2` | Chapter 24 · Ambush | [roaring] ENOUGH! |
 | `s24_6` | Chapter 24 · Ambush | [cold, triumphant] Come to my lair, little light. Or never see your seahorse again. |
 | `s24_no2` | Chapter 24 · Ambush — after “Chase Grimtide! Save Pip!” (missed) | [cold, amused] Too slow, little light. Much too slow. |
 | `s28_4` | Chapter 28 · The Deep Rises | [distant, mocking] Light them all, little light. More for me. |
-| `s29_1` | Chapter 29 · Grimtide’s Lair | [hungry, rising] Twenty-nine gates. The Lantern is nearly full. Wake the last, and I drink it ALL. |
-| `s29_4` | Chapter 29 · Grimtide’s Lair | [menacing whisper] Then come, Keeper’s child. Let’s see who shines last. |
-| `s29_ok2` | Chapter 29 · Grimtide’s Lair — after “Through the coils! Reach the Lantern!” (done in time) | [hissing, furious] Clever little light. It will not save you. |
+| `s29_1` | Chapter 29 · Grimtide’s Lair | [hungry, rising] Twenty-nine gates. Wake the last, and I drink it ALL. |
+| `s29_4` | Chapter 29 · Grimtide’s Lair | [menacing whisper] Then come, Keeper’s child. |
 | `s30_1` | Chapter 30 · The Reef’s Revenge | [greedy, ecstatic] YES! Give it to me! |
-| `s30_3` | Chapter 30 · The Reef’s Revenge | [screaming] No… NO! It BURNS! Too bright! Too SHARED! |
+| `s30_3` | Chapter 30 · The Reef’s Revenge | [screaming] No… NO! It BURNS! Too SHARED! |
 | `l7_g` | Level 7: gate opens | [silky whisper] Yes, little light. Come and see the pretty glow… |
 | `l9_m` | Level 9: after 24 s of play | [distant, amused] I can smell your little lamp from here. |
 | `l11_s` | Level 11: level starts (in-level cutscene) | [echoing whisper] Little light… turn back. |
@@ -347,14 +302,12 @@ A giant shy octopus, the Keeper’s best friend, forced to serve Grimtide. Deep,
 
 | id | when | line |
 |---|---|---|
-| `s16_2` | Chapter 16 · The Prisoner | [deep, apologetic] Please don't scream. Everybody screams. I'm Murk. Sorry about my face. |
-| `s16_3` | Chapter 16 · The Prisoner | [startled whisper] He chains me. He makes me gather the pearls. Wait… that lamp. Where did you get that lamp? |
+| `s16_2` | Chapter 16 · The Prisoner | [deep, apologetic] Please don't scream. I'm Murk. Sorry about my face. |
+| `s16_3` | Chapter 16 · The Prisoner | [startled whisper] Wait… that lamp. Where did you get that lamp? |
 | `s18_4` | Chapter 18 · A Secret Trail | [nervous, far away] …Currents? |
-| `s26_2` | Chapter 26 · Breaking the Chains | [ashamed, deep] I'm sorry. He makes me guard him. If I let go, Grimtide will… |
 | `s26_4` | Chapter 26 · Breaking the Chains | [breaking] …She was my best friend. |
-| `s26_5` | Chapter 26 · Breaking the Chains | [joyful roar] FREE! I'm free! Group hug! I have eight arms, everyone's included! |
-| `s27_1` | Chapter 27 · Over the Abyss | [deep, steady] Climb on. I know the way to his lair. |
-| `s27_2` | Chapter 27 · Over the Abyss | [quiet, ashamed] The night of the storm, she went to face him alone. I was too scared to follow. |
+| `s26_5` | Chapter 26 · Breaking the Chains | [joyful roar] FREE! Group hug! I have eight arms, everyone's included! |
+| `s27_2` | Chapter 27 · Over the Abyss | [quiet, ashamed] The night of the storm, she faced him alone. I was too scared to follow. |
 | `s27_cbrave_2` | Chapter 27 · Over the Abyss — choice “Answer Murk”: brave answer “This time, we go together.” | [deep, resolute] Together. |
 | `s27_cfunny_2` | Chapter 27 · Over the Abyss — choice “Answer Murk”: funny answer “Eight arms. Use them ALL.” | [deep laugh] Eight arms of fury. I like that. |
 | `s27_ckind_2` | Chapter 27 · Over the Abyss — choice “Answer Murk”: kind answer “It wasn't your fault, Murk.” | [deep, moved] …She would have said that. Thank you. |
@@ -372,12 +325,14 @@ An anglerfish showman. Big theatrical voice (“Ladies and gentlefish!”) over 
 
 | id | when | line |
 |---|---|---|
-| `s21_1` | Chapter 21 · Lumen | [stage whisper] Psst! Over here! Quick, before his eyes find you! |
-| `s21_2` | Chapter 21 · Lumen | [theatrical, grand] Lumen’s the name, light’s the game! The Deep’s last lantern, live and in person! |
-| `s21_3` | Chapter 21 · Lumen | [dropping the act] I’ve been hiding for three weeks. In a sock. Don’t ask where I got a sock. |
-| `s21_4` | Chapter 21 · Lumen | [brave, theatrical] But you’re going after him? Then my light is yours. Showtime! |
-| `s22_1` | Chapter 22 · Whale Song | [thrilled] Old Bellow! He only sings when the Lantern fights back! |
-| `s23_4` | Chapter 23 · The Mural | [soft, amazed] Kid, I’ve been in show business a long time. That’s what we call a plot twist. |
+| `s21_2` | Chapter 21 · Lumen | [theatrical, grand] Lumen’s the name, light’s the game! |
+| `s21_3` | Chapter 21 · Lumen | [dropping the act] I’ve been hiding for three weeks. In a sock. Don’t ask. |
+| `s21_4` | Chapter 21 · Lumen | [brave, theatrical] Going after him? Then my light is yours. Showtime! |
+| `s21_ok1` | Chapter 21 · Lumen — after “Follow Lumen's light through the dark!” (done in time) | [theatrical, delighted] Standing ovation! You two are naturals! |
+| `s21_no1` | Chapter 21 · Lumen — after “Follow Lumen's light through the dark!” (missed) | [theatrical, warm] Little stage fright. Happens to the best of us! |
+| `s23_4` | Chapter 23 · The Mural | [soft, amazed] Kid, in show business we call that a plot twist. |
+| `s23_ok1` | Chapter 23 · The Mural — after “The ruins are falling! Swim!” (done in time) | [theatrical, triumphant] And THAT is how you exit a scene! |
+| `s23_no1` | Chapter 23 · The Mural — after “The ruins are falling! Swim!” (missed) | [theatrical, shaken] A bit of rubble. The show goes on! |
 | `s28_1` | Chapter 28 · The Deep Rises | [theatrical, grand] Ladies and gentlefish! Wave those arms, Spark! Show the Deep it’s not alone! |
 | `s28_ok1` | Chapter 28 · The Deep Rises — after “Light up the Deep!” (done in time) | [ecstatic, theatrical] Standing ovation! The whole Deep is GLOWING! |
 | `s28_no1` | Chapter 28 · The Deep Rises — after “Light up the Deep!” (missed) | [brave, theatrical] A few lights short, but the show goes on, darling! |
@@ -393,11 +348,8 @@ A manta ray. Serene and wise, speaks slowly.
 
 | id | when | line |
 |---|---|---|
-| `s15_1` | Chapter 15 · Mira | [serene] I am Mira. The currents carried me a message from an old turtle. |
-| `s15_2` | Chapter 15 · Mira | [serene, amused] “Don’t look back. Tell them I’m proud. And tell the crab to stop fussing.” |
-| `s15_4` | Chapter 15 · Mira | [warm] Climb on. The canyon is wide, and grief is heavy. I will carry both. |
-| `s15_ok2` | Chapter 15 · Mira — after “Ride the canyon with Mira!” (done in time) | [serene, warm] You fly like a manta, little one. She would be proud. |
-| `s15_no2` | Chapter 15 · Mira — after “Ride the canyon with Mira!” (missed) | [calm] The canyon is rough tonight. Hold on tight. We are almost there. |
+| `s15_1` | Chapter 15 · Mira | [serene] I am Mira. An old turtle sent me a message. |
+| `s15_2` | Chapter 15 · Mira | [serene, amused] “Tell them I’m proud. And tell the crab to stop fussing.” |
 | `l15_m` | Level 15: after 24 s of play | [serene] Steady, little one. Every gate you wake reaches her too. |
 
 ## cousin — Aria
@@ -406,8 +358,8 @@ Pip’s little cousin. Squeaky, giggly, fast.
 
 | id | when | line |
 |---|---|---|
-| `s19_1` | Chapter 19 · Good News | [shrieking with joy] PIP! PIP! Shelly woke up! She’s okay! |
-| `s19_3` | Chapter 19 · Good News | [giggling] And the loud crab says, quote: “Don’t save the reef without me!” |
+| `s19_1` | Chapter 19 · Good News | [shrieking with joy] PIP! Shelly woke up! She’s okay! |
+| `s19_3` | Chapter 19 · Good News | [giggling] And the loud crab says: “Don’t save the reef without me!” |
 | `s19_cbrave_2` | Chapter 19 · Good News — choice “Message for home”: brave answer “Tell him to hurry up!” | [excited] Ooh, intense! I’ll tell him! |
 | `s19_cfunny_2` | Chapter 19 · Good News — choice “Message for home”: funny answer “We’ll save him a bit of reef.” | [cackling] Ha! He’s going to HATE that! |
 | `s19_ckind_2` | Chapter 19 · Good News — choice “Message for home”: kind answer “Tell Shelly we love her.” | [sweet] She knows. She says it first, every morning. |
@@ -420,11 +372,11 @@ Grimtide’s piranha, the cackling one.
 
 | id | when | line |
 |---|---|---|
-| `s10_2` | Chapter 10 · The Edge of the Shallows | [sneering, cackling] Ooh, look, Snap! Little light wants to take the STAIRS! |
+| `s10_2` | Chapter 10 · The Edge of the Shallows | [sneering, cackling] Ooh, Snap! Little light wants the STAIRS! |
 | `s10_ok2` | Chapter 10 · The Edge of the Shallows — after “Escape Snip & Snap!” (done in time) | [dizzy, furious] This isn't over, little light! …Snap, which way is up? |
 | `s30_5` | Chapter 30 · The Reef’s Revenge | [nervous] Uh… Snap? I think we work for a worm now. |
 | `l5_s` | Level 5: level starts | [sneering] Well, well. A little light. Snap, look! A snack! |
-| `l10_m` | Level 10: after 24 s of play | [cackling] Boss says hurry it up, Snap! Shake the tank! |
+| `l10_m` | Level 10: after 24 s of play | [cackling] Boss says hurry it up, Snap! Shake the vault! |
 | `l21_m` | Level 21: after 24 s of play | [groggy, sniffing] Huh? Snap… do you smell lamp? |
 | `l30_p` | Level 30: first pearl in | [nervous] Uh… Snap? I think we picked the wrong side. |
 | `k_crushed_2` | Dive failed (crushed), levels 4–20 | [cackling] Ooh! Flat as a flounder! |
@@ -436,7 +388,7 @@ Grimtide’s other piranha, the snarling, slower one.
 
 | id | when | line |
 |---|---|---|
-| `s10_3` | Chapter 10 · The Edge of the Shallows | [snarling] There are no stairs. There’s only US. |
+| `s10_3` | Chapter 10 · The Edge of the Shallows | [snarling] There are no stairs. Only US. |
 | `s10_no2` | Chapter 10 · The Edge of the Shallows — after “Escape Snip & Snap!” (missed) | [snarling, fading] Next time, little light. NEXT TIME. |
 | `l10_s` | Level 10: level starts | [snarling] Last gate of the Shallows, little light. Shame you won’t reach it. |
 | `k_monster_1` | Dive failed (monster), levels 4–30 | [snarling laugh] Grimtide says thanks for the snack! |
@@ -448,7 +400,7 @@ The Reef Keeper, heard only in memories (her coins) and her journal. Gentle, wis
 | id | when | line |
 |---|---|---|
 | `s0_5` | Prologue · The Night the Lights Went Out | [fierce, heroic] Not while I'm Keeper! |
-| `s6_3` | Chapter 6 · The Keeper’s Map | [gentle, like a memory] “If Grimtide returns, wake the gates. Shared light is the one thing he cannot drink.” |
+| `s6_3` | Chapter 6 · The Keeper’s Map | [gentle, like a memory] “Wake the gates. Shared light is the one thing he cannot drink.” |
 | `m1` | Keeper’s coin found in level 1 | [gentle, like an old memory] If you’re hearing this, someone found my first coin. Hello, little diver. |
 | `m2` | Keeper’s coin found in level 2 | [gentle, like an old memory] I hid thirty coins across the reef. Each one remembers something. |
 | `m3` | Keeper’s coin found in level 3 | [gentle, like an old memory] I was afraid of the dark once, too. So I made a lamp. |

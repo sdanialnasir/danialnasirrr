@@ -1039,3 +1039,16 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   (the bone has no track in every clip), so the head slowly spun into twisted angles (measured 3.7 / 9.6 rad). Now the previous offset is undone
   first (`_hOff`). Also **smooth normals** for the GLB diver at load (`glbData`): the model shipped flat per-face normals, so every triangle showed;
   normals are rebuilt area-weighted, shared across UV seams, creases > 55° stay hard. The listening diver opens 55% to the lens (others 42%).
+
+## Story v6: short punchy films + a playable moment in every chapter (owner: "shorter punchier cutscenes… not just talking… add the gameplay")
+- **Script:** `tools/story/story_v6.py` = story v5 + a cut table (`CUT`: per chapter the silent line indices + shorter texts; `QCUT` for run/tap
+  outcomes; `NEW_Q` = new runs). Pipeline: edit story_v6.py → `python3 tools/story/inject.py` (writes CHAPTERS / PROLOGUE into game.js with moods)
+  → `python3 tools/story/gen_docs.py` (voices.json + docs; silent lines get no voice id, story.md marks them "(silent, action only)").
+- **Silent action beats:** a line whose text starts with `~` stays in the data (so `S.at(i)` indices and every recipe's staged action are
+  unchanged) but `mkLine` turns it into `{mute: true}`: 1.1 s, no caption, no voice, wide recipe shot. The journal still shows its text.
+  Choice replies: the diver's echo of the button is silent, the other character's reaction is spoken. Every film now speaks 2–4 lines (ch. 30: 6).
+- **Pacing:** `PACE` (before `class StoryRun`) scales every live recipe's establishing gaps ×0.7 and closing tails ×0.6 (≥ 1.3 s).
+- **New runs** (16 s, `Q.at` = number of lines, so nothing shifts) in the 9 films that had no playable moment: kelp (2), shell (3, riding Shelly:
+  `RUN_V.shell.manta = 'turtle'`), wreck (6), dune (9), shadow (16), coil (20), angler (21), whale (22), ruins (23). Each has a one-line ok/no reply.
+- Test note: `watch(n)` ends by a wall-clock `setTimeout(endWatch, 1400)` after the freeze; scripts that play chapters back to back must wait or
+  they kill the next film (shows as `W.story === null`).

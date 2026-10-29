@@ -1,7 +1,7 @@
-# story v5 -> tools/voices.json, docs/voice-script.md, docs/story.md.  Run: python3 tools/story/gen_docs.py  (edit tools/story/story_v5.py first; the game copy of the lines lives in src/game.js)
+# story v6 -> tools/voices.json, docs/voice-script.md, docs/story.md.  Run: python3 tools/story/gen_docs.py  (edit tools/story/story_v6.py first; the game copy of the lines lives in src/game.js)
 import json, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import importlib; D = importlib.import_module('story_v5')
+import importlib; D = importlib.import_module('story_v6')
 R = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + '/'
 P = R + 'tools/voices.json'; d = json.load(open(P))
 role = lambda w: D.SPEAKERS[w][1]
@@ -11,6 +11,7 @@ base = [l for l in d['lines'] if not STORY_ID.match(l['id'])]
 for l in base: l['set'] = 'base'
 new = []
 def add(id, who, text, tag, when):
+    if isinstance(text, str) and text.startswith('~'): return  # a silent action beat (story v6): no voice
     if isinstance(text, dict):  # a line that depends on the player's style: one clip per style
         for k, t in text.items(): add(f'{id}_{k}', who, t, tag, f'{when} (if the player is mostly {k})')
         return
@@ -153,4 +154,4 @@ for cause, L in D.DEATH.items():
     o.append(f"- **{cause}:** " + ' · '.join(f"{W(w) or 'Narrator'} (levels {lo}–{hi}): {t}" for w, t, _, lo, hi in L))
 o += ['', '---', 'Source of every line: the story data (CHAPTERS / STORY_WHO / RECIPES in the World section of src/game.js; LEVEL_STORY / LEVEL_BEATS / LEVEL_MOOD / DEATH_LINES / MEM_LINES before startLevel). '
       'This file, tools/voices.json and docs/voice-script.md are generated together from one script so they never drift apart.']
-open(R + 'docs/story.md', 'w').write('\n'.join(o) + '\n')
+open(R + 'docs/story.md', 'w').write(re.sub(r'(\*?)~', r'\1(silent, action only) ', '\n'.join(o)) + '\n')  # '~' = a silent action beat in the film (story v6)

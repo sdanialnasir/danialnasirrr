@@ -19,28 +19,28 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 |---|---|---|---|
 | prologue | The Night the Lights Went Out | wonder |  |
 | 1 | Through the Old Pipe | wonder | Who are you? (choice) |
-| 2 | Pip’s Glow | hope ↑ |  |
-| 3 | Shelly’s Tale | dread ↓ |  |
+| 2 | Pip’s Glow | hope ↑ | Race the kelp! Grab the sparkles! (run) |
+| 3 | Shelly’s Tale | dread ↓ | Ride on Shelly! Dodge the rocks! (run) |
 | 4 | Captain Clack | fun ↑ | Name, rank, snack? (choice) |
 | 5 | Jelly Bounce | fun ↑ | Bounce through the jelly garden! (run) |
-| 6 | The Keeper’s Map | discovery ↑ |  |
+| 6 | The Keeper’s Map | discovery ↑ | The wreck is caving in! Get out! (run) |
 | 7 | The Lure | BLUNDER ↓↓ | Hold on to the map! (tap) |
 | 8 | Follow the Fish | recovery ↑ | Cheer Pip up (choice) |
-| 9 | The Torn Map | hope ↑ |  |
+| 9 | The Torn Map | hope ↑ | Outrun the ink cloud! (run) |
 | 10 | The Edge of the Shallows | courage ↑ | Escape Snip & Snap! (run) |
 | 11 | Voices in the Caves | menace ↓ | Answer Grimtide (choice) |
 | 12 | The Silent Clam | bittersweet | Sing the Keeper’s song! (simon) |
 | 13 | The Dark Storm | danger ↓↓ | Get everyone through the storm! (run) |
 | 14 | Rest, Old Friend | grief ↓↓ | Promise Shelly (choice) |
 | 15 | Mira | hope ↑ | Ride the canyon with Mira! (run) |
-| 16 | The Prisoner | mystery |  |
+| 16 | The Prisoner | mystery | After the tail! Find Murk! (run) |
 | 17 | The Arch’s Secret | resolve ↑ | Light the lamps! (tap) |
 | 18 | A Secret Trail | hope ↑ | Follow Murk's pearl trail! (run) |
 | 19 | Good News | joy ↑↑ | Message for home (choice) |
-| 20 | The Lantern in Chains | dread ↓ |  |
-| 21 | Lumen | hope ↑ |  |
-| 22 | Whale Song | wonder |  |
-| 23 | The Mural | discovery ↑ |  |
+| 20 | The Lantern in Chains | dread ↓ | Slip past Grimtide's coils! (run) |
+| 21 | Lumen | hope ↑ | Follow Lumen's light through the dark! (run) |
+| 22 | Whale Song | wonder | Swim with Bellow's song! (run) |
+| 23 | The Mural | discovery ↑ | The ruins are falling! Swim! (run) |
 | 24 | Ambush | BLUNDER ↓↓ | Chase Grimtide! Save Pip! (run) |
 | 25 | The Captain’s Last Order | GRIEF ↓↓↓ | Answer the Captain (choice) |
 | 26 | Breaking the Chains | rescue ↑↑ | Give your light! (tap) |
@@ -78,10 +78,10 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 1 · Through the Old Pipe** (film `pipe`, arrival `pipe`, wonder)
 
-- `s1_1` *The first gate wakes, and its light shoots down an old pipe. With you in it.*
-- `s1_2` **Pip:** AAAH! A light! A real light! Are you a light? Are you a fish? Are you a light-fish? _(hop)_
-- ▶ **Choice: Who are you?** — brave “I'm here to turn the lights back on.”: **Spark:** I'm the one who's going to turn the lights back on. / **Pip:** Ooh. Cool. Can I come? I'm very brave. Mostly in my head. — funny “A lost tourist. Gift shop?”: **Spark:** Just a very lost tourist. Is there a gift shop? / **Pip:** Ha! A funny one! The reef has been SO not funny lately. — kind “A friend. You okay?”: **Spark:** A friend. Are you okay, little guy? / **Pip:** Nobody's asked me that since the storm. I'm… better now.
-- `s1_3` **Pip:** I'm Pip! And you're a spark. That's your name now. Spark. No take-backs. _(spin)_
+- `s1_1` *(silent, action only) The first gate wakes, and its light shoots down an old pipe. With you in it.*
+- `s1_2` **Pip:** AAAH! A light! Are you a light? A fish? A light-fish? _(hop)_
+- ▶ **Choice: Who are you?** — brave “I'm here to turn the lights back on.”: **Spark:** (silent, action only) I'm the one who's going to turn the lights back on. / **Pip:** Ooh. Cool. Can I come? I'm very brave. Mostly in my head. — funny “A lost tourist. Gift shop?”: **Spark:** (silent, action only) Just a very lost tourist. Is there a gift shop? / **Pip:** Ha! A funny one! The reef has been SO not funny lately. — kind “A friend. You okay?”: **Spark:** (silent, action only) A friend. Are you okay, little guy? / **Pip:** Nobody's asked me that since the storm. I'm… better now.
+- `s1_3` **Pip:** I'm Pip! And you're Spark now. No take-backs. _(spin)_
 - `s1_4` *Far away, in the dark, something very big opens one red eye.*
 
 ### Level 2: Pip saw red eyes inside the storm. Find the gate under the falling stones.
@@ -92,10 +92,10 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 2 · Pip’s Glow** (film `kelp`, arrival `swirl`, hope ↑)
 
-- `s2_1` **Pip:** Real talk, Spark. I used to GLOW. People called me Pip the Bright. _(spin)_
-- `s2_2` **Spark:** Who called you that?
-- `s2_3` **Pip:** …Me. I called me that. But then the storm came, and it had EYES. Red ones. And it ate every light in the reef. _(shake)_
-- `s2_4` **Pip:** But when your gate woke up, I sparkled! Just a teeny bit! Do it again! Do it again! _(hop)_
+- `s2_1` **Pip:** Real talk, Spark. I used to GLOW. Pip the Bright! _(spin)_
+- `s2_2` **Spark:** (silent, action only) Who called you that?
+- `s2_3` **Pip:** Then the storm came. It had red EYES. It ate every light in the reef. _(shake)_
+- `s2_4` **Pip:** But your gate made me sparkle! A teeny bit! Do it again! _(hop)_
 
 ### Level 3: Grimtide once took the reef’s light as tribute. Shelly says he’s back. Hurry.
 - level starts (`l3_s`): **Pip:** A giant eel who drinks light… Nope. Not thinking about it. Digging!
@@ -105,10 +105,10 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 3 · Shelly’s Tale** (film `turtle`, arrival `drop`, dread ↓)
 
-- `s3_1` **Shelly:** Red eyes? Hmph. Two hundred years I have lived, and I have seen red eyes once.
-- `s3_2` **Shelly:** Grimtide. An eel as long as a shipwreck, with an ego twice that size. He drinks light.
+- `s3_1` **Shelly:** (silent, action only) Red eyes? Hmph. Two hundred years I have lived, and I have seen red eyes once.
+- `s3_2` **Shelly:** Grimtide. An eel as long as a shipwreck. He drinks light.
 - `s3_3` **Pip:** Drinks it? Like a smoothie? _(shake)_
-- `s3_4` **Shelly:** Like a smoothie. The Keeper built thirty gates to stop him. You woke one, so now he knows about you. Hop on. _(nod)_
+- `s3_4` **Shelly:** Like a smoothie. And now he knows about you. Hop on! _(nod)_
 - `s3_5` **Pip:** I'm not scared. My fins are just cold. _(shake)_
 
 ### Level 4: Captain Clack’s crew saw a dark tail drag pearls this way. Two roads. Choose well.
@@ -119,10 +119,10 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 4 · Captain Clack** (film `crabs`, arrival `bubble`, fun ↑)
 
-- `s4_1` **Captain Clack:** HALT! In the name of the Crack Crab Crew! State your name, rank, and favourite snack! _(salute)_
-- ▶ **Choice: Name, rank, snack?** — brave “Spark. Snacks later, heroics now.”: **Spark:** Spark. Gate-waker. Snacks later, heroics now. / **Captain Clack:** HA! A diver with priorities! I like you already! — funny “Spark. Seaweed chips.”: **Spark:** Spark. Professional tourist. Seaweed chips, extra salty. / **Captain Clack:** Seaweed chips! A diver of TASTE! Crew, this one is one of us! — kind “The famous captain, I presume?”: **Spark:** Spark. And you must be the famous captain everyone talks about. / **Captain Clack:** Famous? Me? Well. Yes. Obviously. Crew, did you HEAR that?
-- `s4_2` **Captain Clack:** We rescued these pearls from the sand. Grimtide’s tail took the rest. Thick as a mast! Thicker! Two masts! _(shake)_
-- `s4_3` **Captain Clack:** The Crack Crab Crew sails with you! Pip, you're promoted to Deputy Assistant Vice Captain. _(salute)_
+- `s4_1` **Captain Clack:** HALT! Crack Crab Crew! Name, rank, and favourite snack! _(salute)_
+- ▶ **Choice: Name, rank, snack?** — brave “Spark. Snacks later, heroics now.”: **Spark:** (silent, action only) Spark. Gate-waker. Snacks later, heroics now. / **Captain Clack:** HA! A diver with priorities! I like you already! — funny “Spark. Seaweed chips.”: **Spark:** (silent, action only) Spark. Professional tourist. Seaweed chips, extra salty. / **Captain Clack:** Seaweed chips! A diver of TASTE! Crew, this one is one of us! — kind “The famous captain, I presume?”: **Spark:** (silent, action only) Spark. And you must be the famous captain everyone talks about. / **Captain Clack:** Famous? Me? Well. Yes. Obviously. Crew, did you HEAR that?
+- `s4_2` **Captain Clack:** (silent, action only) We rescued these pearls from the sand. Grimtide’s tail took the rest. Thick as a mast! Thicker! Two masts! _(shake)_
+- `s4_3` **Captain Clack:** Pip, you're promoted! Deputy Assistant Vice Captain! _(salute)_
 - `s4_4` **Pip:** I've been here five seconds.
 - `s4_5` **Captain Clack:** And already a natural! _(laugh)_
 
@@ -134,10 +134,10 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 5 · Jelly Bounce** (film `jelly`, arrival `drop`, fun ↑)
 
-- `s5_1` *Five gates awake, and the jellyfish are humming. They want to help.*
-- `s5_2` **Pip:** They're making a bouncy staircase! Jump, Spark! Jump! _(hop)_
-- `s5_3` **Spark:** Boing… boing… whoa-ho-HO!
-- `s5_4` **Captain Clack:** A captain does NOT bounce. A captain ascends. With dignity. WHEEEE! _(hop)_
+- `s5_1` *(silent, action only) Five gates awake, and the jellyfish are humming. They want to help.*
+- `s5_2` **Pip:** A bouncy staircase! Jump, Spark! Jump! _(hop)_
+- `s5_3` **Spark:** (silent, action only) Boing… boing… whoa-ho-HO!
+- `s5_4` **Captain Clack:** A captain does NOT bounce. A captain ascends. WHEEEE! _(hop)_
 
 ### Level 6: Something glints inside the wreck. Wake this gate to reach it.
 - level starts (`l6_s`): **Pip:** Jellyfish float up and down. Wait for the gap… then go!
@@ -147,10 +147,10 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 6 · The Keeper’s Map** (film `wreck`, arrival `swirl`, discovery ↑)
 
-- `s6_1` *Inside the old wreck: a chest with a seashell lock.*
-- `s6_2` **Pip:** Open it! No, wait, what if it bites? Open it! No! Okay. Open it. _(shake)_
-- `s6_3` **The Reef Keeper:** “If Grimtide returns, wake the gates. Shared light is the one thing he cannot drink.”
-- `s6_4` **Captain Clack:** A treasure map! Hand it here, crew. Captains are excellent with maps. _(salute)_
+- `s6_1` *(silent, action only) Inside the old wreck: a chest with a seashell lock.*
+- `s6_2` **Pip:** Open it! No, what if it bites? …Open it! _(shake)_
+- `s6_3` **The Reef Keeper:** “Wake the gates. Shared light is the one thing he cannot drink.”
+- `s6_4` **Captain Clack:** A map! Hand it here. Captains are excellent with maps. _(salute)_
 - `s6_5` **Pip:** You're holding it upside down.
 
 ### Level 7: You have the Keeper’s map. And something is glowing in the dark nearby…
@@ -161,12 +161,12 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 7 · The Lure** (film `trap`, arrival `swirl`, BLUNDER ↓↓)
 
-- `s7_1` *In a dark hollow, a soft light glows. A gate? It looks just like one.*
-- `s7_2` **Pip:** Spark… gates don't usually wink at you. _(shake)_
+- `s7_1` *(silent, action only) In a dark hollow, a soft light glows. A gate? It looks just like one.*
+- `s7_2` **Pip:** Spark… gates don't usually wink. _(shake)_
 - ▶ **Hold on to the map!** (tap) — in time: **Spark:** Not! Letting! GO! / The map tears in two. A torn corner drifts off into the dark. — missed: **Spark:** No! The map! / He rips it free. A torn corner drifts off into the dark.
-- `s7_3` **Grimtide:** Thank you, little light. A map with every gate marked. How thoughtful.
-- `s7_4` **Grimtide:** Do keep waking them. I'll be waiting at every single one.
-- `s7_5` **Pip:** Spark… my glow. It's going out again. _(droop)_
+- `s7_3` **Grimtide:** Thank you, little light. A map with every gate marked.
+- `s7_4` **Grimtide:** Keep waking them. I'll be waiting at every one.
+- `s7_5` **Pip:** Spark… my glow is going out. _(droop)_
 
 ### Level 8: The map is gone and Pip’s glow is fading. Find this gate on your own.
 - level starts · ink (`l8_s`): **Pip:** My glow is so faint… Stay close to me, okay?
@@ -177,10 +177,10 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 **Chapter 8 · Follow the Fish** (film `school`, arrival `bubble`, recovery ↑)
 
 - `s8_1` **Pip:** This is my fault. I said “ooh, pretty light”. I literally said “ooh”. _(droop)_
-- ▶ **Choice: Cheer Pip up** — brave “We'll find the gates ourselves.”: **Spark:** We don't need his map. We'll find the gates ourselves. / **Pip:** Ourselves. Okay! I am GREAT at ourselves. — funny “It WAS a very pretty light.”: **Spark:** In your defence, it WAS a very pretty light. / **Pip:** It was SO pretty. Okay. I feel a little better. — kind “You warned me. We're a team.”: **Spark:** Hey. You warned me. I didn't listen. We're in this together. / **Pip:** …Together. Okay. Together.
-- `s8_2` *Then the fish remember the gates. They swirl into a big silver arrow.*
-- `s8_3` **Captain Clack:** FISH! Of course! Exactly as I planned. I planned fish. _(salute)_
-- `s8_4` **Pip:** Ha! Who needs his map anyway? _(hop)_
+- ▶ **Choice: Cheer Pip up** — brave “We'll find the gates ourselves.”: **Spark:** (silent, action only) We don't need his map. We'll find the gates ourselves. / **Pip:** Ourselves. Okay! I am GREAT at ourselves. — funny “It WAS a very pretty light.”: **Spark:** (silent, action only) In your defence, it WAS a very pretty light. / **Pip:** It was SO pretty. Okay. I feel a little better. — kind “You warned me. We're a team.”: **Spark:** (silent, action only) Hey. You warned me. I didn't listen. We're in this together. / **Pip:** …Together. Okay. Together.
+- `s8_2` *(silent, action only) Then the fish remember the gates. They swirl into a big silver arrow.*
+- `s8_3` **Captain Clack:** FISH! Exactly as I planned. _(salute)_
+- `s8_4` **Pip:** Who needs his map anyway? _(hop)_
 
 ### Level 9: A torn piece of the map drifted this way. Get past the claws.
 - level starts · ink (`l9_s`): **Pip:** Ink everywhere… He came this way.
@@ -190,23 +190,23 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 9 · The Torn Map** (film `dune`, arrival `drop`, hope ↑)
 
-- `s9_1` **Pip:** Look! The torn piece of the map! It blew all the way here! _(hop)_
-- `s9_2` **Spark:** It only shows one gate. On the edge of a cliff.
-- `s9_3` **Captain Clack:** Cliffs. Of course it’s cliffs. Crabs and cliffs have a long and painful history. _(shake)_
-- `s9_4` *Behind the dune, ink hangs in the water. Fresh ink.*
+- `s9_1` **Pip:** Look! The torn piece of the map! _(hop)_
+- `s9_2` **Spark:** One gate. On the edge of a cliff.
+- `s9_3` **Captain Clack:** Cliffs. Crabs and cliffs have a long and painful history. _(shake)_
+- `s9_4` *(silent, action only) Behind the dune, ink hangs in the water. Fresh ink.*
 
 ### Level 10: The last gate of the Shallows sits on the edge of a cliff. Snip and Snap are watching.
 - level starts (`l10_s`): **Snap:** Last gate of the Shallows, little light. Shame you won’t reach it.
-- after 24 s of play · quake (`l10_m`): **Snip:** Boss says hurry it up, Snap! Shake the tank!
+- after 24 s of play · quake (`l10_m`): **Snip:** Boss says hurry it up, Snap! Shake the vault!
 - gate opens (`l10_g`): **Pip:** Ten gates. Hold my fin, Spark. Here comes the cliff…
 - Keeper’s coin (`m10`): “Jumping is easy. It’s the deciding that’s hard.”
 
 **Chapter 10 · The Edge of the Shallows** (film `descent`, arrival `drop`, courage ↑)
 
-- `s10_1` **Pip:** That's the Coral Caves down there. Maybe we take the stairs? _(shake)_
-- `s10_2` **Snip:** Ooh, look, Snap! Little light wants to take the STAIRS! _(laugh)_
-- `s10_3` **Snap:** There are no stairs. There’s only US.
-- ▶ **Escape Snip & Snap!** (run) — in time: **Pip:** We lost them! Did we lose them? WE LOST THEM! / **Snip:** This isn't over, little light! …Snap, which way is up? — missed: **Pip:** Ow! Ow! They nibbled my tail! …But we're alive! Mostly! / **Snap:** Next time, little light. NEXT TIME.
+- `s10_1` **Pip:** (silent, action only) That's the Coral Caves down there. Maybe we take the stairs? _(shake)_
+- `s10_2` **Snip:** Ooh, Snap! Little light wants the STAIRS! _(laugh)_
+- `s10_3` **Snap:** There are no stairs. Only US.
+- ▶ **Escape Snip & Snap!** (run) — in time: **Pip:** (silent, action only) We lost them! Did we lose them? WE LOST THEM! / **Snip:** This isn't over, little light! …Snap, which way is up? — missed: **Pip:** (silent, action only) Ow! Ow! They nibbled my tail! …But we're alive! Mostly! / **Snap:** Next time, little light. NEXT TIME.
 - `s10_4` **Captain Clack:** Crabs… don’t… fall… WELLLLL!
 
 ### Level 11: Grimtide sees every crystal you light. Light them anyway.
@@ -217,11 +217,11 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 11 · Voices in the Caves** (film `crystals`, arrival `bubble`, menace ↓)
 
-- `s11_1` **Grimtide:** Welcome to my caves, little light. Mind the echo. It's ME.
-- `s11_2` **Pip:** He can see us! Spark, he can SEE us! _(shake)_
-- `s11_3` **Grimtide:** Every crystal you light shows me where you are. Shine away.
-- ▶ **Choice: Answer Grimtide** — brave “Then we'll light them ALL.”: **Spark:** Then we'll light every single one. / **Grimtide:** …Bold. I like bold. Bold tastes better. — funny “Do you always talk this much?”: **Spark:** Do you always talk this much in caves? / **Grimtide:** I… That is… how RUDE. — kind “Stay close, Pip.”: **Spark:** Stay close, Pip. He's just trying to scare you. / **Pip:** It's working. But… okay. Closer.
-- `s11_4` **Captain Clack:** Crew! We came to pinch, and pinch we shall! _(salute)_
+- `s11_1` **Grimtide:** Welcome to my caves, little light. Mind the echo. It’s ME.
+- `s11_2` **Pip:** He can SEE us! _(shake)_
+- `s11_3` **Grimtide:** Every crystal you light shows me where you are.
+- ▶ **Choice: Answer Grimtide** — brave “Then we'll light them ALL.”: **Spark:** (silent, action only) Then we'll light every single one. / **Grimtide:** …Bold. I like bold. Bold tastes better. — funny “Do you always talk this much?”: **Spark:** (silent, action only) Do you always talk this much in caves? / **Grimtide:** I… That is… how RUDE. — kind “Stay close, Pip.”: **Spark:** (silent, action only) Stay close, Pip. He's just trying to scare you. / **Pip:** It's working. But… okay. Closer.
+- `s11_4` **Captain Clack:** (silent, action only) Crew! We came to pinch, and pinch we shall! _(salute)_
 
 ### Level 12: A clam lost its song. Air is short in this deep cave.
 - level starts (`l12_s`): **Shelly:** Breathe slow, little one. Air is precious this deep.
@@ -231,11 +231,11 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 12 · The Silent Clam** (film `clams`, arrival `swirl`, bittersweet)
 
-- `s12_1` *Giant clams open, one by one, and sing the Keeper’s old song.*
+- `s12_1` *(silent, action only) Giant clams open, one by one, and sing the Keeper’s old song.*
 - `s12_2` **The Clam Choir:** “Share your light, and the light comes home…”
-- `s12_3` *But the last clam stays shut. Grimtide stole its pearl, and its song.*
+- `s12_3` *But the last clam stays shut. Grimtide stole its song.*
 - ▶ **Sing the Keeper’s song!** (simon) — in time: **The Clam Choir:** “…and the light comes home!” / The last clam opens. Its song comes back, and so does its pearl. — missed: The last clam stays shut… but deep inside, something hums along.
-- `s12_4` **Shelly:** Remember that tune, little ones. You’ll need it soon.
+- `s12_4` **Shelly:** Remember that tune, little ones.
 
 ### Level 13: The water is going dark. Something huge is coming.
 - level starts · flicker (`l13_s`): **Pip:** Something’s wrong. The water’s going dark…
@@ -245,11 +245,11 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 13 · The Dark Storm** (film `storm`, arrival `drop`, danger ↓↓)
 
-- `s13_1` *The water goes black. The storm has found you.*
+- `s13_1` *(silent, action only) The water goes black. The storm has found you.*
 - `s13_2` **Grimtide:** Thirteen gates, little light? Thirteen too many!
 - `s13_3` **Shelly:** Everyone behind my shell! NOW!
-- ▶ **Get everyone through the storm!** (run) — in time: **Spark:** I've got you, Pip! Don't let go! / **Pip:** I'm holding! I'm holding! Where's Shelly?! — missed: **Pip:** Spark! I can't hold on! / **Spark:** Shelly! Where are you?!
-- `s13_4` *Shelly takes the whole blow… and sinks, slowly, to the sand.*
+- ▶ **Get everyone through the storm!** (run) — in time: **Spark:** (silent, action only) I've got you, Pip! Don't let go! / **Pip:** I'm holding! I'm holding! Where's Shelly?! — missed: **Pip:** Spark! I can't hold on! / **Spark:** (silent, action only) Shelly! Where are you?!
+- `s13_4` *Shelly takes the whole blow… and sinks to the sand.*
 - `s13_5` **Grimtide:** One down.
 
 ### Level 14: Shelly is hurt. Clack guards her. Wake the next gate for her.
@@ -261,10 +261,10 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 **Chapter 14 · Rest, Old Friend** (film `shellyrest`, arrival `bubble`, grief ↓↓)
 
 - `s14_1` **Pip:** Shelly? Shelly, please wake up… _(droop)_
-- `s14_2` **Shelly:** Hush. My shell has survived worse. Clack’s singing, for one.
-- `s14_3` **Shelly:** But I can't swim on. Promise me you'll wake every gate. Every last one.
-- ▶ **Choice: Promise Shelly** — brave “I promise. Then I'm coming back.”: **Spark:** I promise. And then I'm coming back for you. / **Shelly:** I’ll hold you to that. — funny “Promise. You owe me a story.”: **Spark:** Promise. But you owe me a bedtime story. / **Shelly:** Deal. It’s a long one. Two hundred years. — kind “Rest, Shelly. We've got this.”: **Spark:** Rest, Shelly. We've got this. / **Shelly:** I know you do. That’s why I can rest.
-- `s14_4` **Captain Clack:** Go. I’ll stand guard. Nobody touches this turtle while Clack has claws. _(salute)_
+- `s14_2` **Shelly:** (silent, action only) Hush. My shell has survived worse. Clack’s singing, for one.
+- `s14_3` **Shelly:** I can't swim on. Promise me you'll wake every gate.
+- ▶ **Choice: Promise Shelly** — brave “I promise. Then I'm coming back.”: **Spark:** (silent, action only) I promise. And then I'm coming back for you. / **Shelly:** I’ll hold you to that. — funny “Promise. You owe me a story.”: **Spark:** (silent, action only) Promise. But you owe me a bedtime story. / **Shelly:** Deal. It’s a long one. Two hundred years. — kind “Rest, Shelly. We've got this.”: **Spark:** (silent, action only) Rest, Shelly. We've got this. / **Shelly:** I know you do. That’s why I can rest.
+- `s14_4` **Captain Clack:** Go. Nobody touches this turtle while Clack has claws. _(salute)_
 
 ### Level 15: Mira carried you over the canyon. Shelly said: don’t look back.
 - level starts (`l15_s`): **Pip:** For Shelly. Let’s go!
@@ -274,10 +274,10 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 15 · Mira** (film `manta`, arrival `drop`, hope ↑)
 
-- `s15_1` **Mira:** I am Mira. The currents carried me a message from an old turtle.
-- `s15_2` **Mira:** “Don’t look back. Tell them I’m proud. And tell the crab to stop fussing.”
+- `s15_1` **Mira:** I am Mira. An old turtle sent me a message.
+- `s15_2` **Mira:** “Tell them I’m proud. And tell the crab to stop fussing.”
 - `s15_3` **Pip:** That's definitely Shelly. _(laugh)_
-- `s15_4` **Mira:** Climb on. The canyon is wide, and grief is heavy. I will carry both.
+- `s15_4` **Mira:** (silent, action only) Climb on. The canyon is wide, and grief is heavy. I will carry both.
 
 ### Level 16: A prisoner in ink chains was dragged through here. He asked about your lamp.
 - level starts (`l16_s`): **Pip:** That poor octopus… and why did he ask about your lamp?
@@ -287,10 +287,10 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 16 · The Prisoner** (film `shadow`, arrival `swirl`, mystery)
 
-- `s16_1` **Pip:** Spark… there are EYES in there. Big ones. Bigger than Shelly! _(shake)_
-- `s16_2` **Murk:** Please don't scream. Everybody screams. I'm Murk. Sorry about my face.
-- `s16_3` **Murk:** He chains me. He makes me gather the pearls. Wait… that lamp. Where did you get that lamp?
-- `s16_4` *Before you can answer, a tail yanks him back into the dark.*
+- `s16_1` **Pip:** Spark… EYES in there. Bigger than Shelly! _(shake)_
+- `s16_2` **Murk:** Please don't scream. I'm Murk. Sorry about my face.
+- `s16_3` **Murk:** Wait… that lamp. Where did you get that lamp?
+- `s16_4` *(silent, action only) Before you can answer, a tail yanks him back into the dark.*
 
 ### Level 17: Light that’s given away. That’s how you beat him. Remember it.
 - level starts (`l17_s`): **Pip:** Light that’s given away… How do you give light away?
@@ -300,11 +300,11 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 17 · The Arch’s Secret** (film `arch`, arrival `drop`, resolve ↑)
 
-- `s17_1` *An old coral arch blocks the way. Its lamps went out in the storm.*
+- `s17_1` *(silent, action only) An old coral arch blocks the way. Its lamps went out in the storm.*
 - ▶ **Light the lamps!** (tap) — in time: **Pip:** You did it! The arch remembers! — missed: One by one, the old lamps flicker awake on their own.
 - `s17_2` **The Coral Arch:** “Grimtide fears one thing: light that is given away.”
-- `s17_3` **Pip:** Given away? But he TAKES light. He's a light-taker. A big… taking… noodle. _(shake)_
-- `s17_4` **Spark:** That's how we beat him, Pip. And how we free Murk.
+- `s17_3` **Pip:** But he TAKES light. He’s a big… taking… noodle. _(shake)_
+- `s17_4` **Spark:** That's how we beat him, Pip.
 
 ### Level 18: Murk is dropping pearls to guide you. Grimtide is getting suspicious.
 - level starts (`l18_s`): **Murk:** This way… the pearls will guide you…
@@ -314,10 +314,10 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 18 · A Secret Trail** (film `pearls`, arrival `bubble`, hope ↑)
 
-- `s18_1` *Pearls float up from the sand like little lanterns. A trail.*
-- `s18_2` **Pip:** Murk left them! He's helping us! In secret! Like a spy! A big squishy spy! _(spin)_
+- `s18_1` *(silent, action only) Pearls float up from the sand like little lanterns. A trail.*
+- `s18_2` **Pip:** Murk left them! He’s a spy! A big squishy spy! _(spin)_
 - ▶ **Follow Murk's pearl trail!** (run) — in time: **Pip:** We got them all! Well, most! Murk, you big squishy hero! — missed: **Pip:** Some floated away… but we know the way now!
-- `s18_3` **Grimtide:** Murk… Why are my pearls floating away, Murk?
+- `s18_3` **Grimtide:** Murk… why are my pearls floating away?
 - `s18_4` **Murk:** …Currents?
 
 ### Level 19: Shelly is okay! Race Pip’s cousins to the bottom of the pit.
@@ -328,9 +328,9 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 19 · Good News** (film `race`, arrival `swirl`, joy ↑↑)
 
-- `s19_1` **Pip’s cousin:** PIP! PIP! Shelly woke up! She’s okay! _(hop)_
-- `s19_2` **Pip:** She's okay? SHE'S OKAY! Spark! She's okay! _(spin)_
-- `s19_3` **Pip’s cousin:** And the loud crab says, quote: “Don’t save the reef without me!” _(laugh)_
+- `s19_1` **Pip’s cousin:** PIP! Shelly woke up! She’s okay! _(hop)_
+- `s19_2` **Pip:** SHE'S OKAY! Spark! She's okay! _(spin)_
+- `s19_3` **Pip’s cousin:** And the loud crab says: “Don’t save the reef without me!” _(laugh)_
 
 ### Level 20: Grimtide is coiled around the Great Lantern. What did he mean, “setting the table”?
 - level starts · eyes (`l20_s`): **Pip:** He’s wrapped around the Lantern… What did he mean, “setting the table”?
@@ -340,9 +340,9 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 20 · The Lantern in Chains** (film `coil`, arrival `drop`, dread ↓)
 
-- `s20_1` *From the last cliff of the caves, you see it: the Great Lantern.*
-- `s20_2` *And wrapped around it like a storm cloud: Grimtide.*
-- `s20_3` **Grimtide:** Twenty gates! You think you’re saving the reef? You’re setting my table.
+- `s20_1` *(silent, action only) From the last cliff of the caves, you see it: the Great Lantern.*
+- `s20_2` *Wrapped around the Great Lantern like a storm cloud: Grimtide.*
+- `s20_3` **Grimtide:** Twenty gates! You’re not saving the reef. You’re setting my table.
 - `s20_4` **Pip:** Why does he keep talking about FOOD? _(shake)_
 
 ### Level 21: Lumen lights your way into the Deep, past a shoal of sleeping piranhas.
@@ -353,10 +353,10 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 21 · Lumen** (film `angler`, arrival `bubble`, hope ↑)
 
-- `s21_1` **Lumen:** Psst! Over here! Quick, before his eyes find you!
-- `s21_2` **Lumen:** Lumen’s the name, light’s the game! The Deep’s last lantern, live and in person! _(spin)_
-- `s21_3` **Lumen:** I’ve been hiding for three weeks. In a sock. Don’t ask where I got a sock.
-- `s21_4` **Lumen:** But you’re going after him? Then my light is yours. Showtime! _(hop)_
+- `s21_1` **Lumen:** (silent, action only) Psst! Over here! Quick, before his eyes find you!
+- `s21_2` **Lumen:** Lumen’s the name, light’s the game! _(spin)_
+- `s21_3` **Lumen:** I’ve been hiding for three weeks. In a sock. Don’t ask.
+- `s21_4` **Lumen:** Going after him? Then my light is yours. Showtime! _(hop)_
 
 ### Level 22: Old Bellow is singing, and Clack is back! Wake gate twenty-two.
 - level starts (`l22_s`): **Captain Clack:** Captain on deck! Now, where’s this gate I keep hearing about?
@@ -366,10 +366,10 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 22 · Whale Song** (film `whale`, arrival `drop`, wonder)
 
-- `s22_1` **Lumen:** Old Bellow! He only sings when the Lantern fights back! _(spin)_
+- `s22_1` **Lumen:** (silent, action only) Old Bellow! He only sings when the Lantern fights back! _(spin)_
 - `s22_2` **Captain Clack:** Did somebody say CAPTAIN? _(salute)_
 - `s22_3` **Pip:** CLACK! _(hop)_
-- `s22_4` **Captain Clack:** Shelly sends her love. And a VERY rude message for Grimtide. I’ll deliver it personally. _(laugh)_
+- `s22_4` **Captain Clack:** Shelly sends her love. And a VERY rude message for Grimtide. _(laugh)_
 
 ### Level 23: The mural showed the Keeper wearing your lamp. The Deep presses in; air is short.
 - level starts (`l23_s`): **Lumen:** The pressure’s strong down here. Watch your air, Keeper.
@@ -379,10 +379,10 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 23 · The Mural** (film `ruins`, arrival `swirl`, discovery ↑)
 
-- `s23_1` *An old sea city. On its last wall: the Reef Keeper and a giant purple octopus.*
-- `s23_2` **Pip:** Spark… look at her helmet. Look at her LAMP. _(shake)_
-- `s23_3` **Spark:** It's my lamp. It's the same lamp.
-- `s23_4` **Lumen:** Kid, I’ve been in show business a long time. That’s what we call a plot twist. _(nod)_
+- `s23_1` *(silent, action only) An old sea city. On its last wall: the Reef Keeper and a giant purple octopus.*
+- `s23_2` **Pip:** Spark… look at her helmet. Her LAMP. _(shake)_
+- `s23_3` **Spark:** It's my lamp.
+- `s23_4` **Lumen:** Kid, in show business we call that a plot twist. _(nod)_
 
 ### Level 24: Grimtide is furious. A gauntlet of stones guards this gate. Stay close to Pip.
 - level starts · eyes · cutscene (`l24_s`): **Grimtide:** I see you, little light.
@@ -392,12 +392,12 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 24 · Ambush** (film `ambush`, arrival `drop`, BLUNDER ↓↓)
 
-- `s24_1` **Pip:** Twenty-four gates! We're going to make it, Spark! We're actually going to— _(spin)_
+- `s24_1` **Pip:** Twenty-four gates! We’re actually going to— _(spin)_
 - `s24_2` **Grimtide:** ENOUGH!
-- ▶ **Chase Grimtide! Save Pip!** (run) — in time: **Spark:** I've got you! I've got… NO! / **Pip:** Spaaark! Don’t let go of the reef! — missed: **Spark:** PIP! / **Grimtide:** Too slow, little light. Much too slow.
-- `s24_3` **Pip:** Spaaark!
+- ▶ **Chase Grimtide! Save Pip!** (run) — in time: **Spark:** I've got you! I've got… NO! / **Pip:** (silent, action only) Spaaark! Don’t let go of the reef! — missed: **Spark:** (silent, action only) PIP! / **Grimtide:** Too slow, little light. Much too slow.
+- `s24_3` **Pip:** (silent, action only) Spaaark!
 - `s24_4` **Captain Clack:** Let him go, you overgrown NOODLE!
-- `s24_5` *Clack leaps at the tail. One mighty pinch… and the tail swats him into the dark.*
+- `s24_5` *(silent, action only) Clack leaps at the tail. One mighty pinch… and the tail swats him into the dark.*
 - `s24_6` **Grimtide:** Come to my lair, little light. Or never see your seahorse again.
 
 ### Level 25: Pip is gone. Clack is gone. Shelly is here. Wake this gate for them.
@@ -408,11 +408,11 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 25 · The Captain’s Last Order** (film `farewell`, arrival `drop`, GRIEF ↓↓↓)
 
-- `s25_1` **Captain Clack:** Gate-waker… did I get him? Tell me I pinched him good.
-- ▶ **Choice: Answer the Captain** — brave “You were magnificent, Captain.”: **Spark:** You were magnificent, Captain. / **Captain Clack:** Magnificent… put that on my shell. — funny “He'll walk funny for a week.”: **Spark:** He'll be walking funny for a week. / **Captain Clack:** Ha… good. Good. — kind “You saved us, Captain.”: **Spark:** You did, Captain. You saved us. / **Captain Clack:** Then it was worth it.
-- `s25_2` **Captain Clack:** Tell my crew… they were the finest crew… on the whole reef. _(droop)_
-- `s25_3` *And the Captain is still.*
-- `s25_4` **Shelly:** You brave, loud, wonderful fool. Up, little one. Grimtide has Pip. And I have two hundred years of anger.
+- `s25_1` **Captain Clack:** Did I get him? Tell me I pinched him good.
+- ▶ **Choice: Answer the Captain** — brave “You were magnificent, Captain.”: **Spark:** (silent, action only) You were magnificent, Captain. / **Captain Clack:** Magnificent… put that on my shell. — funny “He'll walk funny for a week.”: **Spark:** (silent, action only) He'll be walking funny for a week. / **Captain Clack:** Ha… good. Good. — kind “You saved us, Captain.”: **Spark:** (silent, action only) You did, Captain. You saved us. / **Captain Clack:** Then it was worth it.
+- `s25_2` **Captain Clack:** Tell my crew… finest crew… on the whole reef. _(droop)_
+- `s25_3` *(silent, action only) And the Captain is still.*
+- `s25_4` **Shelly:** You brave, loud, wonderful fool. Up, little one. Grimtide has Pip.
 
 ### Level 26: Pip is caged in Murk’s den. The citadel of stones is the hardest yet.
 - level starts (`l26_s`): **Shelly:** Murk’s den is close. I can hear Pip.
@@ -422,12 +422,12 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 26 · Breaking the Chains** (film `cage`, arrival `bubble`, rescue ↑↑)
 
-- `s26_1` **Pip:** Spark! You came! I knew you’d come! I said “Spark will come” like four hundred times! _(hop)_
-- `s26_2` **Murk:** I'm sorry. He makes me guard him. If I let go, Grimtide will… _(droop)_
+- `s26_1` **Pip:** Spark! You came! I said “Spark will come” like four hundred times! _(hop)_
+- `s26_2` **Murk:** (silent, action only) I'm sorry. He makes me guard him. If I let go, Grimtide will… _(droop)_
 - `s26_3` **Spark:** Murk. This was her lamp, wasn’t it?
 - `s26_4` **Murk:** …She was my best friend.
 - ▶ **Give your light!** (tap) — in time: You hold up a glowing pearl and give it away. The ink chains melt. — missed: The pearl’s light pours out on its own, and the ink chains melt.
-- `s26_5` **Murk:** FREE! I'm free! Group hug! I have eight arms, everyone's included! _(laugh)_
+- `s26_5` **Murk:** FREE! Group hug! I have eight arms, everyone's included! _(laugh)_
 
 ### Level 27: Murk is free and on your side. The undertow pulls everything down.
 - level starts (`l27_s`): **Pip:** Thank you for coming for me. Now let’s finish this!
@@ -437,10 +437,10 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 27 · Over the Abyss** (film `murkride`, arrival `drop`, resolve ↑)
 
-- `s27_1` **Murk:** Climb on. I know the way to his lair.
-- `s27_2` **Murk:** The night of the storm, she went to face him alone. I was too scared to follow. _(droop)_
-- ▶ **Choice: Answer Murk** — brave “This time, we go together.”: **Spark:** This time, we all go together. / **Murk:** Together. — funny “Eight arms. Use them ALL.”: **Spark:** Well, you have eight arms now. Use them ALL. / **Murk:** Eight arms of fury. I like that. — kind “It wasn't your fault, Murk.”: **Spark:** It wasn't your fault, Murk. / **Murk:** …She would have said that. Thank you.
-- `s27_3` **Pip:** I'm not scared. My fins are just… okay, I'm scared. But I'm going anyway! _(shake)_
+- `s27_1` **Murk:** (silent, action only) Climb on. I know the way to his lair.
+- `s27_2` **Murk:** The night of the storm, she faced him alone. I was too scared to follow. _(droop)_
+- ▶ **Choice: Answer Murk** — brave “This time, we go together.”: **Spark:** (silent, action only) This time, we all go together. / **Murk:** Together. — funny “Eight arms. Use them ALL.”: **Spark:** (silent, action only) Well, you have eight arms now. Use them ALL. / **Murk:** Eight arms of fury. I like that. — kind “It wasn't your fault, Murk.”: **Spark:** (silent, action only) It wasn't your fault, Murk. / **Murk:** …She would have said that. Thank you.
+- `s27_3` **Pip:** I'm not scared. My fins are just… okay, I'm scared. Going anyway! _(shake)_
 
 ### Level 28: The whole Deep is waking up behind you. It’s a long way down.
 - level starts · fish (`l28_s`): **Lumen:** Look behind you! The whole Deep is glowing!
@@ -452,8 +452,8 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 - `s28_1` **Lumen:** Ladies and gentlefish! Wave those arms, Spark! Show the Deep it’s not alone! _(spin)_
 - ▶ **Light up the Deep!** (run) — in time: **Lumen:** Standing ovation! The whole Deep is GLOWING! — missed: **Lumen:** A few lights short, but the show goes on, darling!
-- `s28_2` *Every wave sets the plankton glowing. Then the jellies. Then the fish. Then everyone.*
-- `s28_3` *Clack’s crew raise his tiny hat high.*
+- `s28_2` *(silent, action only) Every wave sets the plankton glowing. Then the jellies. Then the fish. Then everyone.*
+- `s28_3` *(silent, action only) Clack’s crew raise his tiny hat high.*
 - `s28_4` **Grimtide:** Light them all, little light. More for me.
 
 ### Level 29: Grimtide wants the Lantern full. Wake the gate anyway. You have a plan.
@@ -464,11 +464,11 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 **Chapter 29 · Grimtide’s Lair** (film `lair`, arrival `drop`, showdown ↓)
 
-- `s29_1` **Grimtide:** Twenty-nine gates. The Lantern is nearly full. Wake the last, and I drink it ALL.
-- `s29_2` **Pip:** THAT'S why he let us! We've been cooking his DINNER! _(shake)_
-- ▶ **Through the coils! Reach the Lantern!** (run) — in time: **Murk:** Not this time, Grimtide! / **Grimtide:** Clever little light. It will not save you. — missed: **Murk:** Spark! I've got you! Grab my arm! / **Pip:** Eight arms! Best seatbelt EVER!
-- `s29_3` **Spark:** You’re wrong about one thing. That light isn’t yours. We’re giving it away.
-- `s29_4` **Grimtide:** Then come, Keeper’s child. Let’s see who shines last.
+- `s29_1` **Grimtide:** Twenty-nine gates. Wake the last, and I drink it ALL.
+- `s29_2` **Pip:** We've been cooking his DINNER! _(shake)_
+- ▶ **Through the coils! Reach the Lantern!** (run) — in time: **Murk:** Not this time, Grimtide! / **Grimtide:** (silent, action only) Clever little light. It will not save you. — missed: **Murk:** Spark! I've got you! Grab my arm! / **Pip:** Eight arms! Best seatbelt EVER!
+- `s29_3` **Spark:** That light isn’t yours. We’re giving it away.
+- `s29_4` **Grimtide:** Then come, Keeper’s child.
 
 ### Level 30: The last gate. Give the light away, and finish Grimtide.
 - level starts (`l30_s`): **Pip:** This is it. The last gate. Ready, Spark?
@@ -481,9 +481,9 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 - `s30_1` **Grimtide:** YES! Give it to me!
 - ▶ **Give the light back! Zap Grimtide!** (run) — in time: **Spark:** It was never yours! — missed: **Pip:** Everybody, NOW! Give it away!
-- `s30_2` *Every creature in the sea gives its light at once. Way too much light. Freely given.*
-- `s30_3` **Grimtide:** No… NO! It BURNS! Too bright! Too SHARED!
-- `s30_4` *And the mighty Grimtide shrinks… to a tiny, wriggling, very grumpy worm.*
+- `s30_2` *(silent, action only) Every creature in the sea gives its light at once. Way too much light. Freely given.*
+- `s30_3` **Grimtide:** No… NO! It BURNS! Too SHARED!
+- `s30_4` *And mighty Grimtide shrinks… to a tiny, very grumpy worm.*
 - `s30_5` **Snip:** Uh… Snap? I think we work for a worm now.
 - `s30_6` **Captain Clack:** Did somebody say… CAPTAIN? _(salute)_
 - `s30_7` **Pip:** (brave) CLACK?! You were brave the whole way, Spark. Everybody was! | (funny) CLACK?! Spark, you made me laugh the whole way. And now THIS! | (kind) CLACK?! Spark, you were kind the whole way. That’s why it worked. _(spin)_

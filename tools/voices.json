@@ -749,18 +749,9 @@
    "who": "Pip"
   },
   {
-   "id": "s1_1",
-   "role": "narrator",
-   "text": "[amused, warm] The first gate wakes, and its light shoots down an old pipe. With you in it.",
-   "when": "Chapter 1 · Through the Old Pipe",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Narrator"
-  },
-  {
    "id": "s1_2",
    "role": "pip",
-   "text": "[excited, rapid] AAAH! A light! A real light! Are you a light? Are you a fish? Are you a light-fish?",
+   "text": "[excited, rapid] AAAH! A light! Are you a light? A fish? A light-fish?",
    "when": "Chapter 1 · Through the Old Pipe",
    "max_seconds": 0,
    "set": "story",
@@ -769,7 +760,7 @@
   {
    "id": "s1_3",
    "role": "pip",
-   "text": "[giggling] I'm Pip! And you're a spark. That's your name now. Spark. No take-backs.",
+   "text": "[giggling] I'm Pip! And you're Spark now. No take-backs.",
    "when": "Chapter 1 · Through the Old Pipe",
    "max_seconds": 0,
    "set": "story",
@@ -785,15 +776,6 @@
    "who": "Narrator"
   },
   {
-   "id": "s1_cbrave_1",
-   "role": "diver",
-   "text": "[determined, confident] I'm the one who's going to turn the lights back on.",
-   "when": "Chapter 1 · Through the Old Pipe — choice “Who are you?”: brave answer “I'm here to turn the lights back on.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
-  },
-  {
    "id": "s1_cbrave_2",
    "role": "pip",
    "text": "[excited, nervous] Ooh. Cool. Can I come? I'm very brave. Mostly in my head.",
@@ -803,15 +785,6 @@
    "who": "Pip"
   },
   {
-   "id": "s1_cfunny_1",
-   "role": "diver",
-   "text": "[playful] Just a very lost tourist. Is there a gift shop?",
-   "when": "Chapter 1 · Through the Old Pipe — choice “Who are you?”: funny answer “A lost tourist. Gift shop?”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
-  },
-  {
    "id": "s1_cfunny_2",
    "role": "pip",
    "text": "[laughing] Ha! A funny one! The reef has been SO not funny lately.",
@@ -819,15 +792,6 @@
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
-  },
-  {
-   "id": "s1_ckind_1",
-   "role": "diver",
-   "text": "[gentle, warm] A friend. Are you okay, little guy?",
-   "when": "Chapter 1 · Through the Old Pipe — choice “Who are you?”: kind answer “A friend. You okay?”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
   },
   {
    "id": "s1_ckind_2",
@@ -841,25 +805,16 @@
   {
    "id": "s2_1",
    "role": "pip",
-   "text": "[proud] Real talk, Spark. I used to GLOW. People called me Pip the Bright.",
+   "text": "[proud] Real talk, Spark. I used to GLOW. Pip the Bright!",
    "when": "Chapter 2 · Pip’s Glow",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
   },
   {
-   "id": "s2_2",
-   "role": "diver",
-   "text": "[teasing] Who called you that?",
-   "when": "Chapter 2 · Pip’s Glow",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
-  },
-  {
    "id": "s2_3",
    "role": "pip",
-   "text": "[flustered, then scared] …Me. I called me that. But then the storm came, and it had EYES. Red ones. And it ate every light in the reef.",
+   "text": "[flustered, then scared] Then the storm came. It had red EYES. It ate every light in the reef.",
    "when": "Chapter 2 · Pip’s Glow",
    "max_seconds": 0,
    "set": "story",
@@ -868,25 +823,34 @@
   {
    "id": "s2_4",
    "role": "pip",
-   "text": "[excited] But when your gate woke up, I sparkled! Just a teeny bit! Do it again! Do it again!",
+   "text": "[excited] But your gate made me sparkle! A teeny bit! Do it again!",
    "when": "Chapter 2 · Pip’s Glow",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
   },
   {
-   "id": "s3_1",
-   "role": "shelly",
-   "text": "[slow, gravelly, dry] Red eyes? Hmph. Two hundred years I have lived, and I have seen red eyes once.",
-   "when": "Chapter 3 · Shelly’s Tale",
+   "id": "s2_ok1",
+   "role": "pip",
+   "text": "[overjoyed] I'm GLOWING! A teeny bit! Okay, a medium bit!",
+   "when": "Chapter 2 · Pip’s Glow — after “Race the kelp! Grab the sparkles!” (done in time)",
    "max_seconds": 0,
    "set": "story",
-   "who": "Shelly"
+   "who": "Pip"
+  },
+  {
+   "id": "s2_no1",
+   "role": "pip",
+   "text": "[brave, cheerful] Still sparkly! Teeny, but sparkly!",
+   "when": "Chapter 2 · Pip’s Glow — after “Race the kelp! Grab the sparkles!” (missed)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Pip"
   },
   {
    "id": "s3_2",
    "role": "shelly",
-   "text": "[deadpan] Grimtide. An eel as long as a shipwreck, with an ego twice that size. He drinks light.",
+   "text": "[deadpan] Grimtide. An eel as long as a shipwreck. He drinks light.",
    "when": "Chapter 3 · Shelly’s Tale",
    "max_seconds": 0,
    "set": "story",
@@ -904,7 +868,7 @@
   {
    "id": "s3_4",
    "role": "shelly",
-   "text": "[deadpan, urgent] Like a smoothie. The Keeper built thirty gates to stop him. You woke one, so now he knows about you. Hop on.",
+   "text": "[deadpan, urgent] Like a smoothie. And now he knows about you. Hop on!",
    "when": "Chapter 3 · Shelly’s Tale",
    "max_seconds": 0,
    "set": "story",
@@ -920,18 +884,27 @@
    "who": "Pip"
   },
   {
-   "id": "s4_1",
-   "role": "clack",
-   "text": "[booming, pompous] HALT! In the name of the Crack Crab Crew! State your name, rank, and favourite snack!",
-   "when": "Chapter 4 · Captain Clack",
+   "id": "s3_ok1",
+   "role": "shelly",
+   "text": "[dry, secretly pleased] Hmph. Not bad, for a light-fish.",
+   "when": "Chapter 3 · Shelly’s Tale — after “Ride on Shelly! Dodge the rocks!” (done in time)",
    "max_seconds": 0,
    "set": "story",
-   "who": "Captain Clack"
+   "who": "Shelly"
   },
   {
-   "id": "s4_2",
+   "id": "s3_no1",
+   "role": "shelly",
+   "text": "[dry, unbothered] Bumpy. My shell has had worse.",
+   "when": "Chapter 3 · Shelly’s Tale — after “Ride on Shelly! Dodge the rocks!” (missed)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Shelly"
+  },
+  {
+   "id": "s4_1",
    "role": "clack",
-   "text": "[dramatic, exaggerating] We rescued these pearls from the sand. Grimtide’s tail took the rest. Thick as a mast! Thicker! Two masts!",
+   "text": "[booming, pompous] HALT! Crack Crab Crew! Name, rank, and favourite snack!",
    "when": "Chapter 4 · Captain Clack",
    "max_seconds": 0,
    "set": "story",
@@ -940,7 +913,7 @@
   {
    "id": "s4_3",
    "role": "clack",
-   "text": "[grand] The Crack Crab Crew sails with you! Pip, you're promoted to Deputy Assistant Vice Captain.",
+   "text": "[grand] Pip, you're promoted! Deputy Assistant Vice Captain!",
    "when": "Chapter 4 · Captain Clack",
    "max_seconds": 0,
    "set": "story",
@@ -965,15 +938,6 @@
    "who": "Captain Clack"
   },
   {
-   "id": "s4_cbrave_1",
-   "role": "diver",
-   "text": "[confident] Spark. Gate-waker. Snacks later, heroics now.",
-   "when": "Chapter 4 · Captain Clack — choice “Name, rank, snack?”: brave answer “Spark. Snacks later, heroics now.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
-  },
-  {
    "id": "s4_cbrave_2",
    "role": "clack",
    "text": "[delighted] HA! A diver with priorities! I like you already!",
@@ -981,15 +945,6 @@
    "max_seconds": 0,
    "set": "story",
    "who": "Captain Clack"
-  },
-  {
-   "id": "s4_cfunny_1",
-   "role": "diver",
-   "text": "[playful] Spark. Professional tourist. Seaweed chips, extra salty.",
-   "when": "Chapter 4 · Captain Clack — choice “Name, rank, snack?”: funny answer “Spark. Seaweed chips.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
   },
   {
    "id": "s4_cfunny_2",
@@ -1001,15 +956,6 @@
    "who": "Captain Clack"
   },
   {
-   "id": "s4_ckind_1",
-   "role": "diver",
-   "text": "[warm, flattering] Spark. And you must be the famous captain everyone talks about.",
-   "when": "Chapter 4 · Captain Clack — choice “Name, rank, snack?”: kind answer “The famous captain, I presume?”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
-  },
-  {
    "id": "s4_ckind_2",
    "role": "clack",
    "text": "[flustered, proud] Famous? Me? Well. Yes. Obviously. Crew, did you HEAR that?",
@@ -1019,49 +965,22 @@
    "who": "Captain Clack"
   },
   {
-   "id": "s5_1",
-   "role": "narrator",
-   "text": "[warm] Five gates awake, and the jellyfish are humming. They want to help.",
-   "when": "Chapter 5 · Jelly Bounce",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Narrator"
-  },
-  {
    "id": "s5_2",
    "role": "pip",
-   "text": "[excited] They're making a bouncy staircase! Jump, Spark! Jump!",
+   "text": "[excited] A bouncy staircase! Jump, Spark! Jump!",
    "when": "Chapter 5 · Jelly Bounce",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
-  },
-  {
-   "id": "s5_3",
-   "role": "diver",
-   "text": "[laughing] Boing… boing… whoa-ho-HO!",
-   "when": "Chapter 5 · Jelly Bounce",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
   },
   {
    "id": "s5_4",
    "role": "clack",
-   "text": "[pompous, then delighted] A captain does NOT bounce. A captain ascends. With dignity. WHEEEE!",
+   "text": "[pompous, then delighted] A captain does NOT bounce. A captain ascends. WHEEEE!",
    "when": "Chapter 5 · Jelly Bounce",
    "max_seconds": 0,
    "set": "story",
    "who": "Captain Clack"
-  },
-  {
-   "id": "s5_ok1",
-   "role": "pip",
-   "text": "[giddy] Again! Again! My tummy is doing loop-the-loops!",
-   "when": "Chapter 5 · Jelly Bounce — after “Bounce through the jelly garden!” (done in time)",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Pip"
   },
   {
    "id": "s5_ok2",
@@ -1082,27 +1001,9 @@
    "who": "Pip"
   },
   {
-   "id": "s5_no2",
-   "role": "clack",
-   "text": "[blustering] Tactical retreat, crew! Very tactical!",
-   "when": "Chapter 5 · Jelly Bounce — after “Bounce through the jelly garden!” (missed)",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Captain Clack"
-  },
-  {
-   "id": "s6_1",
-   "role": "narrator",
-   "text": "[hushed] Inside the old wreck: a chest with a seashell lock.",
-   "when": "Chapter 6 · The Keeper’s Map",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Narrator"
-  },
-  {
    "id": "s6_2",
    "role": "pip",
-   "text": "[excited, nervous] Open it! No, wait, what if it bites? Open it! No! Okay. Open it.",
+   "text": "[excited, nervous] Open it! No, what if it bites? …Open it!",
    "when": "Chapter 6 · The Keeper’s Map",
    "max_seconds": 0,
    "set": "story",
@@ -1111,7 +1012,7 @@
   {
    "id": "s6_3",
    "role": "keeper",
-   "text": "[gentle, like a memory] “If Grimtide returns, wake the gates. Shared light is the one thing he cannot drink.”",
+   "text": "[gentle, like a memory] “Wake the gates. Shared light is the one thing he cannot drink.”",
    "when": "Chapter 6 · The Keeper’s Map",
    "max_seconds": 0,
    "set": "story",
@@ -1120,7 +1021,7 @@
   {
    "id": "s6_4",
    "role": "clack",
-   "text": "[proud] A treasure map! Hand it here, crew. Captains are excellent with maps.",
+   "text": "[proud] A map! Hand it here. Captains are excellent with maps.",
    "when": "Chapter 6 · The Keeper’s Map",
    "max_seconds": 0,
    "set": "story",
@@ -1136,18 +1037,27 @@
    "who": "Pip"
   },
   {
-   "id": "s7_1",
-   "role": "narrator",
-   "text": "[curious] In a dark hollow, a soft light glows. A gate? It looks just like one.",
-   "when": "Chapter 7 · The Lure",
+   "id": "s6_ok1",
+   "role": "clack",
+   "text": "[booming, proud] Exactly as I planned! The map is safe!",
+   "when": "Chapter 6 · The Keeper’s Map — after “The wreck is caving in! Get out!” (done in time)",
    "max_seconds": 0,
    "set": "story",
-   "who": "Narrator"
+   "who": "Captain Clack"
+  },
+  {
+   "id": "s6_no1",
+   "role": "pip",
+   "text": "[breathless] We made it! Mostly! The map is a bit soggy.",
+   "when": "Chapter 6 · The Keeper’s Map — after “The wreck is caving in! Get out!” (missed)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Pip"
   },
   {
    "id": "s7_2",
    "role": "pip",
-   "text": "[nervous] Spark… gates don't usually wink at you.",
+   "text": "[nervous] Spark… gates don't usually wink.",
    "when": "Chapter 7 · The Lure",
    "max_seconds": 0,
    "set": "story",
@@ -1156,7 +1066,7 @@
   {
    "id": "s7_3",
    "role": "grimtide",
-   "text": "[silky, amused] Thank you, little light. A map with every gate marked. How thoughtful.",
+   "text": "[silky, amused] Thank you, little light. A map with every gate marked.",
    "when": "Chapter 7 · The Lure",
    "max_seconds": 0,
    "set": "story",
@@ -1165,7 +1075,7 @@
   {
    "id": "s7_4",
    "role": "grimtide",
-   "text": "[menacing whisper] Do keep waking them. I'll be waiting at every single one.",
+   "text": "[menacing whisper] Keep waking them. I'll be waiting at every one.",
    "when": "Chapter 7 · The Lure",
    "max_seconds": 0,
    "set": "story",
@@ -1174,7 +1084,7 @@
   {
    "id": "s7_5",
    "role": "pip",
-   "text": "[crying softly] Spark… my glow. It's going out again.",
+   "text": "[crying softly] Spark… my glow is going out.",
    "when": "Chapter 7 · The Lure",
    "max_seconds": 0,
    "set": "story",
@@ -1226,18 +1136,9 @@
    "who": "Pip"
   },
   {
-   "id": "s8_2",
-   "role": "narrator",
-   "text": "[wonder] Then the fish remember the gates. They swirl into a big silver arrow.",
-   "when": "Chapter 8 · Follow the Fish",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Narrator"
-  },
-  {
    "id": "s8_3",
    "role": "clack",
-   "text": "[triumphant] FISH! Of course! Exactly as I planned. I planned fish.",
+   "text": "[triumphant] FISH! Exactly as I planned.",
    "when": "Chapter 8 · Follow the Fish",
    "max_seconds": 0,
    "set": "story",
@@ -1246,20 +1147,11 @@
   {
    "id": "s8_4",
    "role": "pip",
-   "text": "[laughing through tears] Ha! Who needs his map anyway?",
+   "text": "[laughing through tears] Who needs his map anyway?",
    "when": "Chapter 8 · Follow the Fish",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
-  },
-  {
-   "id": "s8_cbrave_1",
-   "role": "diver",
-   "text": "[determined] We don't need his map. We'll find the gates ourselves.",
-   "when": "Chapter 8 · Follow the Fish — choice “Cheer Pip up”: brave answer “We'll find the gates ourselves.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
   },
   {
    "id": "s8_cbrave_2",
@@ -1271,15 +1163,6 @@
    "who": "Pip"
   },
   {
-   "id": "s8_cfunny_1",
-   "role": "diver",
-   "text": "[playful] In your defence, it WAS a very pretty light.",
-   "when": "Chapter 8 · Follow the Fish — choice “Cheer Pip up”: funny answer “It WAS a very pretty light.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
-  },
-  {
    "id": "s8_cfunny_2",
    "role": "pip",
    "text": "[laughing through tears] It was SO pretty. Okay. I feel a little better.",
@@ -1287,15 +1170,6 @@
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
-  },
-  {
-   "id": "s8_ckind_1",
-   "role": "diver",
-   "text": "[gentle] Hey. You warned me. I didn't listen. We're in this together.",
-   "when": "Chapter 8 · Follow the Fish — choice “Cheer Pip up”: kind answer “You warned me. We're a team.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
   },
   {
    "id": "s8_ckind_2",
@@ -1309,7 +1183,7 @@
   {
    "id": "s9_1",
    "role": "pip",
-   "text": "[excited] Look! The torn piece of the map! It blew all the way here!",
+   "text": "[excited] Look! The torn piece of the map!",
    "when": "Chapter 9 · The Torn Map",
    "max_seconds": 0,
    "set": "story",
@@ -1318,7 +1192,7 @@
   {
    "id": "s9_2",
    "role": "diver",
-   "text": "[thoughtful] It only shows one gate. On the edge of a cliff.",
+   "text": "[thoughtful] One gate. On the edge of a cliff.",
    "when": "Chapter 9 · The Torn Map",
    "max_seconds": 0,
    "set": "story",
@@ -1327,34 +1201,34 @@
   {
    "id": "s9_3",
    "role": "clack",
-   "text": "[grumbling] Cliffs. Of course it’s cliffs. Crabs and cliffs have a long and painful history.",
+   "text": "[grumbling] Cliffs. Crabs and cliffs have a long and painful history.",
    "when": "Chapter 9 · The Torn Map",
    "max_seconds": 0,
    "set": "story",
    "who": "Captain Clack"
   },
   {
-   "id": "s9_4",
-   "role": "narrator",
-   "text": "[ominous] Behind the dune, ink hangs in the water. Fresh ink.",
-   "when": "Chapter 9 · The Torn Map",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Narrator"
-  },
-  {
-   "id": "s10_1",
+   "id": "s9_ok1",
    "role": "pip",
-   "text": "[scared] That's the Coral Caves down there. Maybe we take the stairs?",
-   "when": "Chapter 10 · The Edge of the Shallows",
+   "text": "[cheeky, giddy] Ha! Ink can’t catch us!",
+   "when": "Chapter 9 · The Torn Map — after “Outrun the ink cloud!” (done in time)",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
   },
   {
+   "id": "s9_no1",
+   "role": "clack",
+   "text": "[grumbling] I have ink in places a crab should never have ink.",
+   "when": "Chapter 9 · The Torn Map — after “Outrun the ink cloud!” (missed)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Captain Clack"
+  },
+  {
    "id": "s10_2",
    "role": "snip",
-   "text": "[sneering, cackling] Ooh, look, Snap! Little light wants to take the STAIRS!",
+   "text": "[sneering, cackling] Ooh, Snap! Little light wants the STAIRS!",
    "when": "Chapter 10 · The Edge of the Shallows",
    "max_seconds": 0,
    "set": "story",
@@ -1363,7 +1237,7 @@
   {
    "id": "s10_3",
    "role": "snap",
-   "text": "[snarling] There are no stairs. There’s only US.",
+   "text": "[snarling] There are no stairs. Only US.",
    "when": "Chapter 10 · The Edge of the Shallows",
    "max_seconds": 0,
    "set": "story",
@@ -1379,15 +1253,6 @@
    "who": "Captain Clack"
   },
   {
-   "id": "s10_ok1",
-   "role": "pip",
-   "text": "[breathless, giddy] We lost them! Did we lose them? WE LOST THEM!",
-   "when": "Chapter 10 · The Edge of the Shallows — after “Escape Snip & Snap!” (done in time)",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Pip"
-  },
-  {
    "id": "s10_ok2",
    "role": "snip",
    "text": "[dizzy, furious] This isn't over, little light! …Snap, which way is up?",
@@ -1395,15 +1260,6 @@
    "max_seconds": 0,
    "set": "story",
    "who": "Snip"
-  },
-  {
-   "id": "s10_no1",
-   "role": "pip",
-   "text": "[whiny, relieved] Ow! Ow! They nibbled my tail! …But we're alive! Mostly!",
-   "when": "Chapter 10 · The Edge of the Shallows — after “Escape Snip & Snap!” (missed)",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Pip"
   },
   {
    "id": "s10_no2",
@@ -1417,7 +1273,7 @@
   {
    "id": "s11_1",
    "role": "grimtide",
-   "text": "[echoing, amused] Welcome to my caves, little light. Mind the echo. It's ME.",
+   "text": "[echoing, amused] Welcome to my caves, little light. Mind the echo. It’s ME.",
    "when": "Chapter 11 · Voices in the Caves",
    "max_seconds": 0,
    "set": "story",
@@ -1426,7 +1282,7 @@
   {
    "id": "s11_2",
    "role": "pip",
-   "text": "[panicking] He can see us! Spark, he can SEE us!",
+   "text": "[panicking] He can SEE us!",
    "when": "Chapter 11 · Voices in the Caves",
    "max_seconds": 0,
    "set": "story",
@@ -1435,29 +1291,11 @@
   {
    "id": "s11_3",
    "role": "grimtide",
-   "text": "[echoing whisper] Every crystal you light shows me where you are. Shine away.",
+   "text": "[echoing whisper] Every crystal you light shows me where you are.",
    "when": "Chapter 11 · Voices in the Caves",
    "max_seconds": 0,
    "set": "story",
    "who": "Grimtide"
-  },
-  {
-   "id": "s11_4",
-   "role": "clack",
-   "text": "[heroic] Crew! We came to pinch, and pinch we shall!",
-   "when": "Chapter 11 · Voices in the Caves",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Captain Clack"
-  },
-  {
-   "id": "s11_cbrave_1",
-   "role": "diver",
-   "text": "[defiant] Then we'll light every single one.",
-   "when": "Chapter 11 · Voices in the Caves — choice “Answer Grimtide”: brave answer “Then we'll light them ALL.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
   },
   {
    "id": "s11_cbrave_2",
@@ -1469,15 +1307,6 @@
    "who": "Grimtide"
   },
   {
-   "id": "s11_cfunny_1",
-   "role": "diver",
-   "text": "[cheeky] Do you always talk this much in caves?",
-   "when": "Chapter 11 · Voices in the Caves — choice “Answer Grimtide”: funny answer “Do you always talk this much?”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
-  },
-  {
    "id": "s11_cfunny_2",
    "role": "grimtide",
    "text": "[offended, flustered] I… That is… how RUDE.",
@@ -1487,15 +1316,6 @@
    "who": "Grimtide"
   },
   {
-   "id": "s11_ckind_1",
-   "role": "diver",
-   "text": "[gentle, steady] Stay close, Pip. He's just trying to scare you.",
-   "when": "Chapter 11 · Voices in the Caves — choice “Answer Grimtide”: kind answer “Stay close, Pip.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
-  },
-  {
    "id": "s11_ckind_2",
    "role": "pip",
    "text": "[small, brave] It's working. But… okay. Closer.",
@@ -1503,15 +1323,6 @@
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
-  },
-  {
-   "id": "s12_1",
-   "role": "narrator",
-   "text": "[gently] Giant clams open, one by one, and sing the Keeper’s old song.",
-   "when": "Chapter 12 · The Silent Clam",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Narrator"
   },
   {
    "id": "s12_2",
@@ -1525,7 +1336,7 @@
   {
    "id": "s12_3",
    "role": "narrator",
-   "text": "[sad] But the last clam stays shut. Grimtide stole its pearl, and its song.",
+   "text": "[sad] But the last clam stays shut. Grimtide stole its song.",
    "when": "Chapter 12 · The Silent Clam",
    "max_seconds": 0,
    "set": "story",
@@ -1534,7 +1345,7 @@
   {
    "id": "s12_4",
    "role": "shelly",
-   "text": "[warm but worried] Remember that tune, little ones. You’ll need it soon.",
+   "text": "[warm but worried] Remember that tune, little ones.",
    "when": "Chapter 12 · The Silent Clam",
    "max_seconds": 0,
    "set": "story",
@@ -1568,15 +1379,6 @@
    "who": "Narrator"
   },
   {
-   "id": "s13_1",
-   "role": "narrator",
-   "text": "[tense] The water goes black. The storm has found you.",
-   "when": "Chapter 13 · The Dark Storm",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Narrator"
-  },
-  {
    "id": "s13_2",
    "role": "grimtide",
    "text": "[roaring] Thirteen gates, little light? Thirteen too many!",
@@ -1597,7 +1399,7 @@
   {
    "id": "s13_4",
    "role": "narrator",
-   "text": "[slow, heartbroken] Shelly takes the whole blow… and sinks, slowly, to the sand.",
+   "text": "[slow, heartbroken] Shelly takes the whole blow… and sinks to the sand.",
    "when": "Chapter 13 · The Dark Storm",
    "max_seconds": 0,
    "set": "story",
@@ -1611,15 +1413,6 @@
    "max_seconds": 0,
    "set": "story",
    "who": "Grimtide"
-  },
-  {
-   "id": "s13_ok1",
-   "role": "diver",
-   "text": "[straining] I've got you, Pip! Don't let go!",
-   "when": "Chapter 13 · The Dark Storm — after “Get everyone through the storm!” (done in time)",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
   },
   {
    "id": "s13_ok2",
@@ -1640,15 +1433,6 @@
    "who": "Pip"
   },
   {
-   "id": "s13_no2",
-   "role": "diver",
-   "text": "[desperate] Shelly! Where are you?!",
-   "when": "Chapter 13 · The Dark Storm — after “Get everyone through the storm!” (missed)",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
-  },
-  {
    "id": "s14_1",
    "role": "pip",
    "text": "[crying] Shelly? Shelly, please wake up…",
@@ -1658,18 +1442,9 @@
    "who": "Pip"
   },
   {
-   "id": "s14_2",
-   "role": "shelly",
-   "text": "[weak, dry humour] Hush. My shell has survived worse. Clack’s singing, for one.",
-   "when": "Chapter 14 · Rest, Old Friend",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Shelly"
-  },
-  {
    "id": "s14_3",
    "role": "shelly",
-   "text": "[weak, earnest] But I can't swim on. Promise me you'll wake every gate. Every last one.",
+   "text": "[weak, earnest] I can't swim on. Promise me you'll wake every gate.",
    "when": "Chapter 14 · Rest, Old Friend",
    "max_seconds": 0,
    "set": "story",
@@ -1678,20 +1453,11 @@
   {
    "id": "s14_4",
    "role": "clack",
-   "text": "[gruff, emotional] Go. I’ll stand guard. Nobody touches this turtle while Clack has claws.",
+   "text": "[gruff, emotional] Go. Nobody touches this turtle while Clack has claws.",
    "when": "Chapter 14 · Rest, Old Friend",
    "max_seconds": 0,
    "set": "story",
    "who": "Captain Clack"
-  },
-  {
-   "id": "s14_cbrave_1",
-   "role": "diver",
-   "text": "[determined, holding back tears] I promise. And then I'm coming back for you.",
-   "when": "Chapter 14 · Rest, Old Friend — choice “Promise Shelly”: brave answer “I promise. Then I'm coming back.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
   },
   {
    "id": "s14_cbrave_2",
@@ -1703,15 +1469,6 @@
    "who": "Shelly"
   },
   {
-   "id": "s14_cfunny_1",
-   "role": "diver",
-   "text": "[teary, smiling] Promise. But you owe me a bedtime story.",
-   "when": "Chapter 14 · Rest, Old Friend — choice “Promise Shelly”: funny answer “Promise. You owe me a story.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
-  },
-  {
    "id": "s14_cfunny_2",
    "role": "shelly",
    "text": "[weak laugh] Deal. It’s a long one. Two hundred years.",
@@ -1719,15 +1476,6 @@
    "max_seconds": 0,
    "set": "story",
    "who": "Shelly"
-  },
-  {
-   "id": "s14_ckind_1",
-   "role": "diver",
-   "text": "[gentle, tearful] Rest, Shelly. We've got this.",
-   "when": "Chapter 14 · Rest, Old Friend — choice “Promise Shelly”: kind answer “Rest, Shelly. We've got this.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
   },
   {
    "id": "s14_ckind_2",
@@ -1741,7 +1489,7 @@
   {
    "id": "s15_1",
    "role": "mira",
-   "text": "[serene] I am Mira. The currents carried me a message from an old turtle.",
+   "text": "[serene] I am Mira. An old turtle sent me a message.",
    "when": "Chapter 15 · Mira",
    "max_seconds": 0,
    "set": "story",
@@ -1750,7 +1498,7 @@
   {
    "id": "s15_2",
    "role": "mira",
-   "text": "[serene, amused] “Don’t look back. Tell them I’m proud. And tell the crab to stop fussing.”",
+   "text": "[serene, amused] “Tell them I’m proud. And tell the crab to stop fussing.”",
    "when": "Chapter 15 · Mira",
    "max_seconds": 0,
    "set": "story",
@@ -1766,15 +1514,6 @@
    "who": "Pip"
   },
   {
-   "id": "s15_4",
-   "role": "mira",
-   "text": "[warm] Climb on. The canyon is wide, and grief is heavy. I will carry both.",
-   "when": "Chapter 15 · Mira",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Mira"
-  },
-  {
    "id": "s15_ok1",
    "role": "pip",
    "text": "[giddy, then soft] WHEEEE! Again! AGAIN! Shelly would have LOVED that!",
@@ -1782,15 +1521,6 @@
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
-  },
-  {
-   "id": "s15_ok2",
-   "role": "mira",
-   "text": "[serene, warm] You fly like a manta, little one. She would be proud.",
-   "when": "Chapter 15 · Mira — after “Ride the canyon with Mira!” (done in time)",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Mira"
   },
   {
    "id": "s15_no1",
@@ -1802,18 +1532,9 @@
    "who": "Pip"
   },
   {
-   "id": "s15_no2",
-   "role": "mira",
-   "text": "[calm] The canyon is rough tonight. Hold on tight. We are almost there.",
-   "when": "Chapter 15 · Mira — after “Ride the canyon with Mira!” (missed)",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Mira"
-  },
-  {
    "id": "s16_1",
    "role": "pip",
-   "text": "[terrified whisper] Spark… there are EYES in there. Big ones. Bigger than Shelly!",
+   "text": "[terrified whisper] Spark… EYES in there. Bigger than Shelly!",
    "when": "Chapter 16 · The Prisoner",
    "max_seconds": 0,
    "set": "story",
@@ -1822,7 +1543,7 @@
   {
    "id": "s16_2",
    "role": "murk",
-   "text": "[deep, apologetic] Please don't scream. Everybody screams. I'm Murk. Sorry about my face.",
+   "text": "[deep, apologetic] Please don't scream. I'm Murk. Sorry about my face.",
    "when": "Chapter 16 · The Prisoner",
    "max_seconds": 0,
    "set": "story",
@@ -1831,29 +1552,29 @@
   {
    "id": "s16_3",
    "role": "murk",
-   "text": "[startled whisper] He chains me. He makes me gather the pearls. Wait… that lamp. Where did you get that lamp?",
+   "text": "[startled whisper] Wait… that lamp. Where did you get that lamp?",
    "when": "Chapter 16 · The Prisoner",
    "max_seconds": 0,
    "set": "story",
    "who": "Murk"
   },
   {
-   "id": "s16_4",
-   "role": "narrator",
-   "text": "[tense] Before you can answer, a tail yanks him back into the dark.",
-   "when": "Chapter 16 · The Prisoner",
+   "id": "s16_ok1",
+   "role": "pip",
+   "text": "[whispered, worried] He's gone… but he saw your lamp, Spark.",
+   "when": "Chapter 16 · The Prisoner — after “After the tail! Find Murk!” (done in time)",
    "max_seconds": 0,
    "set": "story",
-   "who": "Narrator"
+   "who": "Pip"
   },
   {
-   "id": "s17_1",
-   "role": "narrator",
-   "text": "[curious] An old coral arch blocks the way. Its lamps went out in the storm.",
-   "when": "Chapter 17 · The Arch’s Secret",
+   "id": "s16_no1",
+   "role": "pip",
+   "text": "[sad, whispered] Too dark… we lost him.",
+   "when": "Chapter 16 · The Prisoner — after “After the tail! Find Murk!” (missed)",
    "max_seconds": 0,
    "set": "story",
-   "who": "Narrator"
+   "who": "Pip"
   },
   {
    "id": "s17_2",
@@ -1867,7 +1588,7 @@
   {
    "id": "s17_3",
    "role": "pip",
-   "text": "[puzzled] Given away? But he TAKES light. He's a light-taker. A big… taking… noodle.",
+   "text": "[puzzled] But he TAKES light. He’s a big… taking… noodle.",
    "when": "Chapter 17 · The Arch’s Secret",
    "max_seconds": 0,
    "set": "story",
@@ -1876,7 +1597,7 @@
   {
    "id": "s17_4",
    "role": "diver",
-   "text": "[realizing, excited] That's how we beat him, Pip. And how we free Murk.",
+   "text": "[realizing, excited] That's how we beat him, Pip.",
    "when": "Chapter 17 · The Arch’s Secret",
    "max_seconds": 0,
    "set": "story",
@@ -1901,18 +1622,9 @@
    "who": "Narrator"
   },
   {
-   "id": "s18_1",
-   "role": "narrator",
-   "text": "[wonder] Pearls float up from the sand like little lanterns. A trail.",
-   "when": "Chapter 18 · A Secret Trail",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Narrator"
-  },
-  {
    "id": "s18_2",
    "role": "pip",
-   "text": "[excited] Murk left them! He's helping us! In secret! Like a spy! A big squishy spy!",
+   "text": "[excited] Murk left them! He’s a spy! A big squishy spy!",
    "when": "Chapter 18 · A Secret Trail",
    "max_seconds": 0,
    "set": "story",
@@ -1921,7 +1633,7 @@
   {
    "id": "s18_3",
    "role": "grimtide",
-   "text": "[suspicious, cold, distant] Murk… Why are my pearls floating away, Murk?",
+   "text": "[suspicious, cold, distant] Murk… why are my pearls floating away?",
    "when": "Chapter 18 · A Secret Trail",
    "max_seconds": 0,
    "set": "story",
@@ -1957,7 +1669,7 @@
   {
    "id": "s19_1",
    "role": "cousin",
-   "text": "[shrieking with joy] PIP! PIP! Shelly woke up! She’s okay!",
+   "text": "[shrieking with joy] PIP! Shelly woke up! She’s okay!",
    "when": "Chapter 19 · Good News",
    "max_seconds": 0,
    "set": "story",
@@ -1966,7 +1678,7 @@
   {
    "id": "s19_2",
    "role": "pip",
-   "text": "[overjoyed] She's okay? SHE'S OKAY! Spark! She's okay!",
+   "text": "[overjoyed] SHE'S OKAY! Spark! She's okay!",
    "when": "Chapter 19 · Good News",
    "max_seconds": 0,
    "set": "story",
@@ -1975,20 +1687,11 @@
   {
    "id": "s19_3",
    "role": "cousin",
-   "text": "[giggling] And the loud crab says, quote: “Don’t save the reef without me!”",
+   "text": "[giggling] And the loud crab says: “Don’t save the reef without me!”",
    "when": "Chapter 19 · Good News",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip’s cousin"
-  },
-  {
-   "id": "s19_cbrave_1",
-   "role": "diver",
-   "text": "[fired up] Tell him to hurry. We're not slowing down.",
-   "when": "Chapter 19 · Good News — choice “Message for home”: brave answer “Tell him to hurry up!”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
   },
   {
    "id": "s19_cbrave_2",
@@ -2000,15 +1703,6 @@
    "who": "Pip’s cousin"
   },
   {
-   "id": "s19_cfunny_1",
-   "role": "diver",
-   "text": "[playful] Tell him we'll save him a little bit of reef.",
-   "when": "Chapter 19 · Good News — choice “Message for home”: funny answer “We’ll save him a bit of reef.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
-  },
-  {
    "id": "s19_cfunny_2",
    "role": "cousin",
    "text": "[cackling] Ha! He’s going to HATE that!",
@@ -2016,15 +1710,6 @@
    "max_seconds": 0,
    "set": "story",
    "who": "Pip’s cousin"
-  },
-  {
-   "id": "s19_ckind_1",
-   "role": "diver",
-   "text": "[warm, emotional] Tell Shelly we love her.",
-   "when": "Chapter 19 · Good News — choice “Message for home”: kind answer “Tell Shelly we love her.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
   },
   {
    "id": "s19_ckind_2",
@@ -2036,18 +1721,9 @@
    "who": "Pip’s cousin"
   },
   {
-   "id": "s20_1",
-   "role": "narrator",
-   "text": "[awed] From the last cliff of the caves, you see it: the Great Lantern.",
-   "when": "Chapter 20 · The Lantern in Chains",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Narrator"
-  },
-  {
    "id": "s20_2",
    "role": "narrator",
-   "text": "[ominous] And wrapped around it like a storm cloud: Grimtide.",
+   "text": "[ominous] Wrapped around the Great Lantern like a storm cloud: Grimtide.",
    "when": "Chapter 20 · The Lantern in Chains",
    "max_seconds": 0,
    "set": "story",
@@ -2056,7 +1732,7 @@
   {
    "id": "s20_3",
    "role": "grimtide",
-   "text": "[delighted, menacing] Twenty gates! You think you’re saving the reef? You’re setting my table.",
+   "text": "[delighted, menacing] Twenty gates! You’re not saving the reef. You’re setting my table.",
    "when": "Chapter 20 · The Lantern in Chains",
    "max_seconds": 0,
    "set": "story",
@@ -2072,18 +1748,27 @@
    "who": "Pip"
   },
   {
-   "id": "s21_1",
-   "role": "lumen",
-   "text": "[stage whisper] Psst! Over here! Quick, before his eyes find you!",
-   "when": "Chapter 21 · Lumen",
+   "id": "s20_ok1",
+   "role": "pip",
+   "text": "[giddy, then nervous] He didn't even see us! …Did he?",
+   "when": "Chapter 20 · The Lantern in Chains — after “Slip past Grimtide's coils!” (done in time)",
    "max_seconds": 0,
    "set": "story",
-   "who": "Lumen"
+   "who": "Pip"
+  },
+  {
+   "id": "s20_no1",
+   "role": "grimtide",
+   "text": "[silky, menacing] Run along, little light. I can wait.",
+   "when": "Chapter 20 · The Lantern in Chains — after “Slip past Grimtide's coils!” (missed)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Grimtide"
   },
   {
    "id": "s21_2",
    "role": "lumen",
-   "text": "[theatrical, grand] Lumen’s the name, light’s the game! The Deep’s last lantern, live and in person!",
+   "text": "[theatrical, grand] Lumen’s the name, light’s the game!",
    "when": "Chapter 21 · Lumen",
    "max_seconds": 0,
    "set": "story",
@@ -2092,7 +1777,7 @@
   {
    "id": "s21_3",
    "role": "lumen",
-   "text": "[dropping the act] I’ve been hiding for three weeks. In a sock. Don’t ask where I got a sock.",
+   "text": "[dropping the act] I’ve been hiding for three weeks. In a sock. Don’t ask.",
    "when": "Chapter 21 · Lumen",
    "max_seconds": 0,
    "set": "story",
@@ -2101,17 +1786,26 @@
   {
    "id": "s21_4",
    "role": "lumen",
-   "text": "[brave, theatrical] But you’re going after him? Then my light is yours. Showtime!",
+   "text": "[brave, theatrical] Going after him? Then my light is yours. Showtime!",
    "when": "Chapter 21 · Lumen",
    "max_seconds": 0,
    "set": "story",
    "who": "Lumen"
   },
   {
-   "id": "s22_1",
+   "id": "s21_ok1",
    "role": "lumen",
-   "text": "[thrilled] Old Bellow! He only sings when the Lantern fights back!",
-   "when": "Chapter 22 · Whale Song",
+   "text": "[theatrical, delighted] Standing ovation! You two are naturals!",
+   "when": "Chapter 21 · Lumen — after “Follow Lumen's light through the dark!” (done in time)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Lumen"
+  },
+  {
+   "id": "s21_no1",
+   "role": "lumen",
+   "text": "[theatrical, warm] Little stage fright. Happens to the best of us!",
+   "when": "Chapter 21 · Lumen — after “Follow Lumen's light through the dark!” (missed)",
    "max_seconds": 0,
    "set": "story",
    "who": "Lumen"
@@ -2137,25 +1831,34 @@
   {
    "id": "s22_4",
    "role": "clack",
-   "text": "[proud, chuckling] Shelly sends her love. And a VERY rude message for Grimtide. I’ll deliver it personally.",
+   "text": "[proud, chuckling] Shelly sends her love. And a VERY rude message for Grimtide.",
    "when": "Chapter 22 · Whale Song",
    "max_seconds": 0,
    "set": "story",
    "who": "Captain Clack"
   },
   {
-   "id": "s23_1",
-   "role": "narrator",
-   "text": "[hushed] An old sea city. On its last wall: the Reef Keeper and a giant purple octopus.",
-   "when": "Chapter 23 · The Mural",
+   "id": "s22_ok1",
+   "role": "clack",
+   "text": "[giddy, then gruff] WHEEE! I mean… dignified whee.",
+   "when": "Chapter 22 · Whale Song — after “Swim with Bellow's song!” (done in time)",
    "max_seconds": 0,
    "set": "story",
-   "who": "Narrator"
+   "who": "Captain Clack"
+  },
+  {
+   "id": "s22_no1",
+   "role": "pip",
+   "text": "[cheerful] Bumpy song! Still pretty!",
+   "when": "Chapter 22 · Whale Song — after “Swim with Bellow's song!” (missed)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Pip"
   },
   {
    "id": "s23_2",
    "role": "pip",
-   "text": "[stunned whisper] Spark… look at her helmet. Look at her LAMP.",
+   "text": "[stunned whisper] Spark… look at her helmet. Her LAMP.",
    "when": "Chapter 23 · The Mural",
    "max_seconds": 0,
    "set": "story",
@@ -2164,7 +1867,7 @@
   {
    "id": "s23_3",
    "role": "diver",
-   "text": "[shaken, quiet] It's my lamp. It's the same lamp.",
+   "text": "[shaken, quiet] It's my lamp.",
    "when": "Chapter 23 · The Mural",
    "max_seconds": 0,
    "set": "story",
@@ -2173,8 +1876,26 @@
   {
    "id": "s23_4",
    "role": "lumen",
-   "text": "[soft, amazed] Kid, I’ve been in show business a long time. That’s what we call a plot twist.",
+   "text": "[soft, amazed] Kid, in show business we call that a plot twist.",
    "when": "Chapter 23 · The Mural",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Lumen"
+  },
+  {
+   "id": "s23_ok1",
+   "role": "lumen",
+   "text": "[theatrical, triumphant] And THAT is how you exit a scene!",
+   "when": "Chapter 23 · The Mural — after “The ruins are falling! Swim!” (done in time)",
+   "max_seconds": 0,
+   "set": "story",
+   "who": "Lumen"
+  },
+  {
+   "id": "s23_no1",
+   "role": "lumen",
+   "text": "[theatrical, shaken] A bit of rubble. The show goes on!",
+   "when": "Chapter 23 · The Mural — after “The ruins are falling! Swim!” (missed)",
    "max_seconds": 0,
    "set": "story",
    "who": "Lumen"
@@ -2182,7 +1903,7 @@
   {
    "id": "s24_1",
    "role": "pip",
-   "text": "[joyful] Twenty-four gates! We're going to make it, Spark! We're actually going to—",
+   "text": "[joyful] Twenty-four gates! We’re actually going to—",
    "when": "Chapter 24 · Ambush",
    "max_seconds": 0,
    "set": "story",
@@ -2198,15 +1919,6 @@
    "who": "Grimtide"
   },
   {
-   "id": "s24_3",
-   "role": "pip",
-   "text": "[screaming, fading] Spaaark!",
-   "when": "Chapter 24 · Ambush",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Pip"
-  },
-  {
    "id": "s24_4",
    "role": "clack",
    "text": "[roaring, charging] Let him go, you overgrown NOODLE!",
@@ -2214,15 +1926,6 @@
    "max_seconds": 0,
    "set": "story",
    "who": "Captain Clack"
-  },
-  {
-   "id": "s24_5",
-   "role": "narrator",
-   "text": "[slow, grave] Clack leaps at the tail. One mighty pinch… and the tail swats him into the dark.",
-   "when": "Chapter 24 · Ambush",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Narrator"
   },
   {
    "id": "s24_6",
@@ -2243,24 +1946,6 @@
    "who": "Spark"
   },
   {
-   "id": "s24_ok2",
-   "role": "pip",
-   "text": "[screaming, fading] Spaaark! Don’t let go of the reef!",
-   "when": "Chapter 24 · Ambush — after “Chase Grimtide! Save Pip!” (done in time)",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Pip"
-  },
-  {
-   "id": "s24_no1",
-   "role": "diver",
-   "text": "[screaming] PIP!",
-   "when": "Chapter 24 · Ambush — after “Chase Grimtide! Save Pip!” (missed)",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
-  },
-  {
    "id": "s24_no2",
    "role": "grimtide",
    "text": "[cold, amused] Too slow, little light. Much too slow.",
@@ -2272,7 +1957,7 @@
   {
    "id": "s25_1",
    "role": "clack",
-   "text": "[weak, rasping] Gate-waker… did I get him? Tell me I pinched him good.",
+   "text": "[weak, rasping] Did I get him? Tell me I pinched him good.",
    "when": "Chapter 25 · The Captain’s Last Order",
    "max_seconds": 0,
    "set": "story",
@@ -2281,38 +1966,20 @@
   {
    "id": "s25_2",
    "role": "clack",
-   "text": "[weak, fading] Tell my crew… they were the finest crew… on the whole reef.",
+   "text": "[weak, fading] Tell my crew… finest crew… on the whole reef.",
    "when": "Chapter 25 · The Captain’s Last Order",
    "max_seconds": 0,
    "set": "story",
    "who": "Captain Clack"
   },
   {
-   "id": "s25_3",
-   "role": "narrator",
-   "text": "[whispered] And the Captain is still.",
-   "when": "Chapter 25 · The Captain’s Last Order",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Narrator"
-  },
-  {
    "id": "s25_4",
    "role": "shelly",
-   "text": "[grieving, then fierce] You brave, loud, wonderful fool. Up, little one. Grimtide has Pip. And I have two hundred years of anger.",
+   "text": "[grieving, then fierce] You brave, loud, wonderful fool. Up, little one. Grimtide has Pip.",
    "when": "Chapter 25 · The Captain’s Last Order",
    "max_seconds": 0,
    "set": "story",
    "who": "Shelly"
-  },
-  {
-   "id": "s25_cbrave_1",
-   "role": "diver",
-   "text": "[crying, proud] You were magnificent, Captain.",
-   "when": "Chapter 25 · The Captain’s Last Order — choice “Answer the Captain”: brave answer “You were magnificent, Captain.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
   },
   {
    "id": "s25_cbrave_2",
@@ -2324,15 +1991,6 @@
    "who": "Captain Clack"
   },
   {
-   "id": "s25_cfunny_1",
-   "role": "diver",
-   "text": "[crying, laughing] He'll be walking funny for a week.",
-   "when": "Chapter 25 · The Captain’s Last Order — choice “Answer the Captain”: funny answer “He'll walk funny for a week.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
-  },
-  {
    "id": "s25_cfunny_2",
    "role": "clack",
    "text": "[weak laugh] Ha… good. Good.",
@@ -2340,15 +1998,6 @@
    "max_seconds": 0,
    "set": "story",
    "who": "Captain Clack"
-  },
-  {
-   "id": "s25_ckind_1",
-   "role": "diver",
-   "text": "[gentle, tearful] You did, Captain. You saved us.",
-   "when": "Chapter 25 · The Captain’s Last Order — choice “Answer the Captain”: kind answer “You saved us, Captain.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
   },
   {
    "id": "s25_ckind_2",
@@ -2362,20 +2011,11 @@
   {
    "id": "s26_1",
    "role": "pip",
-   "text": "[crying, joyful] Spark! You came! I knew you’d come! I said “Spark will come” like four hundred times!",
+   "text": "[crying, joyful] Spark! You came! I said “Spark will come” like four hundred times!",
    "when": "Chapter 26 · Breaking the Chains",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
-  },
-  {
-   "id": "s26_2",
-   "role": "murk",
-   "text": "[ashamed, deep] I'm sorry. He makes me guard him. If I let go, Grimtide will…",
-   "when": "Chapter 26 · Breaking the Chains",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Murk"
   },
   {
    "id": "s26_3",
@@ -2398,7 +2038,7 @@
   {
    "id": "s26_5",
    "role": "murk",
-   "text": "[joyful roar] FREE! I'm free! Group hug! I have eight arms, everyone's included!",
+   "text": "[joyful roar] FREE! Group hug! I have eight arms, everyone's included!",
    "when": "Chapter 26 · Breaking the Chains",
    "max_seconds": 0,
    "set": "story",
@@ -2423,18 +2063,9 @@
    "who": "Narrator"
   },
   {
-   "id": "s27_1",
-   "role": "murk",
-   "text": "[deep, steady] Climb on. I know the way to his lair.",
-   "when": "Chapter 27 · Over the Abyss",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Murk"
-  },
-  {
    "id": "s27_2",
    "role": "murk",
-   "text": "[quiet, ashamed] The night of the storm, she went to face him alone. I was too scared to follow.",
+   "text": "[quiet, ashamed] The night of the storm, she faced him alone. I was too scared to follow.",
    "when": "Chapter 27 · Over the Abyss",
    "max_seconds": 0,
    "set": "story",
@@ -2443,20 +2074,11 @@
   {
    "id": "s27_3",
    "role": "pip",
-   "text": "[brave, shaky] I'm not scared. My fins are just… okay, I'm scared. But I'm going anyway!",
+   "text": "[brave, shaky] I'm not scared. My fins are just… okay, I'm scared. Going anyway!",
    "when": "Chapter 27 · Over the Abyss",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
-  },
-  {
-   "id": "s27_cbrave_1",
-   "role": "diver",
-   "text": "[resolute] This time, we all go together.",
-   "when": "Chapter 27 · Over the Abyss — choice “Answer Murk”: brave answer “This time, we go together.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
   },
   {
    "id": "s27_cbrave_2",
@@ -2468,15 +2090,6 @@
    "who": "Murk"
   },
   {
-   "id": "s27_cfunny_1",
-   "role": "diver",
-   "text": "[playful] Well, you have eight arms now. Use them ALL.",
-   "when": "Chapter 27 · Over the Abyss — choice “Answer Murk”: funny answer “Eight arms. Use them ALL.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
-  },
-  {
    "id": "s27_cfunny_2",
    "role": "murk",
    "text": "[deep laugh] Eight arms of fury. I like that.",
@@ -2484,15 +2097,6 @@
    "max_seconds": 0,
    "set": "story",
    "who": "Murk"
-  },
-  {
-   "id": "s27_ckind_1",
-   "role": "diver",
-   "text": "[gentle] It wasn't your fault, Murk.",
-   "when": "Chapter 27 · Over the Abyss — choice “Answer Murk”: kind answer “It wasn't your fault, Murk.”",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Spark"
   },
   {
    "id": "s27_ckind_2",
@@ -2511,24 +2115,6 @@
    "max_seconds": 0,
    "set": "story",
    "who": "Lumen"
-  },
-  {
-   "id": "s28_2",
-   "role": "narrator",
-   "text": "[building, epic] Every wave sets the plankton glowing. Then the jellies. Then the fish. Then everyone.",
-   "when": "Chapter 28 · The Deep Rises",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Narrator"
-  },
-  {
-   "id": "s28_3",
-   "role": "narrator",
-   "text": "[proud, emotional] Clack’s crew raise his tiny hat high.",
-   "when": "Chapter 28 · The Deep Rises",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Narrator"
   },
   {
    "id": "s28_4",
@@ -2560,7 +2146,7 @@
   {
    "id": "s29_1",
    "role": "grimtide",
-   "text": "[hungry, rising] Twenty-nine gates. The Lantern is nearly full. Wake the last, and I drink it ALL.",
+   "text": "[hungry, rising] Twenty-nine gates. Wake the last, and I drink it ALL.",
    "when": "Chapter 29 · Grimtide’s Lair",
    "max_seconds": 0,
    "set": "story",
@@ -2569,7 +2155,7 @@
   {
    "id": "s29_2",
    "role": "pip",
-   "text": "[horrified] THAT'S why he let us! We've been cooking his DINNER!",
+   "text": "[horrified] We've been cooking his DINNER!",
    "when": "Chapter 29 · Grimtide’s Lair",
    "max_seconds": 0,
    "set": "story",
@@ -2578,7 +2164,7 @@
   {
    "id": "s29_3",
    "role": "diver",
-   "text": "[calm, defiant] You’re wrong about one thing. That light isn’t yours. We’re giving it away.",
+   "text": "[calm, defiant] That light isn’t yours. We’re giving it away.",
    "when": "Chapter 29 · Grimtide’s Lair",
    "max_seconds": 0,
    "set": "story",
@@ -2587,7 +2173,7 @@
   {
    "id": "s29_4",
    "role": "grimtide",
-   "text": "[menacing whisper] Then come, Keeper’s child. Let’s see who shines last.",
+   "text": "[menacing whisper] Then come, Keeper’s child.",
    "when": "Chapter 29 · Grimtide’s Lair",
    "max_seconds": 0,
    "set": "story",
@@ -2601,15 +2187,6 @@
    "max_seconds": 0,
    "set": "story",
    "who": "Murk"
-  },
-  {
-   "id": "s29_ok2",
-   "role": "grimtide",
-   "text": "[hissing, furious] Clever little light. It will not save you.",
-   "when": "Chapter 29 · Grimtide’s Lair — after “Through the coils! Reach the Lantern!” (done in time)",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Grimtide"
   },
   {
    "id": "s29_no1",
@@ -2639,18 +2216,9 @@
    "who": "Grimtide"
   },
   {
-   "id": "s30_2",
-   "role": "narrator",
-   "text": "[soaring] Every creature in the sea gives its light at once. Way too much light. Freely given.",
-   "when": "Chapter 30 · The Reef’s Revenge",
-   "max_seconds": 0,
-   "set": "story",
-   "who": "Narrator"
-  },
-  {
    "id": "s30_3",
    "role": "grimtide",
-   "text": "[screaming] No… NO! It BURNS! Too bright! Too SHARED!",
+   "text": "[screaming] No… NO! It BURNS! Too SHARED!",
    "when": "Chapter 30 · The Reef’s Revenge",
    "max_seconds": 0,
    "set": "story",
@@ -2659,7 +2227,7 @@
   {
    "id": "s30_4",
    "role": "narrator",
-   "text": "[triumphant, amused] And the mighty Grimtide shrinks… to a tiny, wriggling, very grumpy worm.",
+   "text": "[triumphant, amused] And mighty Grimtide shrinks… to a tiny, very grumpy worm.",
    "when": "Chapter 30 · The Reef’s Revenge",
    "max_seconds": 0,
    "set": "story",
@@ -2983,7 +2551,7 @@
   {
    "id": "l10_m",
    "role": "snip",
-   "text": "[cackling] Boss says hurry it up, Snap! Shake the tank!",
+   "text": "[cackling] Boss says hurry it up, Snap! Shake the vault!",
    "when": "Level 10: after 24 s of play",
    "max_seconds": 0,
    "set": "story",
