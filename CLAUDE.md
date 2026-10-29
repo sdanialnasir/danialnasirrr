@@ -1035,3 +1035,7 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   of one-step detours; never the relic cell, never under a stone/pearl, never monster water. Touching one collects it (`gemCheck` in `fun`):
   grabs within 9 ticks chain (x2, x3…), each worth its chain number in coins (result row "gems"), rising pentatonic note, burst + pop word;
   "CHAIN x3!" stamp; all gems = "ALL GEMS!" +15 (a combo row). `world.setGems/collectGem`, animated in `funUpdate`. Engine and routes untouched.
+- **Diver head fix (owner: "the diver's head looks so ugly"):** the film's listening nods were added to the Head bone every frame and never removed
+  (the bone has no track in every clip), so the head slowly spun into twisted angles (measured 3.7 / 9.6 rad). Now the previous offset is undone
+  first (`_hOff`). Also **smooth normals** for the GLB diver at load (`glbData`): the model shipped flat per-face normals, so every triangle showed;
+  normals are rebuilt area-weighted, shared across UV seams, creases > 55° stay hard. The listening diver opens 55% to the lens (others 42%).

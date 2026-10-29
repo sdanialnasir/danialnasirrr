@@ -1615,6 +1615,18 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     g.setAttribute('position', new THREE.BufferAttribute(dec(M.pos, Float32Array), 3)); g.setAttribute('normal', new THREE.BufferAttribute(dec(M.nrm, Int8Array), 3, true));
     g.setAttribute('uv', new THREE.BufferAttribute(dec(M.uv, Uint16Array), 2, true)); g.setAttribute('skinIndex', new THREE.BufferAttribute(dec(M.j, Uint8Array), 4));
     g.setAttribute('skinWeight', new THREE.BufferAttribute(dec(M.w, Uint8Array), 4, true)); g.setIndex(new THREE.BufferAttribute(dec(M.idx, Uint16Array), 1)); g.computeBoundingBox(); g.computeBoundingSphere();
+    // smooth shading: the low-poly model came with flat (per-face) normals, so every triangle showed. Rebuild normals from the faces,
+    // area-weighted, shared across vertices at the same spot (UV seams), keeping only true creases (> 55°) hard.
+    { const P = g.attributes.position.array, I = g.index.array, n = P.length / 3, fn = new Float32Array(I.length), acc = new Float32Array(n * 3), a = new V3(), b = new V3(), c = new V3();
+      for (let f = 0; f < I.length; f += 3) { a.fromArray(P, I[f] * 3); b.fromArray(P, I[f + 1] * 3); c.fromArray(P, I[f + 2] * 3); const N = b.clone().sub(a).cross(c.clone().sub(a)); fn[f] = N.x; fn[f + 1] = N.y; fn[f + 2] = N.z; }
+      const key = i => Math.round(P[i * 3] * 2e3) + ',' + Math.round(P[i * 3 + 1] * 2e3) + ',' + Math.round(P[i * 3 + 2] * 2e3), groups = new Map(), vf = Array.from({ length: n }, () => []);
+      for (let f = 0; f < I.length; f += 3) for (let k = 0; k < 3; k++) vf[I[f + k]].push(f);
+      for (let i = 0; i < n; i++) { const k = key(i); let gq = groups.get(k); if (!gq) groups.set(k, gq = []); gq.push(i); }
+      const cosT = Math.cos(55 * Math.PI / 180), un = f => { const l = Math.hypot(fn[f], fn[f + 1], fn[f + 2]) || 1; return [fn[f] / l, fn[f + 1] / l, fn[f + 2] / l]; };
+      for (const gq of groups.values()) { const faces = []; for (const i of gq) faces.push(...vf[i]);
+        for (const i of gq) { let x = 0, y = 0, z = 0; const own = vf[i].length ? un(vf[i][0]) : [0, 1, 0]; for (const f of faces) { const u = un(f); if (u[0] * own[0] + u[1] * own[1] + u[2] * own[2] < cosT) continue; x += fn[f]; y += fn[f + 1]; z += fn[f + 2]; }
+          const l = Math.hypot(x, y, z) || 1; acc[i * 3] = x / l; acc[i * 3 + 1] = y / l; acc[i * 3 + 2] = z / l; } }
+      g.setAttribute('normal', new THREE.BufferAttribute(acc, 3)); }
     GLB.geo = g; GLB.ibm = dec(D.ibm, Float32Array); GLB.D = D;
     const img = new Image(), tex = new THREE.Texture(img); tex.colorSpace = THREE.SRGBColorSpace; tex.flipY = false; tex.anisotropy = 4; img.onload = () => { tex.needsUpdate = true; }; img.src = D.tex; GLB.tex = tex;
     GLB.clips = {}; for (const c of D.clips) GLB.clips[c.name] = new THREE.AnimationClip(c.name, c.dur, c.tracks.map(t => { const bn = D.bones[t.b].n, tm = dec(t.t, Float32Array);
@@ -4446,7 +4458,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         if (live && sh.who === 'you' && !st.arms) { const tl = this.t - sh.l.t0, g = Math.min(1, tl / 0.5) * Math.min(1, (sh.l.t1 - this.t) / 0.5); st2 = Object.assign({}, st, { arms: sh.l.mood === 'happy' ? 'cheer' : 'offer', armK: g * (sh.l.mood === 'happy' ? 0.45 : 0.32 + 0.18 * Math.abs(Math.sin(tl * 2.4))), lift: 0.3 }); } /* talking with his hands */
         this.arms(st2);
         if (this.headB === undefined) this.headB = this.u.glb.mesh.skeleton.bones.find(b => b.name === 'Head') || null;
-        if (this.headB && live) { const tl = this.t - sh.l.t0, lis = sh.who !== 'you' && sh.who; this.headB.rotation.x += (lis ? 0.12 * Math.max(0, Math.sin(tl * 3.2)) * Math.max(0, 1 - tl / 2.2) : 0.05 * Math.sin(tl * 5.5)); this.headB.rotation.z += lis ? 0.08 * Math.sin(tl * 0.9) : 0; } /* nods while he listens, small head moves as he speaks */ }
+        if (this.headB) { const H = this.headB, o = this._hOff || (this._hOff = [0, 0]); H.rotation.x -= o[0]; H.rotation.z -= o[1]; o[0] = o[1] = 0; /* undo last frame's nod first (the head has no track in every clip, so offsets used to pile up and spin it) */
+          if (live) { const tl = this.t - sh.l.t0, lis = sh.who !== 'you' && sh.who; o[0] = lis ? 0.12 * Math.max(0, Math.sin(tl * 3.2)) * Math.max(0, 1 - tl / 2.2) : 0.05 * Math.sin(tl * 5.5); o[1] = lis ? 0.08 * Math.sin(tl * 0.9) : 0; H.rotation.x += o[0]; H.rotation.z += o[1]; } } /* nods while he listens, small head moves as he speaks */ }
       if (!this.frozen && t >= this.T) { this.frozen = true; if (this.o.onCap) this.o.onCap(null); if (this.o.onFreeze) this.o.onFreeze(); }
       if (!this.frozen) while (this.li < this.seq.length && this.seq[this.li].t0 !== undefined && this.t >= this.seq[this.li].t0) { const l = this.seq[this.li]; if (this.o.onCap) this.o.onCap(l, this.li, this.ch);
         { const q = l.who && this.castOf(l.who); if (q && q.o.userData && q.o.userData.setMood) q.o.userData.setMood(l.mood); } this.shot = { who: l.who, to: this.addressee(this.li), l, i: this.li }; this.li++; this.capI = this.li; }
@@ -4566,7 +4579,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         let goal = 0, dy = 0;
         if (spk && v < (this.rc.talkMove || 0.6)) { const tgt = o === spk.o ? (adr ? adr.p : null) : p.distanceTo(spk.p) < 7 ? spk.p : null;
           if (tgt) { const d = tgt.clone().sub(p); d.y = 0; const dc = cam.clone().sub(p); dc.y = 0;
-            if (d.lengthSq() > 0.25) { d.normalize(); if (dc.lengthSq() > 1e-4) d.lerp(dc.normalize(), 0.42).normalize(); /* (someone right above you, like a rider: don't spin round to them) */ /* face each other, cheated open to the lens */ const a = Math.atan2(q.fw.z, q.fw.x) - Math.atan2(d.z, d.x); goal = Math.atan2(Math.sin(a), Math.cos(a)); } }
+            if (d.lengthSq() > 0.25) { d.normalize(); if (dc.lengthSq() > 1e-4) d.lerp(dc.normalize(), k === 'you' ? 0.55 : 0.42).normalize(); /* the diver's helmet hides his face in profile: open him more to the lens */ /* (someone right above you, like a rider: don't spin round to them) */ /* face each other, cheated open to the lens */ const a = Math.atan2(q.fw.z, q.fw.x) - Math.atan2(d.z, d.x); goal = Math.atan2(Math.sin(a), Math.cos(a)); } }
           if (o !== spk.o && sh.l.mood === 'happy' && tl < 0.7 && k !== 'you') dy = q.s * 0.05 * Math.sin(tl / 0.7 * Math.PI); }
         if (o.userData && o.userData.setMood && (!spk || o !== spk.o)) { const lm = spk && tl > 0.35 ? sh.l.mood : ''; if (o.userData._lm !== lm) { o.userData._lm = lm; o.userData.setMood(lm === 'angry' ? 'wide' : lm); } }
         let cur = F.get(o) || 0; cur += (goal - cur) * (1 - Math.exp(-dt * 2.6)); F.set(o, cur);
