@@ -4218,6 +4218,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   // critically damped smoothing (Unity's SmoothDamp): glides to the target without overshoot; T ≈ time to get most of the way there
   function damp1(cur, vel, tgt, T, dt) { const w = 2 / Math.max(1e-3, T), x = w * dt, e = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x), ch = cur - tgt, tmp = (vel + w * ch) * dt; return [tgt + (ch + tmp) * e, (vel - w * tmp) * e]; }
   function damp3(cur, vel, tgt, T, dt) { for (const k of ['x', 'y', 'z']) { const r = damp1(cur[k], vel[k], tgt[k], T, dt); cur[k] = r[0]; vel[k] = r[1]; } }
+  // a tiling caustic pattern (bright net of light) for the films' projector light; drawn once
+  function causticTex() { if (TEX.caustic) return TEX.caustic; const N = 256, cv = document.createElement('canvas'); cv.width = cv.height = N; const g = cv.getContext('2d'), im = g.createImageData(N, N); let sd = 9; const r = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    const pts = []; for (let i = 0; i < 28; i++) pts.push([r() * N, r() * N]);
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { let f1 = 1e9, f2 = 1e9; for (const [px, py] of pts) for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++) { const d = Math.hypot(x - px - ox * N, y - py - oy * N); if (d < f1) { f2 = f1; f1 = d; } else if (d < f2) f2 = d; }
+      const e = Math.max(0, 1 - (f2 - f1) / 7), v = Math.min(255, 40 + 215 * Math.pow(e, 2.2)), o = (y * N + x) * 4; im.data[o] = v; im.data[o + 1] = v; im.data[o + 2] = v; im.data[o + 3] = 255; }
+    g.putImageData(im, 0, 0); const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; return (TEX.caustic = t); }
   class Story {
     constructor(world, o) { this.world = world; this.o = o; this.t = 0; this.frozen = false; this.ch = o.ch || CHAPTERS[1]; this.rc = RECIPES[this.ch.r] || RECIPES.pipe; this.dur = this.rc.dur;
       this.live = !!this.rc.live; /* a line-timed film: the recipe runs on the film clock and stages each line itself */ this.n = o.n ?? 1; this.Q = this.ch.Q || null; this.qte = null; this.qDone = !this.Q; this.li = 0; this.shot = null; this.camCur = null; this.look = new V3();
@@ -4226,7 +4232,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const w = this.w = this.ch.w ?? o.w ?? 0, WS = WORLD_STYLE[w], set = Object.assign({}, this.rc.set || {}, this.ch.set || {}); this.set = set; const dark = this.dark = Math.min(0.92, (set.dark || 0) * 0.8 + [0, 0.22, 0.42][w]);
       this.glow = Math.min(1, 0.1 + (o.n || 1) / 30); this.own = []; this.mats = []; this.clear = []; this.time = 0;
       const S = this.scene = new THREE.Scene(); S.environment = world.scene.environment;
-      const fogC = new THREE.Color().setRGB(...WS.lo).lerp(new THREE.Color().setRGB(...WS.hi), 0.55).multiplyScalar(1 - dark * 0.55); S.background = fogC.clone(); S.fog = new THREE.Fog(fogC, 9 - dark * 3, 46 - dark * 14);
+      const fogC = new THREE.Color().setRGB(...WS.lo).lerp(new THREE.Color().setRGB(...WS.hi), 0.55).multiplyScalar(1 - dark * 0.55); S.background = fogC.clone(); S.fog = new THREE.Fog(fogC, 5.5 - dark * 2, 36 - dark * 12); this.fogC = fogC; /* nearer, softer haze: distance fades into the water */
       this.cam0 = new THREE.PerspectiveCamera(46, 1, 0.08, 220);
       this.hemi = new THREE.HemisphereLight(0xd6f0ff, 0x8a6a3a, (w === 2 ? 0.7 : 1.05) * (1 - dark * 0.7) + 0.08); S.add(this.hemi);
       const key = this.key = new THREE.DirectionalLight(w ? 0xc8d8ff : 0xfff1d8, (w === 2 ? 2.2 : 3.2) * (1 - dark * 0.75) + 0.2); key.position.set(-3, 12, -5); key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.bias = -0.0008; key.shadow.normalBias = 0.03;
@@ -4235,16 +4241,24 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       { const im = PHOTO_W[w] || PHOTO_W[0], tex = new THREE.Texture(im); tex.colorSpace = THREE.SRGBColorSpace; tex.wrapS = THREE.MirroredRepeatWrapping; tex.repeat.set(4, 1); tex.needsUpdate = true; this.own.push(tex);
         const Rr = 40, Hh = Rr * 2 * Math.PI / 4 / 1.78, geo = new THREE.CylinderGeometry(Rr, Rr, Hh, 72, 1, true);
         const mat = this.bgMat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false, color: new THREE.Color(WORLD_TINT[w]).lerp(new THREE.Color(0xffffff), w ? 0.08 : 0).multiplyScalar(1 - dark * 0.85) }); this.mats.push(mat);
+        mat.onBeforeCompile = sh => { sh.uniforms.uFog = { value: fogC }; sh.fragmentShader = 'uniform vec3 uFog;\n' + sh.fragmentShader.replace('#include <dithering_fragment>', '#include <dithering_fragment>\n float hz = 0.42 + 0.3 * smoothstep(0.55, 0.15, vMapUv.y); gl_FragColor.rgb = mix(gl_FragColor.rgb, uFog, hz);'); }; /* the far reef sits back in the haze, more toward the floor */
         const ring = new THREE.Mesh(geo, mat); ring.position.y = Hh * 0.3 + (set.cliff || 0) * 0.6; ring.rotation.y = -Math.PI / 2 - 0.9; S.add(ring); }
       { const t = TEX.sandRef.clone(); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(30, 30); t.needsUpdate = true; this.own.push(t);
         const geo = new THREE.PlaneGeometry(90, 90, 120, 120); geo.rotateX(-Math.PI / 2); const P = geo.attributes.position;
         for (let i = 0; i < P.count; i++) { const x = P.getX(i), z = P.getZ(i); P.setY(i, this.groundY(x, z)); } geo.computeVertexNormals();
-        const tint = [new THREE.Color(1.25, 1.12, 0.9), new THREE.Color(0.75, 0.62, 0.95), new THREE.Color(0.45, 0.6, 0.8)][w].multiplyScalar(1 - dark * 0.55);
-        const mat = new THREE.MeshStandardMaterial({ map: t, color: tint, roughness: 0.95 }); this.mats.push(mat); const sand = new THREE.Mesh(geo, mat); sand.receiveShadow = true; S.add(sand); }
+        const tint = [new THREE.Color(0.66, 0.6, 0.52), new THREE.Color(0.72, 0.62, 0.9), new THREE.Color(0.45, 0.6, 0.8)][w].multiplyScalar(1 - dark * 0.55);
+        const mat = new THREE.MeshStandardMaterial({ map: t, color: tint, roughness: 0.95 }); this.mats.push(mat);
+        mat.onBeforeCompile = sh => { sh.vertexShader = 'varying vec3 vWp;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\n vWp = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+          sh.fragmentShader = 'varying vec3 vWp;\n' + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n { float rp = sin(vWp.x * 2.3 + sin(vWp.z * 0.7) * 1.6) * 0.5 + 0.5; diffuseColor.rgb *= 0.9 + 0.16 * rp; float far = smoothstep(4.0, 22.0, length(vWp.xz - cameraPosition.xz)); diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(0.72, 0.86, 0.98), far); }'); }; /* soft ripple bands; cooler toward the distance */
+        const sand = new THREE.Mesh(geo, mat); sand.receiveShadow = true; S.add(sand); }
       { const sm = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, uniforms: { uT: { value: 0 }, uK: { value: 0.16 * (1 - dark * 0.7) } },
           vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
           fragmentShader: 'uniform float uT, uK; varying vec2 vUv; void main(){ float a = pow(max(0.0, sin(vUv.x * 3.14159)), 2.0) * smoothstep(0.0, 0.8, vUv.y) * (0.75 + 0.25 * sin(uT * 0.6 + vUv.x * 4.0)); gl_FragColor = vec4(vec3(1.0, 0.97, 0.85) * a * uK, a * uK); }' });
-        this.shaftMat = sm; this.mats.push(sm); for (let i = 0; i < 9; i++) { const m = new THREE.Mesh(new THREE.PlaneGeometry(1.2 + (i % 3) * 0.9, 26), sm); m.position.set(-10 + i * 3.1, 11, -9 - (i % 4) * 3); m.rotation.z = 0.32 - (i % 3) * 0.06; S.add(m); } }
+        sm.uniforms.uK.value *= 1.7; this.shaftMat = sm; this.mats.push(sm); for (let i = 0; i < 9; i++) { const m = new THREE.Mesh(new THREE.PlaneGeometry(1.2 + (i % 3) * 0.9, 26), sm); m.position.set(-10 + i * 3.1, 11, -9 - (i % 4) * 3); m.rotation.z = 0.32 - (i % 3) * 0.06; S.add(m); } }
+      { const cl = this.caus = new THREE.SpotLight(w === 2 ? 0x9fd8ff : 0xcff4ff, (w === 2 ? 50 : 95) * (1 - dark * 0.6), 40, 0.8, 0.3, 1.0); cl.map = causticTex(); cl.castShadow = false; cl.position.set(0, 14, 2); cl.target.position.set(0, 0, -1); S.add(cl, cl.target); } /* dancing light on everything below */
+      { const n = 420, pos = new Float32Array(n * 3), sp = []; for (let i = 0; i < n; i++) { pos[i * 3] = (Math.random() - 0.5) * 16; pos[i * 3 + 1] = Math.random() * 7; pos[i * 3 + 2] = (Math.random() - 0.5) * 16; sp.push(0.05 + Math.random() * 0.1); }
+        const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.BufferAttribute(pos, 3)); const pm = new THREE.PointsMaterial({ map: TEX.dot, color: w === 2 ? 0x9fe8ff : 0xe8f8ff, size: 0.06, transparent: true, opacity: 0.55 * (1 - dark * 0.3), depthWrite: false, sizeAttenuation: true, blending: THREE.AdditiveBlending });
+        this.mats.push(pm); this.snow = new THREE.Points(gg, pm); this.snow.frustumCulled = false; this.snowSp = sp; S.add(this.snow); } /* marine snow drifting in the water around the lens */
       this.hold = new THREE.Group(); S.add(this.hold); this.diver = this.ch.r === 'prologue' && window.AQ_KEEPER ? makeKeeper() : makeDiver(); /* the prologue's hero is the Reef Keeper */ this.hold.add(this.diver); this.u = this.diver.userData; this.diver.traverse(c => { if (c.isMesh) c.castShadow = true; });
       if (this.u.glb) { const bones = this.u.glb.mesh.skeleton.bones, B = n => bones.find(b => b.name === n); this.armR = [B('RightArm'), B('RightForeArm'), B('RightHand')]; this.armL = [B('LeftArm'), B('LeftForeArm'), B('LeftHand')]; }
       this.parts = new Particles(S, 500); this.bubT = 0;
@@ -4417,7 +4431,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     update(dt) { if (this.run && this.qte) { const r = this.run.update(Math.min(dt, 0.05)); if (r) this.qteEnd(r === 'ok'); return; } // a playable action scene: the film waits
       const sl = this.qte ? (this.qte.kind === 'simon' ? 0 : 0.15) : 1; if (!this.frozen) { this.t += dt * sl; this.time += dt * sl; } const t = this.t;
       if (this._tb) { const b = this._tb; b.o.position.y -= b.dy; b.o.rotation.z -= b.rz; b.o.rotation.y -= b.ry; this._tb = null; }
-      if (this._lt) { for (const b of this._lt) { b.o.rotation.y -= b.ry; b.o.position.y -= b.dy; } this._lt = null; }
+      if (this._lt) { for (const b of this._lt) { b.o.rotation.y -= b.ry; b.o.position.y -= b.dy; b.o.rotation.z -= b.rz || 0; } this._lt = null; }
       if (this.qte && !this.frozen) { const q = this.qte; q.el += dt; q.r = Math.min(this.dur, q.r + dt * 0.22); if (q.kind === 'hold') { q.prog = Math.max(0, Math.min(1, q.prog + (q.down ? dt / 1.3 : -dt * 0.3))); if (this.o.onQte) this.o.onQte(this.Q, 'prog', q.prog); if (q.prog >= 1) this.qteEnd(true); } if (this.qte && q.kind !== 'simon' && q.el > (q.kind === 'choice' ? 9 : 6.5)) this.qteEnd(false); }
       if (!this.frozen && !this.qDone && !this.qte && t >= this.qAt) this.qteStart();
       const st = this.rc.run(this, this.c, this.rtAt(this.t)) || {}; this.st = st; this.companions();
@@ -4438,11 +4452,18 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         { const q = l.who && this.castOf(l.who); if (q && q.o.userData && q.o.userData.setMood) q.o.userData.setMood(l.mood); } this.shot = { who: l.who, to: this.addressee(this.li), l, i: this.li }; this.li++; this.capI = this.li; }
       this.stage(dt); this.smoothTurns(dt); this.shotCam(dt); this.voiceEyes(dt);
       if (!this.probe) { const cam = this.cam0, cq = cam.position, lk = this.rig ? this.rig.look : this.look, LD = cq.distanceTo(lk), v = new V3(); cam.updateMatrixWorld(); cam.matrixWorldInverse.copy(cam.matrixWorld).invert();
+        const faces = [], pr = (B) => { let a = 1, b = -1, c = 1, e = -1, ok = 0; for (let k = 0; k < 8; k++) { v.set(k & 1 ? B.max.x : B.min.x, k & 2 ? B.max.y : B.min.y, k & 4 ? B.max.z : B.min.z).project(cam); if (v.z < 1) { ok++; a = Math.min(a, v.x); b = Math.max(b, v.x); c = Math.min(c, v.y); e = Math.max(e, v.y); } } return ok ? [a, b, c, e] : null; };
+        for (const w of ['you', 'pip', 'shelly', 'clack', 'murk', 'lumen', 'mira', 'cousin']) { const q = this.castOf(w); if (!q) continue; const B = w === 'you' ? new THREE.Box3().setFromCenterAndSize(this.hold.position.clone().add(new V3(0, 0.28, 0)), new V3(0.7, 0.62, 0.7)) : new THREE.Box3().setFromObject(q.o.userData.cast || q.o); if (w !== 'you') B.min.y += (B.max.y - B.min.y) * 0.45; /* (the diver's box from his helpers is far too big) */ const R = pr(B); if (R) faces.push({ r: R, d: B.distanceToPoint(cq) + 0.01 }); } /* the upper part of each body on screen */
+        const fmax = faces.reduce((m, f) => Math.max(m, f.d + 4.5), 0);
         for (const sp of this.decor) { if (sp.userData.lensHide === undefined && !sp.visible) continue; if (sp.userData.keepHidden) continue; if (!sp.userData.bb) sp.userData.bb = new THREE.Box3().setFromObject(sp); const B = sp.userData.bb;
-          let near = false; if (B.distanceToPoint(cq) < LD - 0.5) { let x0 = 1, x1 = -1, y0 = 1, y1 = -1, front = 0; for (let k = 0; k < 8; k++) { v.set(k & 1 ? B.max.x : B.min.x, k & 2 ? B.max.y : B.min.y, k & 4 ? B.max.z : B.min.z).project(cam); if (v.z < 1) { front++; x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y); } }
-            if (front) { const w = Math.max(0, Math.min(1, x1) - Math.max(-1, x0)), h = Math.max(0, Math.min(1, y1) - Math.max(-1, y0)); near = w * h / 4 > (sp.userData.lensHide ? 0.14 : 0.2); } }
+          let near = false; const bd = B.distanceToPoint(cq); if (bd < Math.max(LD - 0.5, fmax)) { let x0 = 1, x1 = -1, y0 = 1, y1 = -1, front = 0; for (let k = 0; k < 8; k++) { v.set(k & 1 ? B.max.x : B.min.x, k & 2 ? B.max.y : B.min.y, k & 4 ? B.max.z : B.min.z).project(cam); if (v.z < 1) { front++; x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y); } }
+            if (front) { const w = Math.max(0, Math.min(1, x1) - Math.max(-1, x0)), h = Math.max(0, Math.min(1, y1) - Math.max(-1, y0)); near = bd < LD - 0.5 && w * h / 4 > (sp.userData.lensHide ? 0.14 : 0.2);
+              if (!near) { const pad = sp.userData.lensHide ? 0.04 : 0; for (const fp of faces) { const [a, b, c, e] = fp.r, ix = Math.min(b, x1 + pad) - Math.max(a, x0 - pad), iy = Math.min(e, y1 + pad) - Math.max(c, y0 - pad); if (ix > 0 && iy > 0 && ix * iy > 0.12 * Math.min((b - a) * (e - c), (x1 - x0) * (y1 - y0)) && bd < fp.d + 4.5) { near = true; break; } } } } } /* never in front of a face, or growing out of one just behind it */
           sp.userData.lensHide = near; const u = sp.userData; u.fadeK = Math.max(0, Math.min(1, (u.fadeK ?? 1) + (near ? -dt : dt) * 3.5)); if (u.fadeK < 1 && !u.ownMat) { sp.material = sp.material.clone(); u.ownMat = 1; this.mats.push(sp.material); } if (u.ownMat) sp.material.opacity = u.fadeK; sp.visible = u.fadeK > 0.02; } } /* a sprite nearer than the subject that would fill a fifth of the screen fades out (no popping) */
       this.shaftMat.uniforms.uT.value = this.world.time;
+      if (this.caus) { const tt = this.world.time, c0 = this.cam0.position; this.caus.position.set(c0.x + Math.sin(tt * 0.21) * 1.2, 14, c0.z - 2 + Math.cos(tt * 0.17) * 1.2); this.caus.target.position.set(c0.x + Math.sin(tt * 0.13) * 0.8, 0, c0.z - 5); if (this.caus.map) { this.caus.map.rotation = tt * 0.05; this.caus.map.offset.set(Math.sin(tt * 0.11) * 0.2, tt * 0.015); } }
+      if (this.snow) { const P = this.snow.geometry.attributes.position, c0 = this.cam0.position, tt = this.world.time; for (let i = 0; i < P.count; i++) { let x = P.getX(i), y = P.getY(i) - this.snowSp[i] * dt * 0.4, z = P.getZ(i); x += Math.sin(tt * 0.5 + i) * dt * 0.04;
+          if (x - c0.x > 8) x -= 16; else if (x - c0.x < -8) x += 16; if (z - c0.z > 8) z -= 16; else if (z - c0.z < -8) z += 16; if (y < c0.y - 3) y += 7; else if (y > c0.y + 4) y -= 7; P.setXYZ(i, x, y, z); } P.needsUpdate = true; }
       if (this.kelp) this.kelp.forEach(k => { k.rotation.z = Math.sin(this.world.time * 0.9 + k.userData.sw) * 0.06; });
       for (const f of this.fish) { const F = f.userData.f; F.x += F.v * dt; if (F.x > 14) F.x = -14; if (F.x < -14) F.x = 14; f.position.set(F.x, F.y + Math.sin(this.world.time * 1.3 + F.ph) * 0.15, F.z); f.scale.x = F.v > 0 ? -1 : 1; }
       this.bubT -= dt; if (this.bubT <= 0 && !this.frozen) { this.bubT = 0.14; const p = this.hold.position; this.parts.bubbles(p.x - 0.1, p.y + 0.85, p.z, 1, 0.04 + Math.random() * 0.04, 0.12); }
@@ -4481,8 +4502,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         R.cdir = R.look.clone().sub(R.pos).normalize(); } /* the film's own moves: a straight glide (the aim can travel far) */
 
       { const gy = this.groundY(R.pos.x, R.pos.z) + 0.25; if (R.pos.y < gy - 0.02) (this._dbg || (this._dbg = [])).push(['ground', +t.toFixed(2)]); if (R.pos.y < gy) R.pos.y = gy; }
-      if (this.insideCast(R.pos)) { (this._dbg || (this._dbg = [])).push(['push', +t.toFixed(2)]); const out = this.outOf(R.pos), k = 1 - Math.exp(-dt * 9); R.pos.lerp(out, k); if (R.vp) R.vp.multiplyScalar(0.85); const o = sph(R.pos, R.look); R.az = o.az; R.el = o.el; R.r = o.r; } /* a lens that drifts into a body eases out of it (it used to jump) */
-      this._bp = bp; c.position.copy(R.pos); c.up.set(0, 1, 0); c.lookAt(R.look); if (this.camRoll && !want) c.rotateZ(this.camRoll); if (Math.abs(c.fov - R.fov) > 0.01) { c.fov = R.fov; c.updateProjectionMatrix(); }
+      { const want = this.outOf(R.pos).sub(R.pos), k = 1 - Math.exp(-dt * 5); R.push = (R.push || new V3()).lerp(want, k); } /* the guard is an eased offset on top of the glide: it never feeds back into it (that made the lens shake at a body's edge) */
+      this._bp = bp; c.position.copy(R.pos).add(R.push); c.up.set(0, 1, 0); c.lookAt(R.look); if (this.camRoll && !want) c.rotateZ(this.camRoll); if (Math.abs(c.fov - R.fov) > 0.01) { c.fov = R.fov; c.updateProjectionMatrix(); }
       if (this.qte && this.qte.kind !== 'choice' && this.qte.kind !== 'simon' && !REDUCED_MOTION) { const k = 0.006 + 0.01 * this.qte.prog; c.position.x += (Math.random() - 0.5) * k; c.position.y += (Math.random() - 0.5) * k; }
       // the speaker talks: a little bob and sway (Grimtide's jaw works instead)
       if (this._mouth) { this._mouth.visible = false; this._mouth = null; } if (this._jaw) { this._jaw.rotation.z = -0.15; this._jaw = null; } if (this._talk) { this._talk.talk(0); this._talk = null; }
@@ -4549,7 +4570,17 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           if (o !== spk.o && sh.l.mood === 'happy' && tl < 0.7 && k !== 'you') dy = q.s * 0.05 * Math.sin(tl / 0.7 * Math.PI); }
         if (o.userData && o.userData.setMood && (!spk || o !== spk.o)) { const lm = spk && tl > 0.35 ? sh.l.mood : ''; if (o.userData._lm !== lm) { o.userData._lm = lm; o.userData.setMood(lm === 'angry' ? 'wide' : lm); } }
         let cur = F.get(o) || 0; cur += (goal - cur) * (1 - Math.exp(-dt * 2.6)); F.set(o, cur);
-        if (Math.abs(cur) > 1e-4 || dy) { o.rotation.y += cur; o.position.y += dy; out.push({ o, ry: cur, dy }); } } }
+        // business: someone not in the line (or idle in a quiet moment) glances at another character or the lens, tilts their head,
+        // does a little hop or shuffle, every few seconds. Small, eased, never while they travel.
+        let rz = 0; { const IB = this._ib || (this._ib = new Map()); let b = IB.get(o); const busy = (spk && o === spk.o) || (adr && o === adr.o) || v > 0.35 || this.qte || this.frozen;
+          if (!b) { b = { t: 0.6 + Math.random() * 2.5, k: null, el: 0, d: 1, a: 0, tg: null }; IB.set(o, b); }
+          if (b.k) { b.el += dt; const u = b.el / b.d, env = Math.sin(Math.min(1, u) * Math.PI); if (u >= 1 || busy) { b.k = null; b.t = (k === 'you' ? 3.5 : 2.2) + Math.random() * 3.5; }
+            else if (b.k === 'glance' && b.tg) { const d = b.tg.clone().sub(p); d.y = 0; if (d.lengthSq() > 1e-4) { const a = Math.atan2(q.fw.z, q.fw.x) - Math.atan2(d.z, d.x); goal += Math.max(-0.9, Math.min(0.9, Math.atan2(Math.sin(a), Math.cos(a)))) * 0.8 * Math.min(1, u * 4) * Math.min(1, (1 - u) * 4); } }
+            else if (b.k === 'tilt') rz += b.a * 0.22 * env; else if (b.k === 'hop') dy += q.s * 0.09 * Math.abs(Math.sin(u * Math.PI * 2)) * (u < 1 ? 1 : 0); else if (b.k === 'shuffle') goal += Math.sin(u * Math.PI * 3) * 0.25 * env; }
+          else if (!busy && k !== 'you' && (b.t -= dt) <= 0) { const others = ['you', 'pip', 'shelly', 'clack', 'murk', 'lumen', 'mira', 'cousin'].map(w => this.castOf(w)).filter(z => z && z.o !== o && z.p.distanceTo(p) < 8);
+            const r = Math.random(), small = q.s < 1.2; b.k = r < 0.5 && others.length ? 'glance' : r < 0.62 ? 'glance' : r < 0.8 ? 'tilt' : small ? 'hop' : 'shuffle'; b.el = 0; b.d = b.k === 'glance' ? 1.4 + Math.random() : b.k === 'hop' ? 0.7 : 1.1; b.a = Math.random() < 0.5 ? -1 : 1;
+            b.tg = b.k === 'glance' ? (r < 0.5 && others.length ? others[Math.floor(Math.random() * others.length)].p.clone() : cam.clone()) : null; } }
+        if (Math.abs(cur) > 1e-4 || dy || rz) { o.rotation.y += cur; o.position.y += dy; o.rotation.z += rz; out.push({ o, ry: cur, dy, rz }); } } }
     // (old) the cast who aren't speaking look toward the one who is; replaced by stage()
     listen(sh, spk) { const sp = spk.o.getWorldPosition(new V3()), t = this.t - sh.l.t0, out = this._lt = [];
       for (const k of ['pip', 'shelly', 'clack', 'murk', 'lumen', 'mira', 'cousin', 'snip', 'snap']) { if (k === sh.who) continue; const q = this.castOf(k); if (!q || q.o === spk.o) continue;
