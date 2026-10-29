@@ -4389,9 +4389,10 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     const add = (t, i, dx, dy) => { T[t][i * 3] += dx; T[t][i * 3 + 1] += dy; };
     if (F.m) { const mx = X(F.m[0]), my = Y(F.m[1]), hw = F.m[2] * k, hh = F.m[3] * k;
       pick(mx, my, hw * 1.3, hh * 1.9 + hw * 0.1, (i, dx, dy, w) => { if (!F.shut) add(0, i, 0, -dy * 0.88 * w); /* close: lips meet on the centre line */
-        const c = Math.min(1, (dx / hw) * (dx / hw)), amp = Math.max(hh * 1.2, hw * 0.3); add(1, i, 0, c * amp * w + (F.shut ? 0 : -dy * 0.35 * w)); add(2, i, 0, -c * amp * w + (F.shut ? 0 : -dy * 0.35 * w)); if (!F.shut) add(3, i, dx * 0.08 * w, dy * 0.55 * w); }); }
+        const c = Math.min(1, (dx / hw) * (dx / hw)), amp = Math.max(hh * 2.6, hw * 0.55); add(1, i, 0, c * amp * w + (F.shut ? 0 : -dy * 0.35 * w)); add(2, i, 0, -c * amp * w + (F.shut ? 0 : -dy * 0.35 * w)); if (!F.shut) add(3, i, dx * 0.08 * w, dy * 0.55 * w); }); }
     const eyes = []; for (const [ex, ey, er] of F.e || []) { const X0 = X(ex), Y0 = Y(ey), r = er * k; let zf = -1e9;
       pick(X0, Y0, r * 1.2, r * 1.25, (i, dx, dy, w) => { add(3, i, dx * 0.12 * w, dy * 0.12 * w); if (dy > 0) add(5, i, 0, -dy * 0.3 * w); if (Math.hypot(dx, dy) < r * 0.5) zf = Math.max(zf, P.getZ(i)); });
+      pick(X0, Y0 + r * 1.55, r * 1.45, r * 0.75, (i, dx, dy, w) => { const inner = (X0 > cx ? -dx : dx) / r; add(4, i, 0, r * (0.32 + 0.12 * inner) * w); }); /* brow: the skin above the eye lifts (more on the inner side); negative = frown */
       eyes.push([X0, Y0, r, zf > -1e8 ? zf : bb.max.z]); }
     g.morphAttributes.position = T.map(a => new THREE.BufferAttribute(a, 3)); g.morphTargetsRelative = true; g.userData.face = { rest: F.shut ? 0 : F.rest ?? 0.85, mouth: !!F.m, shut: !!F.shut, eyes, lid: SKIN_LID[key] || 0xcccccc }; }
   // eyelids: a skin-coloured cap per eye on a pivot at the top of the eye; it grows down over the eye to blink (and half-way for sad/angry)
@@ -4406,8 +4407,10 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const ease = (i, v, r = 10) => { I[i] += (v - I[i]) * Math.min(1, dt * r); }, md = f.mood || '';
       const talk = f.talk || 0, chomp = f.chomp ? Math.max(0, Math.sin(performance.now() / 1000 * f.chomp)) : 0;
       if (f.mouth) I[0] = f.shut ? 0 : Math.max(0, f.rest - talk * 0.95 - chomp * f.rest);
-      ease(1, md === 'happy' ? 1 : 0, 6); ease(2, md === 'sad' ? 1 : 0, 6); ease(3, md === 'wide' ? 0.8 : 0, 8); ease(5, md === 'angry' ? 1 : 0, 6);
-      I[4] = 0; if (f.lids) { const base = md === 'sad' ? 0.32 : md === 'angry' ? 0.38 : md === 'happy' ? 0.12 : 0; f.lidK = (f.lidK ?? 0) + (base - (f.lidK ?? 0)) * Math.min(1, dt * 8);
+      const E = { happy: [1, 0, 0.1, 0.35, 0.35], sad: [0, 1, 0, 0.7, 0], wide: [0, 0, 0.95, 1, 0], angry: [0, 0.45, 0, -0.9, 1], '': [0.12, 0, 0, 0, 0] }[md] || [0.12, 0, 0, 0, 0];
+      const br = E[3] + (f.talk || 0) * 0.25 * Math.sin(performance.now() / 260); /* brows move a little as they speak */
+      ease(1, E[0], 5); ease(2, E[1], 5); ease(3, E[2], 7); ease(4, br, 6); ease(5, E[4], 5);
+      if (f.lids) { const base = md === 'sad' ? 0.36 : md === 'angry' ? 0.42 : md === 'happy' ? 0.22 : 0; f.lidK = (f.lidK ?? 0) + (base - (f.lidK ?? 0)) * Math.min(1, dt * 8);
         const v = f.blink > 0 ? Math.max(f.lidK, Math.sin((1 - f.blink / 0.16) * Math.PI)) : f.lidK; for (const pv of f.lids) { pv.visible = v > 0.02; pv.scale.y = Math.max(0.001, v); } } } }
   const castOK = key => !!(window.AQ_CAST && window.AQ_CAST[key]);
   function castGeo(key) { if (!castOK(key)) return null; if (GEO['cast_' + key]) return { g: GEO['cast_' + key], tex: TEX['cast_' + key] }; const C = window.AQ_CAST[key];
@@ -5349,7 +5352,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       let p = D.clone(); if (ride > 0) { p = D.clone().lerp(tp.clone().setY(tp.y + top), ride); p.y += Math.sin(ride * Math.PI) * 0.55; }
       const f = ride > 0.5 ? tf : new V3().subVectors(tp, D).setY(0).normalize(); S.dv(p, f);
       // camera: the director does the conversation; the opening watches her glide in, the ending tracks the ride side-on
-      const side = new V3(-toV.z, 0, toV.x); let cp = new V3(-2.6, 1.15, 3.6), cl = new V3(1.4, 0.85, 0.1);
+      const side = new V3(-toV.z, 0, toV.x); let cp = new V3(-3.4, 1.5, 5.6), cl = new V3(0.6, 1.0, 0.2);
       if (fly > 0) { const k = sm01(fly / 2.4); cp = S.arc(tp, cp, tp.clone().addScaledVector(side, -4.8).addScaledVector(toV, 0.6).setY(tp.y + 1.2), k); cl = cl.lerp(tp.clone().addScaledVector(toV, 1.2).setY(tp.y + 0.5), k); }
       S.cam(cp, cl);
       return { mode: 'stand', arms: ride > 0.9 ? 'grip' : t < 1.8 ? 'wave' : null, armK: ride > 0.9 ? 1 : sm01((t - 0.6) / 0.4) * (1 - sm01((t - 1.6) / 0.3)), face: f }; } };
@@ -5680,7 +5683,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       c.pip = S.add(makePip(0xffc23a, 1)); c.pipL = new THREE.PointLight(0xffc860, 2.4, 3.5, 1.6); c.pip.add(c.pipL);
       c.crabs = [0, 1, 2].map(() => { const cr = S.add(makeCrab()); cr.scale.setScalar(0.9); cr.traverse(o => { if (o.isMesh && o.material && o.material.color) { o.material = o.material.clone(); o.material.color.multiplyScalar(0.5); S.mats.push(o.material); } }); const pe = makeBall(true); pe.scale.setScalar(0.4); pe.position.y = 0.34; cr.add(pe); const gl = glowSpr(0xff8a5a, 0.9, 0.6); gl.position.y = 0.34; cr.add(gl); cr.userData.gl = gl; return cr; });
       c.js = [0, 1, 2, 3, 4].map(i => { const j = S.add(makeJelly()); j.scale.setScalar(0.7); const gl = glowSpr([0xff9ae0, 0x9ae8ff, 0xfff09a, 0xb8ff9a, 0xffb0ff][i], 1.3, 0.6); j.add(gl); j.userData.gl = gl; return j; });
-      c.eel = S.add(makeEel(42, 2.1)); c.eel.visible = false;
+      c.eel = S.add(makeEel(34, 1.6)); c.eel.visible = false;
       // the festival: drifting lights of every colour, and glowing coral on the sand
       let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647; c.motes = [];
       for (let i = 0; i < 64; i++) { const col = [0xffc25a, 0xff7ad0, 0x6ae6ff, 0xb48aff, 0xffe08a][i % 5], sz = 0.45 + rnd() * 0.6, m = glowSpr(col, sz, 0.5), core = glowSpr(0xfff6e0, sz * 0.28, 1); m.add(core); core.scale.setScalar(0.28); S.scene.add(m);
@@ -5705,7 +5708,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       H.lerp(new V3(0.8, 14.4, -19.0), drink * 0.85); if (t > a4 - 0.3) H.lerp(new V3(2.4, 13.6, -19), sm01((t - a4 + 0.3) / 1.2) * (1 - recoil));
       if (recoil > 0) H.lerp(new V3(1.0, 18.5, -27), recoil * (1 - sink)); if (sink > 0) H.lerp(new V3(0.5, -16, -32), sink);
       c.eel.visible = t > a2 - 1.7 && sink < 0.995;
-      if (c.eel.visible) { const E = c.eel.userData; if (E.grim && E.grim.material.fog) { E.grim.material.fog = false; E.grim.material.needsUpdate = true; } E.pose((u, tt) => new V3(H.x + Math.sin(u * 6 - tt * 0.8) * 1.6 * u + 0.6 * u, H.y + 5 * (1 - Math.exp(-u * 9)) - 44 * Math.pow(Math.max(0, u - 0.2), 1.3), H.z - u * 17 - Math.cos(u * 4 - tt * 0.6) * 1.1 * u), tm);
+      if (c.eel.visible) { const E = c.eel.userData; if (E.grim && E.grim.material.fog) { E.grim.material.fog = false; E.grim.material.needsUpdate = true; } E.pose((u, tt) => { const n = Math.min(1, u / 0.24), b = Math.max(0, u - 0.24), lat = Math.sin(b * 8 - tt * 0.7) * 2.4 * Math.min(1, b * 5); /* a raised, arched neck, then the body sinks away behind him in slow S-waves */
+          return new V3(H.x + 4.6 * n + b * 16, H.y - 5.2 * n * n * (3 - 2 * n) - 9 * sm01(b / 0.4) - 5 * b + Math.sin(n * 3 + tt * 0.6) * 0.3 * n, H.z - 1.5 * n - b * 12 + lat); }, tm); /* head over the Lantern, the neck arching up from the right, the body curving away into the abyss */
         E.jaw.rotation.x = 0.2 + 0.5 * drink * (1 - recoil) + 0.55 * recoil * (1 - sink) + 0.08 * Math.sin(tm * 1.7); E.setGlow(0.25 + 0.9 * eyesOn + 0.7 * drink); E.eyes.forEach(e => { e.material.opacity = 0.95 * eyesOn * (1 - sink); }); }
       if (t > a2 - 0.6) S.fx('rise', 'roar'); if (t > a5 + 0.95) S.fx('recoil', 'roar');
       const mouth = c.eel.visible ? c.eel.userData.head.getWorldPosition(new V3()) : new V3(1, 14, -20);
@@ -6238,7 +6242,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     companions() { if (!this.comp || !this.comp.length) return; const f = this.face || new V3(1, 0, 0), up = new V3(0, 1, 0), r = new V3().crossVectors(f, up).normalize(), h = this.hold.position, tm = this.time;
       const sp = this.shot && this.t < this.shot.l.t1 ? this.shot.who : '', cam = this.cam0.position;
       for (const k of this.comp) { const o = k === 'shelly' ? this.c.tu : this.c[k]; if (!o) continue; let d = new V3().subVectors(cam, o.position).setY(0).normalize(), talking = sp === k;
-        if (k === 'pip') { o.position.copy(h).addScaledVector(r, 0.66).addScaledVector(f, 0.12); o.position.y += 0.72 + Math.sin(tm * 2.2) * 0.05; const g = talking ? d.applyAxisAngle(up, -0.6) : f; o.rotation.set(0, Math.atan2(-g.z, g.x), 0); if (o.userData.tick) o.userData.tick(tm); }
+        if (k === 'pip') { const away = cam.clone().sub(h).dot(r) > 0 ? -1 : 1; this._pipSide = (this._pipSide ?? away) + (away - (this._pipSide ?? away)) * 0.04; /* the shoulder away from the lens, eased */ o.position.copy(h).addScaledVector(r, 0.66 * this._pipSide).addScaledVector(f, 0.12); o.position.y += 0.72 + Math.sin(tm * 2.2) * 0.05; const g = talking ? d.applyAxisAngle(up, -0.6) : f; o.rotation.set(0, Math.atan2(-g.z, g.x), 0); if (o.userData.tick) o.userData.tick(tm); }
         else if (k === 'lumen') { o.position.copy(h).addScaledVector(r, -0.95).addScaledVector(f, -0.15); o.position.y += 1.15 + Math.sin(tm * 1.7) * 0.08; const g = talking ? d.applyAxisAngle(up, 0.5) : f; o.rotation.set(0, Math.atan2(-g.z, g.x), 0); if (o.userData.tail) o.userData.tail.rotation.y = Math.sin(tm * 6) * 0.4; }
         else if (k === 'shelly') { o.position.copy(h).addScaledVector(r, -1.7).addScaledVector(f, -0.5); o.position.y = Math.max(h.y, 0.5) + 0.35 + Math.sin(tm * 1.1) * 0.06; const g = talking ? d : f; o.rotation.set(0, Math.atan2(-g.z, g.x), 0); if (o.userData.tick) o.userData.tick(tm, 0.6); }
         else if (k === 'clack') { const x = h.x + r.x * 0.75 + f.x * 0.4, z = h.z + r.z * 0.75 + f.z * 0.4; const gy = this.groundY(x, z); o.position.set(x, (h.y < gy - 0.3 ? h.y + 0.1 : gy + 0.22) + Math.abs(Math.sin(tm * 6)) * 0.02, z); /* falls with the diver off a cliff */ const g = talking ? d : f; o.rotation.set(0, Math.atan2(g.x, g.z), 0); } } }
@@ -6339,6 +6343,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (this.n === 30 && this.c.clack && !this.probe) this.c.clack.visible = this.seq.slice(0, this.li).some(l => l.who === 'clack'); /* his comeback is a surprise */ if (this.simon && this.qte) this.simonTick(dt);
       if (this.u.glb && !this.frozen) { const hp = this.hold.getWorldPosition(new V3()), sp = this._hp ? hp.distanceTo(this._hp) / Math.max(1e-3, dt) : 0; this._hp = hp; this.spd = this.spd === undefined ? sp : this.spd + (sp - this.spd) * Math.min(1, dt * 5);
         let m = st.mode || 'stand'; if ((m === 'walk' || m === 'swim') && this.spd < 0.14 && !st.keep) m = m === 'walk' ? 'stand' : 'float'; /* the legs only move when the body does */
+        if (m === 'swim' && !st.flat && hp.y - this.groundY(hp.x, hp.z) < 1.1) m = 'float'; /* the flat swim stroke only well above the sand */
         const sw = m === 'swim' || m === 'walk' ? 1 : 0, fl = m === 'walk' || m === 'stand' ? 1 : 0, A = this.u.glb.act;
         glbDrive(this.u, dt, { reach: 0, push: 0, dig: 0, swim: sw, floor: fl, speed: 0, pushing: false }); /* strides keep pace with how fast the body really travels */
         if (m === 'walk') A.walk.timeScale = Math.max(0.4, Math.min(2.4, this.spd / 0.75)); if (m === 'swim') A.swim.timeScale = Math.max(0.55, Math.min(2.2, this.spd / 0.95)); this.arms(st); }
@@ -6416,13 +6421,13 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     // a two-shot (speaker a + listener b) or a single (b = null). pk = {sd: side of the pair, th: how far round behind the listener}
     frame(a, b, sh, pk, prog, base) { const asp = this.cam0.aspect || 1.6, fov = this.port ? 50 : 36, tv = Math.tan(fov * Math.PI / 360), th_ = tv * asp; let look, dir, dist;
       if (b && b.o !== a.o) { const ab = b.p.clone().sub(a.p); ab.y = 0; let L = ab.length(); if (L < 0.2) { ab.set(1, 0, 0); L = 0.2; } ab.divideScalar(L);
-        if (L > 7.5) return this.frame(a, null, sh, pk, prog, base);
+        if (L > 7.5 || L < 1.3) return this.frame(a, null, sh, pk, prog, base); /* too far apart, or side by side (Pip on a shoulder): a single on the speaker */
         const flip = (sh.who || '') > (sh.to || '') ? -1 : 1, n = new V3(ab.z, 0, -ab.x).multiplyScalar(pk.sd * flip);
         dir = pk.dir ? pk.dir.clone() : n.multiplyScalar(Math.cos(pk.th)).addScaledVector(ab, Math.sin(pk.th)).normalize(); look = a.p.clone().lerp(b.p, 0.42);
-        const big = Math.max(a.s, b.s), side_ = Math.abs(dir.x * ab.z - dir.z * ab.x), half = (L * side_ * 0.5 + big * 0.75) * 1.25; dist = Math.max(half / th_, (Math.abs(a.p.y - b.p.y) * 0.5 + big * 0.62) / tv, 1.6);
-        for (const q of [a, b]) { const along = q.p.clone().sub(look).dot(dir); dist = Math.max(dist, along + q.s * 2.4); } } /* the nearer one is never cut off by the lens */
+        const big = Math.max(a.s, b.s), side_ = Math.abs(dir.x * ab.z - dir.z * ab.x), half = (L * side_ * 0.5 + big * 0.85) * 1.45; dist = Math.max(half / th_, (Math.abs(a.p.y - b.p.y) * 0.5 + big * 0.62) / tv, 1.6);
+        for (const q of [a, b]) { const along = q.p.clone().sub(look).dot(dir); dist = Math.max(dist, along + q.s * 3.0); } } /* the nearer one is never cut off by the lens */
       else { const d = base.clone().sub(a.p); d.y = 0; if (d.lengthSq() < 1e-4) d.copy(a.fw.lengthSq() ? a.fw : new V3(0, 0, 1)); d.normalize(); const an = pk.sd * pk.th * 0.6, ca = Math.cos(an), sa = Math.sin(an);
-        dir = new V3(d.x * ca - d.z * sa, 0, d.x * sa + d.z * ca); look = a.p.clone(); dist = Math.max(1.3, (a.s * 1.15) / tv + 0.3); }
+        dir = new V3(d.x * ca - d.z * sa, 0, d.x * sa + d.z * ca); look = a.p.clone(); dist = Math.max(2.2, (a.s * 1.6) / tv + 0.6); }
       dist *= 1 - 0.06 * sm01(prog); const pos = look.clone().addScaledVector(dir, dist); pos.y = look.y + 0.12 + dist * 0.09; const gy = this.groundY(pos.x, pos.z) + 0.3; if (pos.y < gy) pos.y = gy;
       look.y -= dist * 0.02; return { pos, look, fov }; }
     // choose the side and angle once per line (re-checked twice a second): both faces clear of rocks/plants, the lens outside every body
@@ -6443,6 +6448,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           if (tgt) { const d = tgt.clone().sub(p); d.y = 0; const dc = cam.clone().sub(p); dc.y = 0;
             if (d.lengthSq() > 1e-4) { d.normalize(); if (dc.lengthSq() > 1e-4) d.lerp(dc.normalize(), 0.42).normalize(); /* face each other, cheated open to the lens */ const a = Math.atan2(q.fw.z, q.fw.x) - Math.atan2(d.z, d.x); goal = Math.atan2(Math.sin(a), Math.cos(a)); } }
           if (o !== spk.o && sh.l.mood === 'happy' && tl < 0.7 && k !== 'you') dy = q.s * 0.05 * Math.sin(tl / 0.7 * Math.PI); }
+        if (o.userData && o.userData.setMood && (!spk || o !== spk.o)) { const lm = spk && tl > 0.35 ? sh.l.mood : ''; if (o.userData._lm !== lm) { o.userData._lm = lm; o.userData.setMood(lm === 'angry' ? 'wide' : lm); } }
         let cur = F.get(o) || 0; cur += (goal - cur) * (1 - Math.exp(-dt * 2.6)); F.set(o, cur);
         if (Math.abs(cur) > 1e-4 || dy) { o.rotation.y += cur; o.position.y += dy; out.push({ o, ry: cur, dy }); } } }
     // (old) the cast who aren't speaking look toward the one who is; replaced by stage()

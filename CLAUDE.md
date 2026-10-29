@@ -949,3 +949,27 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
 - **Reef Keeper** (prologue): `makeKeeper()` from `src/assets/models/keeper.js` (`window.AQ_KEEPER`, made with
   `python3 tools/convert_diver.py <keeper.glb> --out src/assets/models/keeper.js --var AQ_KEEPER --tex 768`); she borrows the diver's
   clips (position tracks dropped), 1.13 tall, feet at −0.5 (measure after `mesh.skeleton.update()`).
+
+## Film pass: calm director, staged chapters, Meshy Grimtide, Light Vaults (owner: "Disney level… soothing camera… things should make sense")
+- **Director camera** (`Story.shotCam`): no cuts. The recipe camera is the wide shot; a dialogue line glides into a two-shot of speaker +
+  addressee (`addressee()`, `rc.to(i)` overrides) framed by `frame()` / `pickShot()` (one direction per speaker pair, kept for later
+  lines, clear-view rays both ways, lens never inside a body). The rig orbits its look point (critically damped `damp1/damp3`), the view
+  turns ≤ ~75°/s, recipe moves glide. `rc.own(i)` = lines the recipe films itself. No punch-ins / trembles. Audit: scratchpad `faudit.py`
+  + `fsum.py` (camera turn rate, walk-in-place frames, facing) on every chapter.
+- **Live recipes** (`rc.live`): run on the film clock with lines placed by `plan()` (`rc.gap(i)` pauses, `rc.tail`); recipes key their
+  action to `S.at(i)` / `S.end(i)` / `S.lastAt()`. Prologue and chapters 1–3, 5–10, 13, 16, 17, 23, 27 are live. `S.arc(c, A, B, k)` swings a
+  camera round a subject. `rc.expo` overrides FILM_EXPO; `S.expoMul` dims a moment.
+- **Staging** (`Story.stage`): characters turn (eased) toward who they talk/listen to, cheated 42% to the lens; listeners mirror the
+  line's mood. Diver legs move only when he travels (`spd`), the flat swim stroke only > 1.1 above the sand. Pip rides the shoulder away
+  from the lens. Off-screen Grimtide / Murk lines show their eyes in the dark (`voiceEyes`). Companion Shelly joins when she speaks.
+- **Faces**: morph slot 4 is now a brow raise/frown; moods set mouth + eyes + brows + lids together (`faceTick` table `E`).
+- **Grimtide** = the owner's Meshy serpent: `python3 tools/convert_grim.py <glb>` straightens it along its SmartRig spine →
+  `src/assets/models/grim.js` (`AQ_GRIM`); `grimSkin()` binds it as a SkinnedMesh to `makeEel`'s 30 segments (bones stretch to the
+  segment spacing; the jaw is a morph), so every eel pose drives it. Pose functions should arch the neck up and sink the body away.
+- **The Great Lantern** (`makeTower`): ribbed reef-stone lighthouse on a rock mound, brass bands/gallery/cage, Heart pearl, 3 sweeping
+  `softBeam`s, `setGlow(k)` / `setGates(k)` / `tick(t)`. Prologue = night festival → eyes → Grimtide rises over the Lantern → lights
+  stream into his jaws → the Keeper's gift (beam + `ringThin` shockwave, she fades into motes) → dark.
+- **Light Vaults** (owner chose this over "no glass"): the level tanks are the Keeper's sealed vaults — stone pillars/lintel
+  (`stoneTex`, `vaultMats`), brass inlay, rune medallions (`runeDisc`), rune keystone, stone pedestal; same in the films' `buildTank`.
+  Breathing = the air pocket under the vault roof (texts updated). The Keeper's arch (ch 17) and the mural wall (ch 23) use the same stone.
+- **Air**: `lungOf` tightens with the level (×3.4 + 22 s early → ×1.9 + 12 s at level 30, min 32 → 24 s).
