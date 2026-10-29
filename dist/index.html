@@ -4374,29 +4374,41 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   // face rig for the Meshy cast: mouth centre + half size and eye centres + radius, in pixels of a 700 px front render of the model's box
   // (tools: scratchpad face/front.py). Blend shapes are built from these at load: 0 close, 1 smile, 2 sad, 3 wide (mouth + eyes), 4 blink, 5 squint.
   const SKIN_LID = { pip: 0xf0b232, cousin: 0xf38c80, shelly: 0xd6c47a, clack: 0xef5a24, crab: 0xee3418, murk: 0x8e44d2, lumen: 0x14246a, mira: 0x2266c6, snip: 0x8c30d2, snap: 0x6a18ba, piranha: 0x6c1ed2, bellow: 0x2088d8 };
-  const FACE = { pip: { m: [350, 318, 33, 10], e: [[275, 245, 45], [425, 245, 45]] }, cousin: { m: [348, 312, 35, 18], e: [[272, 235, 45], [428, 235, 45]] },
-    shelly: { m: [350, 336, 50, 12], e: [[250, 228, 55], [452, 228, 55]] }, clack: { m: [385, 330, 42, 16], e: [[318, 198, 40], [452, 198, 40]] },
-    crab: { e: [[212, 125, 60], [485, 125, 60]] }, murk: { m: [352, 325, 22, 12], e: [[250, 255, 58], [452, 255, 58]] },
-    lumen: { m: [350, 395, 90, 35], e: [[273, 300, 45], [430, 300, 45]] }, mira: { m: [350, 445, 35, 8], shut: 1, e: [[265, 405, 40], [435, 405, 40]] },
+  const FACE = { pip: { m: [350, 318, 33, 10], eb: 1.25, e: [[275, 245, 45], [425, 245, 45]] }, cousin: { m: [348, 312, 35, 18], eb: 1.25, e: [[272, 235, 45], [428, 235, 45]] },
+    shelly: { m: [350, 336, 50, 12], eb: 1.1, xg: 1.6, e: [[250, 228, 55], [452, 228, 55]] }, clack: { m: [385, 330, 42, 16], xg: 1.2, e: [[318, 198, 40], [452, 198, 40]] },
+    crab: { e: [[212, 125, 60], [485, 125, 60]] }, murk: { m: [352, 325, 22, 12], xg: 1.3, e: [[250, 255, 58], [452, 255, 58]] },
+    lumen: { m: [350, 395, 90, 35], eb: 1.3, xg: 0.8, e: [[273, 300, 45], [430, 300, 45]] }, mira: { m: [350, 445, 35, 8], shut: 1, xg: 1.5, e: [[265, 405, 40], [435, 405, 40]] },
     snip: { m: [348, 375, 120, 45], rest: 0.4, e: [[280, 265, 45], [420, 265, 45]] }, snap: { m: [350, 350, 105, 25], rest: 0.35, e: [[268, 265, 45], [430, 265, 45]] },
     piranha: { m: [350, 465, 115, 55], rest: 0.3, e: [[240, 345, 60], [460, 345, 60]] }, bellow: { m: [350, 405, 72, 18], e: [[215, 340, 50], [485, 340, 50]] } };
   function faceRig(key, g) { const F = FACE[key]; if (!F) return; const bb = g.boundingBox, sx = bb.max.x - bb.min.x, sy = bb.max.y - bb.min.y, M = Math.max(sx, sy) / 2 * 1.02, cx = (bb.min.x + bb.max.x) / 2, cy = (bb.min.y + bb.max.y) / 2, k = 2 * M / 700;
-    const X = px => cx - M + px * k, Y = py => cy + M - py * k, P = g.attributes.position, n = P.count, T = [0, 1, 2, 3, 4, 5, 6].map(() => new Float32Array(n * 3)); let mo = null;
+    const X = px => cx - M + px * k, Y = py => cy + M - py * k, P = g.attributes.position, n = P.count, T = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(() => new Float32Array(n * 3)); let mo = null;
     const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
     // the front-facing vertices of a feature: inside its ellipse and within a shallow depth of the nearest surface there
-    const pick = (fx, fy, rx, ry, f) => { let zmax = -1e9; const ids = []; for (let i = 0; i < n; i++) { const dx = (P.getX(i) - fx) / rx, dy = (P.getY(i) - fy) / ry; if (dx * dx + dy * dy < 1) { ids.push(i); zmax = Math.max(zmax, P.getZ(i)); } }
-      const tol = Math.max(rx, ry) * 0.6; for (const i of ids) { const z = P.getZ(i); if (z < zmax - tol) continue; const dx = (P.getX(i) - fx) / rx, dy = (P.getY(i) - fy) / ry; f(i, P.getX(i) - fx, P.getY(i) - fy, 1 - sm(0.55, 1, Math.hypot(dx, dy))); } };
+    const pick = (fx, fy, rx, ry, f, tk = 0.6) => { let zmax = -1e9; const ids = []; for (let i = 0; i < n; i++) { const dx = (P.getX(i) - fx) / rx, dy = (P.getY(i) - fy) / ry; if (dx * dx + dy * dy < 1) { ids.push(i); zmax = Math.max(zmax, P.getZ(i)); } }
+      const tol = Math.max(rx, ry) * tk; for (const i of ids) { const z = P.getZ(i); if (z < zmax - tol) continue; const dx = (P.getX(i) - fx) / rx, dy = (P.getY(i) - fy) / ry; f(i, P.getX(i) - fx, P.getY(i) - fy, 1 - sm(0.55, 1, Math.hypot(dx, dy))); } };
     const add = (t, i, dx, dy) => { T[t][i * 3] += dx; T[t][i * 3 + 1] += dy; };
     if (F.m) { const mx = X(F.m[0]), my = Y(F.m[1]), hw = F.m[2] * k, hh = F.m[3] * k, er = F.e && F.e[0] ? F.e[0][2] * k : hw, D = Math.max(hh * 2.6, hw * 0.95, er * 0.85); let zm = -1e9;
       pick(mx, my - D * 0.5, hw * 1.55, D * 1.6 + hh, (i, dx, dy, w) => { const y = dy + D * 0.5; if (y < 0) add(6, i, dx * 0.06 * w, -D * w * Math.min(1, -y / (hh + D * 0.3))); else add(6, i, 0, D * 0.12 * w * Math.max(0, 1 - y / (hh * 3 + 1e-6))); if (Math.abs(dx) < hw * 0.4 && Math.abs(y) < hh * 2) zm = Math.max(zm, P.getZ(i)); }); /* the jaw drops: the lower lip and chin move down */
       mo = [mx, my, hw, hh, D, zm > -1e8 ? zm : bb.max.z];
-      pick(mx, my, hw * 1.3, hh * 1.9 + hw * 0.1, (i, dx, dy, w) => { if (!F.shut) add(0, i, 0, -dy * 0.88 * w); /* close: lips meet on the centre line */
-        const c = Math.min(1, (dx / hw) * (dx / hw)), amp = Math.max(hh * 2.6, hw * 0.55); add(1, i, 0, c * amp * w + (F.shut ? 0 : -dy * 0.35 * w)); add(2, i, 0, -c * amp * w + (F.shut ? 0 : -dy * 0.35 * w)); if (!F.shut) add(3, i, dx * 0.08 * w, dy * 0.55 * w); }); }
+      pick(mx, my, hw * 1.3, hh * 1.9 + hw * 0.1, (i, dx, dy, w) => { if (!F.shut) add(0, i, 0, -dy * 0.88 * w); /* close: lips meet on the centre line */ if (!F.shut) add(3, i, dx * 0.08 * w, dy * 0.55 * w); });
+      { const amp = Math.max(hh * 2.6, hw * 0.52), RX = hw * 1.75, RY = hh * 2.2 + hw * 0.45; pick(mx, my, RX, RY, (i, dx, dy, w) => { const u = Math.abs(dx) / hw, sx = Math.sign(dx), q = Math.hypot(dx / RX, dy / RY), wv = 1 - sm(0.55, 1, q);
+          const curve = u <= 1 ? u * u : 1 - sm(1, 1.75, u) * 0.85, lip = 1 - sm(0, hh * 1.6 + hw * 0.15, Math.abs(dy)); /* the lip line bends; the skin above/below follows less */
+          const mid = Math.max(0, 1 - u * u); add(1, i, sx * hw * 0.14 * Math.min(1, u) * wv, (curve * amp * 1.25 * (0.55 + 0.45 * lip) - (dy < 0 ? hh * 0.5 * lip * mid : 0)) * wv); /* smile: corners up and out, a round open curve, cheeks lift */
+          add(2, i, -sx * hw * 0.05 * Math.min(1, u) * wv, (-curve * amp * 1.05 * (0.55 + 0.45 * lip) + hh * 0.18 * lip * mid) * wv); }); } } /* sad: corners well down, the middle pushed up into a pout */
     const eyes = []; for (const [ex, ey, er] of F.e || []) { const X0 = X(ex), Y0 = Y(ey), r = er * k; let zf = -1e9;
       pick(X0, Y0, r * 1.2, r * 1.25, (i, dx, dy, w) => { add(3, i, dx * 0.12 * w, dy * 0.12 * w); if (dy > 0) add(5, i, 0, -dy * 0.3 * w); if (Math.hypot(dx, dy) < r * 0.5) zf = Math.max(zf, P.getZ(i)); });
       pick(X0, Y0 + r * 1.55, r * 1.45, r * 0.75, (i, dx, dy, w) => { const inner = (X0 > cx ? -dx : dx) / r; add(4, i, 0, r * (0.32 + 0.12 * inner) * w); }); /* brow: the skin above the eye lifts (more on the inner side); negative = frown */
+      { const yl = -r * 0.3, B = F.eb || 1, RX = r * 1.75 * B, RY = r * 1.9 * B; pick(X0, Y0, RX, RY, (i, dx, dy, w) => { const top = r * B * 1.02, lo = yl * B, ex = Math.abs(dx) / (r * B * 1.08), side = 1 - sm(0.82, 1.25, ex); let d;
+          if (dy >= top) d = -(top - lo) * 0.55 * (1 - sm(0, r * B * 0.42, dy - top)); /* skin above: follows the lid a little, fading out fast */
+          else if (dy > lo) d = lo + (dy - lo) * 0.03 - dy - r * 0.05 * B * Math.max(0, 1 - ex * ex); /* the eye: closes onto the line */
+          else d = (lo - dy) * 0.12 * (1 - sm(0, r * B * 0.6, lo - dy)); /* below: the lower lid lifts a touch */
+          add(7, i, 0, d * side); }, 1.5); } /* blink: the eye closes onto a line in its lower third (the upper lid travels most), the skin around follows */
+      { const sgn = X0 > cx ? 1 : -1; /* +1 = the character's outer side is +dx for this eye */
+        pick(X0, Y0 + r * 1.5, r * 1.6, r * 0.95, (i, dx, dy, w) => { const o = Math.max(-1, Math.min(1, dx * sgn / (r * 1.1))); add(9, i, -sgn * r * 0.08 * w, r * (-0.42 * o + 0.12) * w); }); /* worry: inner brow up, outer down (negative = angry) */
+        const B = F.eb || 1, top = r * B * 1.02, lo = -r * 0.3 * B; pick(X0, Y0, r * 1.75 * B, r * 1.9 * B, (i, dx, dy, w) => { const o = Math.max(0, Math.min(1, 0.5 + dx * sgn / (r * B * 1.6))), ex = Math.abs(dx) / (r * B * 1.08), side = 1 - sm(0.82, 1.25, ex);
+          let d = 0; const travel = (top - lo) * (0.15 + 0.6 * o * o); if (dy >= top) d = -travel * 0.5 * (1 - sm(0, r * B * 0.42, dy - top)); else if (dy > lo) d = -travel * Math.min(1, (dy - lo) / (top - lo)); add(8, i, 0, d * side); }, 1.5); } /* sad lids: the upper lid drops, much more at the outer corner */
       eyes.push([X0, Y0, r, zf > -1e8 ? zf : bb.max.z]); }
-    g.morphAttributes.position = T.map(a => new THREE.BufferAttribute(a, 3)); g.morphTargetsRelative = true; g.userData.face = { rest: F.shut ? 0 : F.rest ?? 0.85, mouth: !!F.m, shut: !!F.shut, eyes, mo, lid: SKIN_LID[key] || 0xcccccc }; }
+    g.morphAttributes.position = T.map(a => new THREE.BufferAttribute(a, 3)); g.morphTargetsRelative = true; g.userData.face = { xg: F.xg || 1, rest: F.shut ? 0 : F.rest ?? 0.85, mouth: !!F.m, shut: !!F.shut, eyes, mo, lid: SKIN_LID[key] || 0xcccccc }; }
   // the inside of a mouth: a dark throat, a pink tongue at the bottom, a row of teeth along the top (drawn once)
   function mouthTex() { if (TEX.mouth) return TEX.mouth; const cv = document.createElement('canvas'); cv.width = cv.height = 128; const g = cv.getContext('2d');
     g.save(); g.beginPath(); g.ellipse(64, 64, 62, 62, 0, 0, Math.PI * 2); g.clip(); const gr = g.createRadialGradient(64, 58, 4, 64, 64, 64); gr.addColorStop(0, '#2a0610'); gr.addColorStop(0.75, '#5a1222'); gr.addColorStop(1, '#7a2030'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
@@ -4413,15 +4425,19 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   // every face that is on screen: blinks, the mouth with speech, moods ease in (one list, pruned when a model leaves its scene)
   const FACES = new Set();
   function faceTick(dt) { for (const f of FACES) { const m = f.m; if (!m.parent) { if ((f.gone = (f.gone || 0) + dt) > 2) FACES.delete(f); continue; } f.gone = 0; const I = m.morphTargetInfluences; if (!I) continue;
-      f.bt -= dt; if (f.bt <= 0) { f.blink = 0.16; f.bt = 1.8 + Math.random() * 3.6; } f.blink = Math.max(0, (f.blink || 0) - dt);
+      f.bt -= dt; if (f.bt <= 0 || f.blinkNow) { f.blinkNow = 0; f.blink = 0.24; f.bt = Math.random() < 0.18 ? 0.32 : 2.2 + Math.random() * 3.8; } f.blink = Math.max(0, (f.blink || 0) - dt);
       const ease = (i, v, r = 10) => { I[i] += (v - I[i]) * Math.min(1, dt * r); }, md = f.mood || '';
       const talk = f.talk || 0, chomp = f.chomp ? Math.max(0, Math.sin(performance.now() / 1000 * f.chomp)) : 0;
       if (f.mouth) I[0] = f.shut ? 0 : Math.max(0, f.rest - talk * 0.95 - chomp * f.rest);
-      const E = { happy: [1.25, 0, 0.15, 0.5, 0.45, 0.18], sad: [0, 1.3, 0, 0.95, 0, 0], wide: [0, 0, 1.2, 1.2, 0, 0.55], angry: [0, 0.6, 0, -1.2, 1.2, 0.1], '': [0.18, 0, 0, 0, 0, 0] }[md] || [0.18, 0, 0, 0, 0, 0];
+      const E = { happy: [1.05, 0, 0.1, 0.3, 0.55, 0.22, 0, 0], sad: [0, 1.25, 0, 0.1, 0, 0, 1.15, 0.85], wide: [0, 0, 1.2, 1.1, 0, 0.55, 0.15, 0], angry: [0, 0.55, 0, -0.35, 1.1, 0.08, -1.2, 0], '': [0.14, 0, 0, 0, 0, 0, 0, 0] }[md] || [0.14, 0, 0, 0, 0, 0, 0, 0];
+      { const G = f.xg; E[0] *= G; E[1] *= G; E[4] *= Math.min(G, 1.3); E[6] *= G; E[7] *= Math.min(G, 1.25); }
+      if (I.length > 9) { ease(9, E[6] + (f.talk || 0) * 0.15 * Math.sin(performance.now() / 300), 5); ease(8, E[7], 5); }
       { const tm = performance.now() / 1000, syl = talk > 0.02 ? 0.55 + 0.45 * Math.abs(Math.sin(tm * 7.3 + Math.sin(tm * 2.1) * 2)) : 0, jaw = Math.min(1.1, talk * 1.05 * syl + E[5] + chomp * 0.6);
         I[6] = I[6] + (jaw - I[6]) * Math.min(1, dt * 22); if (I.length > 6 && f.cav) { f.cav.visible = I[6] > 0.04; f.cav.scale.y = Math.max(0.001, I[6]); f.cav.scale.x = 1 - 0.18 * I[6] + 0.12 * (I[1] || 0); } }
       const br = E[3] + (f.talk || 0) * 0.25 * Math.sin(performance.now() / 260); /* brows move a little as they speak */
       ease(1, E[0], 5); ease(2, E[1], 5); ease(3, E[2], 7); ease(4, br, 6); ease(5, E[4], 5);
+      if (f.blinkM && I.length > 7) { const ss = x => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); }, u = 1 - f.blink / 0.24, bk = f.blink > 0 ? (u < 0.25 ? ss(u / 0.25) : u < 0.38 ? 1 : 1 - ss((u - 0.38) / 0.62)) : 0; /* close fast, hold, open slower */
+        const sq = md === 'happy' ? 0.34 : md === 'sad' ? 0.08 : md === 'angry' ? 0.26 : md === 'wide' ? -0.14 : 0.04; f.sq = (f.sq ?? 0) + (sq - (f.sq ?? 0)) * Math.min(1, dt * 6); I[7] = Math.max(f.sq, bk); }
       if (f.lids) { const base = md === 'sad' ? 0.3 : md === 'angry' ? 0.34 : md === 'happy' ? 0.2 : 0, tl = md === 'sad' ? -0.42 : md === 'angry' ? 0.5 : 0; f.tilt = (f.tilt ?? 0) + (tl - (f.tilt ?? 0)) * Math.min(1, dt * 8); f.lidK = (f.lidK ?? 0) + (base - (f.lidK ?? 0)) * Math.min(1, dt * 8);
         const v = f.blink > 0 ? Math.max(f.lidK, Math.sin((1 - f.blink / 0.16) * Math.PI)) : f.lidK; for (const pv of f.lids) { pv.visible = v > 0.02; pv.scale.y = Math.max(0.001, v); pv.rotation.z = f.tilt * pv.userData.side * (f.blink > 0 ? 0.3 : 1); } } } } /* sad: the outer corners droop; angry: the inner corners drop */
   const castOK = key => !!(window.AQ_CAST && window.AQ_CAST[key]);
@@ -4475,21 +4491,22 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       // lean into motion (pitch) and bank into turns (roll), in the model's own frame (front = +z)
       const inv = m.parent.getWorldQuaternion(q).invert(), lv = new V3(vx, vy, vz).applyQuaternion(inv).applyQuaternion(L.base.q.clone().invert()), fwd = lv.z / (sz * 3), side = lv.x / (sz * 3);
       L.lean += (Math.max(-0.25, Math.min(0.25, fwd * 0.5 + lv.y / (sz * 6))) - L.lean) * Math.min(1, dt * 3); L.roll += (Math.max(-0.22, Math.min(0.22, -side * 0.6)) - L.roll) * Math.min(1, dt * 3);
-      const am = 1 - (L.still || 0), T = L.U.uLT.value + L.ph, float = L.kind === 3 || L.kind === 6 ? 0.25 : 1, bob = Math.sin(T * 1.25) * sz * 0.018 * float * am, br = 1 + Math.sin(T * 1.9) * 0.012 * am, tk = L.talk || 0; L.U.uLA.value = am;
-      e.set(L.lean + Math.sin(T * 0.8) * 0.025 * am, Math.sin(T * 0.55) * 0.03 * am, L.roll + Math.sin(T * 0.95) * 0.03 * float * am); m.quaternion.copy(L.base.q).multiply(q.setFromEuler(e));
-      m.position.copy(L.base.p); m.position.y += bob / Math.max(1e-3, m.parent.getWorldScale(wp).y);
+      const md = (L.ud.face && L.ud.face.mood) || '', mt = { sad: [0.2, -0.035, 0.45], happy: [-0.07, 0.02, 1.25], angry: [0.12, 0, 1.1], wide: [-0.13, 0.025, 1.1] }[md] || [0, 0, 1]; L.mp = L.mp || [0, 0, 1]; for (let k = 0; k < 3; k++) L.mp[k] += (mt[k] - L.mp[k]) * Math.min(1, dt * 3);
+      const am = (1 - (L.still || 0)) * L.mp[2], T = L.U.uLT.value + L.ph, float = L.kind === 3 || L.kind === 6 ? 0.25 : 1, bob = Math.sin(T * 1.25) * sz * 0.018 * float * am, br = 1 + Math.sin(T * 1.9) * 0.012 * am, tk = L.talk || 0; L.U.uLA.value = am;
+      e.set(L.lean + L.mp[0] + Math.sin(T * 0.8) * 0.025 * am, Math.sin(T * 0.55) * 0.03 * am, L.roll + Math.sin(T * 0.95) * 0.03 * float * am); m.quaternion.copy(L.base.q).multiply(q.setFromEuler(e));
+      m.position.copy(L.base.p); m.position.y += (bob + L.mp[1] * sz + (md === 'happy' ? Math.abs(Math.sin(T * 3.2)) * sz * 0.025 : 0)) / Math.max(1e-3, m.parent.getWorldScale(wp).y);
       const k = L.base.s; m.scale.set(k * br * (1 - 0.01 * tk), k * (2 - br) * (1 + 0.03 * tk), k * br * (1 - 0.01 * tk)); } }
   function castSwap(g, key, o = {}) { const G = castGeo(key); if (!G) return g; const hold = o.hold || g;
     g.updateMatrixWorld(true); const bb = new THREE.Box3().setFromObject(g), c0 = bb.getCenter(new V3()), s0 = bb.getSize(new V3());
     g.traverse(c => { if (c.isMesh && !(o.keep && o.keep(c))) c.visible = false; });
-    const mat = new THREE.MeshStandardMaterial({ map: G.tex, roughness: 0.52, metalness: 0, color: o.tint || 0xffffff }); // one per character: effects that fade or tint a monster stay on it
+    const mat = new THREE.MeshStandardMaterial({ map: G.tex, roughness: 0.52, metalness: 0, color: o.tint || 0xffffff }); { const lift = { lumen: 0.55, snap: 0.18, snip: 0.12, mira: 0.18, murk: 0.1 }[key]; if (lift) { mat.emissiveMap = G.tex; mat.emissive = new THREE.Color(0xffffff); mat.emissiveIntensity = lift; } } // one per character: effects that fade or tint a monster stay on it
     const m = new THREE.Mesh(G.g, mat); m.castShadow = true; m.receiveShadow = true; m.rotation.y = o.ry ?? Math.PI / 2; hold.add(m); hold.updateMatrixWorld(true);
     let mb = new THREE.Box3().setFromObject(m); const ms = mb.getSize(new V3()), k = (o.h ? s0.y / ms.y : Math.max(s0.x, s0.y, s0.z) / Math.max(ms.x, ms.y, ms.z)) * (o.k || 1); // measured in world space: parent scales/offsets don't matter
     m.scale.setScalar(k); hold.updateMatrixWorld(true); mb = new THREE.Box3().setFromObject(m);
     const want = c0.clone(), have = mb.getCenter(new V3()); if (o.floor) { want.y = bb.min.y; have.y = mb.min.y; } if (o.dy) want.y += o.dy * s0.y;
     m.position.add(hold.worldToLocal(want).sub(hold.worldToLocal(have)));
     const ud = g.userData || (g.userData = {}); ud.cast = m; ud.castKey = key; ud.mouth = null; ud.castBox = new THREE.Box3().setFromObject(m);
-    const fz = G.g.userData.face; if (fz) { m.updateMorphTargets(); const f = { m, rest: fz.rest, mouth: fz.mouth, shut: fz.shut, bt: Math.random() * 3, talk: 0, mood: o.mood || '', chomp: o.chomp || 0, lids: fz.eyes && fz.eyes.length ? addLids(m, fz) : null, cav: fz.mo && !fz.shut ? addMouth(m, fz) : null }; FACES.add(f); ud.face = f;
+    const fz = G.g.userData.face; if (fz) { m.updateMorphTargets(); const f = { xg: fz.xg || 1, m, rest: fz.rest, mouth: fz.mouth, shut: fz.shut, bt: Math.random() * 3, talk: 0, mood: o.mood || '', chomp: o.chomp || 0, lids: null, blinkM: fz.eyes && fz.eyes.length > 0, cav: fz.mo && !fz.shut ? addMouth(m, fz) : null }; FACES.add(f); ud.face = f;
       ud.setMood = md => { f.mood = md || ''; }; }
     castLife(m, key, G, ud); ud.talk = a => { if (ud.life) ud.life.talk = a; else m.scale.set(k * (1 - 0.01 * a), k * (1 + 0.025 * a), k * (1 - 0.01 * a)); if (ud.face) ud.face.talk = a; }; // the mouth opens with the syllables (+ a little body bounce)
     return g; }
@@ -5388,7 +5405,6 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const ahead = c.P(ss + 0.32).addScaledVector(lat, -0.4).setY(1.2), mid = p.clone().lerp(pp, 0.5); mid.y = 1.05; /* ahead along the corridor's own curve (a straight line ran into the kelp) */
       const beh = p.clone().sub(fT.clone().multiplyScalar(3.0)).addScaledVector(new V3(-fT.z, 0, fT.x), 1.4).setY(1.6), endL = S.tankP().clone().setY(1.6), e2 = sm01((t - tEnd + 0.2) / 4.5);
       S.cam(S.arc(p, ahead, beh, e2), mid.lerp(endL, sm01((e2 - 0.45) / 0.55)));
-      if (!S.probe && S.kelp) { const cq = S.cam0.position; for (const k of S.kelp) { const d = Math.hypot(k.position.x - cq.x, k.position.z - cq.z); k.visible = d > (k.visible ? 2.6 : 2.9); } } /* no kelp leaf against the lens */
       return { mode: land > 0.6 ? 'stand' : 'float', face: f, arms: t > a3 && t < a3 + 1.6 ? 'cheer' : null, armK: sm01((t - a3) / 0.4) * (1 - sm01((t - a3 - 1.2) / 0.4)) }; } };
   // 3: Shelly swims in, the diver hops on, they glide off together
   // 3, staged on its lines: Shelly glides in and settles facing the diver (Pip at his shoulder); the conversation plays in two-shots;
@@ -6594,10 +6610,17 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (this.insideCast(pos, q.o)) { let ok = false; for (let k = 0; k < 3 && !ok; k++) { pos.addScaledVector(dir, q.s * 0.8); ok = !this.insideCast(pos, q.o); } if (!ok) return null; } /* never inside a body: back out, else the wide shot */
       const look = q.p.clone().addScaledVector(new V3(dir.z, 0, -dir.x), q.s * 0.08 * side); look.y += q.s * 0.06; return { pos, look, q }; }
     // is this camera spot inside (or touching) any character in the scene? (the cast's boxes, padded; refreshed at most 4× a second)
-    insideCast(pos, skip) { const now = this.time; if (!this._cb || now - this._cbT > 0.25) { this._cbT = now; this._cb = []; this.scene.traverse(o => { if (o.userData && o.userData.cast && o.visible) { const B = new THREE.Box3().setFromObject(o.userData.cast); B.expandByScalar(0.25); const sz = B.getSize(new V3()); B.big = Math.max(sz.x, sz.y, sz.z) > 3; this._cb.push(B); } });
-        if (this.diver) { const B = new THREE.Box3().setFromObject(this.diver); B.expandByScalar(0.15); this._cb.push(B); }
-        for (const so of this.solids || []) if (so.o.visible !== false) { const c = so.o.getWorldPosition(new V3()), B = new THREE.Box3(c.clone().subScalar(so.r), c.clone().addScalar(so.r)); B.big = true; this._cb.push(B); } }
-      return this._cb.some(B => inBody(B, pos)); }
+    insideCast(pos, skip) { this.bodies(); return this._cb.some(B => inBody(B, pos)); }
+    // the bodies the lens must keep out of: every visible cast model, the diver, and scenery marked solid. The list is found once a
+    // second; the boxes are measured fresh each frame (stepping them 4x a second made the guard jump).
+    bodies() { const now = this.time; if (!this._cbL || now - this._cbLT > 1) { this._cbLT = now; this._cbL = []; this.scene.traverse(o => { if (o.userData && o.userData.cast) this._cbL.push(o); }); }
+      if (this._cbF === this._frameN && this._cb) return this._cb; this._cbF = this._frameN; this._cb = [];
+      for (const o of this._cbL) { let vis = true; for (let a = o; a; a = a.parent) if (!a.visible) { vis = false; break; } if (!vis) continue; const B = new THREE.Box3().setFromObject(o.userData.cast); B.expandByScalar(0.25); const sz = B.getSize(new V3()); B.big = Math.max(sz.x, sz.y, sz.z) > 3; this._cb.push(B); }
+      if (this.diver) { const B = new THREE.Box3().setFromObject(this.diver); B.expandByScalar(0.15); this._cb.push(B); }
+      for (const so of this.solids || []) if (so.o.visible !== false) { const c = so.o.getWorldPosition(new V3()), B = new THREE.Box3(c.clone().subScalar(so.r), c.clone().addScalar(so.r)); B.big = true; this._cb.push(B); }
+      return this._cb; }
+    // a point moved just outside every body it is in (sideways, from the body's middle)
+    outOf(P) { const p = P.clone(); for (let it = 0; it < 3; it++) { let moved = false; for (const B of this.bodies()) if (inBody(B, p)) { const cc = B.getCenter(new V3()), sz = B.getSize(new V3()), d = p.clone().sub(cc); d.y *= 0.3; if (d.lengthSq() < 1e-6) d.set(0, 0, 1); d.normalize(); p.copy(cc).addScaledVector(d, (B.big ? Math.min(sz.x, sz.z) * 0.5 : Math.max(sz.x, sz.z) * 0.6) + 0.12); p.y = Math.max(p.y, P.y); moved = true; } if (!moved) break; } return p; }
     solid(o, r) { (this.solids || (this.solids = [])).push({ o, r }); return o; } /* scenery the lens must stay out of (a sphere of radius r) */
     // ---- one size for each character in every film, measured against the diver (0.95 tall standing). h = height, m = longest side;
     // b = keep the feet where they were (walkers), else the middle. Run once after setup, before the recipe is probed.
@@ -6708,10 +6731,10 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         { const q = l.who && this.castOf(l.who); if (q && q.o.userData && q.o.userData.setMood) q.o.userData.setMood(l.mood); } this.shot = { who: l.who, to: this.addressee(this.li), l, i: this.li }; this.li++; this.capI = this.li; }
       this.stage(dt); this.smoothTurns(dt); this.shotCam(dt); this.voiceEyes(dt);
       if (!this.probe) { const cam = this.cam0, cq = cam.position, lk = this.rig ? this.rig.look : this.look, LD = cq.distanceTo(lk), v = new V3(); cam.updateMatrixWorld(); cam.matrixWorldInverse.copy(cam.matrixWorld).invert();
-        for (const sp of this.decor) { if (sp.userData.lensHide === undefined && !sp.visible) continue; if (!sp.userData.bb) sp.userData.bb = new THREE.Box3().setFromObject(sp); const B = sp.userData.bb;
+        for (const sp of this.decor) { if (sp.userData.lensHide === undefined && !sp.visible) continue; if (sp.userData.keepHidden) continue; if (!sp.userData.bb) sp.userData.bb = new THREE.Box3().setFromObject(sp); const B = sp.userData.bb;
           let near = false; if (B.distanceToPoint(cq) < LD - 0.5) { let x0 = 1, x1 = -1, y0 = 1, y1 = -1, front = 0; for (let k = 0; k < 8; k++) { v.set(k & 1 ? B.max.x : B.min.x, k & 2 ? B.max.y : B.min.y, k & 4 ? B.max.z : B.min.z).project(cam); if (v.z < 1) { front++; x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y); } }
             if (front) { const w = Math.max(0, Math.min(1, x1) - Math.max(-1, x0)), h = Math.max(0, Math.min(1, y1) - Math.max(-1, y0)); near = w * h / 4 > (sp.userData.lensHide ? 0.14 : 0.2); } }
-          sp.userData.lensHide = near; sp.visible = !near; } } /* a plant or rock sprite nearer than the subject that would fill a fifth of the screen is not drawn */
+          sp.userData.lensHide = near; const u = sp.userData; u.fadeK = Math.max(0, Math.min(1, (u.fadeK ?? 1) + (near ? -dt : dt) * 3.5)); if (u.fadeK < 1 && !u.ownMat) { sp.material = sp.material.clone(); u.ownMat = 1; this.mats.push(sp.material); } if (u.ownMat) sp.material.opacity = u.fadeK; sp.visible = u.fadeK > 0.02; } } /* a sprite nearer than the subject that would fill a fifth of the screen fades out (no popping) */
       this.shaftMat.uniforms.uT.value = this.world.time;
       if (this.kelp) this.kelp.forEach(k => { k.rotation.z = Math.sin(this.world.time * 0.9 + k.userData.sw) * 0.06; });
       for (const f of this.fish) { const F = f.userData.f; F.x += F.v * dt; if (F.x > 14) F.x = -14; if (F.x < -14) F.x = 14; f.position.set(F.x, F.y + Math.sin(this.world.time * 1.3 + F.ph) * 0.15, F.z); f.scale.x = F.v > 0 ? -1 : 1; }
@@ -6725,14 +6748,14 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     // Every move is a critically damped glide (no overshoot), slower while changing shots.
     shotCam(dt) { const sh = this.shot, t = this.t, c = this.cam0, bp = c.position.clone(), bl = this.look.clone(), baseFov = (this.lens || (this.port ? 62 : 44)) * (this.lens && this.port ? 1.25 : 1); let want = null, q = null;
       if (sh && sh.who && !this.qte && !this.frozen && t < sh.l.t1 + 0.35 && !(this.rc.own && this.rc.own(sh.i, sh, this))) { q = this.castOf(sh.who); const b = sh.to ? this.castOf(sh.to) : null;
-        if (q) { if ((sh.chk = (sh.chk ?? 0) - dt) <= 0 || sh.pick === undefined) { sh.chk = 0.6; const pk = this.pickShot(q, b, sh, bp); if (pk || sh.pick === undefined) sh.pick = pk; }
+        if (q) { if ((sh.chk = (sh.chk ?? 0) - dt) <= 0 || sh.pick === undefined) { sh.chk = 0.6; const pk = this.pickShot(q, b, sh, bp); if (pk || sh.pick === undefined) { if (sh.pick && pk && (sh.pick.sd !== pk.sd || !!sh.pick.single !== !!pk.single)) (this._dbg || (this._dbg = [])).push(['repick', +t.toFixed(2)]); sh.pick = pk; } }
           if (sh.pick) want = this.frame(q, sh.pick.single ? null : b, sh, sh.pick, Math.min(1, (t - sh.l.t0) / Math.max(0.5, sh.l.t1 - sh.l.t0)), bp, b); } }
-      const tgt = want || { pos: bp, look: bl, fov: baseFov }; let R = this.rig;
+      this._frameN = (this._frameN || 0) + 1; const tgt = want || { pos: bp, look: bl, fov: baseFov }; tgt.pos = this.outOf(tgt.pos); let R = this.rig; /* aim for a lens spot outside every body: the rig glides there, it never has to jump out */
       // the rig orbits what it looks at (look point + angle round it + height + distance), so a change of shot swings round the
       // characters at a distance instead of cutting straight through them
       const sph = (P, Lk) => { const v = P.clone().sub(Lk), r = Math.max(0.3, v.length()); return { az: Math.atan2(v.x, v.z), el: Math.asin(Math.max(-0.99, Math.min(0.99, v.y / r))), r }; }, tg = sph(tgt.pos, tgt.look);
       const jump = !want && this._bp && bp.distanceTo(this._bp) > 2.2 && (!R || R.sw <= 0); /* the recipe cut to a new place: follow it at once */
-      if (!R || jump) R = this.rig = { look: tgt.look.clone(), vl: new V3(), az: tg.az, el: tg.el, r: tg.r, vaz: 0, vel: 0, vr: 0, fov: tgt.fov, vf: 0, mode: !!want, sw: 0, pos: tgt.pos.clone(), vp: new V3() };
+      if (jump) (this._dbg || (this._dbg = [])).push(['jump', +t.toFixed(2)]); if (!R || jump) R = this.rig = { look: tgt.look.clone(), vl: new V3(), az: tg.az, el: tg.el, r: tg.r, vaz: 0, vel: 0, vr: 0, fov: tgt.fov, vf: 0, mode: !!want, sw: 0, pos: tgt.pos.clone(), vp: new V3() };
       else { if (!!want !== R.mode) { R.mode = !!want; R.sw = 2.4; } R.sw = Math.max(0, R.sw - dt); const T = R.sw > 0 ? 1.35 : 0.55, Tl = R.sw > 0 ? 1.0 : 0.4;
         const f = damp1(R.fov, R.vf, tgt.fov, 1.0, dt); R.fov = f[0]; R.vf = f[1];
         if (want) damp3(R.look, R.vl, tgt.look, Tl, dt);
@@ -6750,8 +6773,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
           const o = sph(R.pos, R.look); R.az = o.az; R.el = o.el; R.r = o.r; R.vaz = R.vel = R.vr = 0; }
         R.cdir = R.look.clone().sub(R.pos).normalize(); } /* the film's own moves: a straight glide (the aim can travel far) */
 
-      { const gy = this.groundY(R.pos.x, R.pos.z) + 0.25; if (R.pos.y < gy) R.pos.y = gy; }
-      this.insideCast(R.pos); /* refreshes the body boxes (≤ 4×/s) */ if (this._cb) for (const B of this._cb) if (inBody(B, R.pos)) { const cc = B.getCenter(new V3()), sz = B.getSize(new V3()), d = R.pos.clone().sub(cc); d.y *= 0.3; if (d.lengthSq() < 1e-6) d.set(0, 0, 1); d.normalize(); R.pos.copy(cc).addScaledVector(d, (B.big ? Math.min(sz.x, sz.z) * 0.5 : Math.max(sz.x, sz.z) * 0.6) + 0.1); if (R.vp) R.vp.set(0, 0, 0); const o = sph(R.pos, R.look); R.az = o.az; R.el = o.el; R.r = o.r; } /* the lens never passes through a body */
+      { const gy = this.groundY(R.pos.x, R.pos.z) + 0.25; if (R.pos.y < gy - 0.02) (this._dbg || (this._dbg = [])).push(['ground', +t.toFixed(2)]); if (R.pos.y < gy) R.pos.y = gy; }
+      if (this.insideCast(R.pos)) { (this._dbg || (this._dbg = [])).push(['push', +t.toFixed(2)]); const out = this.outOf(R.pos), k = 1 - Math.exp(-dt * 9); R.pos.lerp(out, k); if (R.vp) R.vp.multiplyScalar(0.85); const o = sph(R.pos, R.look); R.az = o.az; R.el = o.el; R.r = o.r; } /* a lens that drifts into a body eases out of it (it used to jump) */
       this._bp = bp; c.position.copy(R.pos); c.up.set(0, 1, 0); c.lookAt(R.look); if (this.camRoll && !want) c.rotateZ(this.camRoll); if (Math.abs(c.fov - R.fov) > 0.01) { c.fov = R.fov; c.updateProjectionMatrix(); }
       if (this.qte && this.qte.kind !== 'choice' && this.qte.kind !== 'simon' && !REDUCED_MOTION) { const k = 0.006 + 0.01 * this.qte.prog; c.position.x += (Math.random() - 0.5) * k; c.position.y += (Math.random() - 0.5) * k; }
       // the speaker talks: a little bob and sway (Grimtide's jaw works instead)
