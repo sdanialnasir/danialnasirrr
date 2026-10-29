@@ -1768,6 +1768,12 @@ body.watching #storyCap { bottom: 9vh; }
 body.story #talk { display: none; }
 
 /* ---- Story v4: interactive beats in films, in-level cutscene letterbox, story fx around the tank, new speakers ---- */
+#mini { position: fixed; inset: 0; z-index: 61; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.6rem; pointer-events: none; background: radial-gradient(ellipse at 50% 50%, rgba(4,22,48,0.25), rgba(4,22,48,0.6)); transition: opacity .25s; }
+#mini[hidden] { display: none; }
+#mini b { font-family: var(--display); font-size: clamp(1.5rem, 4vw, 2.2rem); color: #fff; text-shadow: 0 0.15rem 0 #0b2560; }
+#mini small { font-weight: 900; font-size: 0.95rem; color: #ffe08a; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.7rem; border-radius: 1rem; background: rgba(8, 26, 76, 0.75); }
+#mini canvas { width: min(92vw, 720px); height: min(44vh, 340px); }
+#mini.win canvas { filter: drop-shadow(0 0 1.2rem rgba(255,220,110,0.9)); } #mini.lose canvas { filter: saturate(0.4); }
 #qte { position: fixed; left: 50%; top: 56%; z-index: 60; transform: translate(-50%, -50%) scale(0.8); opacity: 0; pointer-events: none; display: grid; justify-items: center; gap: 0.55rem; text-align: center; transition: opacity .25s, transform .3s cubic-bezier(.2,1.6,.4,1); }
 #qte.on { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 #qte .qt-ring { --qp: 0; width: 7.4rem; height: 7.4rem; border-radius: 50%; display: grid; place-items: center; position: relative;
@@ -2188,6 +2194,7 @@ html body:is(.ui-art, :not(.ui-art)) .kit.k-cond { background: linear-gradient(1
 <div id="simon" hidden aria-live="polite"><b></b><div class="sm-r"></div><div class="sm-k"></div><small class="sm-st"></small></div>
 <div id="runHud" hidden aria-live="polite"><div class="rh-top"><b class="rh-t"></b><i class="rh-bar"><i></i></i></div><div class="rh-lives"></div><div class="rh-sc"><i></i><b class="rh-n">0</b></div><div class="rh-hint"></div><div class="rh-pop"></div></div>
 <div id="choice" hidden aria-live="assertive"><b></b><div class="ch-opts"></div><i class="ch-tm" aria-hidden="true"></i></div>
+<div id="mini" hidden aria-live="assertive"><b></b><small></small><canvas id="miniCv"></canvas></div>
 <div id="qte" hidden aria-live="assertive"><div class="qt-ring"><i></i></div><b></b><small></small></div>
 <div id="talk" aria-live="polite"><i class="tk-ic" aria-hidden="true"></i><div><b></b><p></p></div></div>
 <div id="storyCap" aria-live="polite"><small></small><b></b><p></p></div>

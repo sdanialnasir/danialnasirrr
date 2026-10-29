@@ -90,16 +90,16 @@ A tiny seahorse. Talks fast when nervous (often), jokes to hide fear, huge heart
 | `s2_1` | Chapter 2 · Pip’s Glow | [proud] Real talk, Spark. I used to GLOW. Pip the Bright! |
 | `s2_3` | Chapter 2 · Pip’s Glow | [flustered, then scared] Then the storm came. It had red EYES. It ate every light in the reef. |
 | `s2_4` | Chapter 2 · Pip’s Glow | [excited] But your gate made me sparkle! A teeny bit! Do it again! |
-| `s2_ok1` | Chapter 2 · Pip’s Glow — after “Race the kelp! Grab the sparkles!” (done in time) | [overjoyed] I'm GLOWING! A teeny bit! Okay, a medium bit! |
-| `s2_no1` | Chapter 2 · Pip’s Glow — after “Race the kelp! Grab the sparkles!” (missed) | [brave, cheerful] Still sparkly! Teeny, but sparkly! |
+| `s2_ok1` | Chapter 2 · Pip’s Glow — after “Catch the sparkles!” (done in time) | [overjoyed] I'm GLOWING! A teeny bit! Okay, a medium bit! |
+| `s2_no1` | Chapter 2 · Pip’s Glow — after “Catch the sparkles!” (missed) | [brave, cheerful] Still sparkly! Teeny, but sparkly! |
 | `s3_3` | Chapter 3 · Shelly’s Tale | [horrified] Drinks it? Like a smoothie? |
 | `s3_5` | Chapter 3 · Shelly’s Tale | [trembling, pretending] I'm not scared. My fins are just cold. |
 | `s4_4` | Chapter 4 · Captain Clack | [deadpan] I've been here five seconds. |
 | `s5_2` | Chapter 5 · Jelly Bounce | [excited] A bouncy staircase! Jump, Spark! Jump! |
-| `s5_no1` | Chapter 5 · Jelly Bounce — after “Bounce through the jelly garden!” (missed) | [wincing, giggly] Ow, stingy! Are jellies supposed to be stingy? |
+| `s5_no1` | Chapter 5 · Jelly Bounce — after “Bounce on the beat!” (missed) | [wincing, giggly] Ow, stingy! Are jellies supposed to be stingy? |
 | `s6_2` | Chapter 6 · The Keeper’s Map | [excited, nervous] Open it! No, what if it bites? …Open it! |
 | `s6_5` | Chapter 6 · The Keeper’s Map | [deadpan] You're holding it upside down. |
-| `s6_no1` | Chapter 6 · The Keeper’s Map — after “The wreck is caving in! Get out!” (missed) | [breathless] We made it! Mostly! The map is a bit soggy. |
+| `s6_no1` | Chapter 6 · The Keeper’s Map — after “Turn the crank on the beat!” (missed) | [breathless] We made it! Mostly! The map is a bit soggy. |
 | `s7_2` | Chapter 7 · The Lure | [nervous] Spark… gates don't usually wink. |
 | `s7_5` | Chapter 7 · The Lure | [crying softly] Spark… my glow is going out. |
 | `s8_1` | Chapter 8 · Follow the Fish | [sniffling] This is my fault. I said “ooh, pretty light”. I literally said “ooh”. |
@@ -118,18 +118,18 @@ A tiny seahorse. Talks fast when nervous (often), jokes to hide fear, huge heart
 | `s15_ok1` | Chapter 15 · Mira — after “Ride the canyon with Mira!” (done in time) | [giddy, then soft] WHEEEE! Again! AGAIN! Shelly would have LOVED that! |
 | `s15_no1` | Chapter 15 · Mira — after “Ride the canyon with Mira!” (missed) | [queasy] I think I swallowed a jellyfish. Is that bad? It feels bad. |
 | `s16_1` | Chapter 16 · The Prisoner | [terrified whisper] Spark… EYES in there. Bigger than Shelly! |
-| `s16_ok1` | Chapter 16 · The Prisoner — after “After the tail! Find Murk!” (done in time) | [whispered, worried] He's gone… but he saw your lamp, Spark. |
-| `s16_no1` | Chapter 16 · The Prisoner — after “After the tail! Find Murk!” (missed) | [sad, whispered] Too dark… we lost him. |
+| `s16_ok1` | Chapter 16 · The Prisoner — after “Hide from the searchlight!” (done in time) | [whispered, worried] He's gone… but he saw your lamp, Spark. |
+| `s16_no1` | Chapter 16 · The Prisoner — after “Hide from the searchlight!” (missed) | [sad, whispered] Too dark… we lost him. |
 | `s17_3` | Chapter 17 · The Arch’s Secret | [puzzled] But he TAKES light. He’s a big… taking… noodle. |
 | `s17_ok1` | Chapter 17 · The Arch’s Secret — after “Light the lamps!” (done in time) | [excited] You did it! The arch remembers! |
 | `s18_2` | Chapter 18 · A Secret Trail | [excited] Murk left them! He’s a spy! A big squishy spy! |
-| `s18_ok1` | Chapter 18 · A Secret Trail — after “Follow Murk's pearl trail!” (done in time) | [thrilled] We got them all! Well, most! Murk, you big squishy hero! |
-| `s18_no1` | Chapter 18 · A Secret Trail — after “Follow Murk's pearl trail!” (missed) | [determined] Some floated away… but we know the way now! |
+| `s18_ok1` | Chapter 18 · A Secret Trail — after “Catch Murk's floating pearls!” (done in time) | [thrilled] We got them all! Well, most! Murk, you big squishy hero! |
+| `s18_no1` | Chapter 18 · A Secret Trail — after “Catch Murk's floating pearls!” (missed) | [determined] Some floated away… but we know the way now! |
 | `s19_2` | Chapter 19 · Good News | [overjoyed] SHE'S OKAY! Spark! She's okay! |
 | `s20_4` | Chapter 20 · The Lantern in Chains | [frightened] Why does he keep talking about FOOD? |
-| `s20_ok1` | Chapter 20 · The Lantern in Chains — after “Slip past Grimtide's coils!” (done in time) | [giddy, then nervous] He didn't even see us! …Did he? |
+| `s20_ok1` | Chapter 20 · The Lantern in Chains — after “Hide from Grimtide's eye!” (done in time) | [giddy, then nervous] He didn't even see us! …Did he? |
 | `s22_3` | Chapter 22 · Whale Song | [overjoyed] CLACK! |
-| `s22_no1` | Chapter 22 · Whale Song — after “Swim with Bellow's song!” (missed) | [cheerful] Bumpy song! Still pretty! |
+| `s22_no1` | Chapter 22 · Whale Song — after “Swim with Bellow’s song!” (missed) | [cheerful] Bumpy song! Still pretty! |
 | `s23_2` | Chapter 23 · The Mural | [stunned whisper] Spark… look at her helmet. Her LAMP. |
 | `s24_1` | Chapter 24 · Ambush | [joyful] Twenty-four gates! We’re actually going to— |
 | `s26_1` | Chapter 26 · Breaking the Chains | [crying, joyful] Spark! You came! I said “Spark will come” like four hundred times! |
@@ -226,9 +226,9 @@ Captain of the Crack Crab Crew. Loud, pompous, secretly soft. Comic relief who d
 | `s4_cfunny_2` | Chapter 4 · Captain Clack — choice “Name, rank, snack?”: funny answer “Spark. Seaweed chips.” | [delighted] Seaweed chips! A diver of TASTE! Crew, this one is one of us! |
 | `s4_ckind_2` | Chapter 4 · Captain Clack — choice “Name, rank, snack?”: kind answer “The famous captain, I presume?” | [flustered, proud] Famous? Me? Well. Yes. Obviously. Crew, did you HEAR that? |
 | `s5_4` | Chapter 5 · Jelly Bounce | [pompous, then delighted] A captain does NOT bounce. A captain ascends. WHEEEE! |
-| `s5_ok2` | Chapter 5 · Jelly Bounce — after “Bounce through the jelly garden!” (done in time) | [flustered, proud] Dignified. Extremely dignified. Nobody saw me squeal. |
+| `s5_ok2` | Chapter 5 · Jelly Bounce — after “Bounce on the beat!” (done in time) | [flustered, proud] Dignified. Extremely dignified. Nobody saw me squeal. |
 | `s6_4` | Chapter 6 · The Keeper’s Map | [proud] A map! Hand it here. Captains are excellent with maps. |
-| `s6_ok1` | Chapter 6 · The Keeper’s Map — after “The wreck is caving in! Get out!” (done in time) | [booming, proud] Exactly as I planned! The map is safe! |
+| `s6_ok1` | Chapter 6 · The Keeper’s Map — after “Turn the crank on the beat!” (done in time) | [booming, proud] Exactly as I planned! The map is safe! |
 | `s8_3` | Chapter 8 · Follow the Fish | [triumphant] FISH! Exactly as I planned. |
 | `s9_3` | Chapter 9 · The Torn Map | [grumbling] Cliffs. Crabs and cliffs have a long and painful history. |
 | `s9_no1` | Chapter 9 · The Torn Map — after “Outrun the ink cloud!” (missed) | [grumbling] I have ink in places a crab should never have ink. |
@@ -236,7 +236,7 @@ Captain of the Crack Crab Crew. Loud, pompous, secretly soft. Comic relief who d
 | `s14_4` | Chapter 14 · Rest, Old Friend | [gruff, emotional] Go. Nobody touches this turtle while Clack has claws. |
 | `s22_2` | Chapter 22 · Whale Song | [booming] Did somebody say CAPTAIN? |
 | `s22_4` | Chapter 22 · Whale Song | [proud, chuckling] Shelly sends her love. And a VERY rude message for Grimtide. |
-| `s22_ok1` | Chapter 22 · Whale Song — after “Swim with Bellow's song!” (done in time) | [giddy, then gruff] WHEEE! I mean… dignified whee. |
+| `s22_ok1` | Chapter 22 · Whale Song — after “Swim with Bellow’s song!” (done in time) | [giddy, then gruff] WHEEE! I mean… dignified whee. |
 | `s24_4` | Chapter 24 · Ambush | [roaring, charging] Let him go, you overgrown NOODLE! |
 | `s25_1` | Chapter 25 · The Captain’s Last Order | [weak, rasping] Did I get him? Tell me I pinched him good. |
 | `s25_2` | Chapter 25 · The Captain’s Last Order | [weak, fading] Tell my crew… finest crew… on the whole reef. |
@@ -271,7 +271,7 @@ The villain: a giant eel who drinks light. Silky and amused at first, then hungr
 | `s13_5` | Chapter 13 · The Dark Storm | [cold, quiet] One down. |
 | `s18_3` | Chapter 18 · A Secret Trail | [suspicious, cold, distant] Murk… why are my pearls floating away? |
 | `s20_3` | Chapter 20 · The Lantern in Chains | [delighted, menacing] Twenty gates! You’re not saving the reef. You’re setting my table. |
-| `s20_no1` | Chapter 20 · The Lantern in Chains — after “Slip past Grimtide's coils!” (missed) | [silky, menacing] Run along, little light. I can wait. |
+| `s20_no1` | Chapter 20 · The Lantern in Chains — after “Hide from Grimtide's eye!” (missed) | [silky, menacing] Run along, little light. I can wait. |
 | `s24_2` | Chapter 24 · Ambush | [roaring] ENOUGH! |
 | `s24_6` | Chapter 24 · Ambush | [cold, triumphant] Come to my lair, little light. Or never see your seahorse again. |
 | `s24_no2` | Chapter 24 · Ambush — after “Chase Grimtide! Save Pip!” (missed) | [cold, amused] Too slow, little light. Much too slow. |
@@ -328,14 +328,14 @@ An anglerfish showman. Big theatrical voice (“Ladies and gentlefish!”) over 
 | `s21_2` | Chapter 21 · Lumen | [theatrical, grand] Lumen’s the name, light’s the game! |
 | `s21_3` | Chapter 21 · Lumen | [dropping the act] I’ve been hiding for three weeks. In a sock. Don’t ask. |
 | `s21_4` | Chapter 21 · Lumen | [brave, theatrical] Going after him? Then my light is yours. Showtime! |
-| `s21_ok1` | Chapter 21 · Lumen — after “Follow Lumen's light through the dark!” (done in time) | [theatrical, delighted] Standing ovation! You two are naturals! |
-| `s21_no1` | Chapter 21 · Lumen — after “Follow Lumen's light through the dark!” (missed) | [theatrical, warm] Little stage fright. Happens to the best of us! |
+| `s21_ok1` | Chapter 21 · Lumen — after “Hit Lumen's beat!” (done in time) | [theatrical, delighted] Standing ovation! You two are naturals! |
+| `s21_no1` | Chapter 21 · Lumen — after “Hit Lumen's beat!” (missed) | [theatrical, warm] Little stage fright. Happens to the best of us! |
 | `s23_4` | Chapter 23 · The Mural | [soft, amazed] Kid, in show business we call that a plot twist. |
 | `s23_ok1` | Chapter 23 · The Mural — after “The ruins are falling! Swim!” (done in time) | [theatrical, triumphant] And THAT is how you exit a scene! |
 | `s23_no1` | Chapter 23 · The Mural — after “The ruins are falling! Swim!” (missed) | [theatrical, shaken] A bit of rubble. The show goes on! |
 | `s28_1` | Chapter 28 · The Deep Rises | [theatrical, grand] Ladies and gentlefish! Wave those arms, Spark! Show the Deep it’s not alone! |
-| `s28_ok1` | Chapter 28 · The Deep Rises — after “Light up the Deep!” (done in time) | [ecstatic, theatrical] Standing ovation! The whole Deep is GLOWING! |
-| `s28_no1` | Chapter 28 · The Deep Rises — after “Light up the Deep!” (missed) | [brave, theatrical] A few lights short, but the show goes on, darling! |
+| `s28_ok1` | Chapter 28 · The Deep Rises — after “Wave to the beat!” (done in time) | [ecstatic, theatrical] Standing ovation! The whole Deep is GLOWING! |
+| `s28_no1` | Chapter 28 · The Deep Rises — after “Wave to the beat!” (missed) | [brave, theatrical] A few lights short, but the show goes on, darling! |
 | `l21_s` | Level 21: level starts | [stage whisper] Shh! Sleeping piranhas. Tiptoe, my friends. Tippy-tippy-toe. |
 | `l21_g` | Level 21: gate opens | [theatrical] Twenty-one! Bravo! Bravissimo! |
 | `l22_p` | Level 22: first pearl in | [thrilled] Listen! Old Bellow sings louder with every pearl! |

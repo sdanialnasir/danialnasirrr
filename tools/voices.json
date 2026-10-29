@@ -833,7 +833,7 @@
    "id": "s2_ok1",
    "role": "pip",
    "text": "[overjoyed] I'm GLOWING! A teeny bit! Okay, a medium bit!",
-   "when": "Chapter 2 · Pip’s Glow — after “Race the kelp! Grab the sparkles!” (done in time)",
+   "when": "Chapter 2 · Pip’s Glow — after “Catch the sparkles!” (done in time)",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
@@ -842,7 +842,7 @@
    "id": "s2_no1",
    "role": "pip",
    "text": "[brave, cheerful] Still sparkly! Teeny, but sparkly!",
-   "when": "Chapter 2 · Pip’s Glow — after “Race the kelp! Grab the sparkles!” (missed)",
+   "when": "Chapter 2 · Pip’s Glow — after “Catch the sparkles!” (missed)",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
@@ -986,7 +986,7 @@
    "id": "s5_ok2",
    "role": "clack",
    "text": "[flustered, proud] Dignified. Extremely dignified. Nobody saw me squeal.",
-   "when": "Chapter 5 · Jelly Bounce — after “Bounce through the jelly garden!” (done in time)",
+   "when": "Chapter 5 · Jelly Bounce — after “Bounce on the beat!” (done in time)",
    "max_seconds": 0,
    "set": "story",
    "who": "Captain Clack"
@@ -995,7 +995,7 @@
    "id": "s5_no1",
    "role": "pip",
    "text": "[wincing, giggly] Ow, stingy! Are jellies supposed to be stingy?",
-   "when": "Chapter 5 · Jelly Bounce — after “Bounce through the jelly garden!” (missed)",
+   "when": "Chapter 5 · Jelly Bounce — after “Bounce on the beat!” (missed)",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
@@ -1040,7 +1040,7 @@
    "id": "s6_ok1",
    "role": "clack",
    "text": "[booming, proud] Exactly as I planned! The map is safe!",
-   "when": "Chapter 6 · The Keeper’s Map — after “The wreck is caving in! Get out!” (done in time)",
+   "when": "Chapter 6 · The Keeper’s Map — after “Turn the crank on the beat!” (done in time)",
    "max_seconds": 0,
    "set": "story",
    "who": "Captain Clack"
@@ -1049,7 +1049,7 @@
    "id": "s6_no1",
    "role": "pip",
    "text": "[breathless] We made it! Mostly! The map is a bit soggy.",
-   "when": "Chapter 6 · The Keeper’s Map — after “The wreck is caving in! Get out!” (missed)",
+   "when": "Chapter 6 · The Keeper’s Map — after “Turn the crank on the beat!” (missed)",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
@@ -1562,7 +1562,7 @@
    "id": "s16_ok1",
    "role": "pip",
    "text": "[whispered, worried] He's gone… but he saw your lamp, Spark.",
-   "when": "Chapter 16 · The Prisoner — after “After the tail! Find Murk!” (done in time)",
+   "when": "Chapter 16 · The Prisoner — after “Hide from the searchlight!” (done in time)",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
@@ -1571,7 +1571,7 @@
    "id": "s16_no1",
    "role": "pip",
    "text": "[sad, whispered] Too dark… we lost him.",
-   "when": "Chapter 16 · The Prisoner — after “After the tail! Find Murk!” (missed)",
+   "when": "Chapter 16 · The Prisoner — after “Hide from the searchlight!” (missed)",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
@@ -1652,7 +1652,7 @@
    "id": "s18_ok1",
    "role": "pip",
    "text": "[thrilled] We got them all! Well, most! Murk, you big squishy hero!",
-   "when": "Chapter 18 · A Secret Trail — after “Follow Murk's pearl trail!” (done in time)",
+   "when": "Chapter 18 · A Secret Trail — after “Catch Murk's floating pearls!” (done in time)",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
@@ -1661,7 +1661,7 @@
    "id": "s18_no1",
    "role": "pip",
    "text": "[determined] Some floated away… but we know the way now!",
-   "when": "Chapter 18 · A Secret Trail — after “Follow Murk's pearl trail!” (missed)",
+   "when": "Chapter 18 · A Secret Trail — after “Catch Murk's floating pearls!” (missed)",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
@@ -1751,7 +1751,7 @@
    "id": "s20_ok1",
    "role": "pip",
    "text": "[giddy, then nervous] He didn't even see us! …Did he?",
-   "when": "Chapter 20 · The Lantern in Chains — after “Slip past Grimtide's coils!” (done in time)",
+   "when": "Chapter 20 · The Lantern in Chains — after “Hide from Grimtide's eye!” (done in time)",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
@@ -1760,7 +1760,7 @@
    "id": "s20_no1",
    "role": "grimtide",
    "text": "[silky, menacing] Run along, little light. I can wait.",
-   "when": "Chapter 20 · The Lantern in Chains — after “Slip past Grimtide's coils!” (missed)",
+   "when": "Chapter 20 · The Lantern in Chains — after “Hide from Grimtide's eye!” (missed)",
    "max_seconds": 0,
    "set": "story",
    "who": "Grimtide"
@@ -1796,7 +1796,7 @@
    "id": "s21_ok1",
    "role": "lumen",
    "text": "[theatrical, delighted] Standing ovation! You two are naturals!",
-   "when": "Chapter 21 · Lumen — after “Follow Lumen's light through the dark!” (done in time)",
+   "when": "Chapter 21 · Lumen — after “Hit Lumen's beat!” (done in time)",
    "max_seconds": 0,
    "set": "story",
    "who": "Lumen"
@@ -1805,7 +1805,7 @@
    "id": "s21_no1",
    "role": "lumen",
    "text": "[theatrical, warm] Little stage fright. Happens to the best of us!",
-   "when": "Chapter 21 · Lumen — after “Follow Lumen's light through the dark!” (missed)",
+   "when": "Chapter 21 · Lumen — after “Hit Lumen's beat!” (missed)",
    "max_seconds": 0,
    "set": "story",
    "who": "Lumen"
@@ -1841,7 +1841,7 @@
    "id": "s22_ok1",
    "role": "clack",
    "text": "[giddy, then gruff] WHEEE! I mean… dignified whee.",
-   "when": "Chapter 22 · Whale Song — after “Swim with Bellow's song!” (done in time)",
+   "when": "Chapter 22 · Whale Song — after “Swim with Bellow’s song!” (done in time)",
    "max_seconds": 0,
    "set": "story",
    "who": "Captain Clack"
@@ -1850,7 +1850,7 @@
    "id": "s22_no1",
    "role": "pip",
    "text": "[cheerful] Bumpy song! Still pretty!",
-   "when": "Chapter 22 · Whale Song — after “Swim with Bellow's song!” (missed)",
+   "when": "Chapter 22 · Whale Song — after “Swim with Bellow’s song!” (missed)",
    "max_seconds": 0,
    "set": "story",
    "who": "Pip"
@@ -2129,7 +2129,7 @@
    "id": "s28_ok1",
    "role": "lumen",
    "text": "[ecstatic, theatrical] Standing ovation! The whole Deep is GLOWING!",
-   "when": "Chapter 28 · The Deep Rises — after “Light up the Deep!” (done in time)",
+   "when": "Chapter 28 · The Deep Rises — after “Wave to the beat!” (done in time)",
    "max_seconds": 0,
    "set": "story",
    "who": "Lumen"
@@ -2138,7 +2138,7 @@
    "id": "s28_no1",
    "role": "lumen",
    "text": "[brave, theatrical] A few lights short, but the show goes on, darling!",
-   "when": "Chapter 28 · The Deep Rises — after “Light up the Deep!” (missed)",
+   "when": "Chapter 28 · The Deep Rises — after “Wave to the beat!” (missed)",
    "max_seconds": 0,
    "set": "story",
    "who": "Lumen"

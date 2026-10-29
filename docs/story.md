@@ -19,11 +19,11 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 |---|---|---|---|
 | prologue | The Night the Lights Went Out | wonder |  |
 | 1 | Through the Old Pipe | wonder | Who are you? (choice) |
-| 2 | Pip’s Glow | hope ↑ | Race the kelp! Grab the sparkles! (run) |
+| 2 | Pip’s Glow | hope ↑ | Catch the sparkles! (catch) |
 | 3 | Shelly’s Tale | dread ↓ | Ride on Shelly! Dodge the rocks! (run) |
 | 4 | Captain Clack | fun ↑ | Name, rank, snack? (choice) |
-| 5 | Jelly Bounce | fun ↑ | Bounce through the jelly garden! (run) |
-| 6 | The Keeper’s Map | discovery ↑ | The wreck is caving in! Get out! (run) |
+| 5 | Jelly Bounce | fun ↑ | Bounce on the beat! (beat) |
+| 6 | The Keeper’s Map | discovery ↑ | Turn the crank on the beat! (beat) |
 | 7 | The Lure | BLUNDER ↓↓ | Hold on to the map! (tap) |
 | 8 | Follow the Fish | recovery ↑ | Cheer Pip up (choice) |
 | 9 | The Torn Map | hope ↑ | Outrun the ink cloud! (run) |
@@ -33,19 +33,19 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 | 13 | The Dark Storm | danger ↓↓ | Get everyone through the storm! (run) |
 | 14 | Rest, Old Friend | grief ↓↓ | Promise Shelly (choice) |
 | 15 | Mira | hope ↑ | Ride the canyon with Mira! (run) |
-| 16 | The Prisoner | mystery | After the tail! Find Murk! (run) |
+| 16 | The Prisoner | mystery | Hide from the searchlight! (sneak) |
 | 17 | The Arch’s Secret | resolve ↑ | Light the lamps! (tap) |
-| 18 | A Secret Trail | hope ↑ | Follow Murk's pearl trail! (run) |
+| 18 | A Secret Trail | hope ↑ | Catch Murk's floating pearls! (catch) |
 | 19 | Good News | joy ↑↑ | Message for home (choice) |
-| 20 | The Lantern in Chains | dread ↓ | Slip past Grimtide's coils! (run) |
-| 21 | Lumen | hope ↑ | Follow Lumen's light through the dark! (run) |
-| 22 | Whale Song | wonder | Swim with Bellow's song! (run) |
+| 20 | The Lantern in Chains | dread ↓ | Hide from Grimtide's eye! (sneak) |
+| 21 | Lumen | hope ↑ | Hit Lumen's beat! (beat) |
+| 22 | Whale Song | wonder | Swim with Bellow’s song! (run) |
 | 23 | The Mural | discovery ↑ | The ruins are falling! Swim! (run) |
 | 24 | Ambush | BLUNDER ↓↓ | Chase Grimtide! Save Pip! (run) |
 | 25 | The Captain’s Last Order | GRIEF ↓↓↓ | Answer the Captain (choice) |
 | 26 | Breaking the Chains | rescue ↑↑ | Give your light! (tap) |
 | 27 | Over the Abyss | resolve ↑ | Answer Murk (choice) |
-| 28 | The Deep Rises | rally ↑↑ | Light up the Deep! (run) |
+| 28 | The Deep Rises | rally ↑↑ | Wave to the beat! (beat) |
 | 29 | Grimtide’s Lair | showdown ↓ | Through the coils! Reach the Lantern! (run) |
 | 30 | The Reef’s Revenge | REVENGE ↑↑↑ | Give the light back! Zap Grimtide! (run) |
 
@@ -316,7 +316,7 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 
 - `s18_1` *(silent, action only) Pearls float up from the sand like little lanterns. A trail.*
 - `s18_2` **Pip:** Murk left them! He’s a spy! A big squishy spy! _(spin)_
-- ▶ **Follow Murk's pearl trail!** (run) — in time: **Pip:** We got them all! Well, most! Murk, you big squishy hero! — missed: **Pip:** Some floated away… but we know the way now!
+- ▶ **Catch Murk's floating pearls!** (catch) — in time: **Pip:** We got them all! Well, most! Murk, you big squishy hero! — missed: **Pip:** Some floated away… but we know the way now!
 - `s18_3` **Grimtide:** Murk… why are my pearls floating away?
 - `s18_4` **Murk:** …Currents?
 
@@ -451,7 +451,7 @@ Grimtide, a giant eel who drinks light, once took the reef’s brightest pearls 
 **Chapter 28 · The Deep Rises** (film `plankton`, arrival `bubble`, rally ↑↑)
 
 - `s28_1` **Lumen:** Ladies and gentlefish! Wave those arms, Spark! Show the Deep it’s not alone! _(spin)_
-- ▶ **Light up the Deep!** (run) — in time: **Lumen:** Standing ovation! The whole Deep is GLOWING! — missed: **Lumen:** A few lights short, but the show goes on, darling!
+- ▶ **Wave to the beat!** (beat) — in time: **Lumen:** Standing ovation! The whole Deep is GLOWING! — missed: **Lumen:** A few lights short, but the show goes on, darling!
 - `s28_2` *(silent, action only) Every wave sets the plankton glowing. Then the jellies. Then the fish. Then everyone.*
 - `s28_3` *(silent, action only) Clack’s crew raise his tiny hat high.*
 - `s28_4` **Grimtide:** Light them all, little light. More for me.

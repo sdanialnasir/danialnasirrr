@@ -51,14 +51,14 @@ QCUT = {5: ([0], [1]), 10: ([0], [0]), 13: ([0], [1]), 15: ([1], [1]), 24: ([1],
 # new playable runs at the end of the films that had none (short: 16 s)
 def RUN(v, label, ok, no, dur=16): return dict(kind='run', v=v, label=label, dur=dur, ok=ok, no=no)
 NEW_Q = {
-  2: RUN('kelp', 'Race the kelp! Grab the sparkles!', [('pip', "I'm GLOWING! A teeny bit! Okay, a medium bit!", 'overjoyed', 'spin')], [('pip', 'Still sparkly! Teeny, but sparkly!', 'brave, cheerful', 'hop')]),
+  2: RUN('kelp', 'Catch the sparkles!', [('pip', "I'm GLOWING! A teeny bit! Okay, a medium bit!", 'overjoyed', 'spin')], [('pip', 'Still sparkly! Teeny, but sparkly!', 'brave, cheerful', 'hop')]),
   3: RUN('shell', "Ride on Shelly! Dodge the rocks!", [('shelly', 'Hmph. Not bad, for a light-fish.', 'dry, secretly pleased', 'nod')], [('shelly', 'Bumpy. My shell has had worse.', 'dry, unbothered')]),
-  6: RUN('wreck', 'The wreck is caving in! Get out!', [('clack', 'Exactly as I planned! The map is safe!', 'booming, proud', 'salute')], [('pip', 'We made it! Mostly! The map is a bit soggy.', 'breathless', 'shake')]),
+  6: RUN('wreck', 'Turn the crank on the beat!', [('clack', 'Exactly as I planned! The map is safe!', 'booming, proud', 'salute')], [('pip', 'We made it! Mostly! The map is a bit soggy.', 'breathless', 'shake')]),
   9: RUN('dune', 'Outrun the ink cloud!', [('pip', 'Ha! Ink can’t catch us!', 'cheeky, giddy', 'laugh')], [('clack', 'I have ink in places a crab should never have ink.', 'grumbling', 'shake')]),
-  16: RUN('shadow', 'After the tail! Find Murk!', [('pip', "He's gone… but he saw your lamp, Spark.", 'whispered, worried', 'droop')], [('pip', 'Too dark… we lost him.', 'sad, whispered', 'droop')]),
-  20: RUN('coil', "Slip past Grimtide's coils!", [('pip', "He didn't even see us! …Did he?", 'giddy, then nervous', 'hop')], [('grimtide', 'Run along, little light. I can wait.', 'silky, menacing')]),
-  21: RUN('angler', "Follow Lumen's light through the dark!", [('lumen', 'Standing ovation! You two are naturals!', 'theatrical, delighted', 'spin')], [('lumen', 'Little stage fright. Happens to the best of us!', 'theatrical, warm')]),
-  22: RUN('whale', "Swim with Bellow's song!", [('clack', 'WHEEE! I mean… dignified whee.', 'giddy, then gruff', 'hop')], [('pip', 'Bumpy song! Still pretty!', 'cheerful')]),
+  16: RUN('shadow', 'Hide from the searchlight!', [('pip', "He's gone… but he saw your lamp, Spark.", 'whispered, worried', 'droop')], [('pip', 'Too dark… we lost him.', 'sad, whispered', 'droop')]),
+  20: RUN('coil', 'Hide from the eye!', [('pip', "He didn't even see us! …Did he?", 'giddy, then nervous', 'hop')], [('grimtide', 'Run along, little light. I can wait.', 'silky, menacing')]),
+  21: RUN('angler', 'Hit Lumen’s beat!', [('lumen', 'Standing ovation! You two are naturals!', 'theatrical, delighted', 'spin')], [('lumen', 'Little stage fright. Happens to the best of us!', 'theatrical, warm')]),
+  22: RUN('whale', 'Swim with Bellow’s song!', [('clack', 'WHEEE! I mean… dignified whee.', 'giddy, then gruff', 'hop')], [('pip', 'Bumpy song! Still pretty!', 'cheerful')]),
   23: RUN('ruins', 'The ruins are falling! Swim!', [('lumen', 'And THAT is how you exit a scene!', 'theatrical, triumphant', 'spin')], [('lumen', 'A bit of rubble. The show goes on!', 'theatrical, shaken')]),
 }
 
@@ -76,3 +76,12 @@ for n, q in NEW_Q.items():
     assert 'Q' not in CH[n], n
     q['at'] = len(CH[n]['L']); CH[n]['Q'] = q
 PROLOGUE = CH[0]
+
+# story v6 mini-games: each film gets a different game than the swim-run it used to have
+# beat = timing (tap on the gold), catch = lanes (steer to catch pearls), sneak = stealth (tap to hide before the eye sweeps)
+REKIND = {2: 'catch', 5: 'beat', 6: 'beat', 16: 'sneak', 18: 'catch', 20: 'sneak', 21: 'beat', 28: 'beat'}
+LABEL = {2: 'Catch the sparkles!', 5: 'Bounce on the beat!', 6: 'Turn the crank on the beat!', 16: 'Hide from the searchlight!',
+         18: "Catch Murk's floating pearls!", 20: "Hide from Grimtide's eye!", 21: "Hit Lumen's beat!", 28: 'Wave to the beat!'}
+for n, k in REKIND.items():
+    CH[n]['Q']['kind'] = k; CH[n]['Q']['label'] = LABEL[n]
+    CH[n]['Q'].pop('v', None); CH[n]['Q'].pop('dur', None)
