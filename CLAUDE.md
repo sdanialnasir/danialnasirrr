@@ -1004,3 +1004,10 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   (`inBody`; a whale's box shoved the camera 5 m up), plus scenery a recipe marks with `S.solid(mesh, r)`. `sceneRock(S, r, sx, sy, sz,
   tint, seed)` = sculpted reef-textured rock that is solid for the camera (replaced the flat low-poly dodecahedrons). Staging rule that
   the sheets kept proving: put people who talk at about the same distance from the lens; the one in front otherwise turns his back to it.
+- More director rules (same pass): the fit keeps small characters (s < 0.65) whole and everyone else from the waist up (medium shots;
+  head-to-feet forced 3–4 m full shots), and checks each body's width, not just its middle line. Pairs closer than 1.3 m get a single on
+  the speaker that still keeps the other whole. Shots the ground had to lift (`frame().lifted`: a slope between lens and speaker) are
+  rejected. Listeners don't turn to a speaker right above them (riders). Recipes that travel (15 Mira, 27 Murk) film their own lines.
+  Ch 2 hides kelp within 1.5 m of the lens; ch 12 films the song from among the clams; ch 15's talk has a composed three-quarter shot.
+- **Lens clear** (Story.update after shotCam): any scenery sprite in `S.decor` nearer than the subject whose box would cover more than a fifth
+  of the screen is hidden (hysteresis 0.2 / 0.14); measured from the sprite's real box (`ud.bb`; sprite size lives in its geometry, not scale).

@@ -3058,7 +3058,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       // (a longer lens), then settles behind the pair looking toward the next vault
       const out = sm01((t - tIn + 0.2) / 2.8), cIn = at(-7.6 + 6.0 * sm01(t / tIn) * 0.85 + 0.15 * (t / tIn), M.y + 0.15).addScaledVector(side, -0.15), lIn = at(2, M.y - 0.15);
       const P2 = at(1.6, 0.5), cOut = P2.clone().addScaledVector(side, 2.9).addScaledVector(d, 2.1).setY(1.25), lOut = P2.clone().addScaledVector(side, -0.3).addScaledVector(d, 0.4).setY(0.95);
-      const cMid = at(0.3, M.y + 0.3).addScaledVector(side, 0.35), lMid = at(2.4, 0.55); /* he flies out past the lens and lands in the middle of the picture */
+      const cMid = at(0.6, M.y + 0.05).addScaledVector(side, 0.2), lMid = at(2.6, 0.5); /* aimed low and near: he flies out past the lens and lands in the picture */
       let cp = t < tIn ? cIn : out < 0.5 ? cIn.clone().lerp(cMid, sm01(out * 2)) : S.arc(at(1.6, 0.5), cMid, cOut, out * 2 - 1), lp = t < tIn ? lIn : out < 0.6 ? lIn.clone().lerp(lMid, sm01(out / 0.6)) : lMid.clone().lerp(lOut, sm01((out - 0.6) / 0.4));
       const e1 = aL < 1e8 ? sm01((t - aL + 0.1) / 4.0) : 0, e2 = aL < 1e8 ? sm01((t - aL - 3.6) / 3.0) : 0, dk = aL < 1e8 ? sm01((t - aL) / 1.4) * (1 - sm01((t - aL - 3.6) / 1.8)) : 0;
       S.expoMul = 1 - 0.55 * dk; c.eye.children[0].material.color.setRGB(1.6 * (1 + 1.6 * dk), 0.18, 0.08); /* the reef dims around the eye */
@@ -3095,6 +3095,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const ahead = c.P(ss + 0.32).addScaledVector(lat, -0.4).setY(1.2), mid = p.clone().lerp(pp, 0.5); mid.y = 1.05; /* ahead along the corridor's own curve (a straight line ran into the kelp) */
       const beh = p.clone().sub(fT.clone().multiplyScalar(3.0)).addScaledVector(new V3(-fT.z, 0, fT.x), 1.4).setY(1.6), endL = S.tankP().clone().setY(1.6), e2 = sm01((t - tEnd + 0.2) / 4.5);
       S.cam(S.arc(p, ahead, beh, e2), mid.lerp(endL, sm01((e2 - 0.45) / 0.55)));
+      if (!S.probe && S.kelp) { const cq = S.cam0.position; for (const k of S.kelp) { const d = Math.hypot(k.position.x - cq.x, k.position.z - cq.z); k.visible = d > (k.visible ? 2.6 : 2.9); } } /* no kelp leaf against the lens */
       return { mode: land > 0.6 ? 'stand' : 'float', face: f, arms: t > a3 && t < a3 + 1.6 ? 'cheer' : null, armK: sm01((t - a3) / 0.4) * (1 - sm01((t - a3 - 1.2) / 0.4)) }; } };
   // 3: Shelly swims in, the diver hops on, they glide off together
   // 3, staged on its lines: Shelly glides in and settles facing the diver (Pip at his shoulder); the conversation plays in two-shots;
@@ -3303,7 +3304,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   // goes dark and turns red, his eyes open in the dark behind the diver; the diver turns, looking for him. On "Every crystal you light
   // shows me…" the crystals blink on one by one, red. After the answer they go cyan again, Clack rallies, and they push on.
   RECIPES.crystals = { live: true, set: { dark: 0.78, night: 0.35 }, expo: 0.95, tail: 3.0, gap(i) { return i === 0 ? 2.4 : 0; }, own: (i, sh) => sh.who === 'grimtide' || !sh.who,
-    setup(S, c) { c.cr = []; for (let i = 0; i < 12; i++) { const g = S.add(makeCrystals(i % 3 ? 0xb57cff : 0x6fe0ff, 6, 0.8 + (i % 3) * 0.35, 11 + i)); const side = i % 2 ? 1 : -1; g.position.set(side * (1.5 + (i % 3) * 0.45), 0, 4 - i * 0.85); g.rotation.y = i * 1.3; c.cr.push(g); }
+    setup(S, c) { c.cr = []; for (let i = 0; i < 12; i++) { const g = S.add(makeCrystals(i % 3 ? 0xb57cff : 0x6fe0ff, 6, 0.8 + (i % 3) * 0.35, 11 + i)); const side = i % 2 ? 1 : -1; g.position.set(side * (1.5 + (i % 3) * 0.45), 0, 4 - i * 0.85); g.rotation.y = i * 1.3; S.solid(g, 0.6 + (i % 3) * 0.25); c.cr.push(g); }
       c.lamp = new THREE.SpotLight(0xfff0c0, 18, 9, 0.6, 0.6, 1.2); S.scene.add(c.lamp, c.lamp.target); c.red = new THREE.PointLight(0xff3020, 0, 10, 1.4); S.scene.add(c.red); S.tankAt(3.6, -10, -0.25); S.clear.push([0, 0, 1.3]); },
     run(S, c, t) { const tm = S.time, a0 = S.at(0), a1 = S.at(1), a2 = S.at(2), e2 = S.end(2), q = S.qa(), j0 = S.tl(0), T = isFinite(S.T) ? S.T : S.te(0) + 3;
       const go = Math.max(0, t - S.te(0) - 0.2), z = K(t, [[0, 4.4], [Math.max(2.2, a0 - 0.2), 1.3]]) - go * 1.1, p = S.gp(Math.sin(t * 0.7) * 0.15, z);
@@ -3318,14 +3319,14 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       // camera: low in front of him, walking backwards with him; it holds close on his face for the voice; then follows them on
       let cp = new V3(1.3, 1.05, z - 3.0), cl = new V3(0, 0.8, z);
       if (t > a0 - 0.3 && t < e2 + 0.4) { const k = sm01((t - a0 + 0.3) / 1.2) * (1 - sm01((t - e2 + 0.2) / 0.8)); cp.lerp(new V3(0.9, 0.95, z - 2.0), k); cl.lerp(new V3(0, 0.95, z + 0.5), k); }
-      if (go > 0) { const k = sm01(go / 2.4); cp.lerp(new V3(-1.2, 1.5, z + 3.4), k); cl.lerp(new V3(0.2, 0.9, z - 3), k); }
+      if (go > 0) { const k = sm01(go / 2.4); cp.lerp(new V3(-0.35, 1.7, z + 3.0), k); cl.lerp(new V3(0.1, 0.8, z - 3), k); } /* behind them down the open middle of the cave */
       S.cam(cp, cl);
       return { mode: t < a0 - 0.2 || go > 0 ? 'walk' : 'stand', speed: 1.1, face: f }; } };
   // 12, staged on its lines: a ring of giant clams in a sunlit hollow. They open one by one as the narrator speaks; while they sing they
   // pulse open and shut in time. The last clam stays shut: the diver goes to it and knocks. The song game; if it works, the last clam
   // opens and its pearl lifts out. Shelly drifts down from above and speaks to them.
   RECIPES.clams = { live: true, set: { dark: 0.3 }, tail: 3.2, gap(i) { return i === 0 ? 1.6 : 0; }, own: (i, sh) => !sh.who || sh.who === 'choir',
-    setup(S, c) { c.cl = []; c.rung = []; for (let i = 0; i < 5; i++) { const g = S.add(makeClam([0xc59ae8, 0xf0a0c8, 0x9ad0f0][i % 3])); const a = -1.0 + i * 0.5; g.position.set(Math.sin(a) * 2.9, 0, -1.4 - Math.cos(a) * 1.7); g.rotation.y = -a + Math.PI / 2; g.scale.setScalar(i === 4 ? 1.25 : 1.1); c.cl.push(g); }
+    setup(S, c) { c.cl = []; c.rung = []; for (let i = 0; i < 5; i++) { const g = S.add(makeClam([0xc59ae8, 0xf0a0c8, 0x9ad0f0][i % 3])); const a = -1.0 + i * 0.5; g.position.set(Math.sin(a) * 2.9, 0, -1.4 - Math.cos(a) * 1.7); g.rotation.y = -a + Math.PI / 2; g.scale.setScalar(i === 4 ? 1.25 : 1.1); S.solid(g, 0.75); c.cl.push(g); }
       c.tu = S.add(makeTurtle()); c.pip = S.add(makePip(0xffc23a, S.glow)); S.tankAt(4.6, -11, -0.32); S.clear.push([0, -1.2, 3.6]); },
     run(S, c, t) { const tm = S.time, a0 = S.at(0), e0 = S.end(0), a1 = S.at(1), e1 = S.end(1), a2 = S.at(2), q = S.qa(), j0 = S.tl(0), T = isFinite(S.T) ? S.T : S.te(0) + 3.2;
       const last = c.cl[4], sing = t > a1 && t < e1 + 0.5;
@@ -3341,8 +3342,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       { const k = sm01((t - j0 + 1.6) / 1.8), tp = new V3(-2.2, 6.5, -2.2).lerp(new V3(-1.7, 1.0, 0.1), k); tp.y += Math.sin(tm * 1.1) * 0.05; c.tu.position.copy(tp); c.tu.visible = k > 0.01; S.turn(c.tu, p, 0.35); c.tu.userData.tick(tm, 0.7); }
       // camera: high behind as they swim in; it comes round in front of the ring as the clams open; to the shut clam; wide for the song
       let cp = K(t, [[0, [0.4, 2.6, 6.4]], [Math.max(1.6, a0 - 0.2), [-0.8, 1.6, 4.4]], [e0, [1.4, 1.3, 3.6]]]), cl = K(t, [[0, [0, 0.4, -1.5]], [e0, [0.2, 0.7, -2.4]]]);
-      { const rv = sm01((t - a1 + 0.3) / 1.2) * (1 - sm01((t - a2 + 0.2) / 1.0)); if (rv > 0) { cp = S.arc(new V3(0, 0.8, -1), cp, new V3(1.9, 1.05, -3.6), rv); cl = cl.clone().lerp(new V3(0, 0.85, 0.6), rv); } } /* the song: from among the clams, back at his face */
-      if (toC > 0) { cp = cp.clone().lerp(atC.clone().add(new V3(-1.4, 0.9, 2.4)), toC); cl = cl.clone().lerp(last.position.clone().setY(0.55), toC); }
+      { const rv = sm01((t - a1 + 0.3) / 1.2) * (1 - sm01((t - a2 + 1.4) / 1.0)); /* back out before the move to the shut clam */ if (rv > 0) { cp = S.arc(new V3(0, 0.8, -1), cp, new V3(1.9, 1.6, -3.8), rv); cl = cl.clone().lerp(p.clone().setY(0.85), rv); } } /* the song: from behind the clams, back at his face */
+      if (toC > 0) { cp = cp.clone().lerp(atC.clone().add(new V3(-1.6, 1.0, 2.8)), toC); cl = cl.clone().lerp(last.position.clone().lerp(p, 0.45).setY(0.6), toC); }
       if (S.qte || (t > q && t < j0 - 0.4)) { cp = new V3(0.2, 2.2, 4.4); cl = new V3(0.1, 0.4, -2.4); }
       S.cam(cp, cl);
       return { mode: t < a0 - 0.2 ? 'swim' : toC > 0.05 && toC < 0.95 ? 'walk' : 'stand', speed: 1, arms: toC > 0.9 && t < q - 0.4 ? 'reach' : sing ? 'clap' : null, armK: toC > 0.9 ? 0.6 + 0.4 * Math.abs(Math.sin(tm * 6)) : sing ? sm01((t - a1) / 0.4) : 0, face: f, target: last.position.clone().setY(0.5) }; } };
@@ -3370,7 +3371,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       c.pip.position.copy(p).add(new V3(0, 0.72 + Math.sin(tm * 2.2) * 0.05, 0)).addScaledVector(new V3(-f.z, 0, f.x), -0.6); S.turn(c.pip, fly > 0 ? p.clone().add(fw) : mp, 0.3); c.pip.userData.tick(tm);
       // camera: behind the diver's shoulder at the rim, looking down into the canyon as she rises; then side-on with the ride
       let cp = K(t, [[0, [-1.6, 1.5, 3.4]], [2.8, [-1.9, 1.3, 2.9]]]), cl = K(t, [[0, [0.3, -1.2, -4.5]], [2.8, [0.2, 1.4, -2.2]]]);
-      { const tk = sm01((t - a0 + 0.4) / 1.4) * (1 - ride), mid = R.clone().lerp(mp, 0.45); cp = cp.clone().lerp(new V3(2.9, 1.35, 2.7), tk); cl = cl.clone().lerp(mid.setY(mid.y + 0.15), tk); } /* the talk: three-quarters on both */
+      { const tk = sm01((t - a0 + 0.4) / 1.4) * (1 - ride), mid = R.clone().lerp(mp, 0.36); cp = cp.clone().lerp(new V3(3.5, 1.05, 3.6), tk); cl = cl.clone().lerp(mid.setY(mid.y - 0.05), tk); } /* the talk: three-quarters on both */
       if (ride > 0) { cp = cp.clone().lerp(new V3(-2.8, 1.6, 1.2), ride); cl = cl.clone().lerp(back, ride); }
       if (fly > 0) { const k = sm01(fly / 2.2), side = new V3(-fw.z, 0, fw.x); cp = S.arc(mp, cp, mp.clone().addScaledVector(side, -5.2).addScaledVector(fw, 1.2).setY(mp.y + 1.3), k); cl = cl.clone().lerp(mp.clone().addScaledVector(fw, 1.4).setY(mp.y + 0.5), k); }
       S.cam(cp, cl);
@@ -3973,7 +3974,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
   // it. The beat: the diver raises a glowing pearl and gives it; the chains melt; Murk scoops them both into a hug, the cage swings open
   // and Pip flies into it.
   RECIPES.cage = { live: true, set: { dark: 0.62 }, tail: 3.4, gap(i) { return i === 0 ? 2.4 : 0; }, talkMove: 2,
-    setup(S, c) { c.o = S.add(makeOctopus(0x8a4fd8)); c.o.position.set(-2.0, -0.2, -0.9); c.ch = S.add(makeInkChains(1.15)); c.ch2 = S.add(makeInkChains(0.85));
+    setup(S, c) { c.o = S.add(makeOctopus(0x8a4fd8)); c.o.position.set(-2.0, -0.2, -0.9); c.ch = S.solid(S.add(makeInkChains(0.95)), 1.35); c.ch2 = S.solid(S.add(makeInkChains(0.7)), 1.05); /* chains round his middle; the lens keeps out of them */
       c.cg = S.add(makeCage()); c.cg.position.set(-0.1, 1.45, -2.2); c.pip = S.add(makePip(0xffc23a, 0.3)); c.pe = S.add(makeBall(true)); c.pe.scale.setScalar(0.42); c.pe.add(glowSpr(0xff7a6a, 1.4, 0.7)); c.pe.visible = false;
       for (let i = 0; i < 10; i++) { const b = S.add(makeBall(true)); b.scale.setScalar(0.3); const a = i * 0.6 - 3; b.position.set(-2.0 + Math.sin(a) * 2.0, 0.14, -0.9 - Math.abs(Math.cos(a)) * 1.3 - 0.4); }
       for (let i = 0; i < 6; i++) { const r = sceneRock(S, 1.7 + (i % 3) * 0.4, 1.2, 0.9 + (i % 2) * 0.3, 0.8, 0x5a4a78, 11 + i); r.position.set(-6.0 + i * 2.4, 0.8 + (i % 2) * 0.6, -7.2 - (i % 2) * 0.8); }
@@ -4413,6 +4414,11 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       if (!this.frozen) while (this.li < this.seq.length && this.seq[this.li].t0 !== undefined && this.t >= this.seq[this.li].t0) { const l = this.seq[this.li]; if (this.o.onCap) this.o.onCap(l, this.li, this.ch);
         { const q = l.who && this.castOf(l.who); if (q && q.o.userData && q.o.userData.setMood) q.o.userData.setMood(l.mood); } this.shot = { who: l.who, to: this.addressee(this.li), l, i: this.li }; this.li++; this.capI = this.li; }
       this.stage(dt); this.smoothTurns(dt); this.shotCam(dt); this.voiceEyes(dt);
+      if (!this.probe) { const cam = this.cam0, cq = cam.position, lk = this.rig ? this.rig.look : this.look, LD = cq.distanceTo(lk), v = new V3(); cam.updateMatrixWorld(); cam.matrixWorldInverse.copy(cam.matrixWorld).invert();
+        for (const sp of this.decor) { if (sp.userData.lensHide === undefined && !sp.visible) continue; if (!sp.userData.bb) sp.userData.bb = new THREE.Box3().setFromObject(sp); const B = sp.userData.bb;
+          let near = false; if (B.distanceToPoint(cq) < LD - 0.5) { let x0 = 1, x1 = -1, y0 = 1, y1 = -1, front = 0; for (let k = 0; k < 8; k++) { v.set(k & 1 ? B.max.x : B.min.x, k & 2 ? B.max.y : B.min.y, k & 4 ? B.max.z : B.min.z).project(cam); if (v.z < 1) { front++; x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y); } }
+            if (front) { const w = Math.max(0, Math.min(1, x1) - Math.max(-1, x0)), h = Math.max(0, Math.min(1, y1) - Math.max(-1, y0)); near = w * h / 4 > (sp.userData.lensHide ? 0.14 : 0.2); } }
+          sp.userData.lensHide = near; sp.visible = !near; } } /* a plant or rock sprite nearer than the subject that would fill a fifth of the screen is not drawn */
       this.shaftMat.uniforms.uT.value = this.world.time;
       if (this.kelp) this.kelp.forEach(k => { k.rotation.z = Math.sin(this.world.time * 0.9 + k.userData.sw) * 0.06; });
       for (const f of this.fish) { const F = f.userData.f; F.x += F.v * dt; if (F.x > 14) F.x = -14; if (F.x < -14) F.x = 14; f.position.set(F.x, F.y + Math.sin(this.world.time * 1.3 + F.ph) * 0.15, F.z); f.scale.x = F.v > 0 ? -1 : 1; }
@@ -4493,11 +4499,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         const big = Math.max(a.s, b.s), side_ = Math.abs(dir.x * ab.z - dir.z * ab.x), half = (L * side_ * 0.5 + big * 0.6) * 1.3; dist = Math.max(half / th_, (Math.abs(a.p.y - b.p.y) * 0.5 + big * 0.55) / tv, 1.4); /* start close: the fit below backs off as needed */
         for (const q of [a, b]) { const along = q.p.clone().sub(look).dot(dir); dist = Math.max(dist, along + q.s * 1.5 + 0.5); } } /* the nearer one is never cut off by the lens */
       else { const d = base.clone().sub(a.p); d.y = 0; if (d.lengthSq() < 1e-4) d.copy(a.fw.lengthSq() ? a.fw : new V3(0, 0, 1)); d.normalize(); const an = pk.sd * pk.th * 0.6, ca = Math.cos(an), sa = Math.sin(an);
-        dir = new V3(d.x * ca - d.z * sa, 0, d.x * sa + d.z * ca); look = a.p.clone(); dist = Math.max(1.6, (a.s * 1.0) / tv + 0.4); }
+        dir = new V3(d.x * ca - d.z * sa, 0, d.x * sa + d.z * ca); look = a.p.clone(); dist = Math.max(1.6, (a.s * 1.0) / tv + 0.4);
+        if (fitB && fitB.o !== a.o && fitB.p.distanceTo(a.p) < 4.5) { look = a.p.clone().lerp(fitB.p, 0.4); const sp = Math.hypot(fitB.p.x - a.p.x, fitB.p.z - a.p.z); dist = Math.max(dist, (sp * 0.5 + 0.5) / th_); } } /* keeping the listener in it: centre between them, not on the speaker */
       dist *= 1 - 0.06 * sm01(prog); const fc = this._fc || (this._fc = new THREE.PerspectiveCamera()); fc.fov = fov; fc.aspect = asp; fc.near = 0.1; fc.far = 200; fc.updateProjectionMatrix();
-      const pts = [], fit = b && b.o !== a.o ? [a, b] : fitB && fitB.o !== a.o && fitB.p.distanceTo(a.p) < 4.5 ? [a, fitB] : [a]; for (const q of fit) { /* a single keeps a nearby listener whole too (never half in the picture) */ pts.push(q.p.clone().add(new V3(0, q.s * 0.45, 0)), q.p.clone().add(new V3(0, -q.s * (q.s < 1.6 ? 0.85 : 0.35), 0))); }
+      const pts = [], fit = b && b.o !== a.o ? [a, b] : fitB && fitB.o !== a.o && fitB.p.distanceTo(a.p) < 4.5 ? [a, fitB] : [a]; const rv = new V3(dir.z, 0, -dir.x).normalize(); for (const q of fit) { /* a single keeps a nearby listener whole too (never half in the picture); the body's width counts, not just its middle */ const w = q.s < 1.6 ? q.s * 0.42 : q.s * 0.2; pts.push(q.p.clone().add(new V3(0, q.s * 0.45, 0)), q.p.clone().add(new V3(0, -q.s * (q.s < 0.65 ? 0.85 : q.s < 1.6 ? 0.5 : 0.35), 0)), /* medium shots: the small ones whole, others from the waist up */ q.p.clone().addScaledVector(rv, w), q.p.clone().addScaledVector(rv, -w)); }
       let pos, lk, lifted = false; for (let k = 0; k < 9; k++) { pos = look.clone().addScaledVector(dir, dist); pos.y = look.y + 0.12 + dist * 0.09; const gy = this.groundY(pos.x, pos.z) + 0.3; lifted = gy > pos.y + 0.7; if (pos.y < gy) pos.y = gy; lk = look.clone(); lk.y -= dist * 0.02;
-        fc.position.copy(pos); fc.lookAt(lk); fc.updateMatrixWorld(true); let ok = true; for (const P of pts) { const v = P.clone().project(fc); if (v.z > 1 || Math.abs(v.x) > 0.6 || v.y > 0.7 || v.y < -0.78) { ok = false; break; } } if (ok) break; dist *= 1.13; }
+        fc.position.copy(pos); fc.lookAt(lk); fc.updateMatrixWorld(true); let ok = true; for (const P of pts) { const v = P.clone().project(fc); if (v.z > 1 || Math.abs(v.x) > 0.72 || v.y > 0.7 || v.y < -0.78) { ok = false; break; } } if (ok) break; dist *= 1.13; }
       return { pos, look: lk, fov, lifted }; } /* lifted: the ground pushed the lens up (a slope in the way): not a usable shot */
     // choose the side and angle once per line (re-checked twice a second): both faces clear of rocks/plants, the lens outside every body
     pickShot(q, b, sh, base) { const key = [sh.who, sh.to || ''].sort().join('|'), P = this.pairSd || (this.pairSd = {}); let sd0 = P[key];
@@ -4515,7 +4522,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         let goal = 0, dy = 0;
         if (spk && v < (this.rc.talkMove || 0.6)) { const tgt = o === spk.o ? (adr ? adr.p : null) : p.distanceTo(spk.p) < 7 ? spk.p : null;
           if (tgt) { const d = tgt.clone().sub(p); d.y = 0; const dc = cam.clone().sub(p); dc.y = 0;
-            if (d.lengthSq() > 1e-4) { d.normalize(); if (dc.lengthSq() > 1e-4) d.lerp(dc.normalize(), 0.42).normalize(); /* face each other, cheated open to the lens */ const a = Math.atan2(q.fw.z, q.fw.x) - Math.atan2(d.z, d.x); goal = Math.atan2(Math.sin(a), Math.cos(a)); } }
+            if (d.lengthSq() > 0.25) { d.normalize(); if (dc.lengthSq() > 1e-4) d.lerp(dc.normalize(), 0.42).normalize(); /* (someone right above you, like a rider: don't spin round to them) */ /* face each other, cheated open to the lens */ const a = Math.atan2(q.fw.z, q.fw.x) - Math.atan2(d.z, d.x); goal = Math.atan2(Math.sin(a), Math.cos(a)); } }
           if (o !== spk.o && sh.l.mood === 'happy' && tl < 0.7 && k !== 'you') dy = q.s * 0.05 * Math.sin(tl / 0.7 * Math.PI); }
         if (o.userData && o.userData.setMood && (!spk || o !== spk.o)) { const lm = spk && tl > 0.35 ? sh.l.mood : ''; if (o.userData._lm !== lm) { o.userData._lm = lm; o.userData.setMood(lm === 'angry' ? 'wide' : lm); } }
         let cur = F.get(o) || 0; cur += (goal - cur) * (1 - Math.exp(-dt * 2.6)); F.set(o, cur);
