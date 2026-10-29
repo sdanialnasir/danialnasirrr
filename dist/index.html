@@ -6534,7 +6534,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       { const im = PHOTO_W[w] || PHOTO_W[0], tex = new THREE.Texture(im); tex.colorSpace = THREE.SRGBColorSpace; tex.wrapS = THREE.MirroredRepeatWrapping; tex.repeat.set(4, 1); tex.needsUpdate = true; this.own.push(tex);
         const Rr = 40, Hh = Rr * 2 * Math.PI / 4 / 1.78, geo = new THREE.CylinderGeometry(Rr, Rr, Hh, 72, 1, true);
         const mat = this.bgMat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false, color: new THREE.Color(WORLD_TINT[w]).lerp(new THREE.Color(0xffffff), w ? 0.08 : 0).multiplyScalar(1 - dark * 0.85) }); this.mats.push(mat);
-        mat.onBeforeCompile = sh => { sh.uniforms.uFog = { value: fogC }; sh.fragmentShader = 'uniform vec3 uFog;\n' + sh.fragmentShader.replace('#include <dithering_fragment>', '#include <dithering_fragment>\n float hz = 0.42 + 0.3 * smoothstep(0.55, 0.15, vMapUv.y); gl_FragColor.rgb = mix(gl_FragColor.rgb, uFog, hz);'); }; /* the far reef sits back in the haze, more toward the floor */
+        mat.onBeforeCompile = sh => { sh.uniforms.uFog = { value: fogC }; sh.fragmentShader = 'uniform vec3 uFog;\n' + sh.fragmentShader.replace('#include <dithering_fragment>', '#include <dithering_fragment>\n float hz = 0.38 + 0.62 * smoothstep(0.5, 0.06, vMapUv.y); gl_FragColor.rgb = mix(gl_FragColor.rgb, uFog, hz);'); }; /* the far reef sits back in the haze, more toward the floor */
         const ring = new THREE.Mesh(geo, mat); ring.position.y = Hh * 0.3 + (set.cliff || 0) * 0.6; ring.rotation.y = -Math.PI / 2 - 0.9; S.add(ring); }
       { const t = TEX.sandRef.clone(); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(30, 30); t.needsUpdate = true; this.own.push(t);
         const geo = new THREE.PlaneGeometry(90, 90, 120, 120); geo.rotateX(-Math.PI / 2); const P = geo.attributes.position;
@@ -7118,7 +7118,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       this.disposeLevel(); this.levelGroup.clear(); this.entShadows = []; this.entities.clear(); this.particles.n = 0; this.particles.bub.n = 0;
       this.gateObj = null; this.gateFx = null; this.pops = []; this.coachCells = null; this.sandInst = null; this.treasures = []; this.digChunks = []; if (this.warn) this.warn.visible = false; this.ghosts = []; this.absorbing = []; this.deathTint = 0; this.setFx('');
     }
-    loadLevel(e) { this.arr = null; this.mood = null; this.quakeT = 0; this.flickT = 0; this.rollDots = null; this.relic = null; this.revealQ = null; if (this.dangerPool) { this.setDanger(null); this.dangerPool.forEach(sp => { sp.userData.k = 0; sp.visible = false; }); }
+    loadLevel(e) { this.arr = null; this.mood = null; this.quakeT = 0; this.flickT = 0; this.rollDots = null; this.relic = null; this.gems = null; this.revealQ = null; if (this.dangerPool) { this.setDanger(null); this.dangerPool.forEach(sp => { sp.userData.k = 0; sp.visible = false; }); }
       this.clearLevel(); this.e = e; this.shadowDirty = true; this.mood = null; this.playerAct = null; this.lastHup = -9; const ART = ART_SETS[NEW_ART_LEVELS.has(e.name) || e.menu || e.daily ? 'new' : 'old']; this.newArt = ART === ART_SETS.new; MAT.sandNew.value = this.newArt ? 1 : 0; this.tickMs = e.tickMs; this.menuMode = !!e.menu; this.playing = false; this.lead.set(0, 0); this.lastMove = -99; this.zoomK = 1.12; this.playerPos = null;
       const W = e.w, H = e.h; this.particles.top = 1;
       const sand = [], blocks = [], cobbles = [], solid = [];
@@ -7688,6 +7688,15 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.dot, color: 0xffc94a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.0 })); glow.scale.setScalar(1.5); glow.position.z = -0.05; g.add(glow);
       const glint = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.dot, color: 0xfff1b0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, opacity: 0 })); glint.renderOrder = 9; glint.position.set(c.x + 0.12, -c.y + 0.1, 0.62); this.levelGroup.add(glint);
       this.levelGroup.add(g); this.relic = { g, coin, glow, glint, c, t: Math.random() * 3 }; }
+    // glow gems: little faceted crystals set into the sand along the way; dig/swim into one to grab it (chains of quick grabs score more)
+    setGems(list) { if (this.gems) for (const g of this.gems) if (g.g.parent) g.g.parent.remove(g.g); this.gems = []; if (!list || this.menuMode) return;
+      if (!GEO.gem) { GEO.gem = new THREE.OctahedronGeometry(0.21, 0); GEO.gem.scale(1, 1.35, 1); MAT.gem = [0x18d8ff, 0xffb81c, 0xff3fc8, 0x3dff5a].map(c => new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.55, metalness: 0.35, roughness: 0.12, flatShading: true })); }
+      list.forEach((c, i) => { const g = new THREE.Group(); g.position.set(c.x, -c.y, 0.5); const m = new THREE.Mesh(GEO.gem, MAT.gem[i % MAT.gem.length]); g.add(m);
+        const gl = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.dot, color: MAT.gem[i % MAT.gem.length].color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.55 })); gl.scale.setScalar(0.95); g.add(gl);
+        this.levelGroup.add(g); this.gems.push({ g, m, gl, c, t: i * 0.7, fly: undefined }); }); }
+    collectGem(i, chain) { const G = this.gems && this.gems[i]; if (!G || G.fly !== undefined) return; G.fly = 0; const { x, y } = G.g.position, col = G.m.material.color;
+      this.particles.emit(x, y, 0.6, 18 + chain * 4, { color: col.clone(), speed: 1.8 + chain * 0.2, life: 0.8, size: 0.12 }); this.particles.emit(x, y, 0.6, 6, { color: new THREE.Color(1, 1, 1), speed: 0.8, life: 0.6, size: 0.18 });
+      this.popText(x, y + 0.45, chain > 1 ? 'x' + chain + '!' : '+1', chain > 2 ? '#ffd84a' : '#bff8ff'); if (chain > 2) this.playerMood('joy', 0.8); }
     collectRelic() { const r = this.relic; if (!r) return; const { x, y } = r.g.position; const P = this.particles;
       P.emit(x, y, 0.6, 46, { color: new THREE.Color(1, 0.82, 0.3), speed: 2.6, life: 1.1, size: 0.14 }); P.emit(x, y, 0.6, 20, { color: new THREE.Color(1, 1, 0.85), speed: 1.2, life: 1.4, size: 0.22 }); P.bubbles(x, y, 0.3, 14, 0.1, 0.6);
       this.popText(x, y + 0.4, 'Relic!', '#ffd84a'); this.playerMood('joy', 1.2); this.sfx('woohoo'); this.shake = Math.max(this.shake, 0.1);
@@ -7697,6 +7706,8 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
     // ---- reactions
     dodge() { const pl = this.e && this.e.player, ent = pl && this.entities.get(pl.id); if (!ent || !ent.sp) return; ent.sp.vy += 3.2; this.playerMood('surprise', 0.7); this.sfx('eep'); }
     funUpdate(dt, t) {
+      if (this.gems) for (const G of this.gems) { G.t += dt; if (G.fly !== undefined) { G.fly += dt; const k = Math.min(1, G.fly / 0.45); G.g.position.y += dt * 2.6; G.g.scale.setScalar(Math.max(0.01, 1 + k * 0.5 - k * k * 1.5)); G.m.rotation.y += dt * 20; G.gl.material.opacity = 0.8 * (1 - k); if (k >= 1 && G.g.parent) G.g.parent.remove(G.g); continue; }
+        G.m.rotation.y = G.t * 1.6; G.g.position.y = -G.c.y + Math.sin(G.t * 2.4) * 0.04; const tw = 0.5 + 0.5 * Math.sin(G.t * 3.1); G.gl.material.opacity = 0.35 + 0.35 * tw; G.gl.scale.setScalar(0.7 + 0.3 * tw); }
       const r = this.relic, e = this.e;
       if (r) { r.t += dt;
         if (r.fly !== undefined) { r.fly += dt; const k = Math.min(1, r.fly / 0.6); r.g.position.y += dt * 2.2; r.g.scale.setScalar(Math.max(0.01, 1 + k * 0.6 - k * k * 1.6)); r.coin.rotation.y += dt * 18; r.glow.material.opacity = 0.9 * (1 - k); if (k >= 1) { this.levelGroup.remove(r.g); this.relic = null; } }
@@ -8619,8 +8630,8 @@ window.__T = T;
   // ---- fun pass (owner-approved): combo moments, one hidden relic per level, diver reactions, the level-start reveal ----
   // Combos: a stone dropped on a monster ("BONK!") and two pearls delivered within ~3 s ("DOUBLE!") get a stamp, a slow-motion beat
   // and coins on the result screen. Each counts once per run (keyed, so undo-and-repeat can't farm it). Never in replays/clips.
-  const RUN = { combos: [], keys: new Set(), lastAbsorb: -99, relic: null, relicGot: false, near: new Map(), dodgeAt: -9 };
-  function runReset() { RUN.combos = []; RUN.keys.clear(); RUN.lastAbsorb = -99; RUN.relicGot = false; RUN.near.clear(); RUN.dodgeAt = -9; RUN.airSaid = false; }
+  const RUN = { combos: [], keys: new Set(), lastAbsorb: -99, relic: null, relicGot: false, near: new Map(), dodgeAt: -9, gems: [], gemGot: new Set(), chain: 0, chainAt: -99, gemCoins: 0 };
+  function runReset() { RUN.combos = []; RUN.keys.clear(); RUN.lastAbsorb = -99; RUN.relicGot = false; RUN.near.clear(); RUN.dodgeAt = -9; RUN.airSaid = false; RUN.gemGot = new Set(); RUN.chain = 0; RUN.chainAt = -99; RUN.gemCoins = 0; }
   // the diver's little voice lines during play (src/assets/vo/d_*.mp3, made by make_voices.bat). Only if the clip exists, at most one
   // every 6 s, and the frequent moments only some of the time, so they stay cute instead of repetitive.
   const DV = { pearl: ['d_pearl1', 'd_pearl2', 'd_pearl3'], gate: ['d_gate1', 'd_gate2'], relic: ['d_relic'], bonk: ['d_bonk'], double: ['d_double'], phew: ['d_phew1', 'd_phew2'], air: ['d_air'], undo: ['d_undo1', 'd_undo2'] };
@@ -8639,7 +8650,7 @@ window.__T = T;
     for (const v of e.events) {
       if (v.type === 'monsterDeath') combo(`bonk:${v.t}@${v.x},${v.y}`, 'Monster bonk', 15, 'BONK!', '#ff8fd0');
       if (v.type === 'absorb') { if (e.tick - RUN.lastAbsorb <= 14 && e.ballsIn >= 2) combo('dbl:' + e.ballsIn, 'Double pearl', 20, 'DOUBLE!', '#ffd23f'); RUN.lastAbsorb = e.tick; } }
-    const p = e.player; if (!p || e.state !== 'playing') return;
+    const p = e.player; if (!p || e.state !== 'playing') return; gemCheck(e);
     // relic: walk (or dig) into its cell
     if (RUN.relic && !RUN.relicGot && p.x === RUN.relic.x && p.y === RUN.relic.y) { RUN.relicGot = true; const n = levelIdx + 1; save.relics = save.relics || {}; const first = !save.relics[n]; save.relics[n] = 1; persist();
       world.collectRelic(); Audio.play('treasure'); setTimeout(() => Audio.play('star'), 160); buzz([20, 30, 20, 30, 80]); dvAt = 0; dvoice('relic');
@@ -8666,7 +8677,22 @@ window.__T = T;
     if (bs < -30) best = null; } catch (er) { best = null; window.__relicErr = String(er); } // prefers buried sand far from the route; falls back to a cell just off it
     return (relicCache[i] = best); }
   function relicSync() { const n = levelIdx + 1;
-    RUN.relic = !dive && !replay ? relicCell(levelIdx) : null; world.setRelic(RUN.relic && !(save.relics || {})[n] && !RUN.relicGot ? RUN.relic : null); }
+    RUN.relic = !dive && !replay ? relicCell(levelIdx) : null; world.setRelic(RUN.relic && !(save.relics || {})[n] && !RUN.relicGot ? RUN.relic : null);
+    RUN.gems = !dive && !replay ? gemCells(levelIdx) : []; world.setGems(RUN.gems.map((c, i) => RUN.gemGot.has(i) ? null : c).filter(Boolean).length ? RUN.gems : null); if (world.gems) world.gems.forEach((G, i) => { if (RUN.gemGot.has(i) && G.g.parent) G.g.parent.remove(G.g); }); }
+  // glow gems: cells along the verified route (so a good run sweeps them up in chains) plus a couple of short detours. Early levels get more.
+  const gemCache = {};
+  function gemCells(i) { if (i in gemCache) return gemCache[i]; let out = []; try { const lv = LEVELS[i], route = ROUTES[i + 1] || '', e = new Engine(lv), e0 = new Engine(lv), W = e.w, order = [], seen = new Set();
+      const ok = (x, y) => { const t = e0.get(x, y), up = e0.get(x, y - 1); return (t === T.SAND || t === T.EMPTY) && up !== T.ROCK && up !== T.BALL && !(e0.water && e0.water[y * W + x]); };
+      seen.add(e.player.y * W + e.player.x); for (const c of route) { if (c !== '.') e.press(PLM[c]); e.step(); if (e.state !== 'playing' || !e.player) break; const k = e.player.y * W + e.player.x; if (!seen.has(k)) { seen.add(k); order.push([e.player.x, e.player.y]); } }
+      const relic = relicCell(i), N = i < 3 ? 7 : i < 10 ? 6 : 5, cand = order.filter(([x, y]) => ok(x, y) && !(relic && relic.x === x && relic.y === y)).slice(1, -1);
+      const step = Math.max(1, Math.floor(cand.length / Math.max(1, N - 2))); for (let k = 1; k < cand.length && out.length < N - 2; k += step) out.push({ x: cand[k][0], y: cand[k][1] });
+      for (const [x, y] of order) { if (out.length >= N) break; for (const [dx, dy] of [[0, -1], [0, 1], [1, 0], [-1, 0]]) { const nx = x + dx, ny = y + dy, k = ny * W + nx; if (seen.has(k) || !ok(nx, ny) || out.some(g => g.x === nx && g.y === ny) || (relic && relic.x === nx && relic.y === ny)) continue; if (e0.get(nx, ny) === T.SAND && (x + y) % 3 === 0) { out.push({ x: nx, y: ny }); break; } } } } catch (er) { out = []; }
+    return (gemCache[i] = out); }
+  function gemCheck(e) { const p = e.player; if (!p || !RUN.gems.length) return; RUN.gems.forEach((c, i) => { if (RUN.gemGot.has(i) || c.x !== p.x || c.y !== p.y) return; RUN.gemGot.add(i);
+      RUN.chain = e.tick - RUN.chainAt <= 9 ? RUN.chain + 1 : 1; RUN.chainAt = e.tick; RUN.gemCoins += RUN.chain; world.collectGem(i, RUN.chain);
+      try { Audio.pearl(Math.min(6, RUN.chain - 1)); } catch (er) {} buzz(RUN.chain > 2 ? [12, 20, 12] : [10]);
+      if (RUN.gemGot.size === RUN.gems.length) { RUN.combos.push(['All gems', 15]); setTimeout(() => comboStamp('ALL GEMS!', '+15', '#7ff6ff'), 350); slowMo = Math.max(slowMo, 0.3); }
+      else if (RUN.chain === 3) comboStamp('CHAIN x3!', 'keep going', '#ffd84a'); }); }
   // haptics + music cues for what just happened in the tank
   function feel(e) { const pl = e.player; let best = 0, pat = null; const want = (p, w) => { if (w > best) { best = w; pat = p; } };
     for (const v of e.events) switch (v.type) {
@@ -9494,7 +9520,7 @@ window.__T = T;
       lastWin = { n, stars, secs: Math.round(engine.wonAt * engine.tickMs / 1000), name: LEVELS[levelIdx].name, relaxed: engine.relaxed };
       lastRun = { lv: LEVELS[levelIdx], n, log: runLog, relaxed: engine.relaxed, won: true, name: LEVELS[levelIdx].name };
       setTimeout(() => { if (state === 'over') Audio.vo(['win1', 'win2', 'win3'][Math.random() * 3 | 0]); }, 700);
-      { const parts = [['clear', 20], ['stars', stars * 10], ['first clear', firstClear ? 30 : 0], ['new stars', Math.max(0, stars - prevStars) * 15 * (firstClear ? 0 : 1)], ['treasures', runTreasures * 2], ['combos', RUN.combos.reduce((a, c) => a + c[1], 0)], ['relic', RUN.relicGot && !(save.relicPaid || {})[n] ? 50 : 0], ['star chest', ch.opened * 75]].filter(p => p[1] > 0), total = parts.reduce((a, p) => a + p[1], 0);
+      { const parts = [['clear', 20], ['stars', stars * 10], ['first clear', firstClear ? 30 : 0], ['new stars', Math.max(0, stars - prevStars) * 15 * (firstClear ? 0 : 1)], ['treasures', runTreasures * 2], ['combos', RUN.combos.reduce((a, c) => a + c[1], 0)], ['gems', RUN.gemCoins], ['relic', RUN.relicGot && !(save.relicPaid || {})[n] ? 50 : 0], ['star chest', ch.opened * 75]].filter(p => p[1] > 0), total = parts.reduce((a, p) => a + p[1], 0);
         if (RUN.relicGot) { save.relicPaid = save.relicPaid || {}; save.relicPaid[n] = 1; } save.coins += total; $('#resCoins').hidden = false; $('#resCoinWhy').innerHTML = parts.map(p => `<span><i>${p[0][0].toUpperCase() + p[0].slice(1)}</i><b>+${p[1]}</b></span>`).join('');
         const el = $('#resCoinN'); let shown = 0; const t0 = performance.now(); const tick = (now) => { const k = Math.min(1, (now - t0) / 900); shown = Math.round(total * k * (2 - k)); el.textContent = `+${shown}`; if (k < 1) requestAnimationFrame(tick); }; setTimeout(() => requestAnimationFrame(tick), 900); }
       pushScore();

@@ -2,7 +2,7 @@
 
 Read CLAUDE.md first. Rules that bite: in game.js never put a `//` comment in the middle of a one-line statement (use `/* */`);
 rebuild with `python3 tools/build.py`; tests need `CHROME_PATH=/opt/pw-browsers/chromium`; publish dist/index.html to
-https://claude.ai/artifact/HQL6UGenCGmT79BLXmW5A8 with `files` (manifest.json + icons/*). Live version: 83.
+https://claude.ai/artifact/HQL6UGenCGmT79BLXmW5A8 with `files` (manifest.json + icons/*). Live version: 84.
 
 ## Done
 - Keeper feet in the prologue, clam song (ch 12), runs in 5 / 18 / 28, even film brightness (`FILM_EXPO`), camera punch-ins (v79).

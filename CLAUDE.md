@@ -1011,3 +1011,27 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   Ch 2 hides kelp within 1.5 m of the lens; ch 12 films the song from among the clams; ch 15's talk has a composed three-quarter shot.
 - **Lens clear** (Story.update after shotCam): any scenery sprite in `S.decor` nearer than the subject whose box would cover more than a fifth
   of the screen is hidden (hysteresis 0.2 / 0.14); measured from the sprite's real box (`ud.bb`; sprite size lives in its geometry, not scale).
+
+## Film quality pass 2 + glow gems (owner: "camera flickers / gets into things… spectators doing nothing… fake blinks… 90s environment… levels 1–3 need gameplay")
+- **Camera guard without shake:** bodies are listed once a second and their boxes measured every frame (`bodies()`); the shot target is moved out
+  of bodies before the rig glides to it (`outOf`), and the in-body guard is an eased offset `R.push` added only at output
+  (`c.position = R.pos + R.push`). It used to edit `R.pos` directly and fought the glide (2-frame back-and-forth at a body's edge). Measured
+  frame-to-frame direction flips: ch 9 45 → 7, ch 30 55 → 2, ch 12 16 → 3, ch 11 13 → 2 (`fjerk.py` in the scratchpad reads faudit json).
+- **Scenery off the lens and off faces:** decor sprites fade out (not pop) when nearer than the subject and covering > 1/5 of the screen, or when
+  they overlap the upper half of any character's screen box within 4.5 m behind it (no coral "growing out of a helmet"). The diver's box is
+  built from `hold` (his helper objects make `setFromObject(this.diver)` far too big).
+- **Blinks** are a morph (slot 7) built from the model's own eye area: the eye closes onto a line in its lower third, the skin above follows
+  lightly; close fast, hold, open slower (0.24 s), sometimes a double blink. The floating lid caps (`addLids`) are no longer used.
+- **Expressions:** smile redrawn (corners up and out, cheeks lift), happy = crescent eyes (lower lid pushes up), sad = slot 8 (droopy upper lids,
+  more at the outer corner) + slot 9 (worried brow: inner up, outer down; negative = angry). Per-character gain `FACE[key].xg` (Shelly 1.6,
+  Mira 1.5, Murk 1.3, Clack 1.2, Lumen 0.8) and smile gain `smk` (Clack 0.55, Murk 0.6: their mouths crease). The life layer reads the mood:
+  sad hangs the head and slows, happy bounces, angry leans in, surprise pulls back (`L.mp`). Check sheet: scratchpad `faceshot3.py`.
+- **Bystanders act** (`stage()`): anyone not speaking/addressed and not travelling does a small eased bit of business every 2–6 s — a glance at
+  another character or the lens, a head tilt, a hop (small cast) or a shuffle; offsets undone each frame like the rest of `_lt` (now with `rz`).
+- **Film environment:** caustic projector (`causticTex()`, a SpotLight with `map`, drifting over the camera's area), nearer teal haze (fog 5.5–36),
+  the painted ring pushed into the haze (more toward the floor), calmer sand tint with soft ripple bands and cooler distance, marine snow
+  (420 drifting points around the lens), stronger light shafts.
+- **Glow gems (gameplay, all levels; 7 in levels 1–3):** `gemCells(i)` = cells along the verified route (in visiting order, spaced) plus a couple
+  of one-step detours; never the relic cell, never under a stone/pearl, never monster water. Touching one collects it (`gemCheck` in `fun`):
+  grabs within 9 ticks chain (x2, x3…), each worth its chain number in coins (result row "gems"), rising pentatonic note, burst + pop word;
+  "CHAIN x3!" stamp; all gems = "ALL GEMS!" +15 (a combo row). `world.setGems/collectGem`, animated in `funUpdate`. Engine and routes untouched.
