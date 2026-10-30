@@ -4564,7 +4564,12 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
         if (!Z || jump || this.frozen && !Z.ok) this.stab = { p: P.clone(), vp: new V3(), l: Lk.clone(), vl: new V3(), f: R.fov, vf: 0, ok: 1 };
         else { const T = 0.32; damp3(Z.p, Z.vp, P, T, dt); damp3(Z.l, Z.vl, Lk, T * 0.85, dt); const F = damp1(Z.f, Z.vf, R.fov, 0.6, dt); Z.f = F[0]; Z.vf = F[1];
           const gy = this.groundY(Z.p.x, Z.p.z) + 0.2; if (Z.p.y < gy) { Z.p.y += (gy - Z.p.y) * Math.min(1, dt * 12); Z.vp.y = Math.max(0, Z.vp.y); } } }
-      { const Z = this.stab; c.position.copy(Z.p); c.up.set(0, 1, 0); c.lookAt(Z.l); if (this.camRoll && !want) c.rotateZ(this.camRoll); if (Math.abs(c.fov - Z.f) > 0.01) { c.fov = Z.f; c.updateProjectionMatrix(); } }
+      { const Z = this.stab, want3 = Z.l.clone().sub(Z.p), dist = Math.max(0.5, want3.length()); want3.divideScalar(dist);
+        /* the view turns like a film pan: its turning speed builds up and eases off (≤ 4 rad/s²) and never passes ~80°/s */
+        if (!Z.dir || jump) { Z.dir = want3.clone(); Z.w = 0; }
+        else { const ang = Math.acos(Math.max(-1, Math.min(1, Z.dir.dot(want3)))), wDes = Math.min(1.4, ang / 0.3); Z.w = Z.w + Math.max(-4 * dt, Math.min(4 * dt, wDes - Z.w)); const st = Math.min(ang, Math.max(0, Z.w) * dt);
+          const ax = new V3().crossVectors(Z.dir, want3); if (ax.lengthSq() > 1e-12 && st > 0) Z.dir.applyAxisAngle(ax.normalize(), st); else if (ang > 2.8) Z.dir.copy(want3); Z.dir.normalize(); }
+        c.position.copy(Z.p); c.up.set(0, 1, 0); c.lookAt(Z.p.clone().addScaledVector(Z.dir, dist)); if (this.camRoll && !want) c.rotateZ(this.camRoll); if (Math.abs(c.fov - Z.f) > 0.01) { c.fov = Z.f; c.updateProjectionMatrix(); } }
       /* interactive beats used to add a fresh random offset every frame (a visible high-frequency shake); now the lens only breathes slowly */
       if (this.qte && this.qte.kind !== 'choice' && this.qte.kind !== 'simon' && !REDUCED_MOTION) { const k = 0.02 + 0.03 * (this.qte.prog || 0), tt = this.time; c.position.x += Math.sin(tt * 1.3) * k; c.position.y += Math.sin(tt * 0.9 + 1.2) * k * 0.6; }
       // the speaker talks: a little bob and sway (Grimtide's jaw works instead)
