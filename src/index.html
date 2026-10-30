@@ -1752,6 +1752,7 @@ html body.story:is(.ui-art, :not(.ui-art)) #result .duo .tile { min-height: 2.9r
 .jt p[data-who="murk"] em { color: #e3a6ff; } .jt p[data-who="shelly"] em { color: #9fe38a; } .jt p[data-who="lumen"] em { color: #7ff6ff; } .jt p[data-who="you"] em { color: #c9a6ff; }
 .jt p:not([data-who]) { font-style: italic; color: #cfe2ff; }
 body.watching #storyCap { bottom: 9vh; }
+@media (orientation: portrait), (max-width: 700px) { body.watching #storyCap { bottom: auto; } } /* small screens anchor the caption to the top: a bottom edge too stretched it over the whole film */
 
 /* ---- In-level story talk (Pip & co. speak during the next level) ---- */
 #talk { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 5.4rem); z-index: 30; display: flex; align-items: center; gap: 0.7rem; max-width: min(30rem, 88vw); padding: 0.6rem 1rem 0.65rem 0.65rem;

@@ -3347,7 +3347,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       // camera: low in front of him, walking backwards with him; it holds close on his face for the voice; then follows them on
       let cp = new V3(1.3, 1.05, z - 3.0), cl = new V3(0, 0.8, z);
       if (t > a0 - 0.3 && t < e2 + 0.4) { const k = sm01((t - a0 + 0.3) / 1.2) * (1 - sm01((t - e2 + 0.2) / 0.8)); cp.lerp(new V3(0.9, 0.95, z - 2.0), k); cl.lerp(new V3(0, 0.95, z + 0.5), k); }
-      if (go > 0) { const k = sm01(go / 2.4); cp.lerp(new V3(-0.35, 1.7, z + 3.0), k); cl.lerp(new V3(0.1, 0.8, z - 3), k); } /* behind them down the open middle of the cave */
+      if (go > 0) { const k = sm01(go / 2.4); cp.lerp(new V3(-0.3, 2.35, z + 3.4), k); cl.lerp(new V3(0.05, 0.65, z - 1.6), k); } /* behind and above them, looking down the open middle of the cave: high enough that the crystal clusters never fill the lens */
       S.cam(cp, cl);
       return { mode: t < a0 - 0.2 || go > 0 ? 'walk' : 'stand', speed: 1.1, face: f }; } };
   // 12, staged on its lines: a ring of giant clams in a sunlit hollow. They open one by one as the narrator speaks; while they sing they
