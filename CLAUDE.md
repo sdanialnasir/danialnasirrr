@@ -1052,3 +1052,23 @@ frames manually. **Do not trust wall-clock UI timing in headless tests** (CSS an
   `RUN_V.shell.manta = 'turtle'`), wreck (6), dune (9), shadow (16), coil (20), angler (21), whale (22), ruins (23). Each has a one-line ok/no reply.
 - Test note: `watch(n)` ends by a wall-clock `setTimeout(endWatch, 1400)` after the freeze; scripts that play chapters back to back must wait or
   they kill the next film (shows as `W.story === null`).
+
+## Story v7 pilot: in-world mini-game segments + a stabilised film camera (owner: "no jerkiness… make cinematics better… polish first")
+- **Segments** (controller, `segStart/segPlay/segTick/segIn/segResult/segFinish`): when a won level's chapter beat is a mini-game
+  (`segPilot(n)`: chapters 2, 5, 6, 16, 18, 20, 21, 28), the film is replaced by 2 spoken lines over the level's own tank, the game in the
+  `#mini` overlay, 1 outcome line, then the result card. Other chapters still play their film. Idle for 30 s = a loss.
+- **Mini-games** (`Mini` in the World section = shared rules, `init/input/tick` return 'ok' | 'no' | null; exported as `World.Mini`, the
+  controller reads it): beat (tap when the pearl is in the gold zone, 4 of 6), catch (steer between 3 lanes, 6 pearls, 3 misses), sneak
+  (tap to hide before the eye's sweep; a hide lasts 1.3 s, 5 sweeps, 1 miss allowed). The films' `Q` beats of these kinds use the same rules.
+- **Overlay art** (`miniDraw`): glossy navy panel like the UI, the UI pearl / pearl_slot / sparkle / star / home_diver art from `UI`, eased lane
+  movement, pop words (Perfect! / Oops! / Hidden! / Spotted!), glowing eye with a sweep-warning ring.
+- **Film camera stabiliser** (end of `Story.shotCam`): the final lens position, aim and lens angle run through one more critically damped
+  spring (`this.stab`, T 0.32 s), and the view direction turns like a film pan (turn speed eases in/out ≤ 4 rad/s², capped ~80°/s); a real
+  recipe cut (`jump`) snaps it. The random per-frame shake during interactive beats is now a slow sway. Measured on all 31 films (scratchpad
+  `faudit.py … 999` + `jscore.py`): direction reversals 46 → 2, worst position kick 766 → 52, worst turn kick 11 395 → 799 (noise floor ~700).
+  A second scan (`flag.py`) measures how far the lens trails the film's own aim; after a freeze it settles within ~3° in 1.5 s.
+- Staging rule from this pass: never ask the lens for a 180° swing in the last 2 s of a film (ch 11 ended on empty sand); keep the camera on
+  the same side and let the characters move toward or past it.
+- Fixed: journal replays on small screens stretched the caption over the whole film (`body.watching` bottom edge + the top anchor).
+- Tests: `python3 tests/segments.py dist/index.html` (a bot wins each segment, an idle run loses; `CHS=5,16` limits it). Debug: `__dc.seg(n)`,
+  `__dc.segState()`, `__dc.segIn`, `__dc.segTick`.
