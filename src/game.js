@@ -4556,8 +4556,17 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
 
       { const gy = this.groundY(R.pos.x, R.pos.z) + 0.25; if (R.pos.y < gy - 0.02) (this._dbg || (this._dbg = [])).push(['ground', +t.toFixed(2)]); if (R.pos.y < gy) R.pos.y = gy; }
       { const want = this.outOf(R.pos).sub(R.pos), k = 1 - Math.exp(-dt * 5); R.push = (R.push || new V3()).lerp(want, k); } /* the guard is an eased offset on top of the glide: it never feeds back into it (that made the lens shake at a body's edge) */
-      this._bp = bp; c.position.copy(R.pos).add(R.push); c.up.set(0, 1, 0); c.lookAt(R.look); if (this.camRoll && !want) c.rotateZ(this.camRoll); if (Math.abs(c.fov - R.fov) > 0.01) { c.fov = R.fov; c.updateProjectionMatrix(); }
-      if (this.qte && this.qte.kind !== 'choice' && this.qte.kind !== 'simon' && !REDUCED_MOTION) { const k = 0.006 + 0.01 * this.qte.prog; c.position.x += (Math.random() - 0.5) * k; c.position.y += (Math.random() - 0.5) * k; }
+      this._bp = bp;
+      // final stabiliser: whatever the director asked for, the lens itself moves on one smooth spring (position, aim and lens),
+      // so a re-pick, a switch between dialogue and the film's own move, a guard push or the ground clamp can never reach the screen as a
+      // kink. A real cut (the recipe jumped to a new place) snaps it.
+      { const P = R.pos.clone().add(R.push), Lk = R.look, Z = this.stab;
+        if (!Z || jump || this.frozen && !Z.ok) this.stab = { p: P.clone(), vp: new V3(), l: Lk.clone(), vl: new V3(), f: R.fov, vf: 0, ok: 1 };
+        else { const T = 0.32; damp3(Z.p, Z.vp, P, T, dt); damp3(Z.l, Z.vl, Lk, T * 0.85, dt); const F = damp1(Z.f, Z.vf, R.fov, 0.6, dt); Z.f = F[0]; Z.vf = F[1];
+          const gy = this.groundY(Z.p.x, Z.p.z) + 0.2; if (Z.p.y < gy) { Z.p.y += (gy - Z.p.y) * Math.min(1, dt * 12); Z.vp.y = Math.max(0, Z.vp.y); } } }
+      { const Z = this.stab; c.position.copy(Z.p); c.up.set(0, 1, 0); c.lookAt(Z.l); if (this.camRoll && !want) c.rotateZ(this.camRoll); if (Math.abs(c.fov - Z.f) > 0.01) { c.fov = Z.f; c.updateProjectionMatrix(); } }
+      /* interactive beats used to add a fresh random offset every frame (a visible high-frequency shake); now the lens only breathes slowly */
+      if (this.qte && this.qte.kind !== 'choice' && this.qte.kind !== 'simon' && !REDUCED_MOTION) { const k = 0.02 + 0.03 * (this.qte.prog || 0), tt = this.time; c.position.x += Math.sin(tt * 1.3) * k; c.position.y += Math.sin(tt * 0.9 + 1.2) * k * 0.6; }
       // the speaker talks: a little bob and sway (Grimtide's jaw works instead)
       if (this._mouth) { this._mouth.visible = false; this._mouth = null; } if (this._jaw) { this._jaw.rotation.z = -0.15; this._jaw = null; } if (this._talk) { this._talk.talk(0); this._talk = null; }
       const spk = sh && sh.who && !this.frozen && t < sh.l.t1 ? (q || this.castOf(sh.who)) : null; // the speaker talks in every shot, close or wide
@@ -7508,21 +7517,58 @@ window.__T = T;
     if (ev === 'hit' || ev === 'miss') { el.classList.remove('hit', 'miss'); void el.offsetWidth; el.classList.add(ev); Audio.play(ev === 'hit' ? 'pearl' : 'bump'); buzz(ev === 'hit' ? 12 : 40); return; }
     if (ev === 'ok' || ev === 'no') { el.classList.add(ev === 'ok' ? 'win' : 'lose'); Audio.play(ev === 'ok' ? 'star' : 'bump'); buzz(ev === 'ok' ? [20, 40, 60] : 60); setTimeout(() => { if (!world.story || !world.story.qte) { el.hidden = true; el.className = ''; } }, 900); } }
   const MINI_HINT = { beat: 'Tap on the gold!', catch: 'Tap left or right to catch!', sneak: 'Tap to hide before the eye sweeps!' };
-  function miniDraw(M) { const cv = $('#miniCv'); if (!cv) return; const W = cv.clientWidth, H = cv.clientHeight; if (!W || !H) return; if (cv.width !== W * 2 || cv.height !== H * 2) { cv.width = W * 2; cv.height = H * 2; }
-    const g = cv.getContext('2d'); g.setTransform(2, 0, 0, 2, 0, 0); g.clearRect(0, 0, W, H);
-    if (M.kind === 'beat') { const x0 = W * 0.1, x1 = W * 0.9, y = H * 0.42, bh = 30, zw = (x1 - x0) * 0.18;
-      g.fillStyle = 'rgba(255,255,255,0.18)'; g.fillRect(x0, y - bh / 2, x1 - x0, bh); g.fillStyle = 'rgba(255,200,80,0.95)'; g.fillRect(x0 + (x1 - x0) / 2 - zw / 2, y - bh / 2, zw, bh);
-      g.fillStyle = M.flash > 0 ? '#9dffb0' : M.flash < 0 ? '#ff9a8a' : '#fff'; g.beginPath(); g.arc(x0 + (x1 - x0) * M.ph, y, 15, 0, 7); g.fill();
-      for (let i = 0; i < M.total; i++) { g.fillStyle = i < (M.marks || []).length ? (M.marks[i] ? '#ffd25a' : '#ff7a6a') : 'rgba(255,255,255,0.25)'; g.beginPath(); g.arc(W * 0.16 + i * (W * 0.68 / (M.total - 1)), H * 0.72, 9, 0, 7); g.fill(); } }
-    else if (M.kind === 'catch') { const LX = [W * 0.2, W * 0.5, W * 0.8];
-      g.strokeStyle = 'rgba(255,255,255,0.22)'; g.lineWidth = 2; for (const x of LX) { g.beginPath(); g.moveTo(x, H * 0.05); g.lineTo(x, H * 0.92); g.stroke(); }
-      for (const p of M.pearls) { g.fillStyle = 'rgba(255,90,70,0.95)'; g.beginPath(); g.arc(LX[p.lane], H * 0.08 + p.y * H * 0.74, 14, 0, 7); g.fill(); }
-      g.fillStyle = M.flash > 0 ? '#9dffb0' : '#ffd25a'; g.beginPath(); g.arc(LX[M.lane], H * 0.86, 22, 0, 7); g.fill();
-      g.fillStyle = '#fff'; g.font = '700 16px sans-serif'; g.textAlign = 'center'; g.fillText(`${M.caught} / ${M.need}`, W / 2, H * 0.98); }
-    else if (M.kind === 'sneak') { const on = M.inWin, hid = M.t < M.hideUntil;
-      g.fillStyle = on ? 'rgba(255,240,200,0.28)' : 'rgba(255,255,255,0.04)'; g.beginPath(); g.moveTo(W * 0.5, H * 0.04); g.lineTo(W * 0.15, H * 0.9); g.lineTo(W * 0.85, H * 0.9); g.fill();
-      g.fillStyle = hid ? '#4a6a8a' : M.seen && on ? '#ff5a4a' : '#ffd25a'; g.beginPath(); g.arc(W / 2, H * 0.78, 22, 0, 7); g.fill();
-      g.fillStyle = 'rgba(255,255,255,0.7)'; g.font = '700 14px sans-serif'; g.textAlign = 'center'; g.fillText(`${M.passes} hidden · ${M.misses} seen`, W / 2, H * 0.98); } }
+  // mini-game art: the game's own UI pieces (pearl, slot, sparkle, star, the waving diver) on a glossy panel like the rest of the UI
+  const MIMG = {}; const mimg = k => { if (!UI || !UI[k]) return null; let im = MIMG[k]; if (!im) { im = MIMG[k] = new Image(); im.src = UI[k]; } return im.complete && im.naturalWidth ? im : null; };
+  const rrect = (g, x, y, w, h, r) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
+  function mPanel(g, x, y, w, h, dark) { g.save(); rrect(g, x, y, w, h, 22); const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, dark ? '#16224f' : '#1d4596'); gr.addColorStop(1, dark ? '#070c26' : '#0a1d50'); g.fillStyle = gr; g.fill();
+    g.lineWidth = 4; g.strokeStyle = '#061433'; g.stroke(); rrect(g, x + 3, y + 3, w - 6, h - 6, 19); g.lineWidth = 2.5; g.strokeStyle = dark ? 'rgba(150,120,255,0.55)' : 'rgba(110,210,255,0.85)'; g.stroke();
+    rrect(g, x + 8, y + 7, w - 16, h * 0.28, 15); const gl = g.createLinearGradient(0, y + 7, 0, y + 7 + h * 0.28); gl.addColorStop(0, 'rgba(255,255,255,0.16)'); gl.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gl; g.fill(); g.restore(); }
+  function mPearl(g, x, y, r, a = 1, glow = true) { g.save(); g.globalAlpha = a; if (glow) { const gg = g.createRadialGradient(x, y, r * 0.3, x, y, r * 2.1); gg.addColorStop(0, 'rgba(255,90,60,0.45)'); gg.addColorStop(1, 'rgba(255,60,40,0)'); g.fillStyle = gg; g.beginPath(); g.arc(x, y, r * 2.1, 0, 7); g.fill(); }
+    const im = mimg('pearl'); if (im) g.drawImage(im, x - r, y - r, r * 2, r * 2); else { const pg = g.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r); pg.addColorStop(0, '#ffd2c4'); pg.addColorStop(0.35, '#ff3b22'); pg.addColorStop(1, '#8a0c00'); g.fillStyle = pg; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); } g.restore(); }
+  function mImg(g, k, x, y, w, h, a = 1) { const im = mimg(k); if (!im) return false; g.save(); g.globalAlpha = a; g.drawImage(im, x, y, w, h); g.restore(); return true; }
+  function mText(g, t, x, y, sz, col, a = 1, align = 'center') { g.save(); g.globalAlpha = a; g.font = `700 ${sz}px Fredoka, Nunito, sans-serif`; g.textAlign = align; g.textBaseline = 'middle'; g.lineWidth = Math.max(3, sz * 0.18); g.strokeStyle = 'rgba(6,20,51,0.9)'; g.strokeText(t, x, y); g.fillStyle = col; g.fillText(t, x, y); g.restore(); }
+  function mDiver(g, cx, by, h, a = 1) { const im = mimg('home_diver'); if (im) { const w = h * im.naturalWidth / im.naturalHeight; g.save(); g.globalAlpha = a; g.drawImage(im, cx - w / 2, by - h, w, h); g.restore(); } else { g.save(); g.globalAlpha = a; g.fillStyle = '#7a3cff'; g.beginPath(); g.arc(cx, by - h * 0.6, h * 0.3, 0, 7); g.fill(); g.restore(); } }
+  function miniDraw(M) { const cv = $('#miniCv'); if (!cv) return; const W = cv.clientWidth, H = cv.clientHeight; if (!W || !H) return; const dpr = Math.min(2, devicePixelRatio || 1);
+    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    const now = performance.now(), dt = Math.min(0.05, (now - (M._lt || now)) / 1000); M._lt = now; M._fx = (M._fx || []).filter(f => (f.t += dt) < f.d);
+    const px = 8, py = 8, pw = W - 16, ph = H - 16; mPanel(g, px, py, pw, ph, M.kind === 'sneak');
+    if (M.kind === 'beat') { const x0 = px + pw * 0.1, x1 = px + pw * 0.9, y = py + ph * 0.42, th = Math.min(46, ph * 0.16), zw = (x1 - x0) * 0.18, zx = (x0 + x1) / 2, mx = x0 + (x1 - x0) * M.ph, inZ = Math.abs(M.ph - 0.5) < 0.09;
+      rrect(g, x0 - th / 2, y - th / 2, x1 - x0 + th, th, th / 2); g.fillStyle = 'rgba(2,10,40,0.6)'; g.fill(); g.lineWidth = 2; g.strokeStyle = 'rgba(120,200,255,0.35)'; g.stroke();
+      g.save(); g.shadowColor = 'rgba(255,200,60,0.9)'; g.shadowBlur = inZ ? 26 : 12; rrect(g, zx - zw / 2, y - th / 2 + 4, zw, th - 8, (th - 8) / 2); const zg = g.createLinearGradient(0, y - th / 2, 0, y + th / 2); zg.addColorStop(0, '#fff2a8'); zg.addColorStop(0.5, '#ffc93a'); zg.addColorStop(1, '#ff9a12'); g.fillStyle = zg; g.fill(); g.restore();
+      { const tr = g.createLinearGradient(mx - 70, 0, mx, 0); tr.addColorStop(0, 'rgba(255,120,90,0)'); tr.addColorStop(1, 'rgba(255,170,140,0.45)'); g.fillStyle = tr; g.fillRect(Math.max(x0, mx - 70), y - th * 0.18, Math.min(70, mx - x0), th * 0.36); }
+      mPearl(g, mx, y, th * 0.62);
+      if (M.marks && M.marks.length !== M._nm) { const hit = M.marks[M.marks.length - 1]; M._nm = M.marks.length; M._fx.push({ k: hit ? 'perfect' : 'miss', x: hit ? zx : mx, y, t: 0, d: 0.7 }); }
+      for (const f of M._fx) { const k = f.t / f.d; if (f.k === 'perfect') { mImg(g, 'sparkle', f.x - 40 - k * 30, f.y - 40 - k * 30, 80 + k * 60, 80 + k * 60, 1 - k); mText(g, 'Perfect!', f.x, f.y - th - 10 - k * 24, 24, '#fff2a8', 1 - k); } else mText(g, 'Miss', f.x, f.y - th - 8 - k * 18, 20, '#ff8a7a', 1 - k); }
+      const n = M.total, sw = Math.min(44, pw * 0.09), gap = sw * 0.35, sx = px + pw / 2 - (n * sw + (n - 1) * gap) / 2, sy = py + ph * 0.76;
+      for (let i = 0; i < n; i++) { const x = sx + i * (sw + gap), m = M.marks ? M.marks[i] : undefined; if (!mImg(g, 'pearl_slot', x - 3, sy - 3, sw + 6, sw + 6, 0.9)) { g.fillStyle = 'rgba(0,10,40,0.6)'; g.beginPath(); g.arc(x + sw / 2, sy + sw / 2, sw / 2, 0, 7); g.fill(); }
+        if (m === true) mPearl(g, x + sw / 2, sy + sw / 2, sw * 0.38, 1, false); else if (m === false) { mPearl(g, x + sw / 2, sy + sw / 2, sw * 0.32, 0.25, false); mText(g, '×', x + sw / 2, sy + sw / 2, sw * 0.6, '#ff8a7a'); } }
+      mText(g, `${M.hits} / ${M.need} needed`, px + pw / 2, py + ph * 0.93, 16, 'rgba(220,240,255,0.85)'); }
+    else if (M.kind === 'catch') { const LX = [px + pw * 0.22, px + pw * 0.5, px + pw * 0.78], top = py + ph * 0.1, bot = py + ph * 0.96, cy = py + ph * 0.84;
+      for (const x of LX) { const lg = g.createLinearGradient(0, top, 0, bot); lg.addColorStop(0, 'rgba(120,220,255,0)'); lg.addColorStop(0.5, 'rgba(120,220,255,0.10)'); lg.addColorStop(1, 'rgba(120,220,255,0.18)'); g.fillStyle = lg; rrect(g, x - pw * 0.11, top, pw * 0.22, bot - top, 16); g.fill(); }
+      M._dx = M._dx === undefined ? M.lane : M._dx + (M.lane - M._dx) * Math.min(1, dt * 14); const dxp = LX[0] + (LX[2] - LX[0]) * M._dx / 2;
+      for (const p of M.pearls) { const yy = top + p.y * (cy - top - ph * 0.08); mPearl(g, LX[p.lane] + Math.sin((p.y + p.lane) * 9) * 3, yy, Math.min(20, ph * 0.065)); }
+      if (M.caught !== M._nc) { if (M._nc !== undefined) M._fx.push({ k: 'catch', x: dxp, y: cy - ph * 0.22, t: 0, d: 0.6 }); M._nc = M.caught; }
+      if (M.missed !== M._nmiss) { if (M._nmiss !== undefined) M._fx.push({ k: 'drop', x: dxp, y: cy - ph * 0.1, t: 0, d: 0.6 }); M._nmiss = M.missed; }
+      mDiver(g, dxp, bot, ph * 0.34);
+      for (const f of M._fx) { const k = f.t / f.d; if (f.k === 'catch') { mImg(g, 'sparkle', f.x - 30 - k * 20, f.y - 30 - k * 20, 60 + k * 40, 60 + k * 40, 1 - k); mText(g, '+1', f.x, f.y - k * 30, 22, '#fff2a8', 1 - k); } else mText(g, 'Oops!', f.x, f.y - k * 24, 18, '#ff8a7a', 1 - k); }
+      mPearl(g, px + 34, py + 30, 13, 1, false); mText(g, `${M.caught} / ${M.need}`, px + 54, py + 31, 20, '#ffffff', 1, 'left');
+      for (let i = 0; i < M.maxMiss; i++) { const x = px + pw - 26 - i * 24; g.fillStyle = i < M.maxMiss - M.missed ? '#7fe6ff' : 'rgba(255,255,255,0.15)'; g.beginPath(); g.arc(x, py + 30, 8, 0, 7); g.fill(); } }
+    else if (M.kind === 'sneak') { const P = 2.2, cyc = (M.t % P) / P, ex = px + pw / 2, ey = py + ph * 0.18, er = Math.min(46, ph * 0.13), hid = M.t < M.hideUntil;
+      const warn = cyc > 0.3 && cyc < 0.545 ? (cyc - 0.3) / 0.245 : 0, open = M.inWin ? 1 : warn * 0.55 + (cyc >= 0.864 && cyc < 0.95 ? (0.95 - cyc) / 0.086 : 0);
+      if (M.inWin) { const bg = g.createLinearGradient(0, ey, 0, py + ph); bg.addColorStop(0, 'rgba(255,90,60,0.55)'); bg.addColorStop(1, 'rgba(255,90,60,0.05)'); g.fillStyle = bg; g.beginPath(); g.moveTo(ex - er * 0.5, ey); g.lineTo(px + pw * 0.16, py + ph - 10); g.lineTo(px + pw * 0.84, py + ph - 10); g.lineTo(ex + er * 0.5, ey); g.closePath(); g.fill(); }
+      { const gg = g.createRadialGradient(ex, ey, er * 0.2, ex, ey, er * 2.4); gg.addColorStop(0, `rgba(255,60,40,${0.25 + 0.5 * open})`); gg.addColorStop(1, 'rgba(255,40,30,0)'); g.fillStyle = gg; g.beginPath(); g.arc(ex, ey, er * 2.4, 0, 7); g.fill(); }
+      { const h = er * (0.12 + 0.62 * open); g.save(); g.beginPath(); g.moveTo(ex - er * 1.3, ey); g.quadraticCurveTo(ex, ey - h * 1.6, ex + er * 1.3, ey); g.quadraticCurveTo(ex, ey + h * 1.6, ex - er * 1.3, ey); g.closePath(); g.fillStyle = '#ffd04a'; g.fill(); g.clip();
+        const ig = g.createRadialGradient(ex, ey, 2, ex, ey, er); ig.addColorStop(0, '#fff3a0'); ig.addColorStop(0.6, '#ff8a1e'); ig.addColorStop(1, '#b51e00'); g.fillStyle = ig; g.beginPath(); g.arc(ex, ey, er * 0.85, 0, 7); g.fill();
+        g.fillStyle = '#120005'; g.beginPath(); g.ellipse(ex, ey, er * 0.14, er * 0.7, 0, 0, 7); g.fill(); g.restore(); g.lineWidth = 3; g.strokeStyle = '#3a0010'; g.beginPath(); g.moveTo(ex - er * 1.3, ey); g.quadraticCurveTo(ex, ey - h * 1.6, ex + er * 1.3, ey); g.quadraticCurveTo(ex, ey + h * 1.6, ex - er * 1.3, ey); g.stroke(); }
+      if (warn > 0 && !M.inWin) { g.save(); g.lineWidth = 4; g.strokeStyle = 'rgba(255,220,120,0.9)'; g.beginPath(); g.arc(ex, ey, er * 1.65, -Math.PI / 2, -Math.PI / 2 + warn * Math.PI * 2); g.stroke(); g.restore(); }
+      const by = py + ph - 14, dh = ph * 0.32; mDiver(g, ex, by + (hid ? dh * 0.18 : 0), dh, hid ? 0.55 : 1);
+      if (hid) { g.save(); const rg = g.createLinearGradient(0, by - dh * 0.45, 0, by); rg.addColorStop(0, '#3a4a6e'); rg.addColorStop(1, '#151d36'); g.fillStyle = rg; g.beginPath(); g.ellipse(ex, by - dh * 0.12, dh * 0.42, dh * 0.3, 0, Math.PI, 0); g.lineTo(ex + dh * 0.42, by); g.lineTo(ex - dh * 0.42, by); g.closePath(); g.fill(); g.restore(); }
+      if (M.inWin && M.seen) { g.save(); g.shadowColor = '#ff3020'; g.shadowBlur = 30; mText(g, 'Spotted!', ex, by - dh - 18, 26, '#ff8a7a'); g.restore(); }
+      if (M.checked !== M._nck) { if (M._nck !== undefined) M._fx.push({ k: M.flash < 0 ? 'seen' : 'safe', x: ex, y: by - dh - 16, t: 0, d: 0.8 }); M._nck = M.checked; }
+      for (const f of M._fx) { const k = f.t / f.d; if (f.k === 'safe') mText(g, 'Hidden!', f.x, f.y - k * 24, 24, '#9dffb0', 1 - k); }
+      for (let i = 0; i < M.total; i++) { const x = px + pw / 2 + (i - (M.total - 1) / 2) * 30, y = py + ph * 0.43, done = i < M.passes + M.misses, ok = i < M.passes;
+        if (done && ok) { if (!mImg(g, 'star', x - 12, y - 12, 24, 24)) { g.fillStyle = '#ffd25a'; g.beginPath(); g.arc(x, y, 9, 0, 7); g.fill(); } } else { g.fillStyle = done ? 'rgba(255,110,90,0.9)' : 'rgba(255,255,255,0.18)'; g.beginPath(); g.arc(x, y, 8, 0, 7); g.fill(); } } } }
   // ---- in-world segments (story v7): a won level plays its short action game on the same tank instead of a film.
   // 2 spoken lines, the game, 1-2 outcome lines, then the result card. Only chapters whose beat is a mini-game use it for now.
   let seg = null, segTimers = [];
