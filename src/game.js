@@ -7540,10 +7540,10 @@ window.__T = T;
       mPearl(g, mx, y, th * 0.62);
       if (M.marks && M.marks.length !== M._nm) { const hit = M.marks[M.marks.length - 1]; M._nm = M.marks.length; M._fx.push({ k: hit ? 'perfect' : 'miss', x: hit ? zx : mx, y, t: 0, d: 0.7 }); }
       for (const f of M._fx) { const k = f.t / f.d; if (f.k === 'perfect') { mImg(g, 'sparkle', f.x - 40 - k * 30, f.y - 40 - k * 30, 80 + k * 60, 80 + k * 60, 1 - k); mText(g, 'Perfect!', f.x, f.y - th - 10 - k * 24, 24, '#fff2a8', 1 - k); } else mText(g, 'Miss', f.x, f.y - th - 8 - k * 18, 20, '#ff8a7a', 1 - k); }
-      const n = M.total, sw = Math.min(44, pw * 0.09), gap = sw * 0.35, sx = px + pw / 2 - (n * sw + (n - 1) * gap) / 2, sy = py + ph * 0.76;
+      const n = M.total, sw = Math.min(44, pw * 0.09), gap = sw * 0.35, sx = px + pw / 2 - (n * sw + (n - 1) * gap) / 2, sy = py + ph * 0.6;
       for (let i = 0; i < n; i++) { const x = sx + i * (sw + gap), m = M.marks ? M.marks[i] : undefined; if (!mImg(g, 'pearl_slot', x - 3, sy - 3, sw + 6, sw + 6, 0.9)) { g.fillStyle = 'rgba(0,10,40,0.6)'; g.beginPath(); g.arc(x + sw / 2, sy + sw / 2, sw / 2, 0, 7); g.fill(); }
         if (m === true) mPearl(g, x + sw / 2, sy + sw / 2, sw * 0.38, 1, false); else if (m === false) { mPearl(g, x + sw / 2, sy + sw / 2, sw * 0.32, 0.25, false); mText(g, '×', x + sw / 2, sy + sw / 2, sw * 0.6, '#ff8a7a'); } }
-      mText(g, `${M.hits} / ${M.need} needed`, px + pw / 2, py + ph * 0.93, 16, 'rgba(220,240,255,0.85)'); }
+      mText(g, `${M.hits} of ${M.need} needed`, px + pw / 2, py + ph * 0.6 + sw + 22, 16, 'rgba(220,240,255,0.85)'); }
     else if (M.kind === 'catch') { const LX = [px + pw * 0.22, px + pw * 0.5, px + pw * 0.78], top = py + ph * 0.1, bot = py + ph * 0.96, cy = py + ph * 0.84;
       for (const x of LX) { const lg = g.createLinearGradient(0, top, 0, bot); lg.addColorStop(0, 'rgba(120,220,255,0)'); lg.addColorStop(0.5, 'rgba(120,220,255,0.10)'); lg.addColorStop(1, 'rgba(120,220,255,0.18)'); g.fillStyle = lg; rrect(g, x - pw * 0.11, top, pw * 0.22, bot - top, 16); g.fill(); }
       M._dx = M._dx === undefined ? M.lane : M._dx + (M.lane - M._dx) * Math.min(1, dt * 14); const dxp = LX[0] + (LX[2] - LX[0]) * M._dx / 2;
@@ -7555,7 +7555,9 @@ window.__T = T;
       mPearl(g, px + 34, py + 30, 13, 1, false); mText(g, `${M.caught} / ${M.need}`, px + 54, py + 31, 20, '#ffffff', 1, 'left');
       for (let i = 0; i < M.maxMiss; i++) { const x = px + pw - 26 - i * 24; g.fillStyle = i < M.maxMiss - M.missed ? '#7fe6ff' : 'rgba(255,255,255,0.15)'; g.beginPath(); g.arc(x, py + 30, 8, 0, 7); g.fill(); } }
     else if (M.kind === 'sneak') { const P = 2.2, cyc = (M.t % P) / P, ex = px + pw / 2, ey = py + ph * 0.18, er = Math.min(46, ph * 0.13), hid = M.t < M.hideUntil;
-      const warn = cyc > 0.3 && cyc < 0.545 ? (cyc - 0.3) / 0.245 : 0, open = M.inWin ? 1 : warn * 0.55 + (cyc >= 0.864 && cyc < 0.95 ? (0.95 - cyc) / 0.086 : 0);
+      const warn = cyc > 0.3 && cyc < 0.545 ? (cyc - 0.3) / 0.245 : 0, open = M.inWin ? 1 : 0.18 + warn * 0.5 + (cyc >= 0.864 && cyc < 0.95 ? (0.95 - cyc) / 0.086 * 0.8 : 0);
+      { g.save(); rrect(g, px + 3, py + 3, pw - 6, ph - 6, 19); g.clip(); g.fillStyle = '#0c1433'; g.beginPath(); g.moveTo(px, py + ph); for (let i = 0; i <= 24; i++) { const x = px + pw * i / 24; g.lineTo(x, py + ph * (0.8 - 0.07 * Math.sin(i * 1.7) - 0.05 * Math.sin(i * 0.6 + 1))); } g.lineTo(px + pw, py + ph); g.closePath(); g.fill();
+        g.fillStyle = 'rgba(120,90,220,0.18)'; for (let i = 0; i < 7; i++) { const x = px + pw * (0.08 + i * 0.14), h = ph * (0.12 + 0.05 * (i % 3)); g.beginPath(); g.ellipse(x, py + ph * 0.82, 4, h, 0.15 * Math.sin(M.t * 0.8 + i), 0, 7); g.fill(); } g.restore(); }
       if (M.inWin) { const bg = g.createLinearGradient(0, ey, 0, py + ph); bg.addColorStop(0, 'rgba(255,90,60,0.55)'); bg.addColorStop(1, 'rgba(255,90,60,0.05)'); g.fillStyle = bg; g.beginPath(); g.moveTo(ex - er * 0.5, ey); g.lineTo(px + pw * 0.16, py + ph - 10); g.lineTo(px + pw * 0.84, py + ph - 10); g.lineTo(ex + er * 0.5, ey); g.closePath(); g.fill(); }
       { const gg = g.createRadialGradient(ex, ey, er * 0.2, ex, ey, er * 2.4); gg.addColorStop(0, `rgba(255,60,40,${0.25 + 0.5 * open})`); gg.addColorStop(1, 'rgba(255,40,30,0)'); g.fillStyle = gg; g.beginPath(); g.arc(ex, ey, er * 2.4, 0, 7); g.fill(); }
       { const h = er * (0.12 + 0.62 * open); g.save(); g.beginPath(); g.moveTo(ex - er * 1.3, ey); g.quadraticCurveTo(ex, ey - h * 1.6, ex + er * 1.3, ey); g.quadraticCurveTo(ex, ey + h * 1.6, ex - er * 1.3, ey); g.closePath(); g.fillStyle = '#ffd04a'; g.fill(); g.clip();
@@ -7567,7 +7569,7 @@ window.__T = T;
       if (M.inWin && M.seen) { g.save(); g.shadowColor = '#ff3020'; g.shadowBlur = 30; mText(g, 'Spotted!', ex, by - dh - 18, 26, '#ff8a7a'); g.restore(); }
       if (M.checked !== M._nck) { if (M._nck !== undefined) M._fx.push({ k: M.flash < 0 ? 'seen' : 'safe', x: ex, y: by - dh - 16, t: 0, d: 0.8 }); M._nck = M.checked; }
       for (const f of M._fx) { const k = f.t / f.d; if (f.k === 'safe') mText(g, 'Hidden!', f.x, f.y - k * 24, 24, '#9dffb0', 1 - k); }
-      for (let i = 0; i < M.total; i++) { const x = px + pw / 2 + (i - (M.total - 1) / 2) * 30, y = py + ph * 0.43, done = i < M.passes + M.misses, ok = i < M.passes;
+      for (let i = 0; i < M.total; i++) { const x = px + 34 + i * 26, y = py + 30, done = i < M.passes + M.misses, ok = i < M.passes;
         if (done && ok) { if (!mImg(g, 'star', x - 12, y - 12, 24, 24)) { g.fillStyle = '#ffd25a'; g.beginPath(); g.arc(x, y, 9, 0, 7); g.fill(); } } else { g.fillStyle = done ? 'rgba(255,110,90,0.9)' : 'rgba(255,255,255,0.18)'; g.beginPath(); g.arc(x, y, 8, 0, 7); g.fill(); } } } }
   // ---- in-world segments (story v7): a won level plays its short action game on the same tank instead of a film.
   // 2 spoken lines, the game, 1-2 outcome lines, then the result card. Only chapters whose beat is a mini-game use it for now.
