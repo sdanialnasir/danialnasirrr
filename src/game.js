@@ -3347,7 +3347,7 @@ const SHEET_SPR = window.AQ_DATA.SHEET_SPR;
       // camera: low in front of him, walking backwards with him; it holds close on his face for the voice; then follows them on
       let cp = new V3(1.3, 1.05, z - 3.0), cl = new V3(0, 0.8, z);
       if (t > a0 - 0.3 && t < e2 + 0.4) { const k = sm01((t - a0 + 0.3) / 1.2) * (1 - sm01((t - e2 + 0.2) / 0.8)); cp.lerp(new V3(0.9, 0.95, z - 2.0), k); cl.lerp(new V3(0, 0.95, z + 0.5), k); }
-      if (go > 0) { const k = sm01(go / 2.4); cp.lerp(new V3(-0.3, 2.35, z + 3.4), k); cl.lerp(new V3(0.05, 0.65, z - 1.6), k); } /* behind and above them, looking down the open middle of the cave: high enough that the crystal clusters never fill the lens */
+      if (go > 0) { const k = sm01(go / 2.4); cp.lerp(new V3(0.9, 1.55, z - 3.6), k); cl.lerp(new V3(0, 0.8, z + 0.3), k); } /* they walk on toward the lens, which drifts back and up ahead of them (a 180° swing round behind them took longer than the film had left and ended on empty sand) */
       S.cam(cp, cl);
       return { mode: t < a0 - 0.2 || go > 0 ? 'walk' : 'stand', speed: 1.1, face: f }; } };
   // 12, staged on its lines: a ring of giant clams in a sunlit hollow. They open one by one as the narrator speaks; while they sing they
@@ -7562,7 +7562,7 @@ window.__T = T;
     else if (M.kind === 'sneak') { const P = 2.2, cyc = (M.t % P) / P, ex = px + pw / 2, ey = py + ph * 0.18, er = Math.min(46, ph * 0.13), hid = M.t < M.hideUntil;
       const warn = cyc > 0.3 && cyc < 0.545 ? (cyc - 0.3) / 0.245 : 0, open = M.inWin ? 1 : 0.18 + warn * 0.5 + (cyc >= 0.864 && cyc < 0.95 ? (0.95 - cyc) / 0.086 * 0.8 : 0);
       { g.save(); rrect(g, px + 3, py + 3, pw - 6, ph - 6, 19); g.clip(); g.fillStyle = '#0c1433'; g.beginPath(); g.moveTo(px, py + ph); for (let i = 0; i <= 24; i++) { const x = px + pw * i / 24; g.lineTo(x, py + ph * (0.8 - 0.07 * Math.sin(i * 1.7) - 0.05 * Math.sin(i * 0.6 + 1))); } g.lineTo(px + pw, py + ph); g.closePath(); g.fill();
-        g.fillStyle = 'rgba(120,90,220,0.18)'; for (let i = 0; i < 7; i++) { const x = px + pw * (0.08 + i * 0.14), h = ph * (0.12 + 0.05 * (i % 3)); g.beginPath(); g.ellipse(x, py + ph * 0.82, 4, h, 0.15 * Math.sin(M.t * 0.8 + i), 0, 7); g.fill(); } g.restore(); }
+        g.fillStyle = 'rgba(120,90,220,0.12)'; for (let i = 0; i < 7; i++) { const x = px + pw * (0.08 + i * 0.14), h = ph * (0.08 + 0.04 * (i % 3)); g.beginPath(); g.ellipse(x, py + ph * 0.84, 11, h, 0.12 * Math.sin(M.t * 0.8 + i), 0, 7); g.fill(); } g.restore(); }
       if (M.inWin) { const bg = g.createLinearGradient(0, ey, 0, py + ph); bg.addColorStop(0, 'rgba(255,90,60,0.55)'); bg.addColorStop(1, 'rgba(255,90,60,0.05)'); g.fillStyle = bg; g.beginPath(); g.moveTo(ex - er * 0.5, ey); g.lineTo(px + pw * 0.16, py + ph - 10); g.lineTo(px + pw * 0.84, py + ph - 10); g.lineTo(ex + er * 0.5, ey); g.closePath(); g.fill(); }
       { const gg = g.createRadialGradient(ex, ey, er * 0.2, ex, ey, er * 2.4); gg.addColorStop(0, `rgba(255,60,40,${0.25 + 0.5 * open})`); gg.addColorStop(1, 'rgba(255,40,30,0)'); g.fillStyle = gg; g.beginPath(); g.arc(ex, ey, er * 2.4, 0, 7); g.fill(); }
       { const h = er * (0.12 + 0.62 * open); g.save(); g.beginPath(); g.moveTo(ex - er * 1.3, ey); g.quadraticCurveTo(ex, ey - h * 1.6, ex + er * 1.3, ey); g.quadraticCurveTo(ex, ey + h * 1.6, ex - er * 1.3, ey); g.closePath(); g.fillStyle = '#ffd04a'; g.fill(); g.clip();
