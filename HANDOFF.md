@@ -1,90 +1,50 @@
-# Aqua Energizer — project handoff
+# Aqua Energizer: handoff for the next Claude
 
-An underwater dig-and-push puzzle game (Boulder Dash family) built with Three.js. 30 levels, a Daily Dive, shop, rewards,
-an intro film with voice-over, and a finale. It runs in any modern browser on phones and computers, and it ships as
-**one self-contained file: `dist/index.html`** (about 11 MB, everything inside it).
+Read this first, then `CLAUDE.md` (the full technical guide: every system, file and past decision) and `TODO.md`.
 
-- **To play right now:** open `dist/index.html` in Chrome, Edge or Safari. No install needed.
-- **To change the game:** edit files in `src/`, then rebuild (commands below).
-- **Full technical history** (every system, every decision, what the owner approved or rejected): `CLAUDE.md`.
-- **For another AI (ChatGPT etc.):** paste `docs/AI_BRIEF.md` as the first message, then the task you want.
+## What this is
+A Boulder Dash-style underwater puzzle game in one HTML file (Three.js). A diver digs sand and pushes red pearls into a gate, while
+stones fall and monsters patrol. It has 30 levels and a story with 31 short films (a prologue plus chapters 1–30) between levels.
+The owner, Noor, judges everything by playing on a phone.
 
----
+- Live build: https://claude.ai/artifact/HQL6UGenCGmT79BLXmW5A8 (version 88). Publish `dist/index.html` with `files`: manifest.json and
+  icons/icon-192.png, icons/icon-512.png, icons/apple-touch-icon.png from `dist/`. Keep the artifact's existing capabilities.
+- Git: repo `sdanialnasir/danialnasirrr`, branch `claude/new-session-gkcpku`. Commit and push work there. No PRs unless asked.
 
-## 1. Setup (once)
+## How to work (owner rules)
+- Edit `src/` and `tools/`, then `python3 tools/build.py` builds `dist/index.html`. Keep it under ~16 MB (now ~15.5 MB).
+- Done means: build OK, `tests/smoke.py` passes, `tests/play_routes.py` wins 30/30, `tests/fuzz_levels.py` has 0 errors,
+  `tests/segments.py` passes, and you have **looked at screenshots** of what changed (phone and computer).
+  Set `CHROME_PATH=/opt/pw-browsers/chromium` (or your Chromium) for the tests.
+- Keep the 30 levels. Don't invent new puzzle mechanics without asking.
+- The owner is short on credits: be efficient, verify before saying "done", and say plainly what is and isn't finished.
+  The owner dislikes vague status updates and "ugly" work; polish and check before reporting.
+- Story text lives in `tools/story/story_v6.py`. Run `python3 tools/story/inject.py`, then `python3 tools/story/gen_docs.py`.
+  **The owner must not record voices until they approve the script.**
+- Never commit the ElevenLabs key (`.elevenlabs-key` / `elevenlabs-key.txt` are gitignored).
 
-You need **Python 3.10+** (python.org; on Windows tick "Add python.exe to PATH" in the installer).
-**Node.js 18+** is only needed for the level solver tools. **ffmpeg** is only needed for the sound/voice tools.
+## Where things stand
+- Puzzle gameplay: the owner likes it. Glow gems, relics, combos, breathing at the top of the tank, danger glow, hints, and 3 undos per try.
+- Films: shortened to 2–4 spoken lines each, the rest silent action beats. The camera now runs through a smooth stabiliser
+  (measured on all 31 films: direction flips 46 → 2). Captions are fixed on small screens.
+- Mini-games: beat (timing), catch (lanes) and sneak (hide from the eye) are in-world segments on chapters 2, 5, 6, 16, 18, 20, 21, 28.
+  They replace the film there. Other chapters still have films with swim-runs, choices, the clam song and the boss fight (ch. 30).
 
-Open a terminal in the project folder (Windows: Shift + right-click the folder → "Open in Terminal"), then:
+## What the owner wants next (vision)
+1. **"Finding Nemo game"-style gameplay:** varied, action-packed mini-games after each story beat, with the tank puzzle kept as each level's
+   core and about 2 minutes per level. Replace long films with short in-world beats: one camera move and one line, with the story happening
+   in the environment (Grimtide's searchlight, shadows, characters around the tank). Roll the segment system out from 8 to all 30 chapters,
+   with no two neighbouring chapters using the same mini-game type. Add more types (escort a fish, current race through rings, dodge field).
+   Make each one look polished with the game's UI art.
+2. **Rigged characters:** the owner will send rigged Meshy GLBs (pip, pip_cousin, shelly, captain_clack, murk, lumen, mira, snip, snap,
+   crab, piranha, grimtide). They can't animate. Convert them like `tools/convert_diver.py` does (skinned, reuse or retarget the diver's
+   clips), keep the face rig / talking mouths / glow, and replace the current static cast models.
+3. Cinematic quality: Disney / AAA feel, smooth camera, characters alive, a modern underwater environment. The ch. 6 wreck is still a flat
+   wall, and night scenes are a bit murky.
+4. Check on a real phone: segment layout and the camera's feel in motion (only checked in headless screenshots so far).
 
-```bash
-pip install -r requirements-dev.txt          # Playwright (tests) + Pillow (image tools)
-python -m playwright install chromium        # the browser the tests drive
-```
-
-Sound tools only (optional): `pip install numpy scipy` and install ffmpeg (Windows: `winget install ffmpeg`).
-
-## 2. Everyday commands
-
-| What | Command |
-|---|---|
-| Build the game (after any change in `src/`) | `python tools/build.py` → writes `dist/index.html` |
-| Play the source version without building | open `src/index.html` in a browser |
-| Quick test: every level loads, no errors | `python tests/smoke.py dist/index.html` |
-| All 30 levels can still be won (≈ 3–10 min) | `python tests/play_routes.py dist/index.html` |
-| Random play on all levels, must show 0 errors | `python tests/fuzz_levels.py dist/index.html 260` |
-| Try the solver on a level (needs Node) | `python tools/solver/extract_engine.py` then `node tools/solver/macro.js 12` |
-| Check a winning route | `node tools/solver/replay.js 10 "RRRRRDDD..."` |
-| Make the ElevenLabs voice-overs (Windows) | double-click `make_voices.bat` |
-| Bring new voice clips into the game | `python tools/import_voices.py voiceovers.zip` then `python tools/build.py` |
-| Recolour/replace UI art from PNGs | `python tools/compress_ui.py <folder>` |
-| Swap the 3D diver for a new rigged GLB | `python tools/convert_diver.py diver.glb` |
-
-**A change is "done" only when:** the build succeeds, `smoke.py` passes, `play_routes.py` wins all 30 levels, `fuzz_levels.py`
-reports 0 errors, and someone has looked at the changed screen on a phone-sized and a computer-sized window.
-
-## 3. Where things live
-
-```
-dist/index.html            THE GAME (built). Host this file anywhere static (Netlify, GitHub Pages, itch.io...).
-src/index.html             all screens, menus and the whole stylesheet (about 2,000 lines)
-src/game.js                all game code (about 5,200 lines), in this order:
-                             Engine (the puzzle rules)  ->  LEVELS (the 30 maps)  ->  Audio  ->  World (3D)  ->  Controller (UI, saves)
-src/vendor/three.min.js    Three.js r160 (don't edit)
-src/assets/images/         art: background painting, sheet sprites, UI art (ui/*.webp)
-src/assets/sfx, music, vo  sound effects, music, voice-overs (MP3)
-src/assets/models/diver.js the 3D diver (generated from a GLB by tools/convert_diver.py)
-src/assets/art-data.js     GENERATED by the build (all art as data). Never edit by hand.
-tools/                     build, art, sound, voice and level-solver tools
-tools/voices.json          every voice-over line (text, role, timing)
-tests/                     smoke / routes / fuzz tests + tests/routes.json (a verified winning route per level)
-docs/                      expert-review.md (the last audit), voiceover-script.md, sound-list.md, audio-credits.md
-```
-
-## 4. Rules that must not be broken
-
-1. **One file.** The final game must stay a single `dist/index.html` with no outside requests except Google Fonts, under ~16 MB.
-2. **Never edit generated files** (`dist/`, `src/assets/art-data.js`, `src/assets/models/diver.js`): change the sources and rebuild.
-3. **Puzzle rules and levels are fragile.** Any change to the `Engine` class or `LEVELS` can make a level unwinnable. Re-run
-   `play_routes.py`; if a level changes, re-verify it with the solver and update `tests/routes.json`. Keep the current 30 levels.
-4. **Keep the approved look:** glass-tank levels, sand, reef-rock walls, the owner's Meshy diver, glossy navy-and-gold UI, calm
-   low sounds, no melodic music, no harsh/shrill sounds, no camera zoom on computers, nothing crossing the playfield.
-5. **Don't invent new game mechanics** without the owner agreeing first.
-6. **Credits must stay** in Settings › Credits (the music is CC BY 4.0).
-
-## 5. What's in the game today (short)
-
-- **Play:** dig, push pearls into the gate, swim in. Stones fall and roll, piranhas/jellyfish/crabs, air timer (starts on the first
-  move), air capsules, danger glow on fatal cells, 3 undos per try (the button appears in tight spots), hints that plan from the live
-  board, combos, a hidden relic per level, stars.
-- **Around it:** loader, title, intro film with narration, spotlight tutorials, level map (3 worlds), Daily Dive + leaderboard,
-  shop with outfits (some unlocked by sharing), rewards (daily, weekly, star chest), share cards and video clips, finale + credits.
-- **Tech:** auto graphics tuning per device, resolution setting, volume sliders, colour-blind marks, relaxed mode, larger HUD.
-
-## 6. Known gaps (need the owner or hosting)
-
-- Hosting address: set `PUBLIC_URL` in `src/game.js` and add an `og:image` so shared links show a picture.
-- The online leaderboard uses the claude.ai artifact database; a hosted copy needs its own small backend.
-- Worlds 2 and 3 reuse World 1's painting with a tint (drop `bg_photo_w2.jpg` / `bg_photo_w3.jpg` into `src/assets/images/background/`).
-- iPhone haptics and low-end Android speed have never been checked on real devices.
+## Gotchas
+- Headless rendering is software and slow; tests freeze rAF (`window.__freeze = true`) and drive frames by hand. Don't trust wall-clock timing.
+- `pgrep -f`/`pkill -f` with a pattern also matches your own shell command; wait on PIDs instead.
+- A `//` comment inside a one-line JS or GLSL statement swallows the rest of the line; use `/* */`.
+- Debug handles: `window.__dc` (`startIndex(i)`, `watch(n)`, `seg(n)`, `segState()`, `world`, `engine`).
